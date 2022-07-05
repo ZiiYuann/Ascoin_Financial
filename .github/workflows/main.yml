@@ -1,0 +1,33 @@
+name: financial
+
+on:
+  push:
+    branches: [ mian ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build with Maven
+        run: mvn -B package -DskipTests --file pom.xml
+      - uses: kciter/aws-ecr-action@master
+        with:
+          access_key_id: AKIAZYZHBHKSZUCLHWXV
+          secret_access_key: "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"
+          account_id: "671707380389"
+          repo: financial
+          region: ap-northeast-1
+          tags: latest
+          create_repo: true
+          dockerfile: Dockerfile-local

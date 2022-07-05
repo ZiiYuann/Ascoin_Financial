@@ -1,0 +1,66 @@
+package com.tianli.charge.controller;
+
+import com.tianli.charge.mapper.Charge;
+import com.tianli.charge.mapper.ChargeStatus;
+import com.tianli.currency.CurrencyTokenEnum;
+import com.tianli.currency_token.mapper.ChainType;
+import com.tianli.management.spot.entity.SGCharge;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.RoundingMode;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class WithdrawApplyChargeVO {
+    private LocalDateTime create_time;
+    private Long create_time_ms;
+    private ChargeStatus status;
+    private double amount;
+    private double fee;
+    private double real_amount;
+    private String token;
+    private String reason;
+    private String reason_en;
+    private String chain;
+
+    public static WithdrawApplyChargeVO trans(Charge charge) {
+        LocalDateTime create_time = charge.getCreate_time();
+        Instant instant = create_time.atZone(ZoneId.systemDefault()).toInstant();
+        return WithdrawApplyChargeVO.builder()
+                .create_time(create_time)
+                .create_time_ms(instant.toEpochMilli())
+                .status(charge.getStatus())
+                .token(charge.getToken().voStr())
+                .amount(charge.getCurrency_type().money(charge.getAmount()))
+                .fee(charge.getCurrency_type().money(charge.getFee()))
+                .real_amount(charge.getCurrency_type().money(charge.getReal_amount()))
+                .reason(charge.getReason())
+                .reason_en(charge.getReason_en())
+                .build();
+    }
+
+    public static WithdrawApplyChargeVO trans(SGCharge sgCharge) {
+        LocalDateTime create_time = sgCharge.getCreate_time();
+        Instant instant = create_time.atZone(ZoneId.systemDefault()).toInstant();
+        return WithdrawApplyChargeVO.builder()
+                .create_time(create_time)
+                .create_time_ms(instant.toEpochMilli())
+                .status(sgCharge.getStatus())
+                .token(sgCharge.getToken())
+                .amount(sgCharge.getAmount().setScale(6, RoundingMode.HALF_UP).doubleValue())
+                .fee(sgCharge.getFee().setScale(6, RoundingMode.HALF_UP).doubleValue())
+                .real_amount(sgCharge.getReal_amount().setScale(6, RoundingMode.HALF_UP).doubleValue())
+                .reason(sgCharge.getReason())
+                .reason_en(sgCharge.getReason_en())
+                .chain(sgCharge.getCurrency_type())
+                .build();
+    }
+}
