@@ -9,7 +9,7 @@ spring:
     password: "@tianli123456TL"
   redis:
     host: r-6wes3xh85wv4t8xp2jpd.redis.japan.rds.aliyuncs.com
-    database: 53
+    database: 56
     password: "@tianli123456TL"
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
