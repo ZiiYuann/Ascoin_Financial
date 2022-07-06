@@ -1,8 +1,12 @@
 package com.tianli.common.init;
 
+import com.google.gson.JsonObject;
 import com.tianli.common.IpTool;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.sso.service.OssService;
+import com.tianli.sso.service.UserOssService;
 import com.tianli.tool.ApplicationContextTool;
+import com.tianli.tool.judge.JsonObjectTool;
 import com.tianli.user.UserService;
 import com.tianli.user.mapper.User;
 import com.tianli.user.mapper.UserStatus;
@@ -75,11 +79,6 @@ public class RequestInitService {
         if (requestInit == null) return new RequestInit();
         return requestInit;
     }
-    public RequestRiskManagementInfo getRisk() {
-        RequestRiskManagementInfo info = REQUEST_RISK_INIT.get();
-        if (info == null) return new RequestRiskManagementInfo();
-        return info;
-    }
 
     public void init(HttpServletRequest httpServletRequest) {
         RequestInit requestInit = new RequestInit();
@@ -100,7 +99,9 @@ public class RequestInitService {
         /**
          * 解析用户信息
          */
-        requestInit.setUid(requestInitToken.currentUserId(httpServletRequest));
+        JsonObject ossUser = userOssService.loginUser();
+        requestInit.setUid(JsonObjectTool.getAsLong(ossUser, "id"));
+        requestInit.setUserInfo(ossUser);
         requestInit.setIp(ApplicationContextTool.getBean(IpTool.class).getIp(httpServletRequest));
         String lat = httpServletRequest.getHeader("LAT");
         if (!StringUtils.isEmpty(lat)) {
@@ -123,19 +124,9 @@ public class RequestInitService {
 
         REQUEST_INIT.set(requestInit);
     }
-    public void initRiskInfo(HttpServletRequest httpServletRequest) {
-        RequestRiskManagementInfo riskInfo = new RequestRiskManagementInfo();
-        // 增加部分接口的谷歌人机校验逻辑
-        requestInitToken.googleCheck(httpServletRequest, riskInfo);
-        REQUEST_RISK_INIT.set(riskInfo);
-    }
 
     public void destroy() {
         REQUEST_INIT.remove();
-    }
-
-    public void destroyRisk() {
-        REQUEST_RISK_INIT.remove();
     }
 
     public void init() {
@@ -148,21 +139,12 @@ public class RequestInitService {
         requestInit.setUid(uid);
     }
 
-    /**
-     * 必须要进行谷歌人机校验
-     */
-    public void grcOk() {
-        RequestRiskManagementInfo risk = getRisk();
-        if (!risk.isGrc()) ErrorCodeEnum.SYSTEM_ERROR.throwException();
-    }
-
 
     @Resource
-    private RequestInitToken requestInitToken;
+    private UserOssService userOssService;
 
     @Resource
     private UserService userService;
 
     private final ThreadLocal<RequestInit> REQUEST_INIT = new ThreadLocal<>();
-    private final ThreadLocal<RequestRiskManagementInfo> REQUEST_RISK_INIT = new ThreadLocal<>();
 }

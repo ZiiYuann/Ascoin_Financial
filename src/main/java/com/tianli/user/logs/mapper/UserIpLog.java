@@ -3,7 +3,6 @@ package com.tianli.user.logs.mapper;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.init.RequestInit;
 import com.tianli.common.init.RequestInitService;
-import com.tianli.common.init.RequestRiskManagementInfo;
 import com.tianli.role.annotation.GrcCheckModular;
 import com.tianli.user.logs.UserIpLogService;
 import lombok.Builder;
@@ -12,7 +11,6 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)

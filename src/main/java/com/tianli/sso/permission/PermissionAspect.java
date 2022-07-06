@@ -1,6 +1,5 @@
 package com.tianli.sso.permission;
 
-import com.tianli.sso.mapper.Admin;
 import com.tianli.sso.service.AdminOssService;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;

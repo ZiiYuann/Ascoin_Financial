@@ -1,5 +1,6 @@
 package com.tianli.common.init;
 
+import com.google.gson.JsonObject;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ public class RequestInit {
     private LocalDateTime now = LocalDateTime.now();
     private Long now_ms = System.currentTimeMillis();
     private Long uid;
+    private JsonObject userInfo;
     private String imei = "";
     private String deviceType = "";
     /**

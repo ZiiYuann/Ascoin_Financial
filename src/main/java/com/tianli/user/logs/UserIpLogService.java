@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.Constants;
 import com.tianli.common.init.RequestInitService;
-import com.tianli.common.init.RequestRiskManagementInfo;
 import com.tianli.role.annotation.GrcCheckModular;
 import com.tianli.user.UserService;
 import com.tianli.user.logs.mapper.UserIpLog;

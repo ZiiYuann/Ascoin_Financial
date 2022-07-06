@@ -24,7 +24,6 @@ import com.tianli.user.dto.LineTokenDTO;
 import com.tianli.user.dto.LineUserInfoDTO;
 import com.tianli.user.mapper.User;
 import com.tianli.user.mapper.UserStatus;
-import com.tianli.user.token.UserTokenService;
 import com.tianli.user.userinfo.UserInfoService;
 import com.tianli.user.userinfo.mapper.UserInfo;
 import org.apache.commons.lang3.StringUtils;

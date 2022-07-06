@@ -1,8 +1,13 @@
 package com.tianli.common.init.admin;
 
-import lombok.Data;
+import lombok.*;
+import lombok.experimental.Accessors;
 
+@Builder
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Accessors(chain = true)
 public class AdminInfo {
 
     /**

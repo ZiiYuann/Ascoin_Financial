@@ -18,7 +18,6 @@ import com.tianli.user.password.UserPasswordService;
 import com.tianli.user.password.mapper.UserPassword;
 import com.tianli.user.referral.UserReferralService;
 import com.tianli.user.referral.mapper.UserReferral;
-import com.tianli.user.token.UserTokenService;
 import com.tianli.user.userinfo.UserInfoService;
 import com.tianli.user.userinfo.mapper.UserInfo;
 import org.springframework.web.bind.annotation.*;
