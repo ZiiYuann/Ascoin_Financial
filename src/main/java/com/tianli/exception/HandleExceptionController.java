@@ -39,6 +39,7 @@ public class HandleExceptionController {
             result.setEnMsg("System exception");
             result.setThMsg("ระบบล้มเหลว");
         }
+        ExceptionUtils.printStackTrace(e);
         e.printStackTrace();
         result.setTime(System.currentTimeMillis());
         AsyncService asyncService = ApplicationContextTool.getBean(AsyncService.class);

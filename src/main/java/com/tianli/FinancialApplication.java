@@ -14,7 +14,7 @@ import java.security.Security;
 @EnableTransactionManagement
 @EnableAspectJAutoProxy(exposeProxy = true)
 @ServletComponentScan
-@EnableScheduling
+//@EnableScheduling
 public class FinancialApplication {
 
     public static void main(String[] args) {

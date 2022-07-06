@@ -25,6 +25,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +55,10 @@ public class UserTokenService implements RequestInitToken {
             userToken.setToken(token);
             userTokenMapper.insert(userToken);
         } else {
-            userTokenMapper.update(null, new LambdaUpdateWrapper<UserToken>().set(UserToken::getToken, token).eq(UserToken::getId, userToken.getId()));
+            userTokenMapper.update(null, new LambdaUpdateWrapper<UserToken>()
+                    .set(UserToken::getToken, token)
+                    .set(UserToken::getUpdate_time, LocalDateTime.now())
+                    .eq(UserToken::getId, userToken.getId()));
         }
 
         redisTemplate.boundValueOps(REDIS_PREFIX + token).set(user.getId(), 30L, TimeUnit.MINUTES);

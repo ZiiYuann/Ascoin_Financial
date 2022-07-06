@@ -15,9 +15,6 @@ public class ErrMsgMappingService {
             case "en":
                 EN_ERR_MSG_PAIRS.put(msg, transMsg);
                 break;
-            case "thai":
-                THAI_ERR_MSG_PAIRS.put(msg, transMsg);
-                break;
             default: break;
         }
     }
@@ -26,15 +23,12 @@ public class ErrMsgMappingService {
         switch (type){
             case "en":
                 return EN_ERR_MSG_PAIRS.get(msg);
-            case "thai":
-                return THAI_ERR_MSG_PAIRS.get(msg);
         }
         return null;
     }
 
 
     private static ConcurrentHashMap<String, String> EN_ERR_MSG_PAIRS;
-    private static ConcurrentHashMap<String, String> THAI_ERR_MSG_PAIRS;
 
     static {
         // 设置定制的语言国家代码
@@ -44,11 +38,6 @@ public class ErrMsgMappingService {
         Set<String> enKeys = rben.keySet();
         EN_ERR_MSG_PAIRS = new ConcurrentHashMap<>(enKeys.size());
         enKeys.forEach(e -> EN_ERR_MSG_PAIRS.put(e, rben.getString(e)));
-        Locale th = new Locale("th_TH");
-        ResourceBundle rbth = ResourceBundle.getBundle("message", th);
-        Set<String> thKeys = rbth.keySet();
-        THAI_ERR_MSG_PAIRS = new ConcurrentHashMap<>(thKeys.size());
-        thKeys.forEach(e -> THAI_ERR_MSG_PAIRS.put(e, rbth.getString(e)));
     }
 }
 

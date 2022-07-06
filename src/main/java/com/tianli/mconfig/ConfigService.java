@@ -1,5 +1,6 @@
 package com.tianli.mconfig;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.mapper.Config;
 import com.tianli.mconfig.mapper.ConfigMapper;
@@ -17,16 +18,15 @@ import java.util.List;
  * @Date 2019-11-13 17:37
  */
 @Service
-public class ConfigService {
+public class ConfigService extends ServiceImpl<ConfigMapper, Config> {
 
     public static List<String> encryptList = Arrays.asList(
             "main_wallet_password", "s3_AWSAccessKeyId", "s3_AWSSecretAccessKey",
-            "tron_private_key", "cm_token"
+            "tron_private_key"
     );
 
-    //    @Cacheable(value = "ConfigService.get", key = "#name")
     public String _get(String name) {
-        Config config = configMapper.get(name);
+        Config config = get(name);
         if (config == null) return null;
         else return this.decrypt(name, config.getValue());
     }

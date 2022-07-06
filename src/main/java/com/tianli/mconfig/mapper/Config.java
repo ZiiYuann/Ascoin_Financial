@@ -16,4 +16,8 @@ import lombok.NoArgsConstructor;
 public class Config {
     private String name;
     private String value;
+    /**
+     * 描述
+     */
+    private String desc;
 }

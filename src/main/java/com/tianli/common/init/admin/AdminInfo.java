@@ -1,6 +1,5 @@
 package com.tianli.common.init.admin;
 
-import com.tianli.role.mapper.Role;
 import lombok.Data;
 
 @Data
@@ -20,5 +19,4 @@ public class AdminInfo {
      * 手机号
      */
     private String phone;
-    private Role role;
 }

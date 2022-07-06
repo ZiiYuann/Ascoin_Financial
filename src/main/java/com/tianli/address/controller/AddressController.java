@@ -49,30 +49,5 @@ public class AddressController {
         Address address = addressService.get_(uid, CurrencyTypeEnum.normal);
         return Result.instance().setData(Lists.newArrayList(address).stream().map(AddressVO::trans).collect(Collectors.toList()));
     }
-
-    @PostMapping("/webhooks")
-    public void webhooks(@RequestBody String str,
-                         @RequestHeader("AppKey") String appKey,
-                         @RequestHeader("Sign") String sign,
-                         HttpServletResponse httpServletResponse) throws IOException {
-        String wallet_app_key = configService.get("wallet_app_key");
-        String wallet_app_secret = configService.get("wallet_app_secret");
-        //验签
-        System.out.println("充值回调webhooks参数 ==> " + str);
-        if (wallet_app_key.equals(appKey) && Crypto.hmacToString(DigestFactory.createSHA256(), wallet_app_secret, str).equals(sign)) {
-            AddressWebhooksDTO addressWebhooksDTO = new Gson().fromJson(str, AddressWebhooksDTO.class);
-
-            chargeService.receive(addressWebhooksDTO);
-
-            PrintWriter writer = httpServletResponse.getWriter();
-            writer.write("success");
-            writer.close();
-        } else {
-            PrintWriter writer = httpServletResponse.getWriter();
-            writer.write("fail");
-            writer.close();
-        }
-    }
-
 }
 

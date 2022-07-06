@@ -14,20 +14,23 @@ public class WebSocketUtils {
 
     private static final String PUSH_ALL = "ws_push.all";
 
-    private static RedisTemplate<String, Object> getRedisTemplate(){
-        return ApplicationContextTool.getBean("redisTemplate", RedisTemplate.class);
-    }
-
     public static void convertAndSend(String token, Object msg){
-        getRedisTemplate().convertAndSend(PREFIX + Crypto.digestToString(DigestFactory.createMD5(), token), msg);
+        WebSocketRedis.getRedisTemplate().convertAndSend(PREFIX + Crypto.digestToString(DigestFactory.createMD5(), token), msg);
     }
 
     public static void convertAndSendAll(Object msg){
-        getRedisTemplate().convertAndSend(PUSH_ALL, msg);
+        WebSocketRedis.getRedisTemplate().convertAndSend(PUSH_ALL, msg);
     }
 
     public static void convertAndSendAdmin(Object msg){
-        getRedisTemplate().convertAndSend(PREFIX+Crypto.digestToString(DigestFactory.createMD5(), "admin"), msg);
+        WebSocketRedis.getRedisTemplate().convertAndSend(PREFIX+Crypto.digestToString(DigestFactory.createMD5(), "admin"), msg);
+    }
+
+    static class WebSocketRedis {
+        private static RedisTemplate<String, Object> REDIS_TEMPLATE = ApplicationContextTool.getBean("redisTemplate", RedisTemplate.class);
+        public static RedisTemplate<String, Object> getRedisTemplate(){
+            return REDIS_TEMPLATE;
+        }
     }
 
 }

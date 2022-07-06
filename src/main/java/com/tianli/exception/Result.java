@@ -11,7 +11,6 @@ public class Result {
     private String code = "0";
     private String msg = "成功";
     private String enMsg = "Succeed";
-    private String thMsg = "สำเร็จ";
     private long time = System.currentTimeMillis();
     private Object data = null;
 
@@ -41,14 +40,6 @@ public class Result {
 
     public void setEnMsg(String enMsg) {
         this.enMsg = enMsg;
-    }
-
-    public String getThMsg() {
-        return thMsg;
-    }
-
-    public void setThMsg(String thMsg) {
-        this.thMsg = thMsg;
     }
 
     public Object getData() {

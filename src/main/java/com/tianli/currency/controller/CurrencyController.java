@@ -86,18 +86,6 @@ public class CurrencyController {
     @Resource
     private Gson gson;
 
-    @GetMapping("/exchangeRate")
-    public Result currentExchangeRate() {
-        BoundValueOperations<String, String> boundValueOps = stringRedisTemplate.boundValueOps(KLineConstants.KLINE_CACHE_PREFIX + "ethusdt:onemin:simple:stat");
-        String jsonStat = boundValueOps.get();
-        KlineStatDTO vos = gson.fromJson(jsonStat, KlineStatDTO.class);
-        int trend = vos.getRate() > 0 ? 1 : -1;
-        return Result.instance().setData(MapTool.Map()
-                .put("rate", vos.getCurrentEth())
-                .put("trend", trend)
-                .put("cny", vos.getCurrentCny()));
-    }
-
     @GetMapping("/my")
     public Result my() {
         Long uid = requestInitService.uid();
@@ -252,64 +240,6 @@ public class CurrencyController {
         return Result.instance().setData(MapTool.Map().put("list", voList).put("total", page.getTotal()));
     }
 
-    @GrcPrivilege(mode = GrcCheckModular.领取每日福利)
-    @PostMapping("daily/gift/receive")
-    public Result dailyGiftReceive() {
-        String daily_gift_switch = configService.getOrDefault(ConfigConstants.DAILY_GIFT_SWITCH, "1");
-        if (!Objects.equals(daily_gift_switch, "1")) {
-            ErrorCodeEnum.NOT_OPEN.throwException();
-        }
-        Long uid = requestInitService.uid();
-        DailyGiftRecord receive = dailyGiftService.receive(uid);
-        userIpLogService.updateBehaviorId(GrcCheckModular.领取每日福利, receive.getId());
-        return Result.success(ReceiveDailyGiftVO.convert(receive));
-    }
-
-    @GetMapping("daily/gift/switch")
-    public Result dailySwitch() {
-        String daily_gift_switch = configService.getOrDefault(ConfigConstants.DAILY_GIFT_SWITCH, "1");
-        return Result.success(MapTool.Map()
-                .put("switch", daily_gift_switch));
-    }
-
-    @GetMapping("daily/gift/check")
-    public Result isReceive() {
-        Long uid = requestInitService.uid();
-        boolean receive = dailyGiftService.checkReceive(uid);
-        return Result.success(MapTool.Map()
-                .put("check", receive)
-                .put("time", TimeTool.maxDay(LocalDateTime.now()).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()));
-    }
-
-    @GrcPrivilege(mode = GrcCheckModular.领取新人福利)
-    @PostMapping("new/gift/receive")
-    public Result newGiftReceive() {
-        Long uid = requestInitService.uid();
-        DiscountCurrencyLog discountCurrencyLog = discountCurrencyService.receiveNewGift(uid);
-        userIpLogService.updateBehaviorId(GrcCheckModular.领取新人福利, discountCurrencyLog.getId());
-        return Result.success(MapTool.Map().put("amount", TokenCurrencyType.usdt_omni.money(discountCurrencyLog.getAmount())));
-    }
-
-    @GetMapping("new/gift/check")
-    public Result isNewReceive() {
-        Long uid = requestInitService.uid();
-        boolean receive = discountCurrencyService.checkNewReceive(uid);
-        return Result.success(MapTool.Map()
-                .put("check", receive));
-    }
-
-    @GetMapping("gift/config")
-    public Result giftConfig() {
-        String daily_gift_amount = configService.getOrDefault(ConfigConstants.DAILY_GIFT_AMOUNT, "10");
-        String new_gift_amount = configService.getOrDefault(ConfigConstants.NEW_GIFT_AMOUNT, "50");
-        String kyc_gift_amount = configService.getOrDefault(ConfigConstants.KYC_AWARD, "0");
-        return Result.success(MapTool.Map()
-                .put("daily", daily_gift_amount)
-                .put("new", new_gift_amount)
-                .put("kyc", kyc_gift_amount)
-        );
-    }
-
     @GetMapping("/mining/page")
     public Result mining(@RequestParam(value = "page", defaultValue = "1") Integer page,
                          @RequestParam(value = "size", defaultValue = "10") Integer size) {
@@ -332,8 +262,6 @@ public class CurrencyController {
         );
     }
 
-    @Resource
-    private DailyGiftService dailyGiftService;
     @Resource
     private CurrencyTokenService currencyTokenService;
     @Resource

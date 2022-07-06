@@ -1,8 +1,8 @@
 package com.tianli.config.aspect;
 
 import com.google.common.collect.Sets;
-import com.tianli.admin.AdminAndRoles;
-import com.tianli.admin.AdminService;
+import com.tianli.sso.AdminAndRoles;
+import com.tianli.sso.AdminService;
 import com.tianli.common.init.admin.AdminContent;
 import com.tianli.common.init.admin.AdminInfo;
 import com.tianli.exception.ErrorCodeEnum;
@@ -10,6 +10,7 @@ import com.tianli.role.annotation.AdminPrivilege;
 import com.tianli.role.annotation.Privilege;
 import com.tianli.role.mapper.Role;
 import com.tianli.role.permission.mapper.RolePermission;
+import com.tianli.sso.permission.AdminPrivilege;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;

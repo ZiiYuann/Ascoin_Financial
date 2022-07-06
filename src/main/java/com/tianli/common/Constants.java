@@ -1,5 +1,7 @@
 package com.tianli.common;
 
+import com.google.gson.Gson;
+
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -34,6 +36,8 @@ public class Constants {
     public static final String TRANSACTION_DETAILS_PATH = "/api/message/detail";
 
     public static final String WALLET_REDIS_LOCK_KEY = "WALLET_REDIS_LOCK_KEY";
+
+    public static final Gson GSON = new Gson();
 
     public static final ExecutorService COMPLETABLE_FUTURE_EXECUTOR = new ThreadPoolExecutor(8, 16, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(1024), new ThreadFactory() {
         private AtomicInteger id = new AtomicInteger(1);

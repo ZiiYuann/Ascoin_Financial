@@ -16,5 +16,6 @@ public class UserToken {
     private String imei;
     private String token;
     private LocalDateTime create_time;
+    private LocalDateTime update_time;
 
 }

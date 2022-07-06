@@ -32,14 +32,6 @@ public class User {
      */
     private UserStatus status;
     /**
-     * 推荐码
-     */
-    private String referral_code;
-    /**
-     * 是否开启BF代币优惠支付
-     */
-    private Boolean BF;
-    /**
      * 上次访问时间
      */
     private LocalDateTime last_time;
@@ -49,33 +41,7 @@ public class User {
     private String last_ip;
 
     /**
-     * 用户的唯一标识
-     */
-    @Transient
-    private String hash_key;
-
-    /**
-     * 是否使用过机器人
-     */
-    private Boolean use_robot;
-
-    /**
      * 备注
      */
     private String node;
-
-    /**
-     * 用户类型
-     */
-    private Integer user_type;
-
-    /**
-     * 冻结（0:正常，1:冻结）
-     */
-    private Integer freeze;
-
-    /**
-     * 信用评分
-     */
-    private Integer credit_score;
 }
