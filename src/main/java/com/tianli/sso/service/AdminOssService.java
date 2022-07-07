@@ -51,7 +51,7 @@ public class AdminOssService {
         }
         JsonObject dataJsonObj = Constants.GSON.fromJson(data.toString(), JsonObject.class);
         AdminInfo adminInfo = AdminContent.get();
-        adminInfo.setAid(JsonObjectTool.getAsLong(dataJsonObj, "id"))
+        adminInfo.setAid(JsonObjectTool.getAsLong(dataJsonObj, "uid"))
                 .setPhone(JsonObjectTool.getAsString(dataJsonObj, "phone"))
                 .setUsername(JsonObjectTool.getAsString(dataJsonObj, "username"));
     }

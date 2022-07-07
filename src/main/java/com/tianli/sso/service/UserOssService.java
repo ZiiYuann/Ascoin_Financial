@@ -45,9 +45,6 @@ public class UserOssService {
         return Constants.GSON.fromJson(data.toString(), JsonObject.class);
     }
 
-    private static final String COOKIE_NAME = "_r";
-    private static final String SESSION_TMP = "_r";
-
     @Resource
     private HttpServletRequest httpServletRequest;
     @Resource

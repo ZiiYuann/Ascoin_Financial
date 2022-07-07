@@ -100,7 +100,7 @@ public class RequestInitService {
          * 解析用户信息
          */
         JsonObject ossUser = userOssService.loginUser();
-        requestInit.setUid(JsonObjectTool.getAsLong(ossUser, "id"));
+        requestInit.setUid(JsonObjectTool.getAsLong(ossUser, "uid"));
         requestInit.setUserInfo(ossUser);
         requestInit.setIp(ApplicationContextTool.getBean(IpTool.class).getIp(httpServletRequest));
         String lat = httpServletRequest.getHeader("LAT");
