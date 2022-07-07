@@ -51,6 +51,7 @@ public enum ErrorCodeEnum {
     NEW_CURRENCY_SHORT_NAME_EXIT(2013,"币种简称重复"),
     NO_OPPONENT_PLATE(2014,"没有交易对象"),
     NO_CREDIT_SCORE(2015,"账户信用评分不足"),
+    ACCOUNT_NOT_ACTIVE(2016,"云钱包未激活"),
     /*** －－－－－－业务错误码-余额相关－－－－－－*/
     CREDIT_LACK(2100, "额度不足"),
     WITHDRAWAL_AMOUNT_LT_FEE_ERROR(2101, "提现数额必须大于手续费"),

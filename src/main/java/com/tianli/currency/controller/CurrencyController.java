@@ -8,12 +8,17 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.tianli.common.ConfigConstants;
+import com.tianli.sso.RequestInitService;
+import com.tianli.account.enums.ProductType;
+import com.tianli.account.service.AccountSummaryService;
+import com.tianli.common.init.RequestInitService;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.currency.*;
-import com.tianli.currency.log.CurrencyLog;
+import com.tianli.account.entity.AccountBalanceOperationLog;
 import com.tianli.currency.log.CurrencyLogDes;
-import com.tianli.currency.log.CurrencyLogService;
+import com.tianli.account.service.AccountBalanceOperationLogService;
 import com.tianli.currency.log.CurrencyLogType;
+import com.tianli.account.entity.AccountSummary;
 import com.tianli.currency.entity.Currency;
 import com.tianli.currency.mapper.Currency;
 import com.tianli.currency.mapper.DiscountCurrency;
@@ -45,13 +50,12 @@ import java.util.stream.Collectors;
 @RequestMapping("/currency")
 public class CurrencyController {
     @Resource
-    private CurrencyService currencyService;
+    private AccountSummaryService accountBalanceService;
     @Resource
     private ConfigService configService;
+
     @Resource
-    private DiscountCurrencyService discountCurrencyService;
-    @Resource
-    private CurrencyLogService currencyLogService;
+    private AccountBalanceOperationLogService currencyLogService;
     @Resource
     private RequestInitService requestInitService;
 
@@ -99,8 +103,8 @@ public class CurrencyController {
     @GetMapping("/my/remain/{type}")
     public Result remainOfType(@PathVariable("type") TokenCurrencyType type) {
         Long uid = requestInitService.uid();
-        Currency currency = currencyService.get(uid, CurrencyTypeEnum.normal);
-        if (Objects.isNull(currency)) {
+        AccountSummary accountSummaryBalance = accountBalanceService.getAndInit(uid, ProductType.normal);
+        if (Objects.isNull(accountSummaryBalance)) {
             ErrorCodeEnum.OBJECT_NOT_FOUND.throwException();
         }
         String WITHDRAW_RATE = null;
@@ -146,9 +150,9 @@ public class CurrencyController {
         double fixedAmount = type.money(new BigInteger(WITHDRAW_FIXED_AMOUNT));
         double money;
         if (TokenCurrencyType.BF_bep20 == type) {
-            money = TokenCurrencyType.BF_bep20.money(currency.getRemainBF());
+            money = TokenCurrencyType.BF_bep20.money(accountSummaryBalance.getRemainBF());
         } else {
-            money = TokenCurrencyType.usdt_omni.money(currency.getRemain());
+            money = TokenCurrencyType.usdt_omni.money(accountSummaryBalance.getRemain());
         }
 
         return Result.instance().setData(MapTool.Map()
@@ -162,11 +166,11 @@ public class CurrencyController {
     @GetMapping("/log/page")
     public Result logPage(LogPageDTO dto) {
         Long uid = requestInitService.uid();
-        LambdaQueryWrapper<CurrencyLog> queryWrapper = new LambdaQueryWrapper<CurrencyLog>()
-                .eq(CurrencyLog::getUid, uid)
-                .in(CurrencyLog::getLog_type, Lists.newArrayList(CurrencyLogType.reduce, CurrencyLogType.increase, CurrencyLogType.withdraw))
-                .in(CurrencyLog::getType, ListUtil.of(CurrencyTypeEnum.normal,CurrencyTypeEnum.loan))
-                .orderByDesc(CurrencyLog::getId);
+        LambdaQueryWrapper<AccountBalanceOperationLog> queryWrapper = new LambdaQueryWrapper<AccountBalanceOperationLog>()
+                .eq(AccountBalanceOperationLog::getUid, uid)
+                .in(AccountBalanceOperationLog::getLog_type, Lists.newArrayList(CurrencyLogType.reduce, CurrencyLogType.increase, CurrencyLogType.withdraw))
+                .in(AccountBalanceOperationLog::getType, ListUtil.of(ProductType.normal, ProductType.loan))
+                .orderByDesc(AccountBalanceOperationLog::getId);
         if (ObjectUtil.isNotNull(dto.getDes())) {
             List<CurrencyLogDes> currencyLogDes;
             if (dto.getDes().equals(CurrencyLogDes.充值)) {
@@ -176,9 +180,9 @@ public class CurrencyController {
             } else {
                 currencyLogDes = Lists.newArrayList(dto.getDes());
             }
-            queryWrapper.in(CurrencyLog::getDes, currencyLogDes);
+            queryWrapper.in(AccountBalanceOperationLog::getDes, currencyLogDes);
         }
-        Page<CurrencyLog> page = currencyLogService.page(new Page<>(dto.getPage(), dto.getSize()), queryWrapper);
+        Page<AccountBalanceOperationLog> page = currencyLogService.page(new Page<>(dto.getPage(), dto.getSize()), queryWrapper);
         List<LogPageVO> voList = page.getRecords().stream().map(LogPageVO::trans).collect(Collectors.toList());
         return Result.instance().setData(MapTool.Map().put("list", voList).put("total", page.getTotal()));
     }
@@ -187,19 +191,19 @@ public class CurrencyController {
     public Result mining(@RequestParam(value = "page", defaultValue = "1") Integer page,
                          @RequestParam(value = "size", defaultValue = "10") Integer size) {
         Long uid = requestInitService.uid();
-        Currency currency = currencyService.get(uid, CurrencyTypeEnum.normal);
-        Page<CurrencyLog> miningPage = currencyLogService.page(new Page<>(page, size), new LambdaQueryWrapper<CurrencyLog>()
-                .eq(CurrencyLog::getType, CurrencyTypeEnum.normal)
-                .eq(CurrencyLog::getDes, CurrencyLogDes.利息.name())
-                .eq(CurrencyLog::getUid, uid)
-                .orderByDesc(CurrencyLog::getId));
-        if (Objects.isNull(currency)) {
+        AccountSummary accountSummaryBalance = accountBalanceService.getAndInit(uid, ProductType.normal);
+        Page<AccountBalanceOperationLog> miningPage = currencyLogService.page(new Page<>(page, size), new LambdaQueryWrapper<AccountBalanceOperationLog>()
+                .eq(AccountBalanceOperationLog::getType, ProductType.normal)
+                .eq(AccountBalanceOperationLog::getDes, CurrencyLogDes.利息.name())
+                .eq(AccountBalanceOperationLog::getUid, uid)
+                .orderByDesc(AccountBalanceOperationLog::getId));
+        if (Objects.isNull(accountSummaryBalance)) {
             ErrorCodeEnum.OBJECT_NOT_FOUND.throwException();
         }
         List<LogPageVO> voList = miningPage.getRecords().stream().map(LogPageVO::trans).collect(Collectors.toList());
         BigInteger totalMining = currencyLogService.sumMiningAmount(uid);
         return Result.instance().setData(MapTool.Map()
-                .put("totalAmount", TokenCurrencyType.usdt_omni.money(currency.getBalance()))
+                .put("totalAmount", TokenCurrencyType.usdt_omni.money(accountSummaryBalance.getBalance()))
                 .put("list", voList)
                 .put("totalMining", TokenCurrencyType.usdt_omni.money(totalMining))
         );

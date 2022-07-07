@@ -1,8 +1,7 @@
-package com.tianli.currency.entity;
+package com.tianli.account.entity;
 
 import com.baomidou.mybatisplus.extension.activerecord.Model;
-import com.tianli.currency.CurrencyTypeEnum;
-import com.tianli.currency.TokenCurrencyType;
+import com.tianli.account.enums.ProductType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,7 +11,7 @@ import java.math.BigInteger;
 
 /**
  * <p>
- * 用户余额表
+ * 用户余额汇总表
  * </p>
  *
  * @author hd
@@ -22,7 +21,7 @@ import java.math.BigInteger;
 @Builder
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-public class Currency extends Model<Currency> {
+public class AccountSummary extends Model<AccountSummary> {
 
     private static final long serialVersionUID = 1L;
 
@@ -39,7 +38,7 @@ public class Currency extends Model<Currency> {
     /**
      * 余额类型
      */
-    private TokenCurrencyType type;
+    private ProductType type;
 
     /**
      * 总余额

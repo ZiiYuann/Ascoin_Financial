@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
+import com.tianli.account.service.AccountSummaryService;
 import com.tianli.common.init.RequestInitService;
 import com.tianli.common.Constants;
 import com.tianli.common.blockchain.CurrencyCoinEnum;
@@ -13,16 +14,18 @@ import com.tianli.sso.init.RequestInitService;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.currency.CurrencyService;
 import com.tianli.currency.CurrencyTypeEnum;
+import com.tianli.account.enums.ProductType;
 import com.tianli.currency.TokenCurrencyType;
 import com.tianli.currency.controller.LogPageDTO;
 import com.tianli.currency.controller.LogPageVO;
-import com.tianli.currency.log.CurrencyLog;
+import com.tianli.account.entity.AccountBalanceOperationLog;
 import com.tianli.currency.log.CurrencyLogDes;
-import com.tianli.currency.log.CurrencyLogService;
+import com.tianli.account.service.AccountBalanceOperationLogService;
 import com.tianli.currency.log.CurrencyLogType;
 import com.tianli.currency.entity.Currency;
 import com.tianli.currency.mapper.Currency;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.account.entity.AccountSummary;
 import com.tianli.exception.Result;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.FinancialProductService;
@@ -38,7 +41,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -49,6 +51,10 @@ import static java.time.temporal.ChronoUnit.DAYS;
 @RestController
 @RequestMapping("/financial")
 public class FinancialController {
+
+
+    @Resource
+    private AccountSummaryService accountSummaryService;
 
     @GetMapping("/product/list")
     public Result productList(){
@@ -65,21 +71,11 @@ public class FinancialController {
         return Result.instance().setData(financialProduct);
     }
 
-    @PostMapping("/transfer")
-    public Result transfer(@RequestBody @Valid TransferDTO transferDTO) {
-        Long uid = requestInitService.uid();
-        BigInteger amount = TokenCurrencyType.usdt_omni.amount(transferDTO.getAmount());
-        Currency currency = currencyService.get(uid, transferDTO.getFrom());
-        if(currency.getRemain().compareTo(amount) < 0) ErrorCodeEnum.CREDIT_LACK.throwException();
-        financialService.transfer(uid, transferDTO.getFrom(), transferDTO.getTo(), amount);
-        return Result.instance();
-    }
-
     @GetMapping("/my/financial")
     public Result my( @RequestParam(value = "page", defaultValue = "1") Integer page,
                       @RequestParam(value = "size", defaultValue = "10") Integer size) {
         Long uid = requestInitService.uid();
-        Currency currency = currencyService.get(uid, CurrencyTypeEnum.financial);
+        AccountSummary accountSummary = accountSummaryService.getAndInit(uid, ProductType.financial);
         LocalDate now = requestInitService.now().toLocalDate();
         List<UserFinancialPage> logList = userFinancialLogService.getUserFinancialPage(uid);
         List<UserFinancialPage> createdLogList = logList.stream().filter(o -> FinancialLogStatus.created.name().equals(o.getStatus())).collect(Collectors.toList());
@@ -98,23 +94,23 @@ public class FinancialController {
             userFinancialPage.setMoney(TokenCurrencyType.usdt_omni.money(userFinancialPage.getAmount()));
         }
 
-        double got_profit1 = currencyLogService.list(new LambdaQueryWrapper<CurrencyLog>()
-                .eq(CurrencyLog::getType,CurrencyTypeEnum.financial.name())
-                .eq(CurrencyLog::getDes, CurrencyLogDes.赎回前扣除.name())
-                .eq(CurrencyLog::getUid, uid)
+        double got_profit1 = currencyLogService.list(new LambdaQueryWrapper<AccountBalanceOperationLog>()
+                .eq(AccountBalanceOperationLog::getType, ProductType.financial.name())
+                .eq(AccountBalanceOperationLog::getDes, CurrencyLogDes.赎回前扣除.name())
+                .eq(AccountBalanceOperationLog::getUid, uid)
         ).stream().mapToDouble(o->TokenCurrencyType.usdt_omni.money(o.getAmount())).sum();
-        double got_profit2 = currencyLogService.list(new LambdaQueryWrapper<CurrencyLog>()
-                .eq(CurrencyLog::getType,CurrencyTypeEnum.financial.name())
-                .eq(CurrencyLog::getDes, CurrencyLogDes.赎回.name())
-                .eq(CurrencyLog::getUid, uid)
+        double got_profit2 = currencyLogService.list(new LambdaQueryWrapper<AccountBalanceOperationLog>()
+                .eq(AccountBalanceOperationLog::getType, ProductType.financial.name())
+                .eq(AccountBalanceOperationLog::getDes, CurrencyLogDes.赎回.name())
+                .eq(AccountBalanceOperationLog::getUid, uid)
         ).stream().mapToDouble(o->TokenCurrencyType.usdt_omni.money(o.getAmount())).sum();
         double got_profit = Math.max(got_profit2 - got_profit1, 0.0);
         double to_get_profit = createdLogList.stream().mapToDouble(UserFinancialPage::getProfit).sum();
 
         return Result.instance().setData(
-                MapTool.Map().put("balance", TokenCurrencyType.usdt_omni.money(currency.getBalance()))
-                .put("remain", TokenCurrencyType.usdt_omni.money(currency.getRemain()))
-                .put("freeze", TokenCurrencyType.usdt_omni.money(currency.getFreeze()))
+                MapTool.Map().put("balance", TokenCurrencyType.usdt_omni.money(accountSummary.getBalance()))
+                .put("remain", TokenCurrencyType.usdt_omni.money(accountSummary.getRemain()))
+                .put("freeze", TokenCurrencyType.usdt_omni.money(accountSummary.getFreeze()))
                 .put("list", createdLogList.stream().skip((page - 1) * size).limit(size).collect(Collectors.toList()))
                 .put("all_profit", got_profit + to_get_profit)
                 .put("count",createdLogList.size())
@@ -124,14 +120,14 @@ public class FinancialController {
     @GetMapping("/my/bill")
     public Result myBill(LogPageDTO dto) {
         Long uid = requestInitService.uid();
-        Wrapper<CurrencyLog> queryWrapper = new LambdaQueryWrapper<CurrencyLog>()
-                .eq(CurrencyLog::getUid, uid)
-                .in(CurrencyLog::getLog_type, Lists.newArrayList(CurrencyLogType.reduce, CurrencyLogType.increase, CurrencyLogType.freeze, CurrencyLogType.unfreeze))
-                .eq(CurrencyLog::getType, CurrencyTypeEnum.financial)
-                .ne(CurrencyLog::getDes, CurrencyLogDes.赎回前扣除.name())
-                .eq(Objects.nonNull(dto.getDes()), CurrencyLog::getDes, dto.getDes())
-                .orderByDesc(CurrencyLog::getId);
-        Page<CurrencyLog> page = currencyLogService.page(new Page<>(dto.getPage(), dto.getSize()), queryWrapper);
+        Wrapper<AccountBalanceOperationLog> queryWrapper = new LambdaQueryWrapper<AccountBalanceOperationLog>()
+                .eq(AccountBalanceOperationLog::getUid, uid)
+                .in(AccountBalanceOperationLog::getLog_type, Lists.newArrayList(CurrencyLogType.reduce, CurrencyLogType.increase, CurrencyLogType.freeze, CurrencyLogType.unfreeze))
+                .eq(AccountBalanceOperationLog::getType, ProductType.financial)
+                .ne(AccountBalanceOperationLog::getDes, CurrencyLogDes.赎回前扣除.name())
+                .eq(Objects.nonNull(dto.getDes()), AccountBalanceOperationLog::getDes, dto.getDes())
+                .orderByDesc(AccountBalanceOperationLog::getId);
+        Page<AccountBalanceOperationLog> page = currencyLogService.page(new Page<>(dto.getPage(), dto.getSize()), queryWrapper);
         long count = currencyLogService.count(queryWrapper);
         List<LogPageVO> voList = page.getRecords().stream().map(LogPageVO::trans).collect(Collectors.toList());
         return Result.instance().setList(voList, count);
@@ -159,5 +155,5 @@ public class FinancialController {
     @Resource
     private FinancialLogService userFinancialLogService;
     @Resource
-    private CurrencyLogService currencyLogService;
+    private AccountBalanceOperationLogService currencyLogService;
 }

@@ -1,6 +1,6 @@
 package com.tianli.address.mapper;
 
-import com.tianli.currency.CurrencyTypeEnum;
+import com.tianli.account.enums.ProductType;
 import lombok.*;
 import lombok.experimental.Accessors;
 
@@ -35,12 +35,12 @@ public class Address {
     /**
      * 地址类型
      */
-    private CurrencyTypeEnum type;
+    private ProductType type;
 
     /**
      * 创建时间
      */
-    private LocalDateTime create_time;
+    private LocalDateTime createTime;
 
     /**
      * 比特币地址btc / usdt-omni

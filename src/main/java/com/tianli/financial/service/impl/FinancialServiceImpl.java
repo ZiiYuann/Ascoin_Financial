@@ -1,12 +1,11 @@
 package com.tianli.financial.service.impl;
 
 import com.tianli.common.CommonFunction;
-import com.tianli.common.Constants;
 import com.tianli.common.init.RequestInitService;
-import com.tianli.currency.CurrencyService;
-import com.tianli.currency.CurrencyTypeEnum;
+import com.tianli.account.service.AccountSummaryService;
+import com.tianli.account.enums.ProductType;
 import com.tianli.currency.log.CurrencyLogDes;
-import com.tianli.currency.entity.Currency;
+import com.tianli.account.entity.AccountSummary;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.enums.FinancialProductStatus;
 import com.tianli.financial.query.PurchaseQuery;
@@ -28,18 +27,13 @@ import java.util.Objects;
 public class FinancialServiceImpl implements FinancialService {
 
     @Resource
-    private CurrencyService currencyService;
+    private AccountSummaryService accountBalanceService;
     @Resource
     private RequestInitService requestInitService;
     @Resource
     private FinancialLogService userFinancialLogService;
     @Resource
     private FinancialProductService financialProductService;
-
-    @Transactional
-    public void transfer(Long uid, CurrencyTypeEnum from, CurrencyTypeEnum to, BigInteger amount) {
-        currencyService.transfer(uid, from, to, amount, requestInitService.now().format(Constants.standardDateTimeFormatter));
-    }
 
     @Override
     @Transactional
@@ -53,7 +47,7 @@ public class FinancialServiceImpl implements FinancialService {
         validRemainAmount(purchaseQuery.getProductId(),amount);
 
         Long id = CommonFunction.generalId();
-        currencyService.freeze(uid, CurrencyTypeEnum.financial, amount, id.toString(), CurrencyLogDes.买入.name());
+        accountBalanceService.freeze(uid, ProductType.financial, amount, id.toString(), CurrencyLogDes.买入.name());
         LocalDate start_date = requestInitService.now().toLocalDate().plusDays(1L);
         FinancialLog userFinancialLog = FinancialLog.builder()
                 .financialProductId(product.getId())
@@ -82,8 +76,8 @@ public class FinancialServiceImpl implements FinancialService {
      * @param amount 申购金额
      */
     private void validRemainAmount(Long uid,BigInteger amount){
-        Currency currency = currencyService.get(uid, CurrencyTypeEnum.financial);
-        if(currency.getRemain().compareTo(amount) < 0){
+        AccountSummary accountSummaryBalance = accountBalanceService.getAndInit(uid, ProductType.financial);
+        if(accountSummaryBalance.getRemain().compareTo(amount) < 0){
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
     }

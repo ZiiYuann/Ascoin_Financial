@@ -1,6 +1,6 @@
 package com.tianli.wallet.entity;
 
-import com.tianli.currency.CurrencyTypeEnum;
+import com.tianli.account.enums.ProductType;
 
 import java.math.BigInteger;
 
@@ -26,7 +26,7 @@ public class Wallet {
     /**
      * 余额类型
      */
-    private CurrencyTypeEnum type;
+    private ProductType type;
 
     /**
      * 总余额

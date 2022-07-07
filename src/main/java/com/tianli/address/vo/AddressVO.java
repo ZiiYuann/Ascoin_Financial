@@ -1,7 +1,7 @@
-package com.tianli.address.controller;
+package com.tianli.address.vo;
 
 import com.tianli.address.mapper.Address;
-import com.tianli.currency.CurrencyTypeEnum;
+import com.tianli.account.enums.ProductType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,7 +24,7 @@ public class AddressVO {
     /**
      * 地址类型
      */
-    private CurrencyTypeEnum type;
+    private ProductType type;
 
     /**
      * 比特币地址btc / usdt-omni

@@ -2,7 +2,7 @@ package com.tianli.currency.controller;
 
 import com.tianli.currency.CurrencyTokenEnum;
 import com.tianli.currency.TokenCurrencyType;
-import com.tianli.currency.log.CurrencyLog;
+import com.tianli.account.entity.AccountBalanceOperationLog;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.currency.log.CurrencyLogType;
 import lombok.Builder;
@@ -53,7 +53,7 @@ public class LogPageVO {
 
     private String token;
 
-    public static LogPageVO trans(CurrencyLog currencyLog) {
+    public static LogPageVO trans(AccountBalanceOperationLog currencyLog) {
         BigInteger amount = currencyLog.getAmount();
         if (CurrencyLogType.increase != currencyLog.getLog_type()) {
             amount = amount.negate();

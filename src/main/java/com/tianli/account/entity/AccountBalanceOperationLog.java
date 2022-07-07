@@ -1,8 +1,9 @@
-package com.tianli.currency.log;
+package com.tianli.account.entity;
 
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.tianli.currency.CurrencyTokenEnum;
-import com.tianli.currency.CurrencyTypeEnum;
+import com.tianli.account.enums.ProductType;
+import com.tianli.currency.log.CurrencyLogType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,10 +21,10 @@ import java.time.LocalDateTime;
  * @since 2020-12-04
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
-@Accessors(chain = true)
 @Builder
-public class CurrencyLog extends Model<CurrencyLog> {
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = false)
+public class AccountBalanceOperationLog extends Model<AccountBalanceOperationLog> {
 
     private static final long serialVersionUID = 1L;
 
@@ -40,7 +41,7 @@ public class CurrencyLog extends Model<CurrencyLog> {
     /**
      * 余额类型
      */
-    private CurrencyTypeEnum type;
+    private ProductType type;
 
     /**
      * 币种类型

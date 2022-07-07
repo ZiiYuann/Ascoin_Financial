@@ -1,6 +1,7 @@
-package com.tianli.currency.log;
+package com.tianli.account.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.tianli.account.entity.AccountBalanceOperationLog;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -10,7 +11,6 @@ import org.apache.ibatis.jdbc.SQL;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * <p>
@@ -21,12 +21,12 @@ import java.util.List;
  * @since 2020-12-04
  */
 @Mapper
-public interface CurrencyLogMapper extends BaseMapper<CurrencyLog> {
+public interface AccountBalanceOperationLogMapper extends BaseMapper<AccountBalanceOperationLog> {
 
-    @Select("select ifnull(sum(`amount`), 0) from `currency_log` where `uid` = #{uid} and `create_time` between #{startTime} and #{endTime} and `des` = '抽水' ")
+    @Select("select ifnull(sum(`amount`), 0) from `account_balance_operation` where `uid` = #{uid} and `create_time` between #{startTime} and #{endTime} and `des` = '抽水' ")
     BigInteger selectTotalRebateAmountWithInterval(@Param("uid") long uid, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
-    @Select("select ifnull(sum(`amount`), 0) from `currency_log` where `uid` = #{uid} and `des` = '抽水' ")
+    @Select("select ifnull(sum(`amount`), 0) from `account_balance_operation` where `uid` = #{uid} and `des` = '抽水' ")
     BigInteger selectTotalRebateAmount(@Param("uid") long uid);
 
     @SelectProvider(type = GenerateSQL.class, method = "countRake")
@@ -36,13 +36,13 @@ public interface CurrencyLogMapper extends BaseMapper<CurrencyLog> {
                          @Param("startTime") String startTime,
                          @Param("endTime") String endTime);
 
-    @Select("select ifnull(sum(`amount`), 0) from `currency_log` where `uid` = #{uid} and `des` = '利息'")
+    @Select("select ifnull(sum(`amount`), 0) from `account_balance_operation` where `uid` = #{uid} and `des` = '利息'")
     BigInteger selectSumMiningAmount(Long uid);
 
     class GenerateSQL{
         private SQL countSQL(Long uid, String phone, String bet_id, String startTime, String endTime){
             SQL sql = new SQL().SELECT("count(1)")
-                    .FROM("(SELECT * FROM currency_log WHERE uid = #{uid} AND des = '抽水') cl")
+                    .FROM("(SELECT * FROM account_balance_operation WHERE uid = #{uid} AND des = '抽水') cl")
                     .LEFT_OUTER_JOIN("`bet` AS b ON replace(cl.sn,'rake_','') = b.id");
             if(StringUtils.isNotBlank(phone)){
                 sql.WHERE("b.`uid_username` like CONCAT('%',#{phone},'%')");
@@ -70,7 +70,7 @@ public interface CurrencyLogMapper extends BaseMapper<CurrencyLog> {
         private SQL selectSQL(Long uid, String phone, String bet_id, String startTime, String endTime, Integer offset, Integer size){
             SQL sql = new SQL().SELECT("cl.`id` as id, b.uid_username as username, b.uid_nick as nick, b.uid as uid, " +
                                         "b.`id` as bet_id, b.amount as amount, cl.amount as rake , cl.create_time as create_time")
-                    .FROM("(SELECT * FROM currency_log WHERE uid = #{uid} AND des = '抽水') cl")
+                    .FROM("(SELECT * FROM account_balance_operation WHERE uid = #{uid} AND des = '抽水') cl")
                     .LEFT_OUTER_JOIN("`bet` AS b ON replace(cl.sn,'rake_','') = b.id");
             if(StringUtils.isNotBlank(phone)){
                 sql.WHERE("b.`uid_username` like CONCAT('%',#{phone},'%')");

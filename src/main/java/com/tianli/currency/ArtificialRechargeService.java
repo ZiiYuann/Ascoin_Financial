@@ -1,13 +1,17 @@
 package com.tianli.currency;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.account.enums.ProductType;
+import com.tianli.account.service.AccountSummaryService;
 import com.tianli.common.init.admin.AdminContent;
 import com.tianli.common.init.admin.AdminInfo;
 import com.tianli.common.CommonFunction;
 import com.tianli.sso.admin.AdminContent;
 import com.tianli.sso.admin.AdminInfo;
 import com.tianli.currency.log.CurrencyLog;
+import com.tianli.account.entity.AccountBalanceOperationLog;
 import com.tianli.currency.log.CurrencyLogDes;
+import com.tianli.account.service.AccountBalanceOperationLogService;
 import com.tianli.currency.log.CurrencyLogService;
 import com.tianli.currency.mapper.ArtificialRecharge;
 import com.tianli.currency.log.CurrencyLogType;
@@ -30,10 +34,10 @@ public class ArtificialRechargeService extends ServiceImpl<ArtificialRechargeMap
 
 
     @Resource
-    private CurrencyService currencyService;
+    private AccountSummaryService accountBalanceService;
 
     @Resource
-    private CurrencyLogService currencyLogService;
+    private AccountBalanceOperationLogService currencyLogService;
 
     @Resource
     private ArtificialRechargeMapper artificialRechargeMapper;

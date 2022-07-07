@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.tianli.account.enums.ProductType;
+import com.tianli.account.service.AccountSummaryService;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.query.RechargeAddressQuery;
@@ -72,13 +74,13 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
         if(StringUtils.isBlank(sn)){
             return;
         }
-        CurrencyTypeEnum type;
+        ProductType type;
         if(sn.startsWith("CD")){
-            type = CurrencyTypeEnum.deposit;
+            type = ProductType.deposit;
         } else if(sn.startsWith("CS")){
-            type = CurrencyTypeEnum.settlement;
+            type = ProductType.settlement;
         } else if(sn.startsWith("C")){
-            type = CurrencyTypeEnum.normal;
+            type = ProductType.normal;
         } else {
             return;
         }
@@ -115,19 +117,19 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
                         || Objects.equals(currencyType, TokenCurrencyType.usdc_bep20)
                 ) {
                     CurrencyTokenEnum token = CurrencyTokenEnum.valueOf(currencyType.name());
-                    currencyService.reduce(uid, type, token, real_amount.divide(TEN_BILLION), sn, logDes.name());
-                    currencyService.reduce(uid, type, token, fee.divide(TEN_BILLION), sn, CurrencyLogDes.提现手续费.name());
+                    accountBalanceService.reduce(uid, type, token, real_amount.divide(TEN_BILLION), sn, logDes.name());
+                    accountBalanceService.reduce(uid, type, token, fee.divide(TEN_BILLION), sn, CurrencyLogDes.提现手续费.name());
                 } else if (Objects.equals(currencyType, TokenCurrencyType.BF_bep20)) {
-                    currencyService.reduce(uid, type, real_amount, sn, logDes.name());
-                    currencyService.reduce(uid, type, fee, sn, CurrencyLogDes.提现手续费.name());
+                    accountBalanceService.reduce(uid, type, real_amount, sn, logDes.name());
+                    accountBalanceService.reduce(uid, type, fee, sn, CurrencyLogDes.提现手续费.name());
                 }else if (Objects.equals(currencyType, TokenCurrencyType.usdt_trc20)
                         || Objects.equals(currencyType, TokenCurrencyType.usdt_erc20)
                         || Objects.equals(currencyType, TokenCurrencyType.usdc_trc20)
                         || Objects.equals(currencyType, TokenCurrencyType.usdc_erc20)
                 ) {
                     CurrencyTokenEnum token = CurrencyTokenEnum.valueOf(currencyType.name());
-                    currencyService.reduce(uid, type, token, real_amount.multiply(ONE_HUNDRED), sn, logDes.name());
-                    currencyService.reduce(uid, type, token, fee.multiply(ONE_HUNDRED), sn, CurrencyLogDes.提现手续费.name());
+                    accountBalanceService.reduce(uid, type, token, real_amount.multiply(ONE_HUNDRED), sn, logDes.name());
+                    accountBalanceService.reduce(uid, type, token, fee.multiply(ONE_HUNDRED), sn, CurrencyLogDes.提现手续费.name());
                 }
             }
         }
@@ -155,16 +157,16 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
                         || Objects.equals(currencyType, TokenCurrencyType.usdc_bep20)
                 ) {
                     CurrencyTokenEnum token = CurrencyTokenEnum.valueOf(currencyType.name());
-                    currencyService.unfreeze(uid, type, token, amount.divide(TEN_BILLION), sn, logDes.name());
+                    accountBalanceService.unfreeze(uid, type, token, amount.divide(TEN_BILLION), sn, logDes.name());
                 } else if (Objects.equals(currencyType, TokenCurrencyType.usdt_trc20)
                         || Objects.equals(currencyType, TokenCurrencyType.usdt_erc20)
                         || Objects.equals(currencyType, TokenCurrencyType.usdc_trc20)
                         || Objects.equals(currencyType, TokenCurrencyType.usdc_erc20)
                 ) {
                     CurrencyTokenEnum token = CurrencyTokenEnum.valueOf(currencyType.name());
-                    currencyService.unfreeze(uid, type, token, amount.multiply(ONE_HUNDRED), sn, logDes.name());
+                    accountBalanceService.unfreeze(uid, type, token, amount.multiply(ONE_HUNDRED), sn, logDes.name());
                 } else if(Objects.equals(currencyType, TokenCurrencyType.BF_bep20)){
-                    currencyService.unfreeze(uid, type, amount, sn, logDes.name());
+                    accountBalanceService.unfreeze(uid, type, amount, sn, logDes.name());
                 }
             }
         }
@@ -269,95 +271,36 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
             amount = amount.divide(TEN_BILLION);
         }
         //冻结提现数额
-        currencyService.freeze(uid, CurrencyTypeEnum.normal, token, amount, charge.getSn(), CurrencyLogDes.提现.name());
+        accountBalanceService.freeze(uid, ProductType.normal, token, amount, charge.getSn(), CurrencyLogDes.提现.name());
     }
 
     /**
-     * 充值
+     * 充值回调:添加用户余额和记录
      * @param query  充值信息
      */
     @Transactional
-    public void recharge(RechargeAddressQuery query) {
+    public void rechargeCallback(RechargeAddressQuery query) {
         RechargeDto rechargeDto = specialDealByCurrencyType(query);
 
-        final CurrencyTypeEnum type = rechargeDto.getAddress().getType();
+        final ProductType type = rechargeDto.getAddress().getType();
         Long uid = rechargeDto.getAddress().getUid();
         boolean receiveFlag = false;
-        switch (type) {
-            case financial:
-                UserInfo byId = userInfoService.getOrSaveById(uid);
-                if (Objects.isNull(byId)) {
-                    byId = UserInfo.builder().build();
-                }
-                if (chargeMapper.getBySn(query.getSn()) == null) {
-                    receiveFlag = financialRechargeReceive(query, byId, query.getValue(), query.getValue(), rechargeDto.getToken());
-                }
-            default: break;
+
+        if (type == ProductType.financial) {
+            UserInfo userInfo = userInfoService.getOrSaveById(uid);
+            if (Objects.isNull(userInfo)) {
+                userInfo = UserInfo.builder().build();
+            }
+            if (chargeMapper.getBySn(query.getSn()) == null) {
+                receiveFlag = financialRechargeReceive(query, userInfo, query.getValue(), query.getValue(), rechargeDto.getToken());
+            }
+        }
+
+        if(receiveFlag){
+            accountBalanceService.increase(uid, type, rechargeDto.getToken(), rechargeDto.getFinalAmount(), query.getSn(), CurrencyLogDes.充值.name());
         }
 
     }
-
-    private receive
-
-
-
-    @Transactional
-    public void receive(AddressWebhooksDTO addressWebhooksDTO) {
-        Address address = null;
-        TokenCurrencyType tokenCurrencyType = addressWebhooksDTO.getType();
-        BigInteger amount = addressWebhooksDTO.getValue();
-        //不同链的usdt后面的0个数不一样  需要做一个对齐处理 目前是后面8个0为1个u
-        BigInteger finalAmount;
-        CurrencyTokenEnum token;
-
-        final CurrencyTypeEnum type = address.getType();
-        Long uid = address.getUid();
-
-        boolean receiveFlag = false;
-        //Charge表中加一条充值记录
-        switch (type) {
-            case financial:
-                UserInfo byId = userInfoService.getOrSaveById(uid);
-                if (Objects.isNull(byId)) {
-                    byId = UserInfo.builder().build();
-                }
-                if (chargeMapper.getBySn(addressWebhooksDTO.getSn()) == null) {
-                    receiveFlag = financialRecharge(addressWebhooksDTO, byId, amount, amount, token);
-                }
-                break;
-        }
-        if (receiveFlag) {
-            //加钱 余额在Currency这个表
-            currencyService.increase(uid, type, token, finalAmount, addressWebhooksDTO.getSn(), CurrencyLogDes.充值.name());
-            CurrencyLogVO currencyLogVO = new CurrencyLogVO();
-            currencyLogVO.setUid(uid);
-            WebSocketUtils.convertAndSendAdmin(currencyLogVO);
-//            if (TokenCurrencyType.usdt_omni.equals(tokenCurrencyType)) {
-//                currencyService.increase(uid, type, amount, addressWebhooksDTO.getSn(), CurrencyLogDes.充值.name());
-//                Currency currency = currencyService.get(uid, type);
-//                remain = currency.getRemain();
-//            } else if (TokenCurrencyType.usdt_erc20.equals(tokenCurrencyType)) {
-//                DigitalCurrency digitalCurrency = new DigitalCurrency(tokenCurrencyType, amount).toOther(TokenCurrencyType.usdt_omni);
-//                currencyService.increase(uid, type, digitalCurrency.getAmount(), addressWebhooksDTO.getSn(), CurrencyLogDes.充值.name());
-//                Currency currency = currencyService.get(uid, type);
-//                remain = currency.getRemain();
-//            } else {
-//                currencyService.increase(uid, type, amount.multiply(new BigInteger("100")), addressWebhooksDTO.getSn(), CurrencyLogDes.充值.name());
-//                Currency currency = currencyService.get(uid, type);
-//                remain = currency.getRemain();
-//            }
-//            final BigInteger remainFinal = remain;
-            // 商定分红比例 -> 实际的分红比例
-//            if (type.equals(CurrencyTypeEnum.deposit)) {
-//                asyncService.asyncSuccessRequest(() -> agentService.updateRealDividends(uid, remainFinal));
-//            }
-        }
-//        final Address address_ = address;
-//        asyncService.asyncSuccessRequest(() -> chainService.update(address_.getId(), address_, tokenCurrencyType, false));
-
-    }
-
-
 
     /**
      * 获取充值DTO数据 不同链的usdt后面的0个数不一样  需要做一个对齐处理 目前是后面8个0为1个u
@@ -412,7 +355,7 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
     }
 
     /**
-     * financial充值回调处理
+     * 理财充值记录添加
      */
     private boolean financialRechargeReceive(RechargeAddressQuery query, UserInfo userInfo,
                                       BigInteger amount, BigInteger real_amount, CurrencyTokenEnum token) {
@@ -664,7 +607,7 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
     @Resource
     private RequestInitService requestInitService;
     @Resource
-    private CurrencyService currencyService;
+    private AccountSummaryService accountBalanceService;
     @Resource
     private ChargeMapper chargeMapper;
     @Resource

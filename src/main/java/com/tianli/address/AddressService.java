@@ -2,9 +2,6 @@ package com.tianli.address;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.mapper.AddressMapper;
 import com.tianli.common.CommonFunction;
@@ -12,23 +9,15 @@ import com.tianli.common.blockchain.BscTriggerContract;
 import com.tianli.common.blockchain.EthTriggerContract;
 import com.tianli.common.blockchain.TronTriggerContract;
 import com.tianli.common.lock.RedisLock;
-import com.tianli.currency.CurrencyTypeEnum;
+import com.tianli.account.enums.ProductType;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.mconfig.ConfigService;
-import com.tianli.tool.MapBuilder;
-import com.tianli.tool.MapTool;
-import com.tianli.tool.crypto.Crypto;
-import com.tianli.tool.http.HttpHandler;
-import com.tianli.tool.http.HttpRequest;
-import com.tianli.tool.judge.JsonObjectTool;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.crypto.util.DigestFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -44,7 +33,6 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
 
     @Resource
     private RedisLock redisLock;
-
     @Resource
     private BscTriggerContract bscTriggerContract;
     @Resource
@@ -52,9 +40,14 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
     @Resource
     private EthTriggerContract ethTriggerContract;
 
-    public Address get_(long uid, CurrencyTypeEnum typeEnum) throws IOException {
+    /**
+     * 获取用户的账户地址 如果没有的话会初始化
+     */
+    @SneakyThrows
+    @Transactional
+    public Address getAndInit(long uid, ProductType typeEnum){
         redisLock.lock("AddressService.get_" + uid + "_" + typeEnum.name(), 1L, TimeUnit.MINUTES);
-        Address address = super.getOne(new LambdaQueryWrapper<Address>().eq(Address::getType, typeEnum).eq(Address::getUid, uid));
+        Address address = this.get(uid,typeEnum);
         if (address != null) return address;
         long generalId = CommonFunction.generalId();
         String bsc = bscTriggerContract.computeAddress(generalId);
@@ -64,7 +57,7 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
         address = Address.builder()
                 .id(generalId)
                 .uid(uid)
-                .create_time(LocalDateTime.now())
+                .createTime(LocalDateTime.now())
                 .type(typeEnum)
                 .tron(tron)
                 .bsc(bsc)
@@ -72,6 +65,13 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
                 .build();
         if (!super.save(address)) ErrorCodeEnum.SYSTEM_ERROR.throwException();
         return address;
+    }
+
+    /**
+     * 获取用户云钱包地址
+     */
+    public Address get(long uid, ProductType typeEnum){
+        return super.getOne(new LambdaQueryWrapper<Address>().eq(Address::getType, typeEnum).eq(Address::getUid, uid));
     }
 
     public Address getByEth(String to_address) {

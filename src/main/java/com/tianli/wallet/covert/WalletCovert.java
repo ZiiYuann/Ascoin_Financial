@@ -1,6 +1,5 @@
 package com.tianli.wallet.covert;
 
-import com.tianli.account.entity.AccountActive;
 import com.tianli.wallet.vo.WalletActiveVo;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

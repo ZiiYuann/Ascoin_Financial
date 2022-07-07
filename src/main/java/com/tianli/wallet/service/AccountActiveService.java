@@ -5,7 +5,6 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.init.RequestInitService;
 import com.tianli.account.query.AccountActiveQuery;
 import com.tianli.wallet.covert.WalletCovert;
-import com.tianli.account.entity.AccountActive;
 import com.tianli.wallet.enums.AccountActiveStatus;
 import com.tianli.wallet.mapper.AccountActiveMapper;
 import com.tianli.wallet.vo.WalletActiveVo;

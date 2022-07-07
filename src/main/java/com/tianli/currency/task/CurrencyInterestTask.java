@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
+import com.tianli.account.enums.ProductType;
+import com.tianli.account.service.AccountSummaryService;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.charge.ChargeService;
@@ -17,7 +19,7 @@ import com.tianli.common.async.AsyncService;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.currency.*;
 import com.tianli.currency.log.CurrencyLogDes;
-import com.tianli.currency.entity.Currency;
+import com.tianli.account.entity.AccountSummary;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.time.TimeTool;
@@ -53,7 +55,7 @@ public class CurrencyInterestTask {
     public static final String ETH_BLOCK_COUNT = "eth_block_count";
 
     @Resource
-    private CurrencyService currencyService;
+    private AccountSummaryService accountBalanceService;
 
     @Resource
     private Gson gson;
@@ -110,10 +112,10 @@ public class CurrencyInterestTask {
                 if (page == null) {
                     break;
                 }
-                Page<Currency> currencyPage = currencyService.page(new Page<>(page, 20), new LambdaQueryWrapper<Currency>()
-                        .eq(Currency::getType, CurrencyTypeEnum.normal)
+                Page<AccountSummary> currencyPage = accountBalanceService.page(new Page<>(page, 20), new LambdaQueryWrapper<AccountSummary>()
+                        .eq(AccountSummary::getType, ProductType.normal)
                 );
-                List<Currency> records = currencyPage.getRecords();
+                List<AccountSummary> records = currencyPage.getRecords();
                 if ((records.size()) <= 0) {
                     break;
                 }
@@ -131,7 +133,7 @@ public class CurrencyInterestTask {
                 if(rate <= 0){
                     return;
                 }
-                for (Currency c : records) {
+                for (AccountSummary c : records) {
                     interestStat(c, rate);
                 }
             }
@@ -141,10 +143,10 @@ public class CurrencyInterestTask {
     /**
      * 统计每日利息
      */
-    private void interestStat(Currency currency, double rate) {
+    private void interestStat(AccountSummary accountSummaryBalance, double rate) {
         try {
             // 1. 计算利息
-            BigDecimal bigDecimal = new BigDecimal(currency.getRemain());
+            BigDecimal bigDecimal = new BigDecimal(accountSummaryBalance.getRemain());
             // 真是的今日利息数额
             BigDecimal dayInterest = bigDecimal.multiply(new BigDecimal(String.valueOf(rate)));
             BigInteger dayInterestBigInteger = dayInterest.toBigInteger();
@@ -152,19 +154,19 @@ public class CurrencyInterestTask {
                 return;
             }
             // 2. 更新余额
-            currencyService.increase(currency.getUid(), currency.getType(), dayInterestBigInteger, TimeTool.getDateTimeDisplayString(LocalDateTime.now()), CurrencyLogDes.利息.name());
+            accountBalanceService.increase(accountSummaryBalance.getUid(), accountSummaryBalance.getType(), dayInterestBigInteger, TimeTool.getDateTimeDisplayString(LocalDateTime.now()), CurrencyLogDes.利息.name());
         } catch (Exception e) {
-            String toJson = gson.toJson(currency);
+            String toJson = gson.toJson(accountSummaryBalance);
             log.warn("统计每日利息异常: currency:{}, rate:{}", toJson, rate, e);
             CURRENCY_INTEREST_TASK_SCHEDULE_EXECUTOR.schedule(() -> {
-                AtomicInteger atomicInteger = FAIL_COUNT_CACHE.get(String.valueOf(currency.getId()));
+                AtomicInteger atomicInteger = FAIL_COUNT_CACHE.get(String.valueOf(accountSummaryBalance.getId()));
                 if (Objects.isNull(atomicInteger)) {
                     atomicInteger = new AtomicInteger(3);
-                    FAIL_COUNT_CACHE.put(String.valueOf(currency.getId()), atomicInteger);
+                    FAIL_COUNT_CACHE.put(String.valueOf(accountSummaryBalance.getId()), atomicInteger);
                 }
                 int andDecrement = atomicInteger.getAndDecrement();
                 if (andDecrement > 0) {
-                    interestStat(currency, rate);
+                    interestStat(accountSummaryBalance, rate);
                 } else {
                     log.error("统计每日利息失败: currency:{}, rate:{}", toJson, rate);
                 }
