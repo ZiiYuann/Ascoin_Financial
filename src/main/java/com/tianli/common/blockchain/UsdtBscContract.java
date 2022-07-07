@@ -2,6 +2,7 @@ package com.tianli.common.blockchain;
 
 import com.tianli.charge.ChargeService;
 import com.tianli.common.ConfigConstants;
+import com.tianli.management.ruleconfig.ConfigConstants;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;

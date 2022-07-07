@@ -39,21 +39,21 @@ public class ChargeListDTO {
     private String node;
 
     public static ChargeListDTO trans(Charge charge) {
-        TokenCurrencyType currency_type = charge.getCurrency_type();
+        TokenCurrencyType currency_type = charge.getCurrencyType();
         return ChargeListDTO.builder()
                 .id(charge.getId())
-                .create_time(charge.getCreate_time())
-                .complete_time(charge.getComplete_time())
+                .create_time(charge.getCreateTime())
+                .complete_time(charge.getCompleteTime())
                 .status(charge.getStatus())
                 .uid(charge.getUid())
                 .sn(charge.getSn())
                 .currency_type(currency_type)
-                .charge_type(charge.getCharge_type())
+                .charge_type(charge.getChargeType())
                 .amount(currency_type.money(charge.getAmount()))
                 .fee(currency_type.money(charge.getFee()))
-                .real_amount(currency_type.money(charge.getReal_amount()))
-                .from_address(charge.getFrom_address())
-                .to_address(charge.getTo_address())
+                .real_amount(currency_type.money(charge.getRealAmount()))
+                .from_address(charge.getFromAddress())
+                .to_address(charge.getToAddress())
                 .txid(charge.getTxid())
                 .node(charge.getNote())
                 .build();

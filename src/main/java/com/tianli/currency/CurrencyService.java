@@ -7,7 +7,7 @@ import com.tianli.common.async.AsyncService;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.currency.log.CurrencyLogService;
 import com.tianli.currency.log.CurrencyLogType;
-import com.tianli.currency.mapper.Currency;
+import com.tianli.currency.entity.Currency;
 import com.tianli.currency.mapper.CurrencyMapper;
 import com.tianli.exception.ErrorCodeEnum;
 import org.springframework.stereotype.Service;
@@ -210,7 +210,7 @@ public class CurrencyService extends ServiceImpl<CurrencyMapper, Currency> {
         } else if (Objects.equals(token, CurrencyTokenEnum.BF_bep20)) {
             long result = currencyMapper.increaseBF(uid, type, amount);
             Currency currency = currencyMapper.get(uid, type);
-            currencyLogService.add(uid, type, CurrencyTokenEnum.BF_bep20, CurrencyLogType.increase, amount, sn, des, currency.getBalance_BF(), currency.getFreeze_BF(), currency.getRemain_BF());
+            currencyLogService.add(uid, type, CurrencyTokenEnum.BF_bep20, CurrencyLogType.increase, amount, sn, des, currency.getBalanceBF(), currency.getFreezeBF(), currency.getRemainBF());
             return result > 0L;
         }
         return false;
@@ -232,7 +232,7 @@ public class CurrencyService extends ServiceImpl<CurrencyMapper, Currency> {
         } else if (Objects.equals(token, CurrencyTokenEnum.BF_bep20)) {
             long result = currencyMapper.reduceBF(uid, type, amount);
             Currency currency = get(uid, type);
-            currencyLogService.add(uid, type, CurrencyTokenEnum.BF_bep20, CurrencyLogType.reduce, amount, sn, des, currency.getBalance_BF(), currency.getFreeze_BF(), currency.getRemain_BF());
+            currencyLogService.add(uid, type, CurrencyTokenEnum.BF_bep20, CurrencyLogType.reduce, amount, sn, des, currency.getBalanceBF(), currency.getFreezeBF(), currency.getRemainBF());
             return result > 0L;
         }
         return false;
@@ -254,7 +254,7 @@ public class CurrencyService extends ServiceImpl<CurrencyMapper, Currency> {
         } else if (Objects.equals(token, CurrencyTokenEnum.BF_bep20)) {
             long result = currencyMapper.withdrawBF(uid, type, amount);
             Currency currency = get(uid, type);
-            currencyLogService.add(uid, type, CurrencyTokenEnum.BF_bep20, CurrencyLogType.withdraw, amount, sn, des, currency.getBalance_BF(), currency.getFreeze_BF(), currency.getRemain_BF());
+            currencyLogService.add(uid, type, CurrencyTokenEnum.BF_bep20, CurrencyLogType.withdraw, amount, sn, des, currency.getBalanceBF(), currency.getFreezeBF(), currency.getRemainBF());
             return result > 0L;
         }
         return false;
@@ -277,7 +277,7 @@ public class CurrencyService extends ServiceImpl<CurrencyMapper, Currency> {
         } else if (Objects.equals(token, CurrencyTokenEnum.BF_bep20)) {
             long result = currencyMapper.withdrawPresumptuousBF(uid, type, amount);
             Currency currency = currencyMapper.get(uid, type);
-            currencyLogService.add(uid, type, CurrencyTokenEnum.BF_bep20, CurrencyLogType.withdraw, amount, sn, des, currency.getBalance_BF(), currency.getFreeze_BF(), currency.getRemain_BF());
+            currencyLogService.add(uid, type, CurrencyTokenEnum.BF_bep20, CurrencyLogType.withdraw, amount, sn, des, currency.getBalanceBF(), currency.getFreezeBF(), currency.getRemainBF());
             return result > 0L;
         }
         return false;
@@ -299,7 +299,7 @@ public class CurrencyService extends ServiceImpl<CurrencyMapper, Currency> {
         } else if (Objects.equals(token, CurrencyTokenEnum.BF_bep20)) {
             long result = currencyMapper.freezeBF(uid, type, amount);
             Currency currency = currencyMapper.get(uid, type);
-            currencyLogService.add(uid, type, CurrencyTokenEnum.BF_bep20, CurrencyLogType.freeze, amount, sn, des, currency.getBalance_BF(), currency.getFreeze_BF(), currency.getRemain_BF());
+            currencyLogService.add(uid, type, CurrencyTokenEnum.BF_bep20, CurrencyLogType.freeze, amount, sn, des, currency.getBalanceBF(), currency.getFreezeBF(), currency.getRemainBF());
             return result > 0L;
         }
         return false;
@@ -321,7 +321,7 @@ public class CurrencyService extends ServiceImpl<CurrencyMapper, Currency> {
         } else if (Objects.equals(token, CurrencyTokenEnum.BF_bep20)) {
             long result = currencyMapper.unfreezeBF(uid, type, amount);
             Currency currency = currencyMapper.get(uid, type);
-            currencyLogService.add(uid, type, CurrencyTokenEnum.BF_bep20, CurrencyLogType.unfreeze, amount, sn, des, currency.getBalance_BF(), currency.getFreeze_BF(), currency.getRemain_BF());
+            currencyLogService.add(uid, type, CurrencyTokenEnum.BF_bep20, CurrencyLogType.unfreeze, amount, sn, des, currency.getBalanceBF(), currency.getFreezeBF(), currency.getRemainBF());
             return result > 0L;
         }
         return false;
@@ -343,7 +343,7 @@ public class CurrencyService extends ServiceImpl<CurrencyMapper, Currency> {
         } else if (Objects.equals(token, CurrencyTokenEnum.BF_bep20)) {
             long result = currencyMapper.lowWithdrawBF(uid, type, amount);
             Currency currency = currencyMapper.get(uid, type);
-            currencyLogService.add(uid, type, CurrencyTokenEnum.BF_bep20, CurrencyLogType.withdraw, amount, sn, des, currency.getBalance_BF(), currency.getFreeze_BF(), currency.getRemain_BF());
+            currencyLogService.add(uid, type, CurrencyTokenEnum.BF_bep20, CurrencyLogType.withdraw, amount, sn, des, currency.getBalanceBF(), currency.getFreezeBF(), currency.getRemainBF());
             if (result <= 0L) {
                 ErrorCodeEnum.CREDIT_LACK.throwException();
             }
@@ -351,13 +351,13 @@ public class CurrencyService extends ServiceImpl<CurrencyMapper, Currency> {
     }
 
     public void transfer(long uid, CurrencyTypeEnum from, CurrencyTypeEnum to, BigInteger amount, String sn) {
-        long result_from = currencyMapper.decrease(uid, from, amount);
-        long result_to = currencyMapper.increase(uid, to, amount);
-        Currency currency_from = currencyMapper.get(uid, from);
-        Currency currency_to = currencyMapper.get(uid, to);
-        currencyLogService.add(uid, from, CurrencyLogType.reduce, amount, sn, CurrencyLogDes.划出.name(), currency_from.getBalance(), currency_from.getFreeze(), currency_from.getRemain());
-        currencyLogService.add(uid, to, CurrencyLogType.increase, amount, sn, CurrencyLogDes.划入.name(), currency_to.getBalance(), currency_to.getFreeze(), currency_to.getRemain());
-        if (result_from <= 0L || result_to <= 0L) {
+        long resultFrom = currencyMapper.decrease(uid, from, amount);
+        long resultTo = currencyMapper.increase(uid, to, amount);
+        Currency currencyFrom = currencyMapper.get(uid, from);
+        Currency currencyTo = currencyMapper.get(uid, to);
+        currencyLogService.add(uid, from, CurrencyLogType.reduce, amount, sn, CurrencyLogDes.划出.name(), currencyFrom.getBalance(), currencyFrom.getFreeze(), currencyFrom.getRemain());
+        currencyLogService.add(uid, to, CurrencyLogType.increase, amount, sn, CurrencyLogDes.划入.name(), currencyTo.getBalance(), currencyTo.getFreeze(), currencyTo.getRemain());
+        if (resultFrom <= 0L || resultTo <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
     }

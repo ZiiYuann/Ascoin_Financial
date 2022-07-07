@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -27,18 +28,19 @@ public class WithdrawApplyChargeVO {
     private String chain;
 
     public static WithdrawApplyChargeVO trans(Charge charge) {
-        LocalDateTime create_time = charge.getCreate_time();
+        LocalDateTime create_time = charge.getCreateTime();
         Instant instant = create_time.atZone(ZoneId.systemDefault()).toInstant();
         return WithdrawApplyChargeVO.builder()
                 .create_time(create_time)
                 .create_time_ms(instant.toEpochMilli())
                 .status(charge.getStatus())
                 .token(charge.getToken().voStr())
-                .amount(charge.getCurrency_type().money(charge.getAmount()))
-                .fee(charge.getCurrency_type().money(charge.getFee()))
-                .real_amount(charge.getCurrency_type().money(charge.getReal_amount()))
+                .amount(charge.getCurrencyType().money(charge.getAmount()))
+                .fee(charge.getCurrencyType().money(charge.getFee()))
+                .real_amount(charge.getCurrencyType().money(charge.getRealAmount()))
                 .reason(charge.getReason())
-                .reason_en(charge.getReason_en())
+                .reason_en(charge.getReasonEn())
                 .build();
     }
+
 }

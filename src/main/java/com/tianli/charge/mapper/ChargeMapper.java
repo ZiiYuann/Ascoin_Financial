@@ -78,8 +78,10 @@ public interface ChargeMapper extends BaseMapper<Charge> {
                     @Param("startTime") String startTime,
                     @Param("endTime") String endTime);
 
+
     @Select("SELECT `currency_type`, SUM(`amount`) as total_amount FROM `charge` WHERE `status` = 'chain_success' AND `charge_type` = 'withdraw' GROUP BY `currency_type`")
     List<StatChargeAmount> totalWithdrawAmount();
+
 
     @SelectProvider(type = GenerateSQL.class, method = "selectNewCount")
     int selectNewCount(@Param("ip") String ip,

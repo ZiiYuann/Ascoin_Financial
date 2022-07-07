@@ -56,7 +56,7 @@ public class SyncChainLogTask {
             long maxLogId = chainLogMapper.maxId();
             List<Charge> chargeList = chargeService.list(Wrappers.lambdaQuery(Charge.class)
                     .eq(Charge::getStatus, ChargeStatus.chain_success)
-                    .eq(Charge::getCharge_type, ChargeType.recharge)
+                    .eq(Charge::getChargeType, ChargeType.recharge)
                     .gt(Charge::getId, maxLogId)
                     .last("LIMIT 50")
             );
@@ -66,12 +66,12 @@ public class SyncChainLogTask {
             List<ChainLog> chainLogList = chargeList.stream().map(e -> {
                 ChainLog chainLog = new ChainLog();
                 chainLog.setId(e.getId());
-                chainLog.setAddress(e.getTo_address());
-                chainLog.setCurrency_type(e.getCurrency_type());
+                chainLog.setAddress(e.getToAddress());
+                chainLog.setCurrency_type(e.getCurrencyType());
                 chainLog.setAmount(e.getAmount());
                 chainLog.setUid(e.getUid());
-                chainLog.setUsername(e.getUid_username());
-                chainLog.setU_create_time(e.getCreate_time());
+                chainLog.setUsername(e.getUidUsername());
+                chainLog.setU_create_time(e.getCreateTime());
                 return chainLog;
             }).collect(Collectors.toList());
             try {

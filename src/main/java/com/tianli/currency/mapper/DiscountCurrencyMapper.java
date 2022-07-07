@@ -1,6 +1,7 @@
 package com.tianli.currency.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.tianli.currency.enums.DiscountCurrency;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;

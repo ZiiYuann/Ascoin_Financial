@@ -1,6 +1,7 @@
 package com.tianli.wallet.mapper;
 
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.tianli.chain.ChainType;
 import com.tianli.common.blockchain.ChainType;
 import lombok.Builder;
 import lombok.Data;
@@ -17,9 +18,9 @@ import java.time.LocalDateTime;
  */
 
 @Data
-@EqualsAndHashCode(callSuper = false)
-@Accessors(chain = true)
 @Builder
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = false)
 public class MainWalletLog {
 
     /**
@@ -31,17 +32,17 @@ public class MainWalletLog {
     /**
      * 时间
      */
-    private LocalDateTime create_time;
+    private LocalDateTime createTime;
 
     /**
      * 货币类型
      */
-    private String currency_type;
+    private String currencyType;
 
     /**
      * 链的类型, bsc, trc, erc
      */
-    private ChainType chain_type;
+    private ChainType chainType;
 
     /**
      * 金额
@@ -51,12 +52,12 @@ public class MainWalletLog {
     /**
      * 转出地址
      */
-    private String from_address;
+    private String fromAddress;
 
     /**
      * 转入地址
      */
-    private String to_address;
+    private String toAddress;
 
     /**
      * 转入/转出方向 in/out

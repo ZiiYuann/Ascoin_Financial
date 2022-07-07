@@ -14,8 +14,8 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 /**
- * @Author wangqiyun
- * @Date 2020/3/31 11:26
+ * @author  wangqiyun
+ * @since  2020/3/31 11:26
  */
 
 
@@ -27,35 +27,35 @@ public class Charge {
 
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
-    private LocalDateTime create_time;
-    private LocalDateTime complete_time;
+    private LocalDateTime createTime;
+    private LocalDateTime completeTime;
     private ChargeStatus status;
     @JsonSerialize(using = ToStringSerializer.class)
     private Long uid;
-    private String uid_username;
-    private String uid_nick;
-    private String uid_avatar;
+    private String uidUsername;
+    private String uidNick;
+    private String uidAvatar;
     private String sn;
-    private TokenCurrencyType currency_type;
-    private ChargeType charge_type;
+    private TokenCurrencyType currencyType;
+    private ChargeType chargeType;
     private BigInteger amount;
     private BigInteger fee;
-    private BigInteger real_amount;
-    private String from_address;
-    private String to_address;
+    private BigInteger realAmount;
+    private String fromAddress;
+    private String toAddress;
     private String txid;
     private String note;
-    private String review_note;
-    private BigInteger miner_fee;
-    private TokenCurrencyType miner_fee_type;
+    private String reviewNote;
+    private BigInteger minerFee;
+    private TokenCurrencyType minerFeeType;
     private CurrencyTokenEnum token;
     private String reviewer;
 
-    private Long reviewer_id;
+    private Long reviewerId;
 
-    private LocalDateTime reviewer_time;
+    private LocalDateTime reviewerTime;
 
     private String reason;
 
-    private String reason_en;
+    private String reasonEn;
 }

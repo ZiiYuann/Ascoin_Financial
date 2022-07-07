@@ -14,12 +14,17 @@ import com.tianli.currency.log.CurrencyLog;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.currency.log.CurrencyLogService;
 import com.tianli.currency.log.CurrencyLogType;
+import com.tianli.currency.entity.Currency;
 import com.tianli.currency.mapper.Currency;
 import com.tianli.currency.mapper.DiscountCurrency;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.management.ruleconfig.ConfigConstants;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.MapTool;
+import com.tianli.user.UserService;
+import com.tianli.user.logs.UserIpLogService;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -49,6 +54,11 @@ public class CurrencyController {
     private CurrencyLogService currencyLogService;
     @Resource
     private RequestInitService requestInitService;
+
+    @Resource
+    private UserIpLogService userIpLogService;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     @Resource
     private Gson gson;
@@ -136,7 +146,7 @@ public class CurrencyController {
         double fixedAmount = type.money(new BigInteger(WITHDRAW_FIXED_AMOUNT));
         double money;
         if (TokenCurrencyType.BF_bep20 == type) {
-            money = TokenCurrencyType.BF_bep20.money(currency.getRemain_BF());
+            money = TokenCurrencyType.BF_bep20.money(currency.getRemainBF());
         } else {
             money = TokenCurrencyType.usdt_omni.money(currency.getRemain());
         }

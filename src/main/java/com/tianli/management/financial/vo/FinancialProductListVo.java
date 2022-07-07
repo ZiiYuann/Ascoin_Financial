@@ -44,11 +44,6 @@ public class FinancialProductListVo {
     private Long period;
 
     /**
-     * 累计投资
-     */
-    private double all_invest;
-
-    /**
      * 描述
      */
     private String description;

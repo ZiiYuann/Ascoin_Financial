@@ -33,17 +33,17 @@ public class ChargeDetailDTO {
     private String txid;
 
     public static ChargeDetailDTO trans(Charge charge) {
-        TokenCurrencyType currency_type = charge.getCurrency_type();
+        TokenCurrencyType currency_type = charge.getCurrencyType();
         return ChargeDetailDTO.builder()
                 .id(charge.getId())
                 .sn(charge.getSn())
-                .create_time(charge.getCreate_time())
+                .create_time(charge.getCreateTime())
                 .status(charge.getStatus())
                 .amount(currency_type.money(charge.getAmount()))
                 .fee(currency_type.money(charge.getFee()))
-                .real_amount(currency_type.money(charge.getReal_amount()))
-                .from_address(charge.getFrom_address())
-                .to_address(charge.getTo_address())
+                .real_amount(currency_type.money(charge.getRealAmount()))
+                .from_address(charge.getFromAddress())
+                .to_address(charge.getToAddress())
                 .txid(charge.getTxid())
                 .build();
     }

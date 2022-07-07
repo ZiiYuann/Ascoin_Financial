@@ -12,5 +12,4 @@ public class TransferDTO {
     private CurrencyTypeEnum to;
     @DecimalMin(value = "0.0001", message = "划转金额不能为空")
     private double amount;
-    private CurrencyCoinEnum token;
 }

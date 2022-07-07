@@ -1,6 +1,7 @@
-package com.tianli.currency.mapper;
+package com.tianli.currency.entity;
 
 import com.baomidou.mybatisplus.extension.activerecord.Model;
+import com.tianli.currency.mapper.ArtificialRechargeType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,21 +19,21 @@ import java.time.LocalDateTime;
  * @since 2020-12-04
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
-@Accessors(chain = true)
 @Builder
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = false)
 public class ArtificialRecharge extends Model<ArtificialRecharge> {
    private static final long serialVersionUID = 1L;
 
     private Long id;
-    private LocalDateTime create_time;
-    private LocalDateTime update_time;
+    private LocalDateTime createTime;
+    private LocalDateTime updateTime;
 
     private ArtificialRechargeType type;
     /**
      * 充值log表主键id
      */
-    private String log_id;
+    private String logId;
     private Long uid;
     private String username;
     private String nick;

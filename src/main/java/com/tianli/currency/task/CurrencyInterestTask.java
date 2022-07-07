@@ -17,7 +17,7 @@ import com.tianli.common.async.AsyncService;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.currency.*;
 import com.tianli.currency.log.CurrencyLogDes;
-import com.tianli.currency.mapper.Currency;
+import com.tianli.currency.entity.Currency;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.time.TimeTool;

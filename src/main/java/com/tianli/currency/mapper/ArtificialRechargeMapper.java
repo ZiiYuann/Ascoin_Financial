@@ -1,6 +1,7 @@
 package com.tianli.currency.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.tianli.currency.entity.ArtificialRecharge;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -8,7 +9,6 @@ import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.jdbc.SQL;
 
 import java.math.BigInteger;
-import java.util.List;
 
 @Mapper
 public interface ArtificialRechargeMapper extends BaseMapper<ArtificialRecharge> {

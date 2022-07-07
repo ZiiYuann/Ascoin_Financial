@@ -1,5 +1,7 @@
-package com.tianli.financial.mapper;
+package com.tianli.financial.entity;
 
+import com.tianli.financial.enums.FinancialProductStatus;
+import com.tianli.financial.enums.FinancialProductType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,10 +17,10 @@ import java.time.LocalDateTime;
  * </p>
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
-@Accessors(chain = true)
 @Builder
-public class UserFinancialLog {
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = false)
+public class FinancialLog {
     /**
      * 主键
      */
@@ -27,17 +29,12 @@ public class UserFinancialLog {
     /**
      * 用户id
      */
-    private Long user_id;
+    private Long userId;
 
     /**
      * 理财产品id
      */
-    private Long financial_product_id;
-
-    /**
-     * 活期/定期产品
-     */
-    private String financial_product_type;
+    private Long financialProductId;
 
     /**
      * 理财本金
@@ -45,37 +42,38 @@ public class UserFinancialLog {
     private BigInteger amount;
 
     /**
-     * 日利率
+     * 参考年化
      */
     private double rate;
 
     /**
      * 开始日期
      */
-    private LocalDate start_date;
+    private LocalDate startDate;
 
     /**
      * 结束日期
      */
-    private LocalDate end_date;
+    private LocalDate endDate;
 
     /**
      * 状态
      */
-    private String status;
+    private byte status;
+
+    /**
+     * 活期/定期产品
+     */
+    private byte financialProductType;
 
     /**
      * 创建时间
      */
-    private LocalDateTime create_time;
+    private LocalDateTime createTime;
 
     /**
      * 赎回时间
      */
-    private LocalDateTime finish_time;
+    private LocalDateTime finishTime;
 
-    /**
-     * 赎回金额
-     */
-    private BigInteger finish_amount;
 }

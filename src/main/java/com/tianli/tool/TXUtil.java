@@ -3,34 +3,41 @@ package com.tianli.tool;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.tianli.wallet.enums.TXChainTypeEnum;
+import com.tianli.chain.enums.ChainTypeEnum;
 import com.tianli.wallet.vo.TXBlockQueryVo;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * @author lzy
- * @date 2022/4/27 16:10
+ * @since  2022/4/27 16:10
  */
 @Slf4j
 public class TXUtil {
 
+    private static final String CHAIN_TYPE = "chainType";
 
-    public static Long getBlockNumber(String url, TXChainTypeEnum txChainTypeEnum) {
+    private TXUtil() {
+        throw new IllegalStateException("Utility class");
+    }
+
+
+    public static Long getBlockNumber(String url, ChainTypeEnum txChainTypeEnum) {
         Long blockNumber = -1L;
-        if (StrUtil.isBlank(url) || Objects.isNull(txChainTypeEnum)) {
+        if (StringUtils.isBlank(url) || Objects.isNull(txChainTypeEnum)) {
             return blockNumber;
         }
         try {
-            String result = HttpUtil.get(url + "?" + URLUtil.buildQuery(MapTool.Map().put("chainType", txChainTypeEnum.name()), Charset.defaultCharset()));
+            String result = HttpUtil.get(url + "?" + URLUtil.buildQuery(MapTool.Map().put(CHAIN_TYPE, txChainTypeEnum.name()), Charset.defaultCharset()));
             JSONObject jsonObject = JSONUtil.parseObj(result);
             if (ObjectUtil.isNotNull(jsonObject)) {
                 Object data = jsonObject.get("data");
@@ -46,21 +53,15 @@ public class TXUtil {
 
     /**
      * 根据指定的区块查询
-     *
-     * @param url
-     * @param txChainTypeEnum
-     * @param contractAddress
-     * @param blockNumber
-     * @return
      */
-    public static List<TXBlockQueryVo> blockQuery(String url, TXChainTypeEnum txChainTypeEnum, List<String> contractAddress, Long blockNumber) {
+    public static List<TXBlockQueryVo> blockQuery(String url, ChainTypeEnum txChainTypeEnum, List<String> contractAddress, Long blockNumber) {
         List<TXBlockQueryVo> txBlockQueryVos = null;
-        if (StrUtil.isBlank(url) || ObjectUtil.isNull(txChainTypeEnum) || CollUtil.isEmpty(contractAddress) || blockNumber < 0) {
-            return null;
+        if (StringUtils.isBlank(url) || ObjectUtil.isNull(txChainTypeEnum) || CollUtil.isEmpty(contractAddress) || blockNumber < 0) {
+            return Collections.emptyList();
         }
         try {
             String result = HttpUtil.post(url, JSONUtil.toJsonStr(MapTool.Map()
-                    .put("chainType", txChainTypeEnum.name())
+                    .put(CHAIN_TYPE, txChainTypeEnum.name())
                     .put("contracts", contractAddress)
                     .put("blockNumber", blockNumber)));
             JSONObject jsonObject = JSONUtil.parseObj(result);
@@ -79,38 +80,17 @@ public class TXUtil {
      * 内部交易查询
      *
      * @param txChainTypeEnum 链
-     * @param txhash          归集哈希
-     * @return
+     * @param txHash 归集哈希
      */
-    public static Object insiderTrading(String url, TXChainTypeEnum txChainTypeEnum, String txhash) {
-        if (StrUtil.isBlank(url) || ObjectUtil.isNull(txChainTypeEnum) || StrUtil.isBlank(txhash)) {
+    public static Object insiderTrading(String url, ChainTypeEnum txChainTypeEnum, String txHash) {
+        if (StringUtils.isBlank(url) || ObjectUtil.isNull(txChainTypeEnum) || StringUtils.isBlank(txHash)) {
             return null;
         }
         String result = HttpUtil.get(url + "?" + URLUtil.buildQuery(MapTool.Map()
-                .put("chainType", txChainTypeEnum.name())
-                .put("txhash", txhash), Charset.defaultCharset()));
+                .put(CHAIN_TYPE, txChainTypeEnum.name())
+                .put("txhash", txHash), Charset.defaultCharset()));
         JSONObject jsonObject = JSONUtil.parseObj(result);
         return jsonObject.get("data");
     }
 
-
-    /*public static void main(String[] args) {
-        List<TXBlockQueryVo> voList= blockQuery("https://nft-data-center.assure.pro/api/tx/list", TXChainTypeEnum.TRON, List.of("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),	41342078L);
-        System.out.println(voList);
-        for (TXBlockQueryVo txBlockQueryVo : voList) {
-            if (txBlockQueryVo.getHash().equals("9de4e6a0dff25f93e33ac42ba4998067fa310ed60f4eb3708dd0b181af597435")) {
-                System.out.println(txBlockQueryVo);
-            }
-        }
-    }*/
-
-    public static void main(String[] args) {
-        Long blockNumber = getBlockNumber("https://nft-data-center.assure.pro/api/tx/blockNumber", TXChainTypeEnum.ETH);
-        System.out.println(blockNumber);
-    }
-
-    /*public static void main(String[] args) {
-        Object o = insiderTrading("https://nft-data-center.assure.pro/api/tx/txlistinternal", TXChainTypeEnum.TRON, "b8c5ea52982d95668e9a195b34e11c187e01eb69ce09de6e11aaed8b89708bb7");
-        System.out.println(o);
-    }*/
 }

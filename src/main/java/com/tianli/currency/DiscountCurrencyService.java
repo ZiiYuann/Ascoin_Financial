@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
 import com.tianli.currency.log.CurrencyLogType;
-import com.tianli.currency.mapper.DiscountCurrency;
+import com.tianli.currency.enums.DiscountCurrency;
 import com.tianli.currency.mapper.DiscountCurrencyLog;
 import com.tianli.currency.mapper.DiscountCurrencyLogMapper;
 import com.tianli.currency.mapper.DiscountCurrencyMapper;

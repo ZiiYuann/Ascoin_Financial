@@ -15,9 +15,10 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
+import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.tool.MapTool;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -50,7 +51,6 @@ public class ChainController {
                     BeanUtils.copyProperties(e, chainLogDTO);
                     DigitalCurrency digitalCurrency = new DigitalCurrency(e.getCurrency_type(), e.getAmount());
                     chainLogDTO.setMoney(digitalCurrency.getMoney());
-//                    chainLogDTO.setCny(digitalCurrency.toOther(TokenCurrencyType.cny).getMoney());
                     return chainLogDTO;
                 }).collect(Collectors.toList())));
     }

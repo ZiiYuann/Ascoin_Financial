@@ -1,7 +1,8 @@
-package com.tianli.currency.mapper;
+package com.tianli.account.entity;
 
-import com.baomidou.mybatisplus.extension.activerecord.Model;
-import com.tianli.currency.CurrencyTypeEnum;
+import com.tianli.chain.ChainType;
+import com.tianli.currency.TokenCurrencyType;
+import com.tianli.currency.enums.CurrencyType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,18 +11,15 @@ import lombok.experimental.Accessors;
 import java.math.BigInteger;
 
 /**
- * <p>
- * 用户余额表
- * </p>
- *
- * @author hd
- * @since 2020-12-04
- */
+ * @author chenb
+ * @apiNote 账户余额
+ * @since 2022-07-07
+ **/
 @Data
-@EqualsAndHashCode(callSuper = false)
-@Accessors(chain = true)
 @Builder
-public class Currency extends Model<Currency> {
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = false)
+public class AccountBalance {
 
     private static final long serialVersionUID = 1L;
 
@@ -36,9 +34,14 @@ public class Currency extends Model<Currency> {
     private Long uid;
 
     /**
-     * 余额类型
+     * 余额币种类型
      */
-    private CurrencyTypeEnum type;
+    private CurrencyType currencyType;
+
+    /**
+     * 链类型
+     */
+    private ChainType chainType;
 
     /**
      * 总余额
@@ -58,15 +61,15 @@ public class Currency extends Model<Currency> {
     /**
      * 总余额
      */
-    private BigInteger balance_BF;
+    private BigInteger balanceBF;
 
     /**
      * 冻结余额
      */
-    private BigInteger freeze_BF;
+    private BigInteger freezeBF;
 
     /**
      * 剩余余额
      */
-    private BigInteger remain_BF;
+    private BigInteger remainBF;
 }

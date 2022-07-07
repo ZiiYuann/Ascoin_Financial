@@ -1,23 +1,23 @@
-package com.tianli.financial.mapper;
+package com.tianli.financial.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.tianli.financial.enums.FinancialProductStatus;
+import com.tianli.financial.enums.PurchaseTerm;
+import com.tianli.financial.enums.FinancialProductType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 /**
- * <p>
  * 理财产品
- * </p>
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
-@Accessors(chain = true)
 @Builder
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = false)
 public class FinancialProduct {
 
     /**
@@ -39,10 +39,10 @@ public class FinancialProduct {
     /**
      * 英文产品名称
      */
-    private String name_en;
+    private String nameEn;
 
     /**
-     * 日利率
+     * 参考年化
      */
     private double rate;
 
@@ -52,11 +52,6 @@ public class FinancialProduct {
     private Long period;
 
     /**
-     * 累计投资
-     */
-    private BigInteger all_invest;
-
-    /**
      * 描述
      */
     private String description;
@@ -64,24 +59,30 @@ public class FinancialProduct {
     /**
      * 英文描述
      */
-    private String description_en;
-
-    /**
-     * 类型
-     */
-    private String type;
+    private String descriptionEn;
 
     /**
      * 添加时间
      */
-    private LocalDateTime create_time;
+    private LocalDateTime createTime;
+
     /**
      * 修改时间
      */
-    private LocalDateTime update_time;
+    private LocalDateTime updateTime;
 
     /**
-     * status
+     * 类型 {@link PurchaseTerm}
      */
-    private String status;
+    private byte term;
+
+    /**
+     * 产品状态 {@link FinancialProductStatus}
+     */
+    private byte status;
+
+    /**
+     * 产品类型 {@link FinancialProductType}
+     */
+    private byte type;
 }

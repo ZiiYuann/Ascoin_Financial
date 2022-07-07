@@ -1,6 +1,8 @@
 package com.tianli.common.blockchain;
 
 import com.google.protobuf.ByteString;
+import com.tianli.management.ruleconfig.ConfigConstants;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.common.ConfigConstants;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;

@@ -31,13 +31,6 @@ public class ConfigService extends ServiceImpl<ConfigMapper, Config> {
         else return this.decrypt(name, config.getValue());
     }
 
-    public String _get_pure(String name) {
-        Config config = configMapper.get(name);
-        if (config == null) return null;
-        else return config.getValue();
-    }
-
-
     public String get(String name) {
         String config = configService._get(name);
         if (StringUtils.isEmpty(config)) ErrorCodeEnum.NOT_OPEN.throwException();

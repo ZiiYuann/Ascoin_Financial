@@ -1,4 +1,4 @@
-package com.tianli.currency.mapper;
+package com.tianli.currency.enums;
 
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.tianli.currency.CurrencyTokenEnum;

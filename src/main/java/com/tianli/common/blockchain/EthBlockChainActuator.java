@@ -2,6 +2,7 @@ package com.tianli.common.blockchain;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.tianli.management.ruleconfig.ConfigConstants;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.Constants;
 import com.tianli.common.HttpUtils;
