@@ -26,18 +26,15 @@ public class HandleExceptionController {
             String message = e.getMessage();
             result.setMsg(e.getMessage());
             result.setEnMsg(getEnMsg(message));
-            result.setThMsg(getThaiMsg(message));
         } else if (Exceptions.getE().containsKey(e.getClass())) {
             result.setCode(Exceptions.getE().get(e.getClass()).getErrcode());
             String message = Exceptions.getE().get(e.getClass()).getMessage();
             result.setMsg(message);
             result.setEnMsg(getEnMsg(message));
-            result.setThMsg(getThaiMsg(message));
         }else {
             result.setCode("100");
             result.setMsg("系统异常");
             result.setEnMsg("System exception");
-            result.setThMsg("ระบบล้มเหลว");
         }
         ExceptionUtils.printStackTrace(e);
         e.printStackTrace();
@@ -60,7 +57,6 @@ public class HandleExceptionController {
                 String defaultMessage = fieldError.getDefaultMessage();
                 result.setMsg(defaultMessage);
                 result.setEnMsg(getEnMsg(defaultMessage));
-                result.setThMsg(getThaiMsg(defaultMessage));
                 return result;
             }
         }

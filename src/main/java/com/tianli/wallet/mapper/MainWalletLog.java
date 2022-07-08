@@ -1,7 +1,7 @@
 package com.tianli.wallet.mapper;
 
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.tianli.currency_token.mapper.ChainType;
+import com.tianli.common.blockchain.ChainType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

@@ -3,13 +3,13 @@ package com.tianli.currency;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.CommonFunction;
+import com.tianli.common.ConfigConstants;
 import com.tianli.currency.log.CurrencyLogType;
 import com.tianli.currency.mapper.DiscountCurrency;
 import com.tianli.currency.mapper.DiscountCurrencyLog;
 import com.tianli.currency.mapper.DiscountCurrencyLogMapper;
 import com.tianli.currency.mapper.DiscountCurrencyMapper;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.management.ruleconfig.ConfigConstants;
 import com.tianli.mconfig.ConfigService;
 import org.springframework.stereotype.Service;
 

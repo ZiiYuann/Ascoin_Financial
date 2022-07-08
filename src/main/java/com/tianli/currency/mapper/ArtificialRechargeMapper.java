@@ -1,7 +1,6 @@
 package com.tianli.currency.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tianli.management.currency.ArtificialRechargePageDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -13,14 +12,6 @@ import java.util.List;
 
 @Mapper
 public interface ArtificialRechargeMapper extends BaseMapper<ArtificialRecharge> {
-
-    @SelectProvider(type = GenerateSQL.class, method ="getPage")
-    List<ArtificialRechargePageDTO> getPage(@Param("username") String username,
-                                            @Param("adminNick") String adminNick,
-                                            @Param("startTime") String startTime,
-                                            @Param("endTime") String endTime,
-                                            @Param("offset") Integer offset,
-                                            @Param("size") Integer size);
 
     @SelectProvider(type = GenerateSQL.class, method ="getCount")
     long getCount(@Param("username") String username,
