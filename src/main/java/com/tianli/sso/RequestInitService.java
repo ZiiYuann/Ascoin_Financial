@@ -1,15 +1,11 @@
-package com.tianli.common.init;
+package com.tianli.sso;
 
 import com.google.gson.JsonObject;
 import com.tianli.common.IpTool;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.sso.service.OssService;
 import com.tianli.sso.service.UserOssService;
 import com.tianli.tool.ApplicationContextTool;
 import com.tianli.tool.judge.JsonObjectTool;
-import com.tianli.user.UserService;
-import com.tianli.user.mapper.User;
-import com.tianli.user.mapper.UserStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -39,10 +35,6 @@ public class RequestInitService {
 
     public Long uid() {
         Long uid = _uid();
-        if (uid == null) ErrorCodeEnum.UNLOIGN.throwException();
-        User u;
-        if ((u = userService._get(uid)) == null) ErrorCodeEnum.UNLOIGN.throwException();
-        if (u.getStatus() != UserStatus.enable) ErrorCodeEnum.ACCOUNT_BAND.throwException();
         return uid;
     }
 
@@ -142,9 +134,6 @@ public class RequestInitService {
 
     @Resource
     private UserOssService userOssService;
-
-    @Resource
-    private UserService userService;
 
     private final ThreadLocal<RequestInit> REQUEST_INIT = new ThreadLocal<>();
 }

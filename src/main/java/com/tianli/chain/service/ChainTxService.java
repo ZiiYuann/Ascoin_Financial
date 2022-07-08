@@ -124,51 +124,6 @@ public class ChainTxService extends ServiceImpl<ChainTxMapper, ChainTx> {
         }
     }
 
-    @Transactional
-    public void webhooks(ChargeWebhooksDTO chargeWebhooksDTO) {
-
-        ChainTx chainTx = chainTxMapper.selectOne(new LambdaQueryWrapper<ChainTx>().eq(ChainTx::getSn, chargeWebhooksDTO.getSn()));
-        if (chainTx == null) return;
-        if ("success".equals(chargeWebhooksDTO.getStatus())) {
-            TokenCurrencyType currency_type = chainTx.getCurrency_type();
-            LineTransactionDetail transactionDetail = getTransactionDetail(chargeWebhooksDTO.getTxid());
-            LineTransactionDetail.Data data;
-            BigInteger fee = null;
-            TokenCurrencyType fee_type = null;
-            if(Objects.nonNull(transactionDetail) && Objects.nonNull(data = transactionDetail.getData())){
-                if(Objects.equals(TokenCurrencyType.usdt_omni, currency_type) && Objects.nonNull(data.getBtc())){
-                    // BTC
-                    fee_type = TokenCurrencyType.btc;
-                    fee = data.getBtc().getFee();
-                }else if(Objects.equals(TokenCurrencyType.usdt_erc20, currency_type) && Objects.nonNull(data.getEth())) {
-                    // ETH
-                    fee_type = TokenCurrencyType.eth;
-                    fee = data.getEth().getFee();
-                }else if(Objects.equals(TokenCurrencyType.usdt_trc20, currency_type) && Objects.nonNull(data.getTrx())) {
-                    // TRX
-                    fee_type = TokenCurrencyType.tron;
-                    fee = data.getTrx().getFee();
-                    if(fee == null){
-                        fee = data.getEth().getFee();
-                    }
-                }
-            }
-            int update = chainTxMapper.update(null, new LambdaUpdateWrapper<ChainTx>().set(ChainTx::getComplete_time, LocalDateTime.now())
-                    .set(ChainTx::getStatus, ChargeStatus.chain_success).set(ChainTx::getTxid, chargeWebhooksDTO.getTxid())
-                    .set(Objects.nonNull(fee), ChainTx::getFee, fee)
-                    .set(Objects.nonNull(fee_type), ChainTx::getFee_currency_type, fee_type)
-                    .eq(ChainTx::getSn, chargeWebhooksDTO.getSn()).eq(ChainTx::getStatus, ChargeStatus.chaining));
-            if (update > 0) {
-                Address address = addressService.getById(chainTx.getUid());
-                asyncService.asyncSuccessRequest(() -> chainService.update(chainTx.getUid(), address, currency_type, true));
-            }
-        } else if ("fail".equals(chargeWebhooksDTO.getStatus())) {
-            chainTxMapper.update(null, new LambdaUpdateWrapper<ChainTx>().set(ChainTx::getComplete_time, LocalDateTime.now())
-                    .set(ChainTx::getStatus, ChargeStatus.chain_fail)
-                    .eq(ChainTx::getSn, chargeWebhooksDTO.getSn()).eq(ChainTx::getStatus, ChargeStatus.chaining));
-        }
-    }
-
     /**
      * 获取链上交易详情
      */

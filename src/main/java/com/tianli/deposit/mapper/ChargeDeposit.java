@@ -79,11 +79,6 @@ public class ChargeDeposit {
     private ChargeDepositType charge_type;
 
     /**
-     * 结账方式,链交易or 财务平账
-     */
-    private DepositSettlementType settlement_type;
-
-    /**
      * 订单金额
      */
     private BigInteger amount;

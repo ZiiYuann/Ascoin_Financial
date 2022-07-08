@@ -26,7 +26,7 @@ public class ConfigService extends ServiceImpl<ConfigMapper, Config> {
     );
 
     public String _get(String name) {
-        Config config = get(name);
+        Config config = configMapper.get(name);
         if (config == null) return null;
         else return this.decrypt(name, config.getValue());
     }
@@ -77,7 +77,7 @@ public class ConfigService extends ServiceImpl<ConfigMapper, Config> {
     }
 
     public void replace(String name, String value) {
-        configMapper.replaceParam(name, value);
+        configMapper.replace(name, value);
     }
 
     public String decrypt(String name, String value) {

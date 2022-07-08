@@ -8,5 +8,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AdminPrivilege {
-    String[] value() default {};
+    Privilege[] or() default {};
+
+    Privilege[] and() default {};
 }

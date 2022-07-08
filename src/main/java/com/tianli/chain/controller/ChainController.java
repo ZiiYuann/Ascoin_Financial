@@ -13,9 +13,8 @@ import com.tianli.currency.DigitalCurrency;
 import com.tianli.currency.TokenCurrencyType;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
-import com.tianli.role.annotation.AdminPrivilege;
-import com.tianli.role.annotation.FundsPasswordPrivilege;
-import com.tianli.role.annotation.Privilege;
+import com.tianli.sso.permission.AdminPrivilege;
+import com.tianli.sso.permission.Privilege;
 import com.tianli.tool.MapTool;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
@@ -77,7 +76,6 @@ public class ChainController {
 
     @PostMapping("/{id}/collect")
     @AdminPrivilege(and = Privilege.待归集管理)
-    @FundsPasswordPrivilege
     public Result collect(@PathVariable long id) {
         ChainLog chainLog = chainLogMapper.selectById(id);
         if (chainLog == null) ErrorCodeEnum.OBJECT_NOT_FOUND.throwException();

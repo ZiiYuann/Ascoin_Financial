@@ -1,6 +1,7 @@
-package com.tianli.common.init;
+package com.tianli.sso;
 
 import com.google.gson.Gson;
+import com.tianli.sso.RequestInitService;
 import com.tianli.tool.ApplicationContextTool;
 import com.tianli.tool.MapTool;
 import org.springframework.security.crypto.codec.Utf8;
@@ -29,7 +30,6 @@ public class RequestInitFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         RequestInitService requestInitService = ApplicationContextTool.getBean(RequestInitService.class);
         requestInitService.init((HttpServletRequest) servletRequest);
-        requestInitService.initRiskInfo((HttpServletRequest) servletRequest);
         ContentCachingRequestWrapper httpServletRequest = new ContentCachingRequestWrapper((HttpServletRequest) servletRequest);
         ContentCachingResponseWrapper httpServletResponse = new ContentCachingResponseWrapper((HttpServletResponse) servletResponse);
         filterChain.doFilter(servletRequest, servletResponse);
@@ -58,7 +58,6 @@ public class RequestInitFilter implements Filter {
         }
         httpServletResponse.copyBodyToResponse();
         requestInitService.destroy();
-        requestInitService.destroyRisk();
     }
 
     @Override

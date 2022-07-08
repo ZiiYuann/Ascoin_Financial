@@ -4,17 +4,12 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tianli.charge.ChargeType;
 import com.tianli.charge.dto.StatChargeAmount;
 import com.tianli.currency.TokenCurrencyType;
-import com.tianli.management.fundmanagement.WithdrawalManageBhvPO;
-import com.tianli.management.fundmanagement.WithdrawalManagePO;
-import com.tianli.management.platformfinance.FeeDTO;
-import com.tianli.management.platformfinance.FinanceExhibitionDetailDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.jdbc.SQL;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -59,20 +54,6 @@ public interface ChargeMapper extends BaseMapper<Charge> {
                             @Param("offset") int offset,
                             @Param("size") int size);
 
-    @SelectProvider(type = GenerateSQL.class, method = "selectNewPage")
-    List<WithdrawalManagePO> selectNewPage(@Param("ip") String ip,
-                                           @Param("equipment") String equipment,
-                                           @Param("grc_result") Boolean grc_result,
-                                           @Param("otherSec") Boolean otherSec,
-                                           @Param("uid") Long uid,
-                                           @Param("status") ChargeStatus status,
-                                           @Param("type") ChargeType type,
-                                           @Param("phone") String phone,
-                                           @Param("txid") String txid,
-                                           @Param("startTime") String startTime,
-                                           @Param("endTime") String endTime,
-                                           @Param("offset") int offset,
-                                           @Param("size") int size);
 
     @SelectProvider(type = GenerateSQL.class, method = "totalAmount")
     List<Map<String,Object>> totalAmount(@Param("ip") String ip,
@@ -97,125 +78,8 @@ public interface ChargeMapper extends BaseMapper<Charge> {
                     @Param("startTime") String startTime,
                     @Param("endTime") String endTime);
 
-    @Select("SELECT t1.date, " +
-            "COALESCE(t2.erc20, 0) as charge_fee_erc20 , " +
-            "COALESCE(t2.omni, 0) as charge_fee_omni , " +
-            "COALESCE(t3.erc20, 0) as charge_deposit_fee_erc20, " +
-            "COALESCE(t3.omni, 0) as charge_deposit_fee_omni, " +
-            "COALESCE(t4.erc20, 0) as charge_settlement_fee_erc20, " +
-            "COALESCE(t4.omni, 0) as charge_settlement_fee_omni " +
-            " FROM(" +
-            "     SELECT adddate(date_format(#{startDay},'%Y-%m-%d'), INTERVAL @num:=@num+1 DAY) as date " +
-            "     FROM `k_line`,(select @num:=-1) t WHERE adddate(#{startDay}, INTERVAL @num DAY) < date_format(#{endDay},'%Y-%m-%d') " +
-            " ) t1 " +
-            " LEFT JOIN( " +
-            "     SELECT date_format(m.create_time, '%Y-%m-%d') as date," +
-            "            ifnull(sum(CASE WHEN `currency_type` = 'usdt_erc20' THEN `fee` ELSE 0 END),0) as erc20 , " +
-            "            ifnull(sum(CASE WHEN `currency_type` = 'usdt_omni' THEN `fee` ELSE 0 END),0) as omni " +
-            "     FROM charge as m " +
-            "     WHERE date_format(m.create_time,'%Y-%m-%d') <= #{endDay} AND date_format(m.create_time,'%Y-%m-%d') >= #{startDay} " +
-            "            AND m.charge_type = 'withdraw' AND m.status = 'chain_success' " +
-            "     GROUP BY date" +
-            " ) t2 " +
-            " ON t1.date = t2.date " +
-            " LEFT JOIN( " +
-            "     SELECT date_format(u.create_time, '%Y-%m-%d') as date," +
-            "            ifnull(sum(CASE WHEN `currency_type` = 'usdt_erc20' THEN `fee` ELSE 0 END),0) as erc20 , " +
-            "            ifnull(sum(CASE WHEN `currency_type` = 'usdt_omni' THEN `fee` ELSE 0 END),0) as omni " +
-            "     FROM charge_deposit as u " +
-            "     WHERE date_format(u.create_time,'%Y-%m-%d') <= #{endDay} AND date_format(u.create_time,'%Y-%m-%d') >= #{startDay} " +
-            "            AND u.charge_type = 'withdraw' AND u.status = 'transaction_success' " +
-            "     GROUP BY date" +
-            " ) t3 " +
-            " ON t1.date = t3.date " +
-            " LEFT JOIN( " +
-            "     SELECT date_format(k.create_time, '%Y-%m-%d') as date," +
-            "            ifnull(sum(CASE WHEN `currency_type` = 'usdt_erc20' THEN `fee` ELSE 0 END),0) as erc20 , " +
-            "            ifnull(sum(CASE WHEN `currency_type` = 'usdt_omni' THEN `fee` ELSE 0 END),0) as omni " +
-            "     FROM charge_settlement as k " +
-            "     WHERE date_format(k.create_time,'%Y-%m-%d') <= #{endDay} AND date_format(k.create_time,'%Y-%m-%d') >= #{startDay} " +
-            "            AND k.charge_type = 'withdraw' AND k.status = 'transaction_success' " +
-            "     GROUP BY date " +
-            " ) t4 " +
-            " ON t1.date = t4.date ORDER BY t1.date")
-    List<FeeDTO> getDailySumFee(@Param("startDay") LocalDate startDay, @Param("endDay") LocalDate endDay);
-
-    @Select("SELECT t1.date, " +
-            "COALESCE(t2.erc20, 0) as charge_fee_erc20 , " +
-            "COALESCE(t2.omni, 0) as charge_fee_omni " +
-            " FROM(" +
-            "     SELECT adddate(date_format(#{startDay},'%Y-%m-%d'), INTERVAL @num:=@num+1 DAY) as date " +
-            "     FROM `k_line`,(select @num:=-1) t WHERE adddate(#{startDay}, INTERVAL @num DAY) < date_format(#{endDay},'%Y-%m-%d') " +
-            " ) t1 " +
-            " LEFT JOIN( " +
-            "     SELECT date_format(m.create_time, '%Y-%m-%d') as date," +
-            "            ifnull(sum(CASE WHEN `currency_type` = 'usdt_erc20' THEN `fee` ELSE 0 END),0) as erc20 , " +
-            "            ifnull(sum(CASE WHEN `currency_type` = 'usdt_omni' THEN `fee` ELSE 0 END),0) as omni " +
-            "     FROM charge as m " +
-            "     WHERE date_format(m.create_time,'%Y-%m-%d') <= #{endDay} AND date_format(m.create_time,'%Y-%m-%d') >= #{startDay} " +
-            "            AND m.charge_type = 'withdraw' AND m.status = 'chain_success' " +
-            "     GROUP BY date" +
-            " ) t2 " +
-            " ON t1.date = t2.date " +
-            " ORDER BY t1.date")
-    List<FeeDTO> getDailySumFee2(@Param("startDay") LocalDate startDay, @Param("endDay") LocalDate endDay);
-
-    @Select("SELECT t1.date, " +
-            "COALESCE(t2.withdrawal_fee_erc20, 0) as withdrawal_fee_erc20 , " +
-            "COALESCE(t2.withdrawal_fee_omni, 0) as withdrawal_fee_omni, " +
-            "COALESCE(t3.settlement_erc20_fee, 0) as settlement_erc20_fee, " +
-            "COALESCE(t3.settlement_omni_fee, 0) as settlement_omni_fee, " +
-            "COALESCE(t4.deposit_erc20_fee, 0) as deposit_erc20_fee, " +
-            "COALESCE(t4.deposit_omni_fee, 0) as deposit_omni_fee " +
-            " FROM(" +
-            "     SELECT adddate(date_format(#{startDay},'%Y-%m-%d'), INTERVAL @num:=@num+1 DAY) as date " +
-            "     FROM `k_line`,(select @num:=-1) t WHERE adddate(#{startDay}, INTERVAL @num DAY) < date_format(#{endDay},'%Y-%m-%d') " +
-            " ) t1 " +
-            " LEFT JOIN( " +
-            "     SELECT date_format(c.create_time, '%Y-%m-%d') as date," +
-            "            ifnull(sum(CASE WHEN `currency_type` = 'usdt_erc20' THEN `fee` ELSE 0 END),0) as withdrawal_fee_erc20 , " +
-            "            ifnull(sum(CASE WHEN `currency_type` = 'usdt_omni' THEN `fee` ELSE 0 END),0) as withdrawal_fee_omni " +
-            "     FROM `charge` as c " +
-            "     WHERE date_format(c.create_time,'%Y-%m-%d') <= #{endDay} AND date_format(c.create_time,'%Y-%m-%d') >= #{startDay} " +
-            "            AND c.charge_type = 'withdraw' AND c.status = 'chain_success' " +
-            "     GROUP BY date" +
-            " ) t2 " +
-            " ON t1.date = t2.date " +
-            " LEFT JOIN( " +
-            "     SELECT date_format(cs.create_time, '%Y-%m-%d') as date," +
-            "            ifnull(sum(CASE WHEN `currency_type` = 'usdt_erc20' THEN `fee` ELSE 0 END),0) as settlement_erc20_fee , " +
-            "            ifnull(sum(CASE WHEN `currency_type` = 'usdt_omni' THEN `fee` ELSE 0 END),0) as settlement_omni_fee " +
-            "     FROM `charge_settlement` as cs " +
-            "     WHERE date_format(cs.create_time,'%Y-%m-%d') <= #{endDay} AND date_format(cs.create_time,'%Y-%m-%d') >= #{startDay} " +
-            "            AND cs.charge_type = 'withdraw' AND cs.status = 'transaction_success' " +
-            "     GROUP BY date" +
-            " ) t3 " +
-            " ON t1.date = t3.date " +
-            " LEFT JOIN( " +
-            "     SELECT date_format(cd.create_time, '%Y-%m-%d') as date," +
-            "            ifnull(sum(CASE WHEN `currency_type` = 'usdt_erc20' THEN `fee` ELSE 0 END),0) as deposit_erc20_fee , " +
-            "            ifnull(sum(CASE WHEN `currency_type` = 'usdt_omni' THEN `fee` ELSE 0 END),0) as deposit_omni_fee " +
-            "     FROM `charge_deposit` as cd " +
-            "     WHERE date_format(cd.create_time,'%Y-%m-%d') <= #{endDay} AND date_format(cd.create_time,'%Y-%m-%d') >= #{startDay} " +
-            "            AND cd.charge_type = 'withdraw' AND cd.status = 'transaction_success' " +
-            "     GROUP BY date" +
-            " ) t4 " +
-            " ON t1.date = t4.date " +
-            " ORDER BY t1.date")
-    List<FinanceExhibitionDetailDTO> getDailyFeeDetails(@Param("startDay") LocalDate startDay, @Param("endDay") LocalDate endDay);
-
-
     @Select("SELECT `currency_type`, SUM(`amount`) as total_amount FROM `charge` WHERE `status` = 'chain_success' AND `charge_type` = 'withdraw' GROUP BY `currency_type`")
     List<StatChargeAmount> totalWithdrawAmount();
-
-    @Select("select c.id, c.uid, c.uid_username, c.amount, c.currency_type, c.to_address, c.status, c.create_time, \n" +
-            "       uil.grc_score, uil.grc_result, uil.ip, uil.country, uil.region, uil.city, uil.equipment_type, uil.equipment, \n" +
-            "       ur.referral_username \n" +
-            " from charge c \n" +
-            " left join user_ip_log uil on c.id = uil.behavior_id and uil.behavior = '提现' \n" +
-            " left join user_referral ur on c.uid = ur.id\n" +
-            " where c.id = #{id}")
-    WithdrawalManageBhvPO selectInfoById(@Param("id") long id);
 
     @SelectProvider(type = GenerateSQL.class, method = "selectNewCount")
     int selectNewCount(@Param("ip") String ip,

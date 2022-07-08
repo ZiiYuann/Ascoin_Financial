@@ -2,12 +2,8 @@ package com.tianli.sso.service;
 
 import com.google.gson.JsonObject;
 import com.tianli.common.Constants;
-import com.tianli.common.init.admin.AdminContent;
-import com.tianli.common.init.admin.AdminInfo;
-import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.sso.permission.LoginTokenType;
-import com.tianli.tool.judge.JsonObjectTool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;

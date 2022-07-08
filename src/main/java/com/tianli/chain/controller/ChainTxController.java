@@ -51,29 +51,6 @@ public class ChainTxController {
         }).collect(Collectors.toList())));
     }
 
-    @PostMapping("/webhooks")
-    public void webhooks(@RequestBody String str,
-                         @RequestHeader("AppKey") String appKey,
-                         @RequestHeader("Sign") String sign,
-                         HttpServletResponse httpServletResponse) throws IOException {
-        String wallet_app_key = configService.get("wallet_app_key");
-        String wallet_app_secret = configService.get("wallet_app_secret");
-        System.out.println(String.format("收集回调=> 参数:[%s], Sign:[%s]", str, sign));
-        //验签
-        if (wallet_app_key.equals(appKey) && Crypto.hmacToString(DigestFactory.createSHA256(), wallet_app_secret, str).equals(sign)) {
-            ChargeWebhooksDTO chargeWebhooksDTO = gson.fromJson(str, ChargeWebhooksDTO.class);
-            chainTxService.webhooks(chargeWebhooksDTO);
-
-            PrintWriter writer = httpServletResponse.getWriter();
-            writer.write("success");
-            writer.close();
-        } else {
-            PrintWriter writer = httpServletResponse.getWriter();
-            writer.write("fail");
-            writer.close();
-        }
-    }
-
 
     @Resource
     private ChainTxMapper chainTxMapper;

@@ -11,6 +11,7 @@ import com.tianli.charge.ChargeType;
 import com.tianli.charge.mapper.Charge;
 import com.tianli.charge.mapper.ChargeStatus;
 import com.tianli.common.CommonFunction;
+import com.tianli.common.ConfigConstants;
 import com.tianli.common.Constants;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.lock.RedisLock;
@@ -18,18 +19,13 @@ import com.tianli.currency.*;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.currency.mapper.Currency;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.management.ruleconfig.ConfigConstants;
 import com.tianli.mconfig.ConfigService;
-import com.tianli.tool.ApplicationContextTool;
 import com.tianli.tool.time.TimeTool;
-import com.tianli.user.userinfo.UserInfoService;
-import com.tianli.user.userinfo.mapper.UserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.mountcloud.graphql.GraphqlClient;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,10 +63,6 @@ public class CurrencyInterestTask {
 
     @Resource
     private ChargeService chargeService;
-
-    @Resource
-    private UserInfoService userInfoService;
-
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -180,142 +172,4 @@ public class CurrencyInterestTask {
         }
     }
 
-//    @Scheduled(fixedDelay = 500)
-//    public void updateUserBSCBalance() {
-//        asyncService.async(() -> {
-//            boolean lock = redisLock._lock("CurrencyInterestTask:updateUserBSCBalance", 3L, TimeUnit.MINUTES);
-//            if (!lock) {
-//                return;
-//            }
-//            try {
-//                currencyInterestTask.commonScan(BSC_BLOCK_COUNT, ApplicationContextTool.getBean("graphqlClient", GraphqlClient.class));
-//            } catch (Exception e) {
-//                log.error("updateUserBalance Exception:", e);
-//            } finally {
-//                redisLock.unlock("CurrencyInterestTask:updateUserBSCBalance");
-//            }
-//        });
-//    }
-
-//    @Scheduled(fixedDelay = 500)
-//    public void updateUserETHBalance() {
-//        asyncService.async(() -> {
-//            boolean lock = redisLock._lock("CurrencyInterestTask:updateUserETHBalance", 3L, TimeUnit.MINUTES);
-//            if (!lock) {
-//                return;
-//            }
-//            try {
-//                currencyInterestTask.commonScan(ETH_BLOCK_COUNT, ApplicationContextTool.getBean("ethGraphqlClient", GraphqlClient.class));
-//            } catch (Exception e) {
-//                log.error("updateUserBalance Exception:", e);
-//            } finally {
-//                redisLock.unlock("CurrencyInterestTask:updateUserETHBalance");
-//            }
-//        });
-//    }
-
-    @Transactional(rollbackFor = Exception.class)
-    public void commonScan(String blockCount, GraphqlClient graphqlClient) throws IOException {
-        String block = configService.get(blockCount);
-        long start = Long.parseLong(block);
-        Long graphLastBlock = graphService.getGraphLastBlock(graphqlClient);
-        if (graphLastBlock < start) {
-            return;
-        }
-
-        List<Address> list = addressService.list(new LambdaQueryWrapper<Address>()
-                .select(Address::getBsc,Address::getEth)
-                .isNotNull(blockCount.equals(BSC_BLOCK_COUNT),Address::getBsc)
-                .isNotNull(blockCount.equals(ETH_BLOCK_COUNT),Address::getEth)
-                .eq(Address::getType, CurrencyTypeEnum.normal));
-        List<String> addressList = list.stream().map(address -> {
-            if (blockCount.equals(BSC_BLOCK_COUNT)) {
-                return address.getBsc().toLowerCase();
-            } else if (blockCount.equals(ETH_BLOCK_COUNT)) {
-                return address.getEth().toLowerCase();
-            }
-            return null;
-        }).collect(Collectors.toList());
-
-        List<TransferGraphVO> transferGraphVOS = graphService.getTransfer(graphqlClient, start, start + 1, addressList);
-        List<RechargeTransferDTO> rechargeTransferDTOList = Lists.newArrayList();
-        transferGraphVOS.forEach(transferGraphVO -> {
-            RechargeTransferDTO vo = RechargeTransferDTO.trans(transferGraphVO);
-            Address address;
-            CurrencyTokenEnum token;
-            if (blockCount.equals(BSC_BLOCK_COUNT)) {
-                address = addressService.getByBsc(transferGraphVO.getTo());
-                Long uid = address.getUid();
-                if ((token = CurrencyTokenEnum.getToken(transferGraphVO.getCoinAddress().toLowerCase())) != null) {
-                    BigInteger value = transferGraphVO.getValue();
-                    if(CurrencyTokenEnum.usdt_bep20.equals(token)) {
-                        vo.setCurrency_type(TokenCurrencyType.usdt_bep20);
-                        value = value.divide(ChargeService.TEN_BILLION);
-                    }else if(CurrencyTokenEnum.usdc_bep20.equals(token)) {
-                        vo.setCurrency_type(TokenCurrencyType.usdc_bep20);
-                        value = value.divide(ChargeService.TEN_BILLION);
-                    }else{
-                        vo.setCurrency_type(TokenCurrencyType.BF_bep20);
-                    }
-                    currencyService.increase(uid, CurrencyTypeEnum.normal, token, value, transferGraphVO.getId(), CurrencyLogDes.充值.name());
-                }
-                vo.setToken(token);
-                vo.setUid(uid);
-//                vo.setFee(transferGraphVO.getFee());
-                vo.setFeeType(TokenCurrencyType.bnb);
-            } else if (blockCount.equals(ETH_BLOCK_COUNT)) {
-                address = addressService.getByEth(transferGraphVO.getTo());
-                Long uid = address.getUid();
-                if ((token = CurrencyTokenEnum.getToken(transferGraphVO.getCoinAddress().toLowerCase())) != null) {
-                    if(CurrencyTokenEnum.usdt_erc20.equals(token)) {
-                        vo.setCurrency_type(TokenCurrencyType.usdt_erc20);
-                        vo.setToken(token);
-                    }else if(CurrencyTokenEnum.usdc_erc20.equals(token)) {
-                        vo.setCurrency_type(TokenCurrencyType.usdc_erc20);
-                        vo.setToken(token);
-                    }
-                    currencyService.increase(uid, CurrencyTypeEnum.normal, token, transferGraphVO.getValue().multiply(ChargeService.ONE_HUNDRED), transferGraphVO.getId(), CurrencyLogDes.充值.name());
-                }
-                vo.setUid(uid);
-                //                vo.setFee(transferGraphVO.getFee());
-                vo.setFeeType(TokenCurrencyType.eth);
-            }
-            rechargeTransferDTOList.add(vo);
-        });
-
-        boolean cas = configService.cas(blockCount, block, String.valueOf(Long.parseLong(block) + 1));
-        if (!cas) ErrorCodeEnum.SYSTEM_ERROR.throwException();
-        if(!rechargeTransferDTOList.isEmpty()){
-            CompletableFuture.runAsync(() -> {
-                List<Long> uidList = rechargeTransferDTOList.stream().map(RechargeTransferDTO::getUid).collect(Collectors.toList());
-                List<UserInfo> userInfos = userInfoService.listByIds(uidList);
-                Map<Long, UserInfo> userMap = userInfos.stream().collect(Collectors.toMap(UserInfo::getId, Function.identity()));
-                try {
-                    chargeService.saveBatch(rechargeTransferDTOList.stream().map(e -> {
-                        return Charge.builder()
-                                .id(CommonFunction.generalId())
-                                .create_time(LocalDateTime.now())
-                                .complete_time(LocalDateTime.now())
-                                .status(ChargeStatus.chain_success)
-                                .uid(e.getUid())
-                                .uid_username(userMap.get(e.getUid()).getUsername())
-                                .uid_nick(userMap.get(e.getUid()).getNick())
-                                .sn(e.getTxid())
-                                .currency_type(e.getCurrency_type())
-                                .charge_type(ChargeType.recharge)
-                                .amount(e.getValue())
-                                .fee(BigInteger.ZERO)
-                                .real_amount(e.getValue())
-                                .from_address(e.getFrom())
-                                .to_address(e.getTo())
-                                .txid(e.getTxid())
-                                .token(e.getToken())
-                                .build();
-                    }).collect(Collectors.toList()));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }, Constants.COMPLETABLE_FUTURE_EXECUTOR);
-        }
-    }
 }

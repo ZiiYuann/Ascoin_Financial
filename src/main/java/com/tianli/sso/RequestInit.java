@@ -1,4 +1,4 @@
-package com.tianli.common.init;
+package com.tianli.sso;
 
 import com.google.gson.JsonObject;
 import lombok.Data;

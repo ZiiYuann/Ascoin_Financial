@@ -1,4 +1,4 @@
-package com.tianli.common.init;
+package com.tianli.sso;
 
 import lombok.extern.slf4j.Slf4j;
 

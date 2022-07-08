@@ -1,7 +1,7 @@
 package com.tianli.financial.controller;
 
+import com.tianli.common.blockchain.CurrencyCoinEnum;
 import com.tianli.currency.CurrencyTypeEnum;
-import com.tianli.currency_token.mapper.CurrencyCoinEnum;
 import lombok.Data;
 
 import javax.validation.constraints.DecimalMin;

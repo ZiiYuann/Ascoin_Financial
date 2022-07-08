@@ -20,10 +20,10 @@ import java.util.Map;
 @Service
 public class ChargeDepositService extends ServiceImpl<ChargeDepositMapper, ChargeDeposit> {
 
-    public Map<String, BigDecimal> getSumAmount(String nike, String phone, String txid, ChargeDepositStatus status, DepositSettlementType type, String startTime, String endTime, ChargeDepositType chargeDepositType, TokenCurrencyType tokenCurrencyType) {
+    public Map<String, BigDecimal> getSumAmount(String nike, String phone, String txid, ChargeDepositStatus status, String type, String startTime, String endTime, ChargeDepositType chargeDepositType, TokenCurrencyType tokenCurrencyType) {
         return baseMapper.selectSumAmount(nike, phone, txid, status, type, startTime, endTime, chargeDepositType, tokenCurrencyType);
     }
-    public Map<String, BigDecimal> getSumAmount(String nike, String phone, ChargeDepositStatus status, DepositSettlementType type, String startTime, String endTime, ChargeDepositType chargeDepositType, TokenCurrencyType tokenCurrencyType) {
+    public Map<String, BigDecimal> getSumAmount(String nike, String phone, ChargeDepositStatus status, String type, String startTime, String endTime, ChargeDepositType chargeDepositType, TokenCurrencyType tokenCurrencyType) {
         return getSumAmount(nike, phone, null, status, type, startTime, endTime, chargeDepositType, tokenCurrencyType);
     }
 

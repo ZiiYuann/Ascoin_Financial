@@ -13,8 +13,8 @@ import com.tianli.financial.mapper.FinancialProductStatus;
 import com.tianli.financial.mapper.FinancialProductType;
 import com.tianli.management.financial.dto.FinancialProductEditDto;
 import com.tianli.management.financial.vo.FinancialProductListVo;
-import com.tianli.role.annotation.AdminPrivilege;
-import com.tianli.role.annotation.Privilege;
+import com.tianli.sso.permission.AdminPrivilege;
+import com.tianli.sso.permission.Privilege;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 

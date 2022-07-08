@@ -1,6 +1,6 @@
 package com.tianli.common.uid;
 
-import com.tianli.common.init.RequestInitService;
+import com.tianli.sso.RequestInitService;
 import com.tianli.tool.ApplicationContextTool;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;

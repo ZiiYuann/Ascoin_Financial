@@ -1,4 +1,4 @@
-package com.tianli.common.init.admin;
+package com.tianli.sso.admin;
 
 import lombok.*;
 import lombok.experimental.Accessors;

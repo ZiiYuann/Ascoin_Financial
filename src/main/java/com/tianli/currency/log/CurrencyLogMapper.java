@@ -1,7 +1,6 @@
 package com.tianli.currency.log;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tianli.management.agentadmin.dto.RakeRecordDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -36,15 +35,6 @@ public interface CurrencyLogMapper extends BaseMapper<CurrencyLog> {
                          @Param("bet_id") String bet_id,
                          @Param("startTime") String startTime,
                          @Param("endTime") String endTime);
-
-    @SelectProvider(type = GenerateSQL.class, method = "rakeRecord")
-    List<RakeRecordDTO> rakeRecordList(@Param("uid") Long uid,
-                                       @Param("phone") String phone,
-                                       @Param("bet_id") String bet_id,
-                                       @Param("startTime") String startTime,
-                                       @Param("endTime") String endTime,
-                                       @Param("offset") Integer offset,
-                                       @Param("size") Integer size);
 
     @Select("select ifnull(sum(`amount`), 0) from `currency_log` where `uid` = #{uid} and `des` = '利息'")
     BigInteger selectSumMiningAmount(Long uid);

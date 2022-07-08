@@ -1,13 +1,8 @@
 package com.tianli.common.blockchain;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.protobuf.ByteString;
-import com.tianli.currency_token.mapper.ChainType;
-import com.tianli.currency_token.mapper.CurrencyCoinEnum;
-import com.tianli.currency_token.transfer.mapper.TokenContract;
-import com.tianli.currency_token.transfer.service.TokenContractService;
+import com.tianli.common.ConfigConstants;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.management.ruleconfig.ConfigConstants;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.time.TimeTool;
 import org.apache.commons.lang3.StringUtils;
@@ -50,8 +45,6 @@ public class TronTriggerContract {
     private ConfigService configService;
     @Resource
     private WalletGrpc.WalletBlockingStub blockingStub;
-    @Resource
-    private TokenContractService tokenContractService;
 
     public String computeAddress(long uid) {
         return computeAddress(BigInteger.valueOf(uid));
@@ -91,12 +84,8 @@ public class TronTriggerContract {
 
     public String transferToken(String toAddress, BigInteger amount, CurrencyCoinEnum token) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
-        TokenContract tokenContract = tokenContractService.getOne(
-                new LambdaQueryWrapper<TokenContract>()
-                        .eq(TokenContract::getChain, ChainType.trc20)
-                        .eq(TokenContract::getToken, token)
-        );
-        return transfer(ownerAddress, toAddress, tokenContract.getContract_address(), amount);
+
+        return transfer(ownerAddress, toAddress, "tokenContract.getContract_address()", amount);
     }
 
     /**

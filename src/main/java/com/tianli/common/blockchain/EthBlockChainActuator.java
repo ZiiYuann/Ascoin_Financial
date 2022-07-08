@@ -2,12 +2,12 @@ package com.tianli.common.blockchain;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.tianli.common.ConfigConstants;
 import com.tianli.common.Constants;
 import com.tianli.common.HttpUtils;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
-import com.tianli.management.ruleconfig.ConfigConstants;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.judge.JsonObjectTool;
 import com.tianli.tool.time.TimeTool;

@@ -1,6 +1,6 @@
 package com.tianli.common.blockchain;
 
-import com.tianli.management.ruleconfig.ConfigConstants;
+import com.tianli.common.ConfigConstants;
 import com.tianli.mconfig.ConfigService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

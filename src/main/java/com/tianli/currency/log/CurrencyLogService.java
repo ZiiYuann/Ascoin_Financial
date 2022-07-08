@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.CommonFunction;
 import com.tianli.currency.CurrencyTokenEnum;
 import com.tianli.currency.CurrencyTypeEnum;
-import com.tianli.management.agentadmin.dto.RakeRecordDTO;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -56,10 +55,6 @@ public class CurrencyLogService extends ServiceImpl<CurrencyLogMapper, CurrencyL
 
     public long rakeRecordCount(Long uid, String phone, String bet_id, String startTime, String endTime) {
         return currencyLogMapper.rakeRecordCount(uid, phone, bet_id, startTime, endTime);
-    }
-
-    public List<RakeRecordDTO> rakeRecordList(Long uid, String phone, String bet_id, String startTime, String endTime, Integer page, Integer size) {
-        return currencyLogMapper.rakeRecordList(uid, phone, bet_id, startTime, endTime, Math.max((page-1)*size,0), size);
     }
 
     public BigInteger sumMiningAmount(Long uid) {
