@@ -2,10 +2,10 @@ package com.tianli.financial.service.impl;
 
 import com.tianli.common.CommonFunction;
 import com.tianli.common.init.RequestInitService;
-import com.tianli.account.service.AccountSummaryService;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.enums.ProductType;
 import com.tianli.currency.log.CurrencyLogDes;
-import com.tianli.account.entity.AccountSummary;
+import com.tianli.account.entity.AccountBalance;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.enums.FinancialProductStatus;
 import com.tianli.financial.query.PurchaseQuery;
@@ -27,7 +27,7 @@ import java.util.Objects;
 public class FinancialServiceImpl implements FinancialService {
 
     @Resource
-    private AccountSummaryService accountBalanceService;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private RequestInitService requestInitService;
     @Resource
@@ -76,8 +76,8 @@ public class FinancialServiceImpl implements FinancialService {
      * @param amount 申购金额
      */
     private void validRemainAmount(Long uid,BigInteger amount){
-        AccountSummary accountSummaryBalance = accountBalanceService.getAndInit(uid, ProductType.financial);
-        if(accountSummaryBalance.getRemain().compareTo(amount) < 0){
+        AccountBalance accountBalanceBalance = accountBalanceService.getAndInit(uid, ProductType.financial);
+        if(accountBalanceBalance.getRemain().compareTo(amount) < 0){
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
     }

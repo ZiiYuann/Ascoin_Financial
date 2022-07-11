@@ -48,7 +48,6 @@ public class AddressVO {
 
     public static AddressVO trans(Address address){
         return AddressVO.builder()
-                .type(address.getType())
                 .btc(address.getBtc())
                 .eth(address.getEth())
                 .bsc(address.getBsc())

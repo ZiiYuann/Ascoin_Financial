@@ -2,7 +2,6 @@ package com.tianli.common.blockchain;
 
 import com.tianli.charge.ChargeService;
 import com.tianli.common.ConfigConstants;
-import com.tianli.management.ruleconfig.ConfigConstants;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
@@ -36,11 +35,11 @@ public class UsdtBscContract {
     private RedisLock redisLock;
 
     public Result transfer(String to, String val) {
-        BigInteger bigInteger = new BigDecimal(val).movePointRight(18).toBigInteger();
+        var bigInteger = new BigDecimal(val).movePointRight(18);
         return transfer(to, bigInteger);
     }
 
-    public Result transfer(String to, BigInteger val) {
+    public Result transfer(String to, BigDecimal val) {
         String address = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
         long nonce = bscBlockChainActuator.getNonce(address);
         String password = configService.get(ConfigConstants.MAIN_WALLET_PASSWORD);
@@ -51,7 +50,7 @@ public class UsdtBscContract {
             result = bscBlockChainActuator.tokenSendRawTransaction(nonce,
                     BFContractAddress,
                     FunctionEncoder.encode(
-                            new Function("transfer", List.of(new Address(to), new Uint(val)), new ArrayList<>())
+                            new Function("transfer", List.of(new Address(to), new Uint(val.toBigInteger())), new ArrayList<>())
                     ),
                     configService.getOrDefault(ConfigConstants.BSC_GAS_PRICE,"5"),
                     configService.getOrDefault(ConfigConstants.BSC_GAS_LIMIT,"800000"),

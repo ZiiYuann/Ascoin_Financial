@@ -2,64 +2,40 @@ package com.tianli.currency.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.google.common.collect.Lists;
 import com.google.gson.Gson;
+import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.ProductType;
-import com.tianli.account.service.AccountSummaryService;
-import com.tianli.address.AddressService;
-import com.tianli.address.mapper.Address;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.charge.ChargeService;
-import com.tianli.charge.ChargeType;
-import com.tianli.charge.mapper.Charge;
-import com.tianli.charge.mapper.ChargeStatus;
-import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
-import com.tianli.common.Constants;
 import com.tianli.common.async.AsyncService;
-import com.tianli.common.lock.RedisLock;
-import com.tianli.currency.*;
 import com.tianli.currency.log.CurrencyLogDes;
-import com.tianli.account.entity.AccountSummary;
-import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.mountcloud.graphql.GraphqlClient;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 public class CurrencyInterestTask {
-    public static final String BSC_BLOCK_COUNT = "bsc_block_count";
-
-    public static final String ETH_BLOCK_COUNT = "eth_block_count";
 
     @Resource
-    private AccountSummaryService accountBalanceService;
-
+    private AccountBalanceService accountBalanceService;
     @Resource
     private Gson gson;
-
     @Resource
     private ConfigService configService;
 
@@ -67,25 +43,12 @@ public class CurrencyInterestTask {
     private ChargeService chargeService;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
-
-    @Resource
-    private GraphService graphService;
-
-    @Resource
-    private AddressService addressService;
-
-    @Resource
-    private RedisLock redisLock;
-
-    @Resource
-    private CurrencyInterestTask currencyInterestTask;
-
     @Resource
     private AsyncService asyncService;
 
-    private static AtomicInteger threadId = new AtomicInteger(1);
+    private final static AtomicInteger threadId = new AtomicInteger(1);
 
-    private static ConcurrentHashMap<String, AtomicInteger> FAIL_COUNT_CACHE = new ConcurrentHashMap<>();
+    private final static ConcurrentHashMap<String, AtomicInteger> FAIL_COUNT_CACHE = new ConcurrentHashMap<>();
 
     private final static ScheduledThreadPoolExecutor CURRENCY_INTEREST_TASK_SCHEDULE_EXECUTOR = new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
             r -> {
@@ -94,7 +57,6 @@ public class CurrencyInterestTask {
                 return thread;
             }
     );
-
 
     /**
      * 每日计算利息task
@@ -112,10 +74,10 @@ public class CurrencyInterestTask {
                 if (page == null) {
                     break;
                 }
-                Page<AccountSummary> currencyPage = accountBalanceService.page(new Page<>(page, 20), new LambdaQueryWrapper<AccountSummary>()
-                        .eq(AccountSummary::getType, ProductType.normal)
+                Page<AccountBalance> currencyPage = accountBalanceService.page(new Page<>(page, 20), new LambdaQueryWrapper<AccountBalance>()
+                        .eq(AccountBalance::getProductType, ProductType.financial)
                 );
-                List<AccountSummary> records = currencyPage.getRecords();
+                List<AccountBalance> records = currencyPage.getRecords();
                 if ((records.size()) <= 0) {
                     break;
                 }
@@ -133,7 +95,7 @@ public class CurrencyInterestTask {
                 if(rate <= 0){
                     return;
                 }
-                for (AccountSummary c : records) {
+                for (AccountBalance c : records) {
                     interestStat(c, rate);
                 }
             }
@@ -143,30 +105,29 @@ public class CurrencyInterestTask {
     /**
      * 统计每日利息
      */
-    private void interestStat(AccountSummary accountSummaryBalance, double rate) {
+    private void interestStat(AccountBalance accountBalanceBalance, double rate) {
         try {
             // 1. 计算利息
-            BigDecimal bigDecimal = new BigDecimal(accountSummaryBalance.getRemain());
             // 真是的今日利息数额
-            BigDecimal dayInterest = bigDecimal.multiply(new BigDecimal(String.valueOf(rate)));
-            BigInteger dayInterestBigInteger = dayInterest.toBigInteger();
-            if(dayInterestBigInteger.compareTo(BigInteger.ZERO) <= 0){
+            BigDecimal dayInterest = accountBalanceBalance.getRemain().multiply(new BigDecimal(String.valueOf(rate)));
+            if(dayInterest.compareTo(BigDecimal.ZERO) <= 0){
                 return;
             }
             // 2. 更新余额
-            accountBalanceService.increase(accountSummaryBalance.getUid(), accountSummaryBalance.getType(), dayInterestBigInteger, TimeTool.getDateTimeDisplayString(LocalDateTime.now()), CurrencyLogDes.利息.name());
+            accountBalanceService.increase(accountBalanceBalance.getUid(), dayInterest,
+                    TimeTool.getDateTimeDisplayString(LocalDateTime.now()), CurrencyLogDes.利息.name());
         } catch (Exception e) {
-            String toJson = gson.toJson(accountSummaryBalance);
+            String toJson = gson.toJson(accountBalanceBalance);
             log.warn("统计每日利息异常: currency:{}, rate:{}", toJson, rate, e);
             CURRENCY_INTEREST_TASK_SCHEDULE_EXECUTOR.schedule(() -> {
-                AtomicInteger atomicInteger = FAIL_COUNT_CACHE.get(String.valueOf(accountSummaryBalance.getId()));
+                AtomicInteger atomicInteger = FAIL_COUNT_CACHE.get(String.valueOf(accountBalanceBalance.getId()));
                 if (Objects.isNull(atomicInteger)) {
                     atomicInteger = new AtomicInteger(3);
-                    FAIL_COUNT_CACHE.put(String.valueOf(accountSummaryBalance.getId()), atomicInteger);
+                    FAIL_COUNT_CACHE.put(String.valueOf(accountBalanceBalance.getId()), atomicInteger);
                 }
                 int andDecrement = atomicInteger.getAndDecrement();
                 if (andDecrement > 0) {
-                    interestStat(accountSummaryBalance, rate);
+                    interestStat(accountBalanceBalance, rate);
                 } else {
                     log.error("统计每日利息失败: currency:{}, rate:{}", toJson, rate);
                 }

@@ -1,17 +1,14 @@
 package com.tianli.chain.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.tianli.address.AddressService;
-import com.tianli.address.mapper.Address;
 import com.tianli.chain.mapper.ChainTx;
 import com.tianli.chain.mapper.ChainTxMapper;
-import com.tianli.charge.controller.ChargeWebhooksDTO;
-import com.tianli.charge.mapper.ChargeStatus;
+import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.Constants;
 import com.tianli.common.HttpUtils;
@@ -19,7 +16,7 @@ import com.tianli.common.async.AsyncService;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.common.log.LoggerHandle;
 import com.tianli.currency.DigitalCurrency;
-import com.tianli.currency.TokenCurrencyType;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.MapBuilder;
@@ -51,14 +48,14 @@ import java.util.concurrent.TimeUnit;
 public class ChainTxService extends ServiceImpl<ChainTxMapper, ChainTx> {
     //归集
     @Transactional
-    public void collect(TokenCurrencyType currencyType, BigInteger amount, String collect_address, long uid, BigInteger other_amount) {
+    public void collect(CurrencyAdaptType currencyAdaptType, BigInteger amount, String collect_address, long uid, BigInteger other_amount) {
         if (amount.compareTo(BigInteger.ZERO) <= 0) return;
         redisLock.lock("ChainTxService_collect_" + collect_address, 2L, TimeUnit.MINUTES);
         Integer exist = chainTxMapper.selectCount(new LambdaQueryWrapper<ChainTx>().eq(ChainTx::getStatus, ChargeStatus.chaining)
                 .eq(ChainTx::getCollect_address, collect_address));
         if (exist != null && exist > 0) return;
         String main_address = null;
-        switch (currencyType) {
+        switch (currencyAdaptType) {
             case usdt_omni:
             case btc:
                 main_address = configService.get("btc_address");
@@ -77,7 +74,7 @@ public class ChainTxService extends ServiceImpl<ChainTxMapper, ChainTx> {
 
         ChainTx chainTx = ChainTx.builder().id(id).create_time(LocalDateTime.now())
                 .status(ChargeStatus.chaining).uid(uid).sn("" + CommonFunction.generalSn(id))
-                .currency_type(currencyType).amount(amount).other_amount(other_amount).main_address(main_address)
+                .currency_type(currencyAdaptType).amount(amount).other_amount(other_amount).main_address(main_address)
                 .collect_address(collect_address).build();
         long insert = chainTxMapper.insert(chainTx);
         if (insert > 0) {
@@ -87,7 +84,7 @@ public class ChainTxService extends ServiceImpl<ChainTxMapper, ChainTx> {
                 String wallet_url = configService.getOrDefault("wallet_url", "https://www.twallet.pro/api");
                 String url = configService.get("url");
                 MapTool paramMap;
-                switch (currencyType) {
+                switch (currencyAdaptType) {
                     case usdt_omni:
                     case btc:
                         paramMap = MapTool.Map().put("sn", chainTx.getSn()).put("amount", chainTx.getAmount().toString()).put("from_address",
@@ -170,6 +167,6 @@ public class ChainTxService extends ServiceImpl<ChainTxMapper, ChainTx> {
 
     public double totalAmount() {
         List<StatCollectAmount> statCollectAmounts = chainTxMapper.totalAmount();
-        return statCollectAmounts.stream().map(e -> new DigitalCurrency(e.getCurrency_type(), e.getTotal_amount()).toOther(TokenCurrencyType.usdt_omni).getMoney()).reduce(Double::sum).orElse(0.0);
+        return statCollectAmounts.stream().map(e -> new DigitalCurrency(e.getCurrency_type(), e.getTotal_amount()).toOther(CurrencyAdaptType.usdt_omni).getMoney()).reduce(Double::sum).orElse(0.0);
     }
 }

@@ -7,4 +7,5 @@ package com.tianli.charge;
 public enum ChargeType {
     recharge,//充值
     withdraw,//提现
+    income , // 收益
 }

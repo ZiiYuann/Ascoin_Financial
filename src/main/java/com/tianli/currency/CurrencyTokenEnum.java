@@ -27,14 +27,6 @@ public enum CurrencyTokenEnum {
         this.address = address;
     }
 
-    public static CurrencyTokenEnum getToken(String address) {
-        for (CurrencyTokenEnum value : CurrencyTokenEnum.values()) {
-            if (address.equals(value.getAddress())) {
-                return value;
-            }
-        }
-        return null;
-    }
 
     public double money(BigInteger remain_BF) {
         if (Objects.isNull(remain_BF)) return 0.0;

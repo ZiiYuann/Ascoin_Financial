@@ -3,7 +3,7 @@ package com.tianli.management.financial.controller;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.tianli.currency.TokenCurrencyType;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.Result;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.entity.FinancialProduct;
@@ -13,7 +13,6 @@ import com.tianli.management.financial.dto.FinancialUserRecordListDto;
 import com.tianli.management.financial.dto.FinancialUserTotalDto;
 import com.tianli.management.financial.vo.FinancialUserListVo;
 import com.tianli.management.financial.vo.FinancialUserRecordListVo;
-import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -86,8 +85,8 @@ public class FinancialUserController {
         } else {
             financialUserTotalDto.setTotalCurrentDeposit(totalCurrentDeposit);
         }
-        financialUserListVo.setTotalCurrentDeposit(TokenCurrencyType.usdt_omni.money(financialUserTotalDto.getTotalCurrentDeposit()));
-        financialUserListVo.setTotalRedemption(TokenCurrencyType.usdt_omni.money(financialUserTotalDto.getTotalRedemption()));
-        financialUserListVo.setTotalHistoricalDeposits(TokenCurrencyType.usdt_omni.money(financialUserTotalDto.getTotalHistoricalDeposits()));
+        financialUserListVo.setTotalCurrentDeposit(CurrencyAdaptType.usdt_omni.money(financialUserTotalDto.getTotalCurrentDeposit()));
+        financialUserListVo.setTotalRedemption(CurrencyAdaptType.usdt_omni.money(financialUserTotalDto.getTotalRedemption()));
+        financialUserListVo.setTotalHistoricalDeposits(CurrencyAdaptType.usdt_omni.money(financialUserTotalDto.getTotalHistoricalDeposits()));
     }
 }

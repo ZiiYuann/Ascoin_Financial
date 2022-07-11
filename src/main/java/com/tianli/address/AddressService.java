@@ -10,6 +10,7 @@ import com.tianli.common.blockchain.EthTriggerContract;
 import com.tianli.common.blockchain.TronTriggerContract;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.account.enums.ProductType;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.ErrorCodeEnum;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
@@ -40,14 +41,26 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
     @Resource
     private EthTriggerContract ethTriggerContract;
 
+
+    @Transactional
+    public String getAddressByCurrencyAdaptType(Long uid,CurrencyAdaptType currencyAdaptType){
+        Address address = this.get(uid);
+        switch (currencyAdaptType.getCurrencyNetworkType()){
+            case bep20: return address.getBsc();
+            case erc20: return address.getEth();
+            case trc20: return address.getTron();
+            default: return null;
+        }
+    }
+
     /**
      * 获取用户的账户地址 如果没有的话会初始化
      */
     @SneakyThrows
     @Transactional
-    public Address getAndInit(long uid, ProductType typeEnum){
-        redisLock.lock("AddressService.get_" + uid + "_" + typeEnum.name(), 1L, TimeUnit.MINUTES);
-        Address address = this.get(uid,typeEnum);
+    public Address getAndInit(long uid){
+        redisLock.lock("AddressService.get_" + uid + "_", 1L, TimeUnit.MINUTES);
+        Address address = this.get(uid);
         if (address != null) return address;
         long generalId = CommonFunction.generalId();
         String bsc = bscTriggerContract.computeAddress(generalId);
@@ -58,7 +71,6 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
                 .id(generalId)
                 .uid(uid)
                 .createTime(LocalDateTime.now())
-                .type(typeEnum)
                 .tron(tron)
                 .bsc(bsc)
                 .eth(eth)
@@ -70,19 +82,19 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
     /**
      * 获取用户云钱包地址
      */
-    public Address get(long uid, ProductType typeEnum){
-        return super.getOne(new LambdaQueryWrapper<Address>().eq(Address::getType, typeEnum).eq(Address::getUid, uid));
+    public Address get(long uid){
+        return super.getOne(new LambdaQueryWrapper<Address>().eq(Address::getUid, uid));
     }
 
-    public Address getByEth(String to_address) {
-        return baseMapper.getByEth(to_address);
+    public Address getByEth(String toAddress) {
+        return baseMapper.getByEth(toAddress);
     }
 
-    public Address getByTron(String to_address) {
-        return baseMapper.getByTron(to_address);
+    public Address getByTron(String toAddress) {
+        return baseMapper.getByTron(toAddress);
     }
 
-    public Address getByBsc(String to_address) {
-        return baseMapper.getByBsc(to_address);
+    public Address getByBsc(String toAddress) {
+        return baseMapper.getByBsc(toAddress);
     }
 }

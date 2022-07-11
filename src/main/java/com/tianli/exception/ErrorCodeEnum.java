@@ -52,6 +52,7 @@ public enum ErrorCodeEnum {
     NO_OPPONENT_PLATE(2014,"没有交易对象"),
     NO_CREDIT_SCORE(2015,"账户信用评分不足"),
     ACCOUNT_NOT_ACTIVE(2016,"云钱包未激活"),
+    CURRENCY_NOT_SUPPORT(2017,"币别尚未支持"),
     /*** －－－－－－业务错误码-余额相关－－－－－－*/
     CREDIT_LACK(2100, "额度不足"),
     WITHDRAWAL_AMOUNT_LT_FEE_ERROR(2101, "提现数额必须大于手续费"),
@@ -70,6 +71,8 @@ public enum ErrorCodeEnum {
     NOT_BET_STEADY_SECTION_ERROR(3100, "非稳赚场开启区间"),
     TIME_CONFLICT(3103, "存在时间冲突"),
     KYC_TRIGGER_ERROR(3333, "需要KYC认证"),
+    SIGN_ERROR(3104,"验签失败"),
+    UPLOAD_CHAIN_ERROR(3105,"上链失败, 请稍后重试"),
 
     /*** －－－－－－业务错误码-现货交易－－－－－－*/
     TRADE_FAIL(3400, "交易失败"),

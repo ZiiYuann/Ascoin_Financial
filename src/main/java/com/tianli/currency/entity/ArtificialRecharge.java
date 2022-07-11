@@ -1,7 +1,6 @@
 package com.tianli.currency.entity;
 
 import com.baomidou.mybatisplus.extension.activerecord.Model;
-import com.tianli.currency.mapper.ArtificialRechargeType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

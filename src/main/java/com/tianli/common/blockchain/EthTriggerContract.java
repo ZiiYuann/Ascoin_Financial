@@ -2,7 +2,6 @@ package com.tianli.common.blockchain;
 
 import com.tianli.common.ConfigConstants;
 import com.tianli.exception.Result;
-import com.tianli.management.ruleconfig.ConfigConstants;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
 import lombok.extern.slf4j.Slf4j;

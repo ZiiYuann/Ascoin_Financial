@@ -13,10 +13,11 @@ import java.util.Objects;
 public enum ProductType {
     financial;
 
-    public static ProductType getInstance(String name){
+    public static ProductType getInstance(String name) {
         ProductType type = EnumUtils.getEnum(ProductType.class, name);
-        if(Objects.isNull(type)){
+        if (Objects.isNull(type)) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
         return type;
+    }
 }

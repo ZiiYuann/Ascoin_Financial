@@ -1,6 +1,6 @@
 package com.tianli.deposit.mapper;
 
-import com.tianli.currency.TokenCurrencyType;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -71,7 +71,7 @@ public class ChargeDeposit {
     /**
      * 币种类型
      */
-    private TokenCurrencyType currency_type;
+    private CurrencyAdaptType currency_type;
 
     /**
      * 交易类型

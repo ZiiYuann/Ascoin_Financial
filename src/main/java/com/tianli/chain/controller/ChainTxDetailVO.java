@@ -1,8 +1,8 @@
 package com.tianli.chain.controller;
 
 import com.tianli.chain.mapper.ChainTx;
-import com.tianli.charge.mapper.ChargeStatus;
-import com.tianli.currency.TokenCurrencyType;
+import com.tianli.charge.enums.ChargeStatus;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,7 +22,7 @@ public class ChainTxDetailVO {
     private ChargeStatus status;
     private Long uid;
     private String sn;
-    private TokenCurrencyType currency_type;
+    private CurrencyAdaptType currency_type;
     private Double amount;
     private Double other_amount;
     private String main_address;

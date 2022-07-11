@@ -1,15 +1,15 @@
 package com.tianli.account.entity;
 
 import com.baomidou.mybatisplus.extension.activerecord.Model;
-import com.tianli.currency.CurrencyTokenEnum;
 import com.tianli.account.enums.ProductType;
-import com.tianli.currency.log.CurrencyLogType;
+import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.account.enums.AccountOperationType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -39,14 +39,16 @@ public class AccountBalanceOperationLog extends Model<AccountBalanceOperationLog
     private Long uid;
 
     /**
-     * 余额类型
+     * 关联的余额id
      */
-    private ProductType type;
+    private Long accountBalanceId;
+
+    private ProductType productType;
 
     /**
      * 币种类型
      */
-    private CurrencyTokenEnum token;
+    private CurrencyAdaptType currencyAdaptType;
 
     /**
      * 订单号
@@ -56,7 +58,7 @@ public class AccountBalanceOperationLog extends Model<AccountBalanceOperationLog
     /**
      * 记录类型
      */
-    private CurrencyLogType log_type;
+    private AccountOperationType logType;
 
     /**
      * 余额变动描述
@@ -66,25 +68,25 @@ public class AccountBalanceOperationLog extends Model<AccountBalanceOperationLog
     /**
      * 金额
      */
-    private BigInteger amount;
+    private BigDecimal amount;
 
     /**
      * 创建时间
      */
-    private LocalDateTime create_time;
+    private LocalDateTime createTime;
 
     /**
      * 总余额	
      */
-    private BigInteger balance;
+    private BigDecimal balance;
 
     /**
      * 冻结余额
      */
-    private BigInteger freeze;
+    private BigDecimal freeze;
 
     /**
      * 剩余余额
      */
-    private BigInteger remain;
+    private BigDecimal remain;
 }

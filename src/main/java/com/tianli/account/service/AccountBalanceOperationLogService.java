@@ -1,16 +1,15 @@
 package com.tianli.account.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.mapper.AccountBalanceOperationLogMapper;
 import com.tianli.common.CommonFunction;
-import com.tianli.currency.CurrencyTokenEnum;
-import com.tianli.account.enums.ProductType;
 import com.tianli.account.entity.AccountBalanceOperationLog;
-import com.tianli.currency.log.CurrencyLogType;
+import com.tianli.account.enums.AccountOperationType;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -24,33 +23,30 @@ import java.time.LocalDateTime;
 @Service
 public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanceOperationLogMapper, AccountBalanceOperationLog>{
 
+    @Resource
+    private AccountBalanceOperationLogMapper accountBalanceOperationLogMapper;
+
     /**
      * 添加余额操作日志
      */
-    public void save(long uid, ProductType type, CurrencyTokenEnum token, CurrencyLogType logType, BigInteger amount, String sn,
-                     String des, BigInteger balance, BigInteger freeze, BigInteger remain) {
+    public void save(AccountBalance accountBalance, AccountOperationType logType, BigDecimal amount, String sn,
+                     String des) {
         AccountBalanceOperationLog currencyLog = AccountBalanceOperationLog.builder()
                 .id(CommonFunction.generalId())
-                .uid(uid)
-                .type(type)
-                .token(token)
+                .uid(accountBalance.getUid())
+                .accountBalanceId(accountBalance.getId())
+                .currencyAdaptType(accountBalance.getCurrencyAdaptType())
                 .sn(sn)
-                .log_type(logType)
+                .logType(logType)
                 .des(des)
-                .balance(balance)
-                .freeze(freeze)
-                .remain(remain)
+                .balance(accountBalance.getBalance())
+                .freeze(accountBalance.getFreeze())
+                .remain(accountBalance.getRemain())
                 .amount(amount)
-                .create_time(LocalDateTime.now())
+                .createTime(LocalDateTime.now())
                 .build();
         accountBalanceOperationLogMapper.insert(currencyLog);
     }
 
-    public BigInteger sumMiningAmount(Long uid) {
-        return accountBalanceOperationLogMapper.selectSumMiningAmount(uid);
-    }
-
-    @Resource
-    private AccountBalanceOperationLogMapper accountBalanceOperationLogMapper;
 
 }

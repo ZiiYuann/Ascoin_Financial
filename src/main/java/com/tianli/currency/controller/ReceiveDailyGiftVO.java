@@ -1,7 +1,6 @@
 package com.tianli.currency.controller;
 
-import com.tianli.currency.TokenCurrencyType;
-import com.tianli.currency.mapper.DailyGiftRecord;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,7 +20,7 @@ public class ReceiveDailyGiftVO {
     /**
      * 代币类型
      */
-    private TokenCurrencyType token;
+    private CurrencyAdaptType token;
 
     /**
      * 数额
@@ -29,7 +28,7 @@ public class ReceiveDailyGiftVO {
     private double amount;
 
     public static ReceiveDailyGiftVO convert(DailyGiftRecord receive) {
-        TokenCurrencyType token = receive.getToken();
+        CurrencyAdaptType token = receive.getToken();
         return ReceiveDailyGiftVO.builder()
                 .amount(token.money(receive.getAmount()))
                 .token(token)

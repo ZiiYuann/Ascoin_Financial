@@ -33,11 +33,6 @@ public class Address {
     private Long uid;
 
     /**
-     * 地址类型
-     */
-    private ProductType type;
-
-    /**
      * 创建时间
      */
     private LocalDateTime createTime;

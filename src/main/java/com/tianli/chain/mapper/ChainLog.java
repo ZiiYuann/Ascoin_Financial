@@ -1,6 +1,6 @@
 package com.tianli.chain.mapper;
 
-import com.tianli.currency.TokenCurrencyType;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 public class ChainLog {
     private Long id;
     private String address;
-    private TokenCurrencyType currency_type;
+    private CurrencyAdaptType currency_type;
     private BigInteger amount;
     private Long uid;
     private String username;

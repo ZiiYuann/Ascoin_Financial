@@ -2,7 +2,7 @@ package com.tianli.management.financial.vo;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.convert.Convert;
-import com.tianli.currency.TokenCurrencyType;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.financial.enums.FinancialProductType;
 import com.tianli.financial.enums.FinancialLogStatus;
 import com.tianli.management.financial.dto.FinancialUserRecordListDto;
@@ -73,7 +73,7 @@ public class FinancialUserRecordListVo {
         long depositDays = Math.max(nowDay - startDate.toEpochDay(), 0L);
         //存入天数
         financialUserRecordListVo.setDepositDays(depositDays);
-        financialUserRecordListVo.setAmount(TokenCurrencyType.usdt_omni.money(financialUserRecordListDto.getAmount()));
+        financialUserRecordListVo.setAmount(CurrencyAdaptType.usdt_omni.money(financialUserRecordListDto.getAmount()));
         if (financialUserRecordListDto.getFinancial_product_type().equals(FinancialProductType.fixed.name()) && FinancialLogStatus.created.name().equals(financialUserRecordListDto.getStatus())) {
             long remainingDays = Math.max(financialUserRecordListDto.getEnd_date().toEpochDay() - nowDay, 0L);
             //剩余天数
@@ -85,9 +85,9 @@ public class FinancialUserRecordListVo {
         if (financialUserRecordListDto.getFinancial_product_type().equals(FinancialProductType.current.name()) && FinancialLogStatus.created.name().equals(financialUserRecordListDto.getStatus())) {
             //可赎回金额
             BigInteger redeemableAmount = financialUserRecordListDto.getAmount().add(profitAmount);
-            financialUserRecordListVo.setRedeemableAmount(TokenCurrencyType.usdt_omni.money(redeemableAmount));
+            financialUserRecordListVo.setRedeemableAmount(CurrencyAdaptType.usdt_omni.money(redeemableAmount));
         }
-        financialUserRecordListVo.setProfitAmount(TokenCurrencyType.usdt_omni.money(profitAmount));
+        financialUserRecordListVo.setProfitAmount(CurrencyAdaptType.usdt_omni.money(profitAmount));
         return financialUserRecordListVo;
     }
 

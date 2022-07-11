@@ -3,7 +3,9 @@ package com.tianli.charge.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tianli.charge.ChargeType;
 import com.tianli.charge.dto.StatChargeAmount;
-import com.tianli.currency.TokenCurrencyType;
+import com.tianli.charge.entity.Charge;
+import com.tianli.charge.enums.ChargeStatus;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.jdbc.SQL;
@@ -33,12 +35,12 @@ public interface ChargeMapper extends BaseMapper<Charge> {
     @Update("UPDATE `charge` SET `complete_time`=#{complete_time},`status`=#{success} ,`miner_fee`=#{miner_fee},`miner_fee_type` = #{miner_fee_type} WHERE `id`=#{id} AND `status`=#{created}")
     long success(@Param("complete_time") LocalDateTime complete_time, @Param("success") ChargeStatus success,
                  @Param("id") Long id, @Param("created") ChargeStatus created,
-                 @Param("miner_fee") BigInteger miner_fee, @Param("miner_fee_type") TokenCurrencyType miner_fee_type);
+                 @Param("miner_fee") BigInteger miner_fee, @Param("miner_fee_type") CurrencyAdaptType miner_fee_type);
 
     @Update("UPDATE `charge` SET `complete_time`=#{complete_time},`status`=#{fail} ,`miner_fee`=#{miner_fee},`miner_fee_type` = #{miner_fee_type} WHERE `id`=#{id} AND `status`=#{chaining}")
     long fail(@Param("complete_time") LocalDateTime complete_time, @Param("fail") ChargeStatus fail,
               @Param("id") long id, @Param("chaining") ChargeStatus chaining,
-              @Param("miner_fee") BigInteger miner_fee, @Param("miner_fee_type") TokenCurrencyType miner_fee_type);
+              @Param("miner_fee") BigInteger miner_fee, @Param("miner_fee_type") CurrencyAdaptType miner_fee_type);
 
     @SelectProvider(type = GenerateSQL.class, method = "selectSumChargeAmount")
     Map<String, BigDecimal> selectSumChargeAmount(@Param("type") ChargeType type, @Param("phone") String phone, @Param("txid") String txid, @Param("startTime") String startTime, @Param("endTime") String endTime);
@@ -97,7 +99,7 @@ public interface ChargeMapper extends BaseMapper<Charge> {
                        @Param("endTime") String endTime);
 
     @Select("SELECT ifnull(SUM(`amount`), 0) FROM `charge` WHERE `uid` = #{uid} and `charge_type` = #{chargeType} and `currency_type` = #{currency_type} and status in ('created','chaining','chain_success') ")
-    BigDecimal getTotalAmount(@Param("uid") Long uid, @Param("chargeType") ChargeType chargeType, @Param("currency_type") TokenCurrencyType currency_type);
+    BigDecimal getTotalAmount(@Param("uid") Long uid, @Param("chargeType") ChargeType chargeType, @Param("currency_type") CurrencyAdaptType currency_type);
 
 
     class GenerateSQL {
