@@ -507,8 +507,4 @@ public class ConfigConstants {
      */
     public static final String TX_INSIDER = "tx_url_insider";
 
-
-    public static final String WALLET_NEWS_SERVER_URL = "wallet_news_server_url";
-
-    public static final String WALLET_NEWS_OSS_VERIFY_PATH = "wallet_news_oss_verify_path";
 }

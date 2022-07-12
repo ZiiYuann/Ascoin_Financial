@@ -18,11 +18,15 @@ import javax.annotation.Resource;
 @Service
 public class OssService {
 
+    public static final String WALLET_NEWS_SERVER_URL = "wallet_news_server_url";
+
+    public static final String WALLET_NEWS_OSS_VERIFY_PATH = "wallet_news_oss_verify_path";
+
     public Result ossServiceVerify(String cookie, LoginTokenType tokenType) {
         if (StringUtils.isBlank(cookie)) return null;
         // wallet_news校验管理员登录状态
-        String walletNewsServerUrl = configService.getOrDefault(ConfigConstants.WALLET_NEWS_SERVER_URL, "http://wallet-news.abctest.pro");
-        String walletNewsOssVerifyPath = configService.getOrDefault(ConfigConstants.WALLET_NEWS_OSS_VERIFY_PATH, "/api/oss/verify");
+        String walletNewsServerUrl = configService.getOrDefault(WALLET_NEWS_SERVER_URL, "http://wallet-news.abctest.pro");
+        String walletNewsOssVerifyPath = configService.getOrDefault(WALLET_NEWS_OSS_VERIFY_PATH, "/api/oss/verify");
         String result = HttpUtil.post(walletNewsServerUrl + walletNewsOssVerifyPath, JSONUtil.toJsonStr(MapTool.Map()
                 .put("token", cookie)
                 .put("tokenType", tokenType)));
