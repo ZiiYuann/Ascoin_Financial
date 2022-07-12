@@ -16,7 +16,7 @@ import javax.annotation.Resource;
 
 @Slf4j
 @Service
-public class OssService {
+public class SSOService {
 
     public static final String WALLET_NEWS_SERVER_URL = "wallet_news_server_url";
 
@@ -26,10 +26,10 @@ public class OssService {
         if (StringUtils.isBlank(cookie)) return null;
         // wallet_news校验管理员登录状态
         String walletNewsServerUrl = configService.getOrDefault(WALLET_NEWS_SERVER_URL, "http://wallet-news.abctest.pro");
-        String walletNewsOssVerifyPath = configService.getOrDefault(WALLET_NEWS_OSS_VERIFY_PATH, "/api/oss/verify");
+        String walletNewsOssVerifyPath = configService.getOrDefault(WALLET_NEWS_OSS_VERIFY_PATH, "/api/sso/verify");
         String result = HttpUtil.post(walletNewsServerUrl + walletNewsOssVerifyPath, JSONUtil.toJsonStr(MapTool.Map()
                 .put("token", cookie)
-                .put("tokenType", tokenType)));
+                .put("type", tokenType)));
         return Constants.GSON.fromJson(result, Result.class);
     }
 

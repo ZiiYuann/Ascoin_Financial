@@ -31,7 +31,7 @@ public class UserOssService {
     }
 
     private SignUserInfo ossServiceVerify(String token) {
-        Result res = ossService.ossServiceVerify(token, LoginTokenType.USER);
+        Result res = ssoService.ossServiceVerify(token, LoginTokenType.USER);
         Object data;
         if (Objects.isNull(res)
                 || !StringUtils.equals(res.getCode(), "0")
@@ -44,5 +44,5 @@ public class UserOssService {
     @Resource
     private HttpServletRequest httpServletRequest;
     @Resource
-    private OssService ossService;
+    private SSOService ssoService;
 }

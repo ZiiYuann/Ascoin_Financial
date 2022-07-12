@@ -58,5 +58,5 @@ public class SignUserInfo {
     /**
      * 渠道id
      */
-    private Long channel_id;
+    private Long channelId;
 }

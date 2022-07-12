@@ -37,7 +37,7 @@ public class AdminOssService {
     }
 
     private void ossServiceVerify(String cookie) {
-        Result res = ossService.ossServiceVerify(cookie, LoginTokenType.ADMIN);
+        Result res = ssoService.ossServiceVerify(cookie, LoginTokenType.ADMIN);
         Object data = null;
         if (Objects.isNull(res)
                 || !StringUtils.equals(res.getCode(), "0")
@@ -58,5 +58,5 @@ public class AdminOssService {
     @Resource
     private HttpServletRequest httpServletRequest;
     @Resource
-    private OssService ossService;
+    private SSOService ssoService;
 }
