@@ -8,7 +8,7 @@ import java.util.List;
 
 // 各种币
 @Getter
-public enum CurrencyCoinEnum {
+public enum CurrencyCoin {
     usdt,
     eth,
     bnb,
@@ -94,18 +94,18 @@ public enum CurrencyCoinEnum {
     stepn
     ;
 
-    CurrencyCoinEnum() {
+    CurrencyCoin() {
         this.name = super.name();
     }
 
-    CurrencyCoinEnum(String name) {
+    CurrencyCoin(String name) {
         this.name = name;
     }
 
     private String name;
 
-    public static CurrencyCoinEnum getCurrencyCoinEnum(String token) {
-        for (CurrencyCoinEnum value : CurrencyCoinEnum.values()) {
+    public static CurrencyCoin getCurrencyCoinEnum(String token) {
+        for (CurrencyCoin value : CurrencyCoin.values()) {
             if (StrUtil.equals(value.name(), token)) {
                 return value;
             }
@@ -118,22 +118,22 @@ public enum CurrencyCoinEnum {
      * @param tokenStock 货币
      * @return
      */
-    public static String getSymbols(CurrencyCoinEnum tokenFiat, CurrencyCoinEnum tokenStock) {
+    public static String getSymbols(CurrencyCoin tokenFiat, CurrencyCoin tokenStock) {
         return tokenStock.name.toUpperCase() + tokenFiat.name.toUpperCase();
     }
 
-    public static CurrencyCoinEnum getTokenStock(String symbols) {
+    public static CurrencyCoin getTokenStock(String symbols) {
         symbols = symbols.toLowerCase();
-        return getCurrencyCoinEnum(symbols.replaceAll(CurrencyCoinEnum.usdt.getName(),""));
+        return getCurrencyCoinEnum(symbols.replaceAll(CurrencyCoin.usdt.getName(),""));
     }
 
     public static List<String> getAllUSDTSymbols() {
         List<String> allUSDTSymbols = new ArrayList<>();
-        for (CurrencyCoinEnum value : CurrencyCoinEnum.values()) {
-            if (value.equals(CurrencyCoinEnum.usdt)) {
+        for (CurrencyCoin value : CurrencyCoin.values()) {
+            if (value.equals(CurrencyCoin.usdt)) {
                 continue;
             }
-            allUSDTSymbols.add(getSymbols(CurrencyCoinEnum.usdt, value));
+            allUSDTSymbols.add(getSymbols(CurrencyCoin.usdt, value));
         }
         return allUSDTSymbols;
     }

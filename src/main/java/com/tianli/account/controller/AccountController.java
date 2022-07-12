@@ -9,6 +9,7 @@ import com.tianli.address.vo.AddressVO;
 import com.tianli.charge.ChargeService;
 import com.tianli.charge.ChargeType;
 import com.tianli.charge.entity.Charge;
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.sso.RequestInitService;
@@ -61,23 +62,31 @@ public class AccountController {
     }
 
     /**
-     * 查询用户云钱包余额
+     * 查询用户云钱包余额汇总
      */
-    @GetMapping("/balance")
+    @GetMapping("/balance/summary")
     public Result accountBalance() {
         Long uid = requestInitService.uid();
         return Result.instance().setData(accountBalanceService.getAccountBalanceMainPageVO(uid));
     }
 
     /**
+     * 查询单个币种余额
+     */
+    @GetMapping("/balance")
+    public Result accountBalance(CurrencyCoin currencyCoin) {
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(accountBalanceService.getVO(uid,currencyCoin));
+    }
+
+    /**
      * 获取余额详情信息
      */
     @GetMapping("/balance/details")
-    public Result accountBalanceDetails(int page, int size, ChargeType chargeType, Long balanceId) {
+    public Result accountBalanceDetails(int page, int size, ChargeType chargeType, CurrencyCoin currencyCoin) {
         Long uid = requestInitService.uid();
         Page<Charge> pageQuery = new Page<>(page, size);
-        AccountBalance accountBalance = accountBalanceService.getById(balanceId);
-        return Result.instance().setData(chargeService.pageByChargeType(uid, accountBalance.getAddress(), chargeType, pageQuery));
+        return Result.instance().setData(chargeService.pageByChargeType(uid,currencyCoin, chargeType, pageQuery));
     }
 
 }

@@ -1,7 +1,7 @@
 package com.tianli.account.entity;
 
 import com.baomidou.mybatisplus.extension.activerecord.Model;
-import com.tianli.account.enums.ProductType;
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.Builder;
 import lombok.Data;
@@ -39,17 +39,7 @@ public class AccountBalance extends Model<AccountBalance> {
     /**
      * 余额类型
      */
-    private ProductType productType;
-
-    /**
-     * 余额地址
-     */
-    private String address;
-
-    /**
-     * 币种
-     */
-    private CurrencyAdaptType currencyAdaptType;
+    private CurrencyCoin coin;
 
     /**
      * 总余额

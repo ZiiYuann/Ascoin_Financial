@@ -2,7 +2,7 @@ package com.tianli.account.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tianli.account.entity.AccountBalance;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.common.blockchain.CurrencyCoin;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -22,8 +22,8 @@ import java.util.List;
 @Mapper
 public interface AccountBalanceMapper extends BaseMapper<AccountBalance> {
 
-    @Select("SELECT * FROM `account_balance` WHERE `uid`=#{uid} AND  `token`=#{token}")
-    AccountBalance get(@Param("uid") long uid, @Param("token") CurrencyAdaptType token);
+    @Select("SELECT * FROM `account_balance` WHERE `uid`=#{uid} AND  `coin`=#{coin}")
+    AccountBalance get(@Param("uid") long uid, @Param("token") CurrencyCoin coin);
 
     @Select("SELECT * FROM `account_balance` WHERE `uid`=#{uid} ")
     List<AccountBalance> list(long uid);

@@ -74,7 +74,7 @@ public class FinancialUserRecordListVo {
         //存入天数
         financialUserRecordListVo.setDepositDays(depositDays);
         financialUserRecordListVo.setAmount(CurrencyAdaptType.usdt_omni.money(financialUserRecordListDto.getAmount()));
-        if (financialUserRecordListDto.getFinancial_product_type().equals(FinancialProductType.fixed.name()) && FinancialLogStatus.created.name().equals(financialUserRecordListDto.getStatus())) {
+        if (financialUserRecordListDto.getFinancial_product_type().equals(FinancialProductType.fixed.name()) && FinancialLogStatus.PURCHASE_PROCESSING.name().equals(financialUserRecordListDto.getStatus())) {
             long remainingDays = Math.max(financialUserRecordListDto.getEnd_date().toEpochDay() - nowDay, 0L);
             //剩余天数
             financialUserRecordListVo.setRemainingDays(remainingDays);
@@ -82,7 +82,7 @@ public class FinancialUserRecordListVo {
         BigDecimal decimal = Convert.toBigDecimal(financialUserRecordListDto.getAmount());
         //盈利金额
         BigInteger profitAmount = decimal.multiply(Convert.toBigDecimal(financialUserRecordListDto.getRate())).multiply(Convert.toBigDecimal(depositDays)).toBigInteger();
-        if (financialUserRecordListDto.getFinancial_product_type().equals(FinancialProductType.current.name()) && FinancialLogStatus.created.name().equals(financialUserRecordListDto.getStatus())) {
+        if (financialUserRecordListDto.getFinancial_product_type().equals(FinancialProductType.current.name()) && FinancialLogStatus.PURCHASE_PROCESSING.name().equals(financialUserRecordListDto.getStatus())) {
             //可赎回金额
             BigInteger redeemableAmount = financialUserRecordListDto.getAmount().add(profitAmount);
             financialUserRecordListVo.setRedeemableAmount(CurrencyAdaptType.usdt_omni.money(redeemableAmount));

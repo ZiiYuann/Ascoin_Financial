@@ -1,7 +1,7 @@
 package com.tianli.charge.vo;
 
-import com.tianli.charge.entity.Charge;
 import com.tianli.charge.enums.ChargeStatus;
+import com.tianli.charge.entity.Charge;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,10 +34,10 @@ public class WithdrawApplyChargeVO {
                 .create_time(createTime)
                 .create_time_ms(instant.toEpochMilli())
                 .status(charge.getStatus())
-                .token(charge.getToken().name())
-                .amount(charge.getCurrencyAdaptType().moneyBigDecimal(charge.getAmount()).doubleValue())
-                .fee(charge.getCurrencyAdaptType().moneyBigDecimal(charge.getFee()).doubleValue())
-                .real_amount(charge.getCurrencyAdaptType().moneyBigDecimal(charge.getRealAmount()).doubleValue())
+                .token(charge.getCurrencyAdaptType().name())
+                .amount(charge.getCurrencyAdaptType().moneyBigDecimal(charge.getFee()).doubleValue())
+                .fee(charge.getCurrencyAdaptType().moneyBigDecimal(charge.getServiceFee()).doubleValue())
+                .real_amount(charge.getCurrencyAdaptType().moneyBigDecimal(charge.getRealFee()).doubleValue())
                 .reason(charge.getReason())
                 .reason_en(charge.getReasonEn())
                 .build();

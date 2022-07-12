@@ -1,8 +1,7 @@
 package com.tianli.wallet.mapper;
 
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.tianli.chain.ChainType;
-import com.tianli.common.blockchain.ChainType;
+import com.tianli.common.blockchain.CurrencyNetworkType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -42,7 +41,7 @@ public class MainWalletLog {
     /**
      * 链的类型, bsc, trc, erc
      */
-    private ChainType chainType;
+    private CurrencyNetworkType chainType;
 
     /**
      * 金额

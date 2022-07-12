@@ -9,7 +9,6 @@ import com.tianli.common.blockchain.BscTriggerContract;
 import com.tianli.common.blockchain.EthTriggerContract;
 import com.tianli.common.blockchain.TronTriggerContract;
 import com.tianli.common.lock.RedisLock;
-import com.tianli.account.enums.ProductType;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.ErrorCodeEnum;
 import lombok.SneakyThrows;

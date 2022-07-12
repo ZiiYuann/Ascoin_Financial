@@ -17,7 +17,9 @@ public interface ConfigMapper extends BaseMapper<Config> {
     int replace(Config config);
 
     @Insert("REPLACE INTO `config`(`name`, `value`) VALUES (#{name},#{value})")
-    int replace(@Param("name") String name, @Param("value") String value); @Select("SELECT * FROM `config` WHERE `name`=#{name}")
+    int replace(@Param("name") String name, @Param("value") String value);
+
+    @Select("SELECT * FROM `config` WHERE `name`=#{name}")
     Config get(String name);
 
     @Insert("REPLACE INTO `config`(`name`, `value`) VALUES (#{name},#{value})")

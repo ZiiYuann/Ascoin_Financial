@@ -1,12 +1,13 @@
 package com.tianli.financial.service.impl;
 
 import com.tianli.common.CommonFunction;
-import com.tianli.common.init.RequestInitService;
 import com.tianli.account.service.AccountBalanceService;
-import com.tianli.account.enums.ProductType;
+import com.tianli.account.enums.AccountChangeType;
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.enums.FinancialProductStatus;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.FinancialLogService;
@@ -15,11 +16,13 @@ import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.FinancialLogStatus;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialService;
+import com.tianli.financial.vo.FinancialPurchaseResultVO;
+import com.tianli.sso.RequestInitService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -34,31 +37,39 @@ public class FinancialServiceImpl implements FinancialService {
     private FinancialLogService userFinancialLogService;
     @Resource
     private FinancialProductService financialProductService;
+    @Resource
+    private FinancialConverter financialConverter;
 
     @Override
     @Transactional
-    public void purchase(PurchaseQuery purchaseQuery) {
+    public FinancialPurchaseResultVO purchase(PurchaseQuery purchaseQuery) {
         Long uid = requestInitService.uid();
-        FinancialProduct product = financialProductService.getById(purchaseQuery.getProductId());
 
+        FinancialProduct product = financialProductService.getById(purchaseQuery.getProductId());
         validProduct(product);
-        // TODO 转换额度 amount
-        BigInteger amount = BigInteger.ZERO;
-        validRemainAmount(purchaseQuery.getProductId(),amount);
+
+        BigDecimal amount = purchaseQuery.getAmount();
+        validRemainAmount(purchaseQuery.getProductId(),purchaseQuery.getCurrencyCoin(),amount);
 
         Long id = CommonFunction.generalId();
-        accountBalanceService.freeze(uid, ProductType.financial, amount, id.toString(), CurrencyLogDes.买入.name());
-        LocalDate start_date = requestInitService.now().toLocalDate().plusDays(1L);
-        FinancialLog userFinancialLog = FinancialLog.builder()
+        accountBalanceService.freeze(uid, AccountChangeType.financial, amount, id.toString(), CurrencyLogDes.申购.name());
+        LocalDate startDate = requestInitService.now().toLocalDate().plusDays(1L);
+        FinancialLog log = FinancialLog.builder()
                 .financialProductId(product.getId())
                 .userId(uid).financialProductType(product.getType())
                 .amount(amount)
                 .createTime(requestInitService.now())
-                .startDate(start_date)
-                .endDate(start_date.plusDays(product.getPeriod()))
+                .startDate(startDate)
+                .endDate(startDate.plusDays(product.getPurchaseTerm().getDay()))
                 .id(id).rate(product.getRate()).status(FinancialLogStatus.PURCHASE_PROCESSING.getType())
                 .build();
-        userFinancialLogService.save(userFinancialLog);
+        userFinancialLogService.save(log);
+
+        FinancialPurchaseResultVO financialPurchaseResultVO = financialConverter.toVO(log);
+        financialPurchaseResultVO.setName(product.getName());
+        financialPurchaseResultVO.setName(product.getNameEn());
+        financialPurchaseResultVO.setStatusDes(FinancialLogStatus.getByType(log.getStatus()).getDesc());
+        return financialPurchaseResultVO;
     }
 
     /**
@@ -66,7 +77,7 @@ public class FinancialServiceImpl implements FinancialService {
      * @param financialProduct 产品
      */
     private void validProduct(FinancialProduct financialProduct){
-        if( Objects.isNull(financialProduct) || FinancialProductStatus.enable.getType() != financialProduct.getStatus()){
+        if( Objects.isNull(financialProduct) || FinancialProductStatus.enable != financialProduct.getStatus()){
             ErrorCodeEnum.NOT_OPEN.throwException();
         }
     }
@@ -75,8 +86,8 @@ public class FinancialServiceImpl implements FinancialService {
      * 校验账户额度
      * @param amount 申购金额
      */
-    private void validRemainAmount(Long uid,BigInteger amount){
-        AccountBalance accountBalanceBalance = accountBalanceService.getAndInit(uid, ProductType.financial);
+    private void validRemainAmount(Long uid, CurrencyCoin currencyCoin, BigDecimal amount){
+        AccountBalance accountBalanceBalance = accountBalanceService.getAndInit(uid,currencyCoin);
         if(accountBalanceBalance.getRemain().compareTo(amount) < 0){
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }

@@ -1,5 +1,6 @@
 package com.tianli.currency.service;
 
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.dto.DollarAmountDTO;
 import com.tianli.currency.enums.CurrencyAdaptType;
 
@@ -22,8 +23,8 @@ public interface CurrencyService {
 
     /**
      * 获取汇率
-     * @param currencyAdaptType 币别包装类型
+     * @param currencyCoin 币别包装类型
      * @return 美元汇率
      */
-    BigDecimal getDollarRate(CurrencyAdaptType currencyAdaptType);
+    BigDecimal getDollarRate(CurrencyCoin currencyCoin);
 }

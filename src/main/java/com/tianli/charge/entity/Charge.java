@@ -27,8 +27,14 @@ public class Charge {
 
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
-    private LocalDateTime createTime;
-    private LocalDateTime completeTime;
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Long uid;
+
+    /**
+     * 订单号
+     */
+    private String sn;
+
     /**
      * 交易类型
      */
@@ -38,25 +44,51 @@ public class Charge {
      * 交易状态
      */
     private ChargeStatus status;
-    @JsonSerialize(using = ToStringSerializer.class)
-    private Long uid;
+
+
+    /**
+     * 设计到的余额id
+     */
+    private Long accountBalanceId;
+
+    /**
+     * 币种包装
+     */
+    private CurrencyAdaptType currencyAdaptType;
+
+
+    /**
+     * 金额 提币、充值等不包含手续费
+     */
+    private BigDecimal fee;
+
+    /**
+     * 手续费
+     */
+    private BigDecimal serviceFee;
+
+    /**
+     * 真实等金额 提币 = amount - serviceAmount，充值 = amount - serviceAmount
+     */
+    private BigDecimal realFee;
+
+    /**
+     *
+     * 矿工费
+     */
+    private BigDecimal minerFee;
+
+    private String txid;
     private String uidUsername;
     private String uidNick;
     private String uidAvatar;
-    private String sn;
-    private CurrencyAdaptType currencyAdaptType;
-    private BigDecimal amount;
-    private BigDecimal fee;
-    private BigDecimal realAmount;
     private String fromAddress;
     private String toAddress;
-    private String txid;
     private String note;
-    private String reviewNote;
-    private BigDecimal minerFee;
-    private CurrencyAdaptType minerFeeType;
-    private CurrencyAdaptType token;
+
     private String reviewer;
+
+    private String reviewNote;
 
     private Long reviewerId;
 
@@ -65,4 +97,14 @@ public class Charge {
     private String reason;
 
     private String reasonEn;
+
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
+
+    /**
+     * 完成时间
+     */
+    private LocalDateTime completeTime;
 }

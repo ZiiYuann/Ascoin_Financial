@@ -1,10 +1,14 @@
 package com.tianli.currency.enums;
 
+import com.tianli.common.blockchain.CurrencyNetworkType;
+import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 代币货币类型
@@ -12,31 +16,31 @@ import java.math.BigInteger;
 @Getter
 public enum CurrencyAdaptType {
 
-    usdt_bep20(CurrencyType.usdt,CurrencyNetworkType.bep20),
-    usdc_erc20(CurrencyType.usdc,CurrencyNetworkType.erc20),
-    usdc_trc20(CurrencyType.usdc,CurrencyNetworkType.trc20),
-    usdc_bep20(CurrencyType.usdc,CurrencyNetworkType.bep20),
+    usdt_bep20(CurrencyCoin.usdt, CurrencyNetworkType.bep20),
+    usdc_erc20(CurrencyCoin.usdc,CurrencyNetworkType.erc20),
+    usdc_trc20(CurrencyCoin.usdc,CurrencyNetworkType.trc20),
+    usdc_bep20(CurrencyCoin.usdc,CurrencyNetworkType.bep20),
 
-    usdt_erc20(CurrencyType.usdt,CurrencyNetworkType.erc20),
-    eth(CurrencyType.eth,CurrencyNetworkType.erc20),
+    usdt_erc20(CurrencyCoin.usdt,CurrencyNetworkType.erc20),
+    eth(CurrencyCoin.eth,CurrencyNetworkType.erc20),
 
-    usdt_trc20(CurrencyType.usdt,CurrencyNetworkType.trc20),
-    tron(CurrencyType.tron,CurrencyNetworkType.trc20),
+    usdt_trc20(CurrencyCoin.usdt,CurrencyNetworkType.trc20),
+    tron,
 
     usdt_omni,
     btc,
 
     cny(true),
-    bsc(CurrencyType.bsc,CurrencyNetworkType.bep20),
-    bnb(CurrencyType.bnb,CurrencyNetworkType.bep20),
-    BF_bep20(CurrencyType.BF,CurrencyNetworkType.bep20);
+    bsc,
+    bnb(CurrencyCoin.bnb,CurrencyNetworkType.bep20),
+    BF_bep20;
 
 
 
-    CurrencyAdaptType(CurrencyType currencyType,CurrencyNetworkType currencyNetworkType) {
+    CurrencyAdaptType(CurrencyCoin currencyCoin,CurrencyNetworkType currencyNetworkType) {
         this.fiat = false;
         this.currencyNetworkType = currencyNetworkType;
-        this.currencyType = currencyType;
+        this.currencyCoin = currencyCoin;
     }
 
     CurrencyAdaptType(boolean fiat) {
@@ -47,7 +51,7 @@ public enum CurrencyAdaptType {
         this.fiat = false;
     }
 
-    private CurrencyType currencyType;
+    private CurrencyCoin currencyCoin;
     private CurrencyNetworkType currencyNetworkType;
     private final boolean fiat;
 
@@ -149,4 +153,13 @@ public enum CurrencyAdaptType {
         return amount(decimal);
     }
 
+    public static List<CurrencyAdaptType> listByCoin(CurrencyCoin coin){
+        List<CurrencyAdaptType> currencyAdaptTypes = new ArrayList<>();
+        for (CurrencyAdaptType currencyAdaptType: CurrencyAdaptType.values()){
+            if(currencyAdaptType.getCurrencyCoin().equals(coin)){
+                currencyAdaptTypes.add(currencyAdaptType);
+            }
+        }
+        return currencyAdaptTypes;
+    }
 }

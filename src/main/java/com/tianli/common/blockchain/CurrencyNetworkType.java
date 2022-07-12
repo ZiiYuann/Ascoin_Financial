@@ -1,10 +1,5 @@
-package com.tianli.currency.enums;
+package com.tianli.common.blockchain;
 
-/**
- * @author chenb
- * @apiNote
- * @since 2022-07-11
- **/
 public enum CurrencyNetworkType {
     // 以太坊公链代币标准
     erc20,

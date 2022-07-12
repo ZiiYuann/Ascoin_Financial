@@ -99,7 +99,7 @@ public class UsdtEthContract {
         return result;
     }
 
-    public Result transferToken(String to, BigInteger val, CurrencyCoinEnum token) {
+    public Result transferToken(String to, BigInteger val, CurrencyCoin token) {
         String address = configService.get(ConfigConstants.ETH_MAIN_WALLET_ADDRESS);
         long nonce = ethBlockChainActuator.getNonce(address);
         String password = configService.get(ConfigConstants.MAIN_WALLET_PASSWORD);

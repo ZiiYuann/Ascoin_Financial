@@ -1,24 +1,20 @@
-package com.tianli.financial.entity;
+package com.tianli.financial.vo;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.tianli.financial.enums.FinancialProductStatus;
-import com.tianli.financial.enums.PurchaseTerm;
 import com.tianli.financial.enums.FinancialProductType;
-import lombok.Builder;
+import com.tianli.financial.enums.PurchaseTerm;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
 
 /**
- * 理财产品
- */
+ * @author chenb
+ * @apiNote
+ * @since 2022-07-12
+ **/
 @Data
-@Builder
-@Accessors(chain = true)
-@EqualsAndHashCode(callSuper = false)
-public class FinancialProduct {
+public class FinancialProductVO {
 
     /**
      * 主键
@@ -57,24 +53,9 @@ public class FinancialProduct {
     private String descriptionEn;
 
     /**
-     * 添加时间
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 修改时间
-     */
-    private LocalDateTime updateTime;
-
-    /**
      * 类型 {@link PurchaseTerm}
      */
     private PurchaseTerm purchaseTerm;
-
-    /**
-     * 产品状态 {@link FinancialProductStatus}
-     */
-    private FinancialProductStatus status;
 
     /**
      * 产品类型 {@link FinancialProductType}

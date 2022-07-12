@@ -1,7 +1,7 @@
 package com.tianli.account.entity;
 
 import com.baomidou.mybatisplus.extension.activerecord.Model;
-import com.tianli.account.enums.ProductType;
+import com.tianli.account.enums.AccountChangeType;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.account.enums.AccountOperationType;
 import lombok.Builder;
@@ -43,7 +43,10 @@ public class AccountBalanceOperationLog extends Model<AccountBalanceOperationLog
      */
     private Long accountBalanceId;
 
-    private ProductType productType;
+    /**
+     * 余额变动类型
+     */
+    private AccountChangeType accountChangeType;
 
     /**
      * 币种类型

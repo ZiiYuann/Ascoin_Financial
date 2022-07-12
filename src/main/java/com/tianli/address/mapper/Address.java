@@ -1,6 +1,5 @@
 package com.tianli.address.mapper;
 
-import com.tianli.account.enums.ProductType;
 import lombok.*;
 import lombok.experimental.Accessors;
 

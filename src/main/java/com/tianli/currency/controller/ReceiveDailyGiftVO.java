@@ -27,11 +27,4 @@ public class ReceiveDailyGiftVO {
      */
     private double amount;
 
-    public static ReceiveDailyGiftVO convert(DailyGiftRecord receive) {
-        CurrencyAdaptType token = receive.getToken();
-        return ReceiveDailyGiftVO.builder()
-                .amount(token.money(receive.getAmount()))
-                .token(token)
-                .build();
-    }
 }

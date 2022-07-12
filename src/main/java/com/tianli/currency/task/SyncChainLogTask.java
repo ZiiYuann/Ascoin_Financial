@@ -68,7 +68,7 @@ public class SyncChainLogTask {
                 chainLog.setId(e.getId());
                 chainLog.setAddress(e.getToAddress());
                 chainLog.setCurrency_type(e.getCurrencyAdaptType());
-                chainLog.setAmount(e.getAmount().toBigInteger());
+                chainLog.setAmount(e.getFee().toBigInteger());
                 chainLog.setUid(e.getUid());
                 chainLog.setUsername(e.getUidUsername());
                 chainLog.setU_create_time(e.getCreateTime());

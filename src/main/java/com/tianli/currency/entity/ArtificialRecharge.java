@@ -28,7 +28,6 @@ public class ArtificialRecharge extends Model<ArtificialRecharge> {
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 
-    private ArtificialRechargeType type;
     /**
      * 充值log表主键id
      */

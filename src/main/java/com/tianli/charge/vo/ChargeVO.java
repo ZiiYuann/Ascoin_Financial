@@ -2,8 +2,8 @@ package com.tianli.charge.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import com.tianli.charge.ChargeType;
 import com.tianli.charge.enums.ChargeStatus;
+import com.tianli.charge.ChargeType;
 import com.tianli.currency.enums.CurrencyAdaptType;
 
 import java.math.BigDecimal;

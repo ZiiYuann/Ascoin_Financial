@@ -1,34 +1,27 @@
-package com.tianli.financial.entity;
+package com.tianli.financial.vo;
 
 import com.tianli.financial.enums.FinancialProductType;
-import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * <p>
- * 用户购买理财产品
- * </p>
- */
+ * @author chenb
+ * @apiNote
+ * @since 2022-07-12
+ **/
 @Data
-@Builder
-@Accessors(chain = true)
-@EqualsAndHashCode(callSuper = false)
-public class FinancialLog {
+public class FinancialPurchaseResultVO {
+
+    private String name;
+    private String nameEn;
+
     /**
      * 主键
      */
     private Long id;
-
-    /**
-     * 用户id
-     */
-    private Long userId;
 
     /**
      * 理财产品id
@@ -56,23 +49,19 @@ public class FinancialLog {
     private LocalDate startDate;
 
     /**
-     * 结束日期
-     */
-    private LocalDate endDate;
-
-    /**
      * 状态
      */
     private byte status;
+
+    /**
+     * 状态描述
+     */
+    private String statusDes;
 
     /**
      * 创建时间
      */
     private LocalDateTime createTime;
 
-    /**
-     * 赎回时间
-     */
-    private LocalDateTime finishTime;
 
 }

@@ -1,10 +1,9 @@
 package com.tianli.currency.task;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.tianli.account.entity.AccountBalance;
-import com.tianli.account.enums.ProductType;
+import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.charge.ChargeService;
 import com.tianli.common.ConfigConstants;
@@ -74,9 +73,7 @@ public class CurrencyInterestTask {
                 if (page == null) {
                     break;
                 }
-                Page<AccountBalance> currencyPage = accountBalanceService.page(new Page<>(page, 20), new LambdaQueryWrapper<AccountBalance>()
-                        .eq(AccountBalance::getProductType, ProductType.financial)
-                );
+                Page<AccountBalance> currencyPage = accountBalanceService.page(new Page<>(page, 20));
                 List<AccountBalance> records = currencyPage.getRecords();
                 if ((records.size()) <= 0) {
                     break;
@@ -114,7 +111,7 @@ public class CurrencyInterestTask {
                 return;
             }
             // 2. 更新余额
-            accountBalanceService.increase(accountBalanceBalance.getUid(), dayInterest,
+            accountBalanceService.increase(accountBalanceBalance.getUid(), AccountChangeType.normal,dayInterest,
                     TimeTool.getDateTimeDisplayString(LocalDateTime.now()), CurrencyLogDes.利息.name());
         } catch (Exception e) {
             String toJson = gson.toJson(accountBalanceBalance);

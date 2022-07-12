@@ -16,5 +16,6 @@ public enum CurrencyLogDes {
     提现交易失败,
     //新币状态
     扣款,回款,奖励,
+    申购,
     ;
 }

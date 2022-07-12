@@ -82,7 +82,7 @@ public class TronTriggerContract {
         return transfer(ownerAddress, toAddress, "TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8", amount);
     }
 
-    public String transferToken(String toAddress, BigInteger amount, CurrencyCoinEnum token) {
+    public String transferToken(String toAddress, BigInteger amount, CurrencyCoin token) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
 
         return transfer(ownerAddress, toAddress, "tokenContract.getContract_address()", amount);

@@ -3,9 +3,10 @@ package com.tianli.charge.controller;
 import com.google.gson.Gson;
 import com.tianli.address.query.RechargeCallbackQuery;
 import com.tianli.charge.ChargeService;
-import com.tianli.charge.entity.Charge;
 import com.tianli.charge.enums.ChargeStatus;
+import com.tianli.charge.query.WithdrawQuery;
 import com.tianli.charge.vo.WithdrawApplyChargeVO;
+import com.tianli.charge.entity.Charge;
 import com.tianli.charge.mapper.Charge;
 import com.tianli.charge.mapper.ChargeStatus;
 import com.tianli.exception.ErrorCodeEnum;
@@ -42,14 +43,6 @@ public class ChargeController {
     @Resource
     private RequestInitService requestInitService;
 
-    @PostMapping("/withdraw")
-    public Result withdraw(@RequestBody @Valid WithdrawDTO withdrawDTO) {
-        if (withdrawDTO.getCurrencyAdaptType().isFiat())
-            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
-        chargeService.withdraw(withdrawDTO);
-        return Result.instance();
-    }
-
     @GetMapping("/withdraw/apply/page")
     public Result withdrawApplyPage(@RequestParam(value = "status", defaultValue = "created") ChargeStatus status,
                                     @RequestParam(value = "page", defaultValue = "1") Integer page,
@@ -62,7 +55,7 @@ public class ChargeController {
     /**
      * 充值回调
      */
-    @PostMapping("/webhooks/recharge")
+    @PostMapping("/recharge")
     public Result rechargeCallback(@RequestBody String str, @RequestHeader("AppKey") String appKey
             , @RequestHeader("Sign") String sign) {
         String walletAppKey = configService.get("wallet_app_key");
@@ -77,6 +70,17 @@ public class ChargeController {
         RechargeCallbackQuery query = gson.fromJson(str, RechargeCallbackQuery.class);
         chargeService.rechargeCallback(query);
         return Result.success();
+    }
+
+    /**
+     * 提现申请
+     */
+    @PostMapping("/withdraw/apply")
+    public Result withdraw(@RequestBody @Valid WithdrawQuery withdrawDTO) {
+        if (withdrawDTO.getCurrencyAdaptType().isFiat())
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
+        chargeService.withdraw(withdrawDTO);
+        return Result.instance();
     }
 
     /**
