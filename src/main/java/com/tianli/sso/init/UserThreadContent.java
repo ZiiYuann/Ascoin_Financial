@@ -1,4 +1,4 @@
-package com.tianli.sso;
+package com.tianli.sso.init;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,7 +11,7 @@ import java.util.Objects;
  * @author haoding
  */
 @Slf4j
-public class TspContent {
+public class UserThreadContent {
 
     private static ThreadLocal<Map<String, Object>> THREAD_LOCAL = new ThreadLocal<>();
 

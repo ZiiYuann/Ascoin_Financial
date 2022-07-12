@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.tianli.common.ConfigConstants;
-import com.tianli.sso.RequestInitService;
+import com.tianli.sso.init.RequestInitService;
 import com.tianli.currency.*;
 import com.tianli.currency.log.CurrencyLog;
 import com.tianli.currency.log.CurrencyLogDes;

@@ -1,4 +1,4 @@
-package com.tianli.sso.admin;
+package com.tianli.sso.permission.admin;
 
 import lombok.extern.slf4j.Slf4j;
 

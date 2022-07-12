@@ -4,8 +4,8 @@ import com.google.gson.JsonObject;
 import com.tianli.common.Constants;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
-import com.tianli.sso.admin.AdminContent;
-import com.tianli.sso.admin.AdminInfo;
+import com.tianli.sso.permission.admin.AdminContent;
+import com.tianli.sso.permission.admin.AdminInfo;
 import com.tianli.sso.permission.LoginTokenType;
 import com.tianli.tool.CookieTool;
 import com.tianli.tool.judge.JsonObjectTool;
@@ -48,7 +48,8 @@ public class AdminOssService {
         AdminInfo adminInfo = AdminContent.get();
         adminInfo.setAid(JsonObjectTool.getAsLong(dataJsonObj, "uid"))
                 .setPhone(JsonObjectTool.getAsString(dataJsonObj, "phone"))
-                .setUsername(JsonObjectTool.getAsString(dataJsonObj, "username"));
+                .setUsername(JsonObjectTool.getAsString(dataJsonObj, "username"))
+                .setNickname(JsonObjectTool.getAsString(dataJsonObj, "nickname"));
     }
 
     private static final String COOKIE_NAME = "_r";

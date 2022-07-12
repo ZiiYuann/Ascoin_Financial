@@ -1,7 +1,6 @@
-package com.tianli.sso;
+package com.tianli.sso.init;
 
 import com.google.gson.Gson;
-import com.tianli.sso.RequestInitService;
 import com.tianli.tool.ApplicationContextTool;
 import com.tianli.tool.MapTool;
 import org.springframework.security.crypto.codec.Utf8;

@@ -1,6 +1,6 @@
 package com.tianli.common.log;
 
-import com.tianli.sso.RequestInitService;
+import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.MapTool;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;

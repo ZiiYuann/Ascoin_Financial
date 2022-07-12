@@ -2,7 +2,7 @@ package com.tianli.financial;
 
 import com.tianli.common.CommonFunction;
 import com.tianli.common.Constants;
-import com.tianli.sso.RequestInitService;
+import com.tianli.sso.init.RequestInitService;
 import com.tianli.currency.CurrencyService;
 import com.tianli.currency.CurrencyTypeEnum;
 import com.tianli.currency.log.CurrencyLogDes;

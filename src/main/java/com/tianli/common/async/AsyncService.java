@@ -1,7 +1,7 @@
 package com.tianli.common.async;
 
-import com.tianli.sso.RequestInit;
-import com.tianli.sso.RequestInitService;
+import com.tianli.sso.init.RequestInit;
+import com.tianli.sso.init.RequestInitService;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.common.log.LoggerHandle;
 import com.tianli.tool.MapTool;

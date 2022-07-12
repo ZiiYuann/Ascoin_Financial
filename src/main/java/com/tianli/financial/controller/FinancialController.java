@@ -8,7 +8,7 @@ import com.tianli.common.Constants;
 import com.tianli.common.blockchain.CurrencyCoinEnum;
 import com.tianli.currency.CurrencyTokenService;
 import com.tianli.currency.mapper.CurrencyToken;
-import com.tianli.sso.RequestInitService;
+import com.tianli.sso.init.RequestInitService;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.currency.CurrencyService;
 import com.tianli.currency.CurrencyTypeEnum;

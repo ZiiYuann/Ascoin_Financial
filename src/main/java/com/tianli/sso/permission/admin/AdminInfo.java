@@ -1,4 +1,4 @@
-package com.tianli.sso.admin;
+package com.tianli.sso.permission.admin;
 
 import lombok.*;
 import lombok.experimental.Accessors;
@@ -19,6 +19,11 @@ public class AdminInfo {
      * admin账号
      */
     private String username;
+
+    /**
+     * admin账号nick
+     */
+    private String nickname;
 
     /**
      * 手机号

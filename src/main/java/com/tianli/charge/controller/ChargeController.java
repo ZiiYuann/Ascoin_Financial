@@ -8,8 +8,8 @@ import com.tianli.charge.mapper.ChargeStatus;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
-import com.tianli.sso.RequestInit;
-import com.tianli.sso.RequestInitService;
+import com.tianli.sso.init.RequestInit;
+import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 

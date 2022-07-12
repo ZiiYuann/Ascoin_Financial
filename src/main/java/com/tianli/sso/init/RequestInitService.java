@@ -1,17 +1,16 @@
-package com.tianli.sso;
+package com.tianli.sso.init;
 
-import com.google.gson.JsonObject;
 import com.tianli.common.IpTool;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.sso.service.UserOssService;
 import com.tianli.tool.ApplicationContextTool;
-import com.tianli.tool.judge.JsonObjectTool;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * @Author wangqiyun
@@ -33,9 +32,26 @@ public class RequestInitService {
         return get().getUid();
     }
 
+    /**
+     * 获取登录的uid
+     */
     public Long uid() {
         Long uid = _uid();
+        if (Objects.isNull(uid)) ErrorCodeEnum.UNLOIGN.throwException();
         return uid;
+    }
+
+    public SignUserInfo _userInfo() {
+        return get().getUserInfo();
+    }
+
+    /**
+     * 获取登录的userInfo详情
+     */
+    public SignUserInfo userInfo() {
+        SignUserInfo userInfo = _userInfo();
+        if (Objects.isNull(userInfo)) ErrorCodeEnum.UNLOIGN.throwException();
+        return userInfo;
     }
 
     public String imei() {
@@ -80,6 +96,12 @@ public class RequestInitService {
         requestInit.setImei(imei);
 
         /**
+         * 请求链路id
+         */
+        String requestId = httpServletRequest.getHeader("REQ_ID");
+        if (requestId != null) requestInit.setRequestId(requestId);
+
+        /**
          * 设备信息
          */
         String device_type = httpServletRequest.getHeader("DeviceType");
@@ -88,11 +110,12 @@ public class RequestInitService {
         String device_info = httpServletRequest.getHeader("deviceInfo");
         if (device_info == null) device_info = "";
         requestInit.setDeviceInfo(device_info);
+
         /**
          * 解析用户信息
          */
-        JsonObject ossUser = userOssService.loginUser();
-        requestInit.setUid(JsonObjectTool.getAsLong(ossUser, "uid"));
+        SignUserInfo ossUser = userOssService.loginUser();
+        requestInit.setUid(Objects.isNull(ossUser) ? null : ossUser.getUid());
         requestInit.setUserInfo(ossUser);
         requestInit.setIp(ApplicationContextTool.getBean(IpTool.class).getIp(httpServletRequest));
         String lat = httpServletRequest.getHeader("LAT");

@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.charge.ChargeService;
-import com.tianli.sso.RequestInitService;
+import com.tianli.sso.init.RequestInitService;
 import com.tianli.currency.CurrencyTypeEnum;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;

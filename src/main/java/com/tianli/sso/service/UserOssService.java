@@ -1,8 +1,8 @@
 package com.tianli.sso.service;
 
-import com.google.gson.JsonObject;
 import com.tianli.common.Constants;
 import com.tianli.exception.Result;
+import com.tianli.sso.init.SignUserInfo;
 import com.tianli.sso.permission.LoginTokenType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +22,7 @@ public class UserOssService {
      *     "address":地址(可能是助记词的eth地址/私钥的对应链的地址)
      * }
      */
-    public JsonObject loginUser() {
+    public SignUserInfo loginUser() {
         String token = httpServletRequest.getHeader("token");
         if (StringUtils.isNotBlank(token) && token.length() < 256) {
             return ossServiceVerify(token);
@@ -30,7 +30,7 @@ public class UserOssService {
         return null;
     }
 
-    private JsonObject ossServiceVerify(String token) {
+    private SignUserInfo ossServiceVerify(String token) {
         Result res = ossService.ossServiceVerify(token, LoginTokenType.USER);
         Object data;
         if (Objects.isNull(res)
@@ -38,7 +38,7 @@ public class UserOssService {
                 || Objects.isNull(data = res.getData()) ) {
             return null;
         }
-        return Constants.GSON.fromJson(data.toString(), JsonObject.class);
+        return Constants.GSON.fromJson(data.toString(), SignUserInfo.class);
     }
 
     @Resource
