@@ -30,8 +30,13 @@ public class AdminOssService {
                 ErrorCodeEnum.UNLOIGN.throwException();
             }
             String sessionInfo = headerSession.toString();
-            String userIdStr = sessionInfo.split("-")[0];
-            cookie = sessionInfo.replaceAll(userIdStr + "-","");
+            //eg: 1687406546639098600-fa6b466a-24b5-4747-9c07-6cc1506aa1e6
+            String userIdStr = sessionInfo.split("_")[0];
+            if (!StringUtils.equals(userIdStr, sessionInfo)){
+                cookie = sessionInfo.replaceAll(userIdStr + "_","");
+            }else {
+                cookie = sessionInfo;
+            }
         }
         this.ossServiceVerify(cookie);
     }
