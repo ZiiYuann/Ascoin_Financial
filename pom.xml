@@ -16,7 +16,7 @@
 
     <properties>
         <java.version>11</java.version>
-        <org.mapstruct.version>1.5.0.RC1</org.mapstruct.version>
+        <org.mapstruct.version>1.5.2.Final</org.mapstruct.version>
         <mybatis-spring-boot.verison>2.1.4</mybatis-spring-boot.verison>
         <mybatis-plus-generator.version>3.3.2</mybatis-plus-generator.version>
         <mybatis-plus-boot-starter.version>3.3.2</mybatis-plus-boot-starter.version>
@@ -271,6 +271,12 @@
             <artifactId>mapstruct</artifactId>
             <version>${org.mapstruct.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>${org.mapstruct.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -280,6 +286,8 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+
         </plugins>
     </build>
+
 </project>

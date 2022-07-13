@@ -74,9 +74,9 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
      */
     @Transactional
     public void rechargeCallback(RechargeCallbackQuery query) {
-        Address address  = getAddress(query);
+        Address address = getAddress(query);
         Long uid = address.getUid();
-        AccountChangeType type  = AccountChangeType.getInstanceBySn(query.getSn());
+        AccountChangeType type = AccountChangeType.getInstanceBySn(query.getSn());
         BigDecimal finalAmount = query.getType().moneyBigDecimal(query.getValue());
 
         boolean receiveFlag = false;
@@ -85,7 +85,7 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
         }
 
         if (receiveFlag) {
-            accountBalanceService.increase(uid,type, query.getType(), finalAmount, query.getSn(), CurrencyLogDes.充值.name());
+            accountBalanceService.increase(uid, type, query.getType(), finalAmount, query.getSn(), CurrencyLogDes.充值.name());
         }
 
     }
@@ -167,17 +167,17 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
                 .add(new BigDecimal(StringUtils.isNotBlank(fixedAmount) ? fixedAmount : "0"));
         BigDecimal realAmount = withdrawAmount.subtract(serviceAmount);
 
-        if (serviceAmount.compareTo(BigDecimal.ZERO) < 0)   ErrorCodeEnum.FEE_LT_ZERO_ERROR.throwException();
-        if (realAmount.compareTo(BigDecimal.ZERO) < 0)  ErrorCodeEnum.WITHDRAWAL_AMOUNT_LT_FEE_ERROR.throwException();
+        if (serviceAmount.compareTo(BigDecimal.ZERO) < 0) ErrorCodeEnum.FEE_LT_ZERO_ERROR.throwException();
+        if (realAmount.compareTo(BigDecimal.ZERO) < 0) ErrorCodeEnum.WITHDRAWAL_AMOUNT_LT_FEE_ERROR.throwException();
 
         SignUserInfo userInfo = requestInitService.get().getUserInfo();
         AccountBalance accountBalance = accountBalanceService.getAndInit(uid, currencyAdaptType);
 
         //创建提现订单(提币申请)
         long id = CommonFunction.generalId();
-        Charge charge = baseChargeBuilder(uid,userInfo,withdrawAmount,serviceAmount,realAmount,fromAddress,withdrawDTO.getAddress())
+        Charge charge = baseChargeBuilder(uid, userInfo, withdrawAmount, serviceAmount, realAmount, fromAddress, withdrawDTO.getAddress())
                 .id(id)
-                .sn(AccountChangeType.normal.getPrefix()+ CommonFunction.generalSn(id) )
+                .sn(AccountChangeType.normal.getPrefix() + CommonFunction.generalSn(id))
                 .status(ChargeStatus.created)
                 .chargeType(ChargeType.withdraw)
                 .currencyAdaptType(currencyAdaptType)
@@ -210,10 +210,11 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
             case usdc_trc20:
                 address = addressService.getByTron(addressQuery);
                 break;
-            default: break;
+            default:
+                break;
         }
-        if(address == null ){
-           throw ErrorCodeEnum.CURRENCY_NOT_SUPPORT.generalException();
+        if (address == null) {
+            throw ErrorCodeEnum.CURRENCY_NOT_SUPPORT.generalException();
         }
         return address;
     }
@@ -221,13 +222,13 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
     /**
      * 理财充值记录添加
      */
-    private boolean financialRechargeReceive(RechargeCallbackQuery query,BigDecimal amount, BigDecimal realAmount) {
+    private boolean financialRechargeReceive(RechargeCallbackQuery query, BigDecimal amount, BigDecimal realAmount) {
         var userInfo = requestInitService.get().getUserInfo();
         Long uid = requestInitService.get().getUid();
         AccountBalance accountBalance = accountBalanceService.getAndInit(uid, query.getType());
 
         LocalDateTime now = LocalDateTime.now();
-        Charge charge = baseChargeBuilder(uid,userInfo,amount,BigDecimal.ZERO,realAmount,query.getFromAddress(),query.getToAddress())
+        Charge charge = baseChargeBuilder(uid, userInfo, amount, BigDecimal.ZERO, realAmount, query.getFromAddress(), query.getToAddress())
                 .sn(query.getSn())
                 .completeTime(now)
                 .status(ChargeStatus.chain_success)
@@ -247,12 +248,12 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
         AccountBalance accountBalance = accountBalanceService.get(uid, currencyCoin);
         LambdaQueryWrapper<Charge> wrapper = new LambdaQueryWrapper<Charge>()
                 .eq(Charge::getUid, uid)
-                .eq(Charge::getAccountBalanceId,accountBalance.getId());
-        if(Objects.nonNull(chargeType)){
+                .eq(Charge::getAccountBalanceId, accountBalance.getId());
+        if (Objects.nonNull(chargeType)) {
             wrapper = wrapper.eq(Charge::getChargeType, chargeType);
         }
-        Page<Charge> charges = this.page(page,wrapper);
-        return charges.getRecords().stream().map(chargeConverter :: toVO).collect(Collectors.toList());
+        Page<Charge> charges = this.page(page, wrapper);
+        return charges.getRecords().stream().map(chargeConverter::toVO).collect(Collectors.toList());
     }
 
     public List<Charge> selectPage(Long uid,
@@ -307,7 +308,7 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
     /**
      * 获取主钱包地址
      */
-    public String getMainWalletAddressUrl(CurrencyAdaptType currencyAdaptType){
+    public String getMainWalletAddressUrl(CurrencyAdaptType currencyAdaptType) {
         String fromAddress = null;
         switch (currencyAdaptType) {
             case usdt_trc20:
@@ -334,8 +335,8 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
     /**
      * 基础的订单对象创建方法
      */
-    private Charge.ChargeBuilder baseChargeBuilder(Long uid,SignUserInfo userInfo,BigDecimal fee,BigDecimal serviceFee
-            ,BigDecimal realFee,String fromAddress,String toAddress){
+    private Charge.ChargeBuilder baseChargeBuilder(Long uid, SignUserInfo userInfo, BigDecimal fee, BigDecimal serviceFee
+            , BigDecimal realFee, String fromAddress, String toAddress) {
         return Charge.builder()
                 .id(CommonFunction.generalId())
                 .uid(uid)
