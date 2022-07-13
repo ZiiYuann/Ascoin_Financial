@@ -4,7 +4,10 @@ import com.tianli.common.IpTool;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.sso.service.UserOssService;
 import com.tianli.tool.ApplicationContextTool;
+import com.tianli.user.entity.UserInfo;
+import com.tianli.user.service.UserInfoService;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.EAN;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -19,6 +22,8 @@ import java.util.Objects;
 @Service
 public class RequestInitService {
 
+    @Resource
+    private UserInfoService userInfoService;
 
     public LocalDateTime now() {
         return get().getNow();
@@ -135,6 +140,14 @@ public class RequestInitService {
                 requestInit.setLng(value);
             } catch (Exception e) {
             }
+        }
+
+        // 特殊处理用户信息 如果uid为null，钱包模式为助记词
+        // 会出现一个问题
+        if (Objects.isNull(ossUser.getUid()) && ossUser.getSignType().equals(SignWalletType.MNEMONIC)){
+            UserInfo userInfo = userInfoService.getBySignInfo(ossUser.getSignAddress(), ossUser.getSignChain());
+            requestInit.getUserInfo().setUid(userInfo.getId());
+            requestInit.setUid(userInfo.getId());
         }
 
         REQUEST_INIT.set(requestInit);

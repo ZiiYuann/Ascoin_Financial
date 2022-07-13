@@ -339,9 +339,7 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
         return Charge.builder()
                 .id(CommonFunction.generalId())
                 .uid(uid)
-                .uidAvatar(JsonObjectTool.getAsString(userInfo, "avatar"))
-                .uidNick(JsonObjectTool.getAsString(userInfo, "nick"))
-                .uidUsername(JsonObjectTool.getAsString(userInfo, "username"))
+                .uidUsername(userInfo.getAddress())
                 .createTime(LocalDateTime.now())
                 .fee(fee).realFee(realFee).serviceFee(serviceFee)
                 .fromAddress(fromAddress).toAddress(toAddress);
