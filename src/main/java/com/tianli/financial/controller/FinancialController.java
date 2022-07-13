@@ -8,8 +8,9 @@ import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.FinancialProductStatus;
 import com.tianli.financial.query.PurchaseQuery;
-import com.tianli.financial.service.FinancialLogService;
+import com.tianli.financial.service.FinancialPurchaseRecordService;
 import com.tianli.financial.service.FinancialProductService;
+import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.service.impl.FinancialServiceImpl;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.web.bind.annotation.*;
@@ -27,9 +28,9 @@ public class FinancialController {
     @Resource
     private RequestInitService requestInitService;
     @Resource
-    private FinancialServiceImpl financialService;
+    private FinancialService financialService;
     @Resource
-    private FinancialLogService userFinancialLogService;
+    private FinancialPurchaseRecordService userFinancialPurchaseRecordService;
     @Resource
     private AccountBalanceOperationLogService currencyLogService;
     @Resource
@@ -67,13 +68,13 @@ public class FinancialController {
         return Result.instance().setData(financialService.purchase(purchaseQuery));
     }
 
-    @GetMapping("/my")
-    public Result my( @RequestParam(value = "page", defaultValue = "1") Integer page,
-                      @RequestParam(value = "size", defaultValue = "10") Integer size) {
-        return null;
+    /**
+     * 收益明细
+     */
+    @GetMapping("/income")
+    public Result income() {
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(financialService.income(uid));
     }
-
-
-
 
 }

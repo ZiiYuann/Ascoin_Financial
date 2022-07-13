@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Objects;
 
 /**
@@ -27,6 +28,10 @@ public class RequestInitService {
 
     public LocalDateTime now() {
         return get().getNow();
+    }
+
+    public LocalDateTime yesterday() {
+        return LocalDateTime.of(get().getNow().plusDays(-1).toLocalDate(), LocalTime.MIN);
     }
 
     public Long now_ms() {

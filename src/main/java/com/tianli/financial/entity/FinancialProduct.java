@@ -1,6 +1,7 @@
 package com.tianli.financial.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.FinancialProductStatus;
 import com.tianli.financial.enums.PurchaseTerm;
 import com.tianli.financial.enums.FinancialProductType;
@@ -65,6 +66,11 @@ public class FinancialProduct {
      * 修改时间
      */
     private LocalDateTime updateTime;
+
+    /**
+     * 币别
+     */
+    private CurrencyCoin coin;
 
     /**
      * 类型 {@link PurchaseTerm}

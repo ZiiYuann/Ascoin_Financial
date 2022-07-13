@@ -1,5 +1,6 @@
 package com.tianli.financial.entity;
 
+import com.tianli.financial.enums.FinancialLogStatus;
 import com.tianli.financial.enums.FinancialProductType;
 import lombok.Builder;
 import lombok.Data;
@@ -11,15 +12,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * <p>
- * 用户购买理财产品
- * </p>
+ * 理财产品申购记录表
  */
 @Data
 @Builder
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-public class FinancialLog {
+public class FinancialPurchaseRecord {
     /**
      * 主键
      */
@@ -28,7 +27,7 @@ public class FinancialLog {
     /**
      * 用户id
      */
-    private Long userId;
+    private Long uid;
 
     /**
      * 理财产品id
@@ -61,7 +60,7 @@ public class FinancialLog {
     private LocalDate endDate;
 
     /**
-     * 状态
+     * 状态 {@link FinancialLogStatus}
      */
     private byte status;
 

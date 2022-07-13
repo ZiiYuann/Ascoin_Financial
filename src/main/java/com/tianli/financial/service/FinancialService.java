@@ -3,6 +3,7 @@ package com.tianli.financial.service;
 
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.vo.FinancialPurchaseResultVO;
+import com.tianli.financial.vo.IncomeVO;
 
 
 /**
@@ -18,6 +19,8 @@ public interface FinancialService {
      */
     FinancialPurchaseResultVO purchase(PurchaseQuery purchaseQuery);
 
-
-
+    /**
+     * 统计利息
+     */
+    IncomeVO income(Long uid);
 }

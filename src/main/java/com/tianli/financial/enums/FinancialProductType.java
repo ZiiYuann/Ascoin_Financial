@@ -4,6 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum FinancialProductType {
+
     /**
      *  定期
      */
@@ -18,4 +19,5 @@ public enum FinancialProductType {
     }
 
     private final byte type;
+
 }
