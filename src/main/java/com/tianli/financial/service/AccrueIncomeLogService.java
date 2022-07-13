@@ -28,6 +28,11 @@ public class AccrueIncomeLogService extends ServiceImpl<AccrueIncomeLogMapper, A
         return AccrueIncomeLogMapper.selectListByUid(uid);
     }
 
+    public List<AccrueIncomeLog> selectListByRecordId(List<Long> recordIds){
+        return AccrueIncomeLogMapper.selectList(new LambdaQueryWrapper<AccrueIncomeLog>()
+                .in(AccrueIncomeLog :: getRecordId,recordIds));
+    }
+
     /**
      * 根据产品类型、状态获取利息总额
      * @param uid uid

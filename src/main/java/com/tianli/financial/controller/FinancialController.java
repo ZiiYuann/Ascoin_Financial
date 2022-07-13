@@ -7,6 +7,7 @@ import com.tianli.exception.Result;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.FinancialProductStatus;
+import com.tianli.financial.enums.FinancialProductType;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.FinancialPurchaseRecordService;
 import com.tianli.financial.service.FinancialProductService;
@@ -76,5 +77,23 @@ public class FinancialController {
         Long uid = requestInitService.uid();
         return Result.instance().setData(financialService.income(uid));
     }
+
+    /**
+     * 我的持用
+     */
+    @GetMapping("/myHold")
+    public Result myHold(FinancialProductType financialProductType) {
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(financialService.myHold(uid,financialProductType));
+    }
+
+    /**
+     * 具体收益明细
+     */
+    @GetMapping("/income/details/{recordId}")
+    public Result incomeDetails(@PathVariable Long recordId) {
+      return null;
+    }
+
 
 }

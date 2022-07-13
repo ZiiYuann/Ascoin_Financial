@@ -16,6 +16,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author chenb
@@ -52,5 +54,15 @@ public class DailyIncomeLogService extends ServiceImpl<DailyIncomeLogMapper, Dai
 
         return dailyIncomeLogs.stream().map(log-> log.getIncomeFee().multiply(currencyService.getDollarRate(log.getCoin())))
                 .reduce(BigDecimal.ZERO,BigDecimal::add);
+    }
+
+    public List<DailyIncomeLog> selectListByRecordId(Long uid,List<Long> recordIds,LocalDateTime finishTime){
+        LambdaQueryWrapper<DailyIncomeLog> query = new LambdaQueryWrapper<DailyIncomeLog>()
+                .eq(DailyIncomeLog::getUid, uid)
+                .in(DailyIncomeLog::getRecordId, recordIds);
+        if(Objects.nonNull(finishTime)){
+           query = query.eq(DailyIncomeLog :: getFinishTime,finishTime);
+        }
+        return dailyIncomeLogMapper.selectList(query);
     }
 }

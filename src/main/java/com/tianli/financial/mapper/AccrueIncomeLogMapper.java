@@ -13,4 +13,8 @@ public interface AccrueIncomeLogMapper extends BaseMapper<AccrueIncomeLog> {
 
     @Select("select * from accrue_income where uid=#{uid}")
     List<AccrueIncomeLog> selectListByUid(@Param("uid") Long uid);
+
+
+    @Select("select * from accrue_income where record_id=#{recordId}")
+    List<AccrueIncomeLog> selectListByRecordId(@Param("recordId") Long recordId);
 }

@@ -32,7 +32,7 @@ public class FinancialPurchaseRecord {
     /**
      * 理财产品id
      */
-    private Long financialProductId;
+    private Long productId;
 
     /**
      * 活期/定期产品

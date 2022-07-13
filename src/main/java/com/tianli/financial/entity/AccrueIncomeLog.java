@@ -3,9 +3,7 @@ package com.tianli.financial.entity;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.FinancialProductType;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 
 import java.math.BigDecimal;
@@ -17,8 +15,9 @@ import java.time.LocalDateTime;
  * @since 2022-07-13
  **/
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
-@EqualsAndHashCode(callSuper = true)
 public class AccrueIncomeLog extends Model<AccrueIncomeLog> {
 
     @Id

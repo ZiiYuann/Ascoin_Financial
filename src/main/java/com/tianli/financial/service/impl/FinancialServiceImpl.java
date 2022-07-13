@@ -19,7 +19,9 @@ import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.*;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.FinancialLogStatus;
+import com.tianli.financial.vo.DailyIncomeLogVO;
 import com.tianli.financial.vo.FinancialPurchaseResultVO;
+import com.tianli.financial.vo.HoldProductVo;
 import com.tianli.financial.vo.IncomeVO;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
@@ -30,10 +32,8 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -54,7 +54,7 @@ public class FinancialServiceImpl implements FinancialService {
         accountBalanceService.freeze(uid, AccountChangeType.financial, amount, id.toString(), CurrencyLogDes.申购.name());
         LocalDate startDate = requestInitService.now().toLocalDate().plusDays(1L);
         FinancialPurchaseRecord log = FinancialPurchaseRecord.builder()
-                .financialProductId(product.getId())
+                .productId(product.getId())
                 .uid(uid).financialProductType(product.getType())
                 .amount(amount)
                 .createTime(requestInitService.now())
@@ -107,6 +107,47 @@ public class FinancialServiceImpl implements FinancialService {
         incomeVO.setIncomeMap(incomeMap);
 
         return incomeVO;
+    }
+
+    @Override
+    public List<HoldProductVo> myHold(Long uid,FinancialProductType type) {
+
+        List<FinancialPurchaseRecord> records = financialPurchaseRecordService.selectList(uid, type, FinancialLogStatus.INTEREST_PROCESSING);
+
+        var productIds = records.stream().map(FinancialPurchaseRecord :: getProductId).collect(Collectors.toList());
+        var recordIds = records.stream().map(FinancialPurchaseRecord :: getId).collect(Collectors.toList());
+
+        var productMap = financialProductService.listByIds(productIds).stream()
+                .collect(Collectors.toMap(FinancialProduct :: getId,o -> o));
+        var accrueIncomeMap = accrueIncomeLogService.selectListByRecordId(recordIds).stream()
+                .collect(Collectors.toMap(AccrueIncomeLog::getRecordId, o -> o));
+        var dailyIncomeMap = dailyIncomeLogService.selectListByRecordId(uid,recordIds,requestInitService.yesterday()).stream()
+                .collect(Collectors.toMap(DailyIncomeLog::getRecordId, o -> o));
+
+        return records.stream().map(record ->{
+            var holdProductVo = new HoldProductVo();
+            var product = productMap.get(record.getProductId());
+            var accrueIncomeLog = Optional.ofNullable(accrueIncomeMap.get(record.getId())).orElse(new AccrueIncomeLog());
+            var dailyIncomeLog = Optional.ofNullable(dailyIncomeMap.get(record.getId())).orElse(new DailyIncomeLog());
+
+            holdProductVo.setRecordId(record.getId());
+            holdProductVo.setNameEn(product.getNameEn());
+            holdProductVo.setName(product.getName());
+            holdProductVo.setRate(product.getRate());
+
+            IncomeVO incomeVO = new IncomeVO();
+            incomeVO.setHoldFee(record.getAmount());
+            incomeVO.setAccrueIncomeFee(Optional.ofNullable(accrueIncomeLog.getAccrueIncomeFee()).orElse(BigDecimal.ZERO));
+            incomeVO.setYesterdayIncomeFee(Optional.ofNullable(dailyIncomeLog.getIncomeFee()).orElse(BigDecimal.ZERO));
+
+            holdProductVo.setIncomeVO(incomeVO);
+            return holdProductVo;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<DailyIncomeLogVO> incomeDetails(Long uid, Long recordId) {
+        return null;
     }
 
     /**
