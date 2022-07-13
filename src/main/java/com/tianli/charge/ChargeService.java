@@ -21,18 +21,13 @@ import com.tianli.charge.vo.ChargeVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.common.async.AsyncService;
-import com.tianli.common.blockchain.TronTriggerContract;
-import com.tianli.common.blockchain.UsdtBscContract;
-import com.tianli.common.blockchain.UsdtEthContract;
-import com.tianli.sso.init.RequestInitService;
-import com.tianli.common.log.LoggerHandle;
 import com.tianli.currency.DigitalCurrency;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
-import com.tianli.sso.RequestInitService;
+import com.tianli.sso.init.RequestInitService;
+import com.tianli.sso.init.SignUserInfo;
 import com.tianli.tool.judge.JsonObjectTool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -175,7 +170,7 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
         if (serviceAmount.compareTo(BigDecimal.ZERO) < 0)   ErrorCodeEnum.FEE_LT_ZERO_ERROR.throwException();
         if (realAmount.compareTo(BigDecimal.ZERO) < 0)  ErrorCodeEnum.WITHDRAWAL_AMOUNT_LT_FEE_ERROR.throwException();
 
-        JsonObject userInfo = requestInitService.get().getUserInfo();
+        SignUserInfo userInfo = requestInitService.get().getUserInfo();
         AccountBalance accountBalance = accountBalanceService.getAndInit(uid, currencyAdaptType);
 
         //创建提现订单(提币申请)
@@ -227,7 +222,7 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
      * 理财充值记录添加
      */
     private boolean financialRechargeReceive(RechargeCallbackQuery query,BigDecimal amount, BigDecimal realAmount) {
-        JsonObject userInfo = requestInitService.get().getUserInfo();
+        var userInfo = requestInitService.get().getUserInfo();
         Long uid = requestInitService.get().getUid();
         AccountBalance accountBalance = accountBalanceService.getAndInit(uid, query.getType());
 
@@ -339,7 +334,7 @@ public class ChargeService extends ServiceImpl<ChargeMapper, Charge> {
     /**
      * 基础的订单对象创建方法
      */
-    private Charge.ChargeBuilder baseChargeBuilder(Long uid,JsonObject userInfo,BigDecimal fee,BigDecimal serviceFee
+    private Charge.ChargeBuilder baseChargeBuilder(Long uid,SignUserInfo userInfo,BigDecimal fee,BigDecimal serviceFee
             ,BigDecimal realFee,String fromAddress,String toAddress){
         return Charge.builder()
                 .id(CommonFunction.generalId())

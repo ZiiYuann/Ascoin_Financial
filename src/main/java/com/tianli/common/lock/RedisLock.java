@@ -1,10 +1,10 @@
 package com.tianli.common.lock;
 
 import com.tianli.exception.ErrorCodeEnum;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.*;

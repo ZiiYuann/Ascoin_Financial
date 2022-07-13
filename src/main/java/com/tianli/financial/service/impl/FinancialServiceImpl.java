@@ -17,7 +17,7 @@ import com.tianli.financial.enums.FinancialLogStatus;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.FinancialPurchaseResultVO;
-import com.tianli.sso.RequestInitService;
+import com.tianli.sso.init.RequestInitService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

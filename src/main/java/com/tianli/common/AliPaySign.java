@@ -2,7 +2,7 @@ package com.tianli.common;
 
 import com.tianli.tool.crypto.UrlEncode;
 import com.tianli.tool.crypto.rsa.SHA256WithRSA;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;

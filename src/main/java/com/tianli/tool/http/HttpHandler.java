@@ -3,6 +3,7 @@ package com.tianli.tool.http;
 import com.tianli.common.log.LoggerHandle;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.tool.ApplicationContextTool;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
@@ -22,7 +23,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.springframework.core.env.Environment;
-import org.springframework.util.StringUtils;
 
 import java.net.URI;
 import java.nio.charset.Charset;

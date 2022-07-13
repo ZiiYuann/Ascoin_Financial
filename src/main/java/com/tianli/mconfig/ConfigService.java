@@ -5,9 +5,9 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.mapper.Config;
 import com.tianli.mconfig.mapper.ConfigMapper;
 import com.tianli.tool.DataSecurityTool;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
