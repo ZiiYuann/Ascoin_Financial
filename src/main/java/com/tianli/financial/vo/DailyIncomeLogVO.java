@@ -1,6 +1,8 @@
 package com.tianli.financial.vo;
 
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.financial.entity.DailyIncomeLog;
+import lombok.Data;
 
 
 import java.math.BigDecimal;
@@ -11,6 +13,7 @@ import java.time.LocalDateTime;
  * @apiNote
  * @since 2022-07-13
  **/
+@Data
 public class DailyIncomeLogVO {
 
     /**
@@ -28,5 +31,11 @@ public class DailyIncomeLogVO {
      */
     private LocalDateTime finishTime;
 
-
+    public static DailyIncomeLogVO toVO(DailyIncomeLog dailyIncomeLog) {
+        DailyIncomeLogVO dailyIncomeLogVO = new DailyIncomeLogVO();
+        dailyIncomeLogVO.setIncomeFee(dailyIncomeLog.getIncomeFee());
+        dailyIncomeLogVO.setFinishTime(dailyIncomeLog.getFinishTime());
+        dailyIncomeLogVO.setCoin(dailyIncomeLog.getCoin());
+        return dailyIncomeLogVO;
+    }
 }

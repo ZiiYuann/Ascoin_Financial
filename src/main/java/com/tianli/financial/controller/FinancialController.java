@@ -92,7 +92,8 @@ public class FinancialController {
      */
     @GetMapping("/income/details/{recordId}")
     public Result incomeDetails(@PathVariable Long recordId) {
-      return null;
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(financialService.incomeDetails(uid,recordId));
     }
 
 

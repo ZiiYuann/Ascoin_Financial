@@ -35,6 +35,9 @@ public interface FinancialService {
     List<HoldProductVo> myHold(Long uid,FinancialProductType financialProductType);
 
 
+    /**
+     * 申购的具体每日收益
+     */
     List<DailyIncomeLogVO> incomeDetails(Long uid , Long recordId);
 
 }

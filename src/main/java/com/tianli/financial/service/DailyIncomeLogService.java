@@ -59,7 +59,8 @@ public class DailyIncomeLogService extends ServiceImpl<DailyIncomeLogMapper, Dai
     public List<DailyIncomeLog> selectListByRecordId(Long uid,List<Long> recordIds,LocalDateTime finishTime){
         LambdaQueryWrapper<DailyIncomeLog> query = new LambdaQueryWrapper<DailyIncomeLog>()
                 .eq(DailyIncomeLog::getUid, uid)
-                .in(DailyIncomeLog::getRecordId, recordIds);
+                .in(DailyIncomeLog::getRecordId, recordIds)
+                .orderByDesc( DailyIncomeLog :: getFinishTime);
         if(Objects.nonNull(finishTime)){
            query = query.eq(DailyIncomeLog :: getFinishTime,finishTime);
         }

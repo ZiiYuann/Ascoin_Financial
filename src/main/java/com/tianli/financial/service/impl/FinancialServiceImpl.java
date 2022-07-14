@@ -147,7 +147,8 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     public List<DailyIncomeLogVO> incomeDetails(Long uid, Long recordId) {
-        return null;
+        List<DailyIncomeLog> dailyIncomeLogs = dailyIncomeLogService.selectListByRecordId(uid, List.of(recordId), null);
+        return dailyIncomeLogs.stream().map(DailyIncomeLogVO :: toVO).collect(Collectors.toList());
     }
 
     /**
