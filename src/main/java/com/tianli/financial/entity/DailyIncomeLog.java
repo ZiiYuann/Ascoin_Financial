@@ -1,7 +1,7 @@
 package com.tianli.financial.entity;
 
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.financial.enums.FinancialProductType;
+import com.tianli.financial.enums.ProductType;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
@@ -29,7 +29,7 @@ public class DailyIncomeLog {
     /**
      * 产品类型
      */
-    private FinancialProductType financialProductType;
+    private ProductType financialProductType;
 
     /**
      * 币种

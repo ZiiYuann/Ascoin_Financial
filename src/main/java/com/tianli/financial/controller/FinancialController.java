@@ -1,18 +1,18 @@
 package com.tianli.financial.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.tianli.account.service.AccountBalanceOperationLogService;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.charge.enums.ChargeType;
+import com.tianli.common.PageQuery;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.entity.FinancialProduct;
-import com.tianli.financial.enums.FinancialProductStatus;
-import com.tianli.financial.enums.FinancialProductType;
+import com.tianli.financial.enums.ProductStatus;
+import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
-import com.tianli.financial.service.FinancialPurchaseRecordService;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialService;
-import com.tianli.financial.service.impl.FinancialServiceImpl;
+import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,12 +31,6 @@ public class FinancialController {
     @Resource
     private FinancialService financialService;
     @Resource
-    private FinancialPurchaseRecordService userFinancialPurchaseRecordService;
-    @Resource
-    private AccountBalanceOperationLogService currencyLogService;
-    @Resource
-    private AccountBalanceService accountSummaryService;
-    @Resource
     private FinancialConverter financialConverter;
 
     /**
@@ -45,8 +39,8 @@ public class FinancialController {
     @GetMapping("/products")
     public Result products(){
         var list = financialProductService.list(new LambdaQueryWrapper<FinancialProduct>()
-                .eq(FinancialProduct::getStatus, FinancialProductStatus.enable)
-                .orderByAsc(f-> f.getPurchaseTerm().getDay())
+                .eq(FinancialProduct::getStatus, ProductStatus.open)
+                .orderByAsc(f-> f.getTerm().getDay())
         ).stream().map(financialConverter :: toVO).collect(Collectors.toList());
         return Result.instance().setData(list);
     }
@@ -61,10 +55,19 @@ public class FinancialController {
     }
 
     /**
-     * 申购理财产品
+     * 申购理财产品（余额）
      */
-    @PostMapping("/purchase")
-    public Result purchase(@RequestBody @Valid PurchaseQuery purchaseQuery){
+    @PostMapping("/purchase/balance")
+    public Result balancePurchase(@RequestBody @Valid PurchaseQuery purchaseQuery){
+        //TODO 币种的转换，校验密码
+        return Result.instance().setData(financialService.purchase(purchaseQuery));
+    }
+
+    /**
+     * 申购理财产品（钱包）
+     */
+    @PostMapping("/purchase/wallet")
+    public Result walletPurchase(@RequestBody @Valid PurchaseQuery purchaseQuery){
         //TODO 币种的转换，校验密码
         return Result.instance().setData(financialService.purchase(purchaseQuery));
     }
@@ -82,9 +85,9 @@ public class FinancialController {
      * 我的持用
      */
     @GetMapping("/myHold")
-    public Result myHold(FinancialProductType financialProductType) {
+    public Result myHold(ProductType productType) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(financialService.myHold(uid,financialProductType));
+        return Result.instance().setData(financialService.myHold(uid,productType));
     }
 
     /**
@@ -95,6 +98,21 @@ public class FinancialController {
         Long uid = requestInitService.uid();
         return Result.instance().setData(financialService.incomeDetails(uid,recordId));
     }
+
+    /**
+     * 交易记录
+     */
+    @GetMapping("/order")
+    public Result order(PageQuery<OrderFinancialVO> pageQuery, ProductType productType, ChargeType chargeType) {
+        if(!ChargeType.purchase.equals(chargeType) && !ChargeType.redeem.equals(chargeType)
+             && !ChargeType.transfer.equals(chargeType)){
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
+        }
+
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(financialService.orderPage(uid,pageQuery.page(),productType,chargeType));
+    }
+
 
 
 }

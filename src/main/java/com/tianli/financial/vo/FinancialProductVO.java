@@ -1,11 +1,11 @@
 package com.tianli.financial.vo;
 
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.tianli.financial.enums.FinancialProductStatus;
-import com.tianli.financial.enums.FinancialProductType;
-import com.tianli.financial.enums.PurchaseTerm;
+import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.financial.enums.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -23,9 +23,9 @@ public class FinancialProductVO {
     private Long id;
 
     /**
-     * 图片
+     * 币别
      */
-    private String logo;
+    private CurrencyCoin coin;
 
     /**
      * 产品名称
@@ -33,9 +33,27 @@ public class FinancialProductVO {
     private String name;
 
     /**
-     * 英文产品名称
+     * 产品类型 {@link ProductType}
      */
-    private String nameEn;
+    private ProductType type;
+
+    /**
+     * 风险类型
+     */
+    private RiskType riskType;
+
+    /**
+     * 类型 {@link PurchaseTerm}
+     */
+    private PurchaseTerm term;
+
+
+    /**
+     * 产品状态 {@link ProductStatus}
+     */
+    private ProductStatus status;
+
+    private BusinessType businessType;
 
     /**
      * 参考年化
@@ -43,22 +61,24 @@ public class FinancialProductVO {
     private double rate;
 
     /**
-     * 描述
+     * 个人额度
      */
-    private String description;
+    private BigDecimal personQuota;
 
     /**
-     * 英文描述
+     * 总额度
      */
-    private String descriptionEn;
+    private BigDecimal totalQuota;
 
     /**
-     * 类型 {@link PurchaseTerm}
+     * 添加时间
      */
-    private PurchaseTerm purchaseTerm;
+    private LocalDateTime createTime;
 
     /**
-     * 产品类型 {@link FinancialProductType}
+     * 修改时间
      */
-    private FinancialProductType type;
+    private LocalDateTime updateTime;
+
+
 }

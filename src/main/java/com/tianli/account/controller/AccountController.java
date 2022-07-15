@@ -1,14 +1,13 @@
 package com.tianli.account.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.vo.AddressVO;
-import com.tianli.charge.ChargeService;
-import com.tianli.charge.ChargeType;
-import com.tianli.charge.entity.Charge;
+import com.tianli.charge.service.ChargeService;
+import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.entity.Order;
+import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
@@ -83,10 +82,9 @@ public class AccountController {
      * 获取余额详情信息
      */
     @GetMapping("/balance/details")
-    public Result accountBalanceDetails(int page, int size, ChargeType chargeType, CurrencyCoin currencyCoin) {
+    public Result accountBalanceDetails(PageQuery<Order> query, ChargeType chargeType, CurrencyCoin currencyCoin) {
         Long uid = requestInitService.uid();
-        Page<Charge> pageQuery = new Page<>(page, size);
-        return Result.instance().setData(chargeService.pageByChargeType(uid,currencyCoin, chargeType, pageQuery));
+        return Result.instance().setData(chargeService.pageByChargeType(uid,currencyCoin, chargeType, query.page()));
     }
 
 }

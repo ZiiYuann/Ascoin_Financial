@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tianli.charge.mapper.OrderMapper">
+    <select id="selectByPage" resultType="com.tianli.financial.vo.OrderFinancialVO">
+        SELECT o.type as charge_type,
+        pro.name,
+        pro.coin,
+        o.status as charge_status,
+        o.create_time,
+        pro.type as product_type,
+        o.amount,
+        o.order_no,
+        pro.rate
+        FROM `order` o
+        INNER JOIN order_financial ofi ON o.order_no = ofi.order_no
+        LEFT JOIN financial_product pro on ofi.product_id = pro.id
+        WHERE 1=1
+
+        <if test="query.uid != null">
+            AND o.uid = uid
+        </if>
+        <if test="query.orderNo != null">
+            AND o.order_no = #{orderNo}
+        </if>
+        <if test="query.status != null">
+            AND o.status = #{status}
+        </if>
+        <if test="query.productType != null">
+            AND ofi.product_type = #{productType}
+        </if>
+        <if test="query.chargeType != null">
+            AND ofi.charge_type = #{chargeType}
+        </if>
+        <if test="query.name != null">
+            AND pro.name = like concat('%',#{chargeType},'%')
+        </if>
+        <if test="query.coin != null">
+            AND pro.coin = #{coin}
+        </if>
+
+        ORDER BY o.create_time desc
+    </select>
+</mapper>

@@ -7,7 +7,7 @@ import com.tianli.chain.mapper.ChainLog;
 import com.tianli.chain.mapper.ChainLogMapper;
 import com.tianli.chain.mapper.ChainTx;
 import com.tianli.chain.service.ChainTxService;
-import com.tianli.charge.ChargeService;
+import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.currency.DigitalCurrency;
 import com.tianli.currency.enums.CurrencyAdaptType;
@@ -54,24 +54,24 @@ public class ChainController {
                 }).collect(Collectors.toList())));
     }
 
-    @GetMapping("/collect/page")
-    @AdminPrivilege(and = Privilege.主链交易明细)
-    public Result page(int page, int size, String address, String txid, String startTime, String endTime) {
-        Page<ChainTx> chainTxPage = chainTxService.page(page, size, address, txid, startTime, endTime, ChargeStatus.chain_success);
-        // 总的提现金额
-        double withdrawTotalAmount = chargeService.totalWithdrawAmount();
-        // 总的归集金额
-        double chainTxTotalAmount = chainTxService.totalAmount();
-        return Result.instance().setData(MapTool.Map().put("count", chainTxPage.getTotal())
-                .put("list", chainTxPage.getRecords().stream().map(ChainTxDetailVO::trans).collect(Collectors.toList()))
-                .put("stat", MapTool.Map()
-                        .put("withdrawAmount", withdrawTotalAmount)
-                        .put("collectAmount", chainTxTotalAmount)
-                        .put("mainChainAmount", 0.0)
-                        .put("mainChainOriginalAmount", 0.0)
-                )
-        );
-    }
+//    @GetMapping("/collect/page")
+//    @AdminPrivilege(and = Privilege.主链交易明细)
+//    public Result page(int page, int size, String address, String txid, String startTime, String endTime) {
+//        Page<ChainTx> chainTxPage = chainTxService.page(page, size, address, txid, startTime, endTime, ChargeStatus.chain_success);
+//        // 总的提现金额
+//        double withdrawTotalAmount = chargeService.totalWithdrawAmount();
+//        // 总的归集金额
+//        double chainTxTotalAmount = chainTxService.totalAmount();
+//        return Result.instance().setData(MapTool.Map().put("count", chainTxPage.getTotal())
+//                .put("list", chainTxPage.getRecords().stream().map(ChainTxDetailVO::trans).collect(Collectors.toList()))
+//                .put("stat", MapTool.Map()
+//                        .put("withdrawAmount", withdrawTotalAmount)
+//                        .put("collectAmount", chainTxTotalAmount)
+//                        .put("mainChainAmount", 0.0)
+//                        .put("mainChainOriginalAmount", 0.0)
+//                )
+//        );
+//    }
 
     @PostMapping("/{id}/collect")
     @AdminPrivilege(and = Privilege.待归集管理)

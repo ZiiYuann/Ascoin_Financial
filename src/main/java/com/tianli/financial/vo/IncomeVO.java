@@ -1,6 +1,6 @@
 package com.tianli.financial.vo;
 
-import com.tianli.financial.enums.FinancialProductType;
+import com.tianli.financial.enums.ProductType;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -32,6 +32,6 @@ public class IncomeVO {
     /**
      * 不同类型产品收益
      */
-    private Map<FinancialProductType,IncomeVO> incomeMap;
+    private Map<ProductType,IncomeVO> incomeMap;
 
 }

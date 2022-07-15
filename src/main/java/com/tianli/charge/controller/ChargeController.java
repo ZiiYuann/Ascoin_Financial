@@ -2,8 +2,8 @@ package com.tianli.charge.controller;
 
 import com.google.gson.Gson;
 import com.tianli.address.query.RechargeCallbackQuery;
-import com.tianli.charge.ChargeService;
-import com.tianli.charge.entity.Charge;
+import com.tianli.charge.service.ChargeService;
+import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.query.WithdrawQuery;
 import com.tianli.charge.vo.WithdrawApplyChargeVO;
@@ -36,17 +36,6 @@ public class ChargeController {
     private ConfigService configService;
     @Resource
     private ChargeService chargeService;
-    @Resource
-    private RequestInitService requestInitService;
-
-    @GetMapping("/withdraw/apply/page")
-    public Result withdrawApplyPage(@RequestParam(value = "status", defaultValue = "created") ChargeStatus status,
-                                    @RequestParam(value = "page", defaultValue = "1") Integer page,
-                                    @RequestParam(value = "size", defaultValue = "10") Integer size) {
-        Long uid = requestInitService.uid();
-        List<Charge> chargeList = chargeService.withdrawApplyPage(uid, status, page, size);
-        return Result.instance().setData(chargeList.stream().map(WithdrawApplyChargeVO::trans).collect(Collectors.toList()));
-    }
 
     /**
      * 充值回调
@@ -79,23 +68,6 @@ public class ChargeController {
         return Result.instance();
     }
 
-    /**
-     * 提现回调
-     */
-    @PostMapping("/webhooks/withdraw")
-    public Result webhooks(@RequestBody String str, @RequestHeader("AppKey") String appKey,
-                           @RequestHeader("Sign") String sign) {
-        String walletAppKey = configService.get("wallet_app_key");
-        String walletAppSecret = configService.get("wallet_app_secret");
-        //验签
-        log.info("提现回调参数 ==> {}", gson.toJson(str));
-        if (walletAppKey.equals(appKey) && Crypto.hmacToString(DigestFactory.createSHA256(), walletAppSecret, str).equals(sign)) {
-            ErrorCodeEnum.SIGN_ERROR.throwException();
-        }
-        ChargeWebhooksDTO chargeWebhooksDTO = gson.fromJson(str, ChargeWebhooksDTO.class);
-        chargeService.withdrawWebhooks(chargeWebhooksDTO);
-        return Result.success();
-    }
 
 
 }

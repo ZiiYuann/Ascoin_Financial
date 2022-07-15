@@ -48,8 +48,6 @@ public class RechargeCallbackQuery {
      */
     private LocalDateTime createTime;
 
-    private String sn;
-
     /**
      * 金额
      */

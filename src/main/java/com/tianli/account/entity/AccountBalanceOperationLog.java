@@ -1,7 +1,7 @@
 package com.tianli.account.entity;
 
 import com.baomidou.mybatisplus.extension.activerecord.Model;
-import com.tianli.account.enums.AccountChangeType;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.account.enums.AccountOperationType;
 import lombok.Builder;
@@ -46,7 +46,12 @@ public class AccountBalanceOperationLog extends Model<AccountBalanceOperationLog
     /**
      * 余额变动类型
      */
-    private AccountChangeType accountChangeType;
+    private ChargeType chargeType;
+
+    /**
+     * 记录类型
+     */
+    private AccountOperationType logType;
 
     /**
      * 币种类型
@@ -56,17 +61,7 @@ public class AccountBalanceOperationLog extends Model<AccountBalanceOperationLog
     /**
      * 订单号
      */
-    private String sn;
-
-    /**
-     * 记录类型
-     */
-    private AccountOperationType logType;
-
-    /**
-     * 余额变动描述
-     */
-    private String des;
+    private String orderNo;
 
     /**
      * 金额
@@ -92,4 +87,10 @@ public class AccountBalanceOperationLog extends Model<AccountBalanceOperationLog
      * 剩余余额
      */
     private BigDecimal remain;
+
+
+    /**
+     * 余额变动描述
+     */
+    private String des;
 }

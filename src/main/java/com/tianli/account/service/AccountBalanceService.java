@@ -3,11 +3,11 @@ package com.tianli.account.service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.convert.AccountConverter;
 import com.tianli.account.entity.AccountBalance;
-import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.enums.AccountOperationType;
 import com.tianli.account.mapper.AccountBalanceMapper;
 import com.tianli.account.vo.AccountBalanceMainPageVO;
 import com.tianli.account.vo.AccountBalanceVO;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -54,7 +54,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void withdraw(long uid, AccountChangeType type, BigDecimal amount, String sn, String des) {
+    public void withdraw(long uid, ChargeType type, BigDecimal amount, String sn, String des) {
         withdraw(uid, type, CurrencyAdaptType.usdt_omni, amount, sn, des);
     }
 
@@ -66,7 +66,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void unfreeze(long uid, AccountChangeType type, BigDecimal amount, String sn, String des) {
+    public void unfreeze(long uid, ChargeType type, BigDecimal amount, String sn, String des) {
         unfreeze(uid, type, CurrencyAdaptType.usdt_omni, amount, sn, des);
     }
 
@@ -78,7 +78,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void freeze(long uid, AccountChangeType type, BigDecimal amount, String sn, String des) {
+    public void freeze(long uid, ChargeType type, BigDecimal amount, String sn, String des) {
         freeze(uid, type, CurrencyAdaptType.usdt_omni, amount, sn, des);
     }
 
@@ -90,7 +90,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void reduce(long uid, AccountChangeType type, BigDecimal amount, String sn, String des) {
+    public void reduce(long uid, ChargeType type, BigDecimal amount, String sn, String des) {
         reduce(uid, type, CurrencyAdaptType.usdt_omni, amount, sn, des);
     }
 
@@ -102,12 +102,12 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void increase(long uid, AccountChangeType type, BigDecimal amount, String sn, String des) {
+    public void increase(long uid, ChargeType type, BigDecimal amount, String sn, String des) {
         increase(uid, type, CurrencyAdaptType.usdt_omni, amount, sn, des);
     }
 
     @Transactional
-    public void increase(long uid, AccountChangeType type, CurrencyAdaptType currencyAdaptType, BigDecimal amount, String sn, String des) {
+    public void increase(long uid, ChargeType type, CurrencyAdaptType currencyAdaptType, BigDecimal amount, String sn, String des) {
         getAndInit(uid, currencyAdaptType);
 
         if (accountBalanceMapper.increase(uid, amount) <= 0L) {
@@ -118,7 +118,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     }
 
     @Transactional
-    public void reduce(long uid, AccountChangeType type, CurrencyAdaptType token, BigDecimal amount, String sn, String des) {
+    public void reduce(long uid, ChargeType type, CurrencyAdaptType token, BigDecimal amount, String sn, String des) {
         getAndInit(uid, token);
 
         if (accountBalanceMapper.reduce(uid, amount) <= 0L) {
@@ -129,7 +129,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     }
 
     @Transactional
-    public void withdraw(long uid, AccountChangeType type, CurrencyAdaptType token, BigDecimal amount, String sn, String des) {
+    public void withdraw(long uid, ChargeType type, CurrencyAdaptType token, BigDecimal amount, String sn, String des) {
         getAndInit(uid, token);
 
         if (accountBalanceMapper.withdraw(uid, amount) <= 0L) {
@@ -140,7 +140,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     }
 
     @Transactional
-    public void freeze(long uid, AccountChangeType type, CurrencyAdaptType token, BigDecimal amount, String sn, String des) {
+    public void freeze(long uid, ChargeType type, CurrencyAdaptType token, BigDecimal amount, String sn, String des) {
         getAndInit(uid, token);
 
         if (accountBalanceMapper.freeze(uid, amount) <= 0L) {
@@ -152,7 +152,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     }
 
     @Transactional
-    public void unfreeze(long uid, AccountChangeType type, CurrencyAdaptType token, BigDecimal amount, String sn, String des) {
+    public void unfreeze(long uid, ChargeType type, CurrencyAdaptType token, BigDecimal amount, String sn, String des) {
         getAndInit(uid, token);
 
         if (accountBalanceMapper.unfreeze(uid, amount) <= 0L) {

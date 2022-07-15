@@ -3,9 +3,8 @@ package com.tianli.financial.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.currency.service.CurrencyService;
-import com.tianli.financial.entity.AccrueIncomeLog;
 import com.tianli.financial.entity.DailyIncomeLog;
-import com.tianli.financial.enums.FinancialProductType;
+import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.mapper.DailyIncomeLogMapper;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.stereotype.Service;
@@ -14,10 +13,8 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * @author chenb
@@ -39,7 +36,7 @@ public class DailyIncomeLogService extends ServiceImpl<DailyIncomeLogMapper, Dai
      * @param uid uid
      * @param type 产品类型
      */
-    public BigDecimal getYesterdayDailyAmount(Long uid, FinancialProductType type){
+    public BigDecimal getYesterdayDailyAmount(Long uid, ProductType type){
         LambdaQueryWrapper<DailyIncomeLog> query = new LambdaQueryWrapper<DailyIncomeLog>()
                 .eq(DailyIncomeLog::getUid, uid)
                 .eq(DailyIncomeLog::getFinancialProductType, type)

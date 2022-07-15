@@ -5,7 +5,8 @@ import com.google.gson.Gson;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
-import com.tianli.charge.ChargeService;
+import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.service.ChargeService;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.async.AsyncService;
 import com.tianli.currency.log.CurrencyLogDes;
@@ -110,8 +111,9 @@ public class CurrencyInterestTask {
             if(dayInterest.compareTo(BigDecimal.ZERO) <= 0){
                 return;
             }
+            // TODO 生成类型为INCOME 的订单
             // 2. 更新余额
-            accountBalanceService.increase(accountBalanceBalance.getUid(), AccountChangeType.normal,dayInterest,
+            accountBalanceService.increase(accountBalanceBalance.getUid(), ChargeType.income,dayInterest,
                     TimeTool.getDateTimeDisplayString(LocalDateTime.now()), CurrencyLogDes.利息.name());
         } catch (Exception e) {
             String toJson = gson.toJson(accountBalanceBalance);

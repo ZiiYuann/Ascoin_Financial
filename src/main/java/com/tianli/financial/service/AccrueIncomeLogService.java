@@ -4,8 +4,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.financial.entity.AccrueIncomeLog;
-import com.tianli.financial.enums.FinancialProductType;
+import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.mapper.AccrueIncomeLogMapper;
+import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
@@ -17,6 +18,7 @@ import java.util.List;
  * @apiNote
  * @since 2022-07-13
  **/
+@Service
 public class AccrueIncomeLogService extends ServiceImpl<AccrueIncomeLogMapper, AccrueIncomeLog> {
 
     @Resource
@@ -38,7 +40,7 @@ public class AccrueIncomeLogService extends ServiceImpl<AccrueIncomeLogMapper, A
      * @param uid uid
      * @param type 产品类型
      */
-    public BigDecimal getAccrueAmount(Long uid, FinancialProductType type){
+    public BigDecimal getAccrueAmount(Long uid, ProductType type){
         LambdaQueryWrapper<AccrueIncomeLog> query = new LambdaQueryWrapper<AccrueIncomeLog>()
                 .eq(AccrueIncomeLog::getUid, uid)
                 .eq(AccrueIncomeLog::getFinancialProductType, type);

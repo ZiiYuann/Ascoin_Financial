@@ -2,7 +2,7 @@ package com.tianli.financial.entity;
 
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.financial.enums.FinancialProductType;
+import com.tianli.financial.enums.ProductType;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 
@@ -33,7 +33,7 @@ public class AccrueIncomeLog extends Model<AccrueIncomeLog> {
     /**
      * 产品类型
      */
-    private FinancialProductType financialProductType;
+    private ProductType financialProductType;
 
     /**
      * 币种

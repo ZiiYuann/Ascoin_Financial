@@ -1,6 +1,6 @@
 package com.tianli.financial.vo;
 
-import com.tianli.financial.enums.FinancialProductType;
+import com.tianli.financial.enums.ProductType;
 import lombok.Data;
 
 
@@ -21,7 +21,7 @@ public class HoldProductVo {
     /**
      * 活期/定期产品
      */
-    private FinancialProductType financialProductType;
+    private ProductType financialProductType;
 
     /**
      * 产品名称

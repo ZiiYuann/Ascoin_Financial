@@ -2,8 +2,8 @@ package com.tianli.account.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.entity.AccountBalance;
-import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.mapper.AccountBalanceOperationLogMapper;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.CommonFunction;
 import com.tianli.account.entity.AccountBalanceOperationLog;
 import com.tianli.account.enums.AccountOperationType;
@@ -31,15 +31,15 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
     /**
      * 添加余额操作日志
      */
-    public void save(AccountBalance accountBalance, AccountChangeType type, CurrencyAdaptType currencyAdaptType,
+    public void save(AccountBalance accountBalance, ChargeType type, CurrencyAdaptType currencyAdaptType,
                      AccountOperationType logType, BigDecimal amount, String sn, String des) {
         AccountBalanceOperationLog currencyLog = AccountBalanceOperationLog.builder()
                 .id(CommonFunction.generalId())
                 .uid(accountBalance.getUid())
                 .accountBalanceId(accountBalance.getId())
                 .currencyAdaptType(currencyAdaptType)
-                .accountChangeType(type)
-                .sn(sn)
+                .chargeType(type)
+                .orderNo(sn)
                 .logType(logType)
                 .des(des)
                 .balance(accountBalance.getBalance())

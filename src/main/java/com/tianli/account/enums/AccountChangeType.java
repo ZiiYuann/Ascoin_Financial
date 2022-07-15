@@ -12,7 +12,8 @@ public enum AccountChangeType {
     // 理财
     financial("FI"),
     // 常规操作
-    normal("NO");
+    normal("NO"),;
+
 
     AccountChangeType(String prefix){
         this.prefix = prefix;

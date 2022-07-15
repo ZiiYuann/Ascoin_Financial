@@ -1,6 +1,6 @@
 package com.tianli.account.query;
 
-import com.tianli.charge.ChargeType;
+import com.tianli.charge.enums.ChargeType;
 import lombok.Data;
 
 /**

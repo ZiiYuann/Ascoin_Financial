@@ -1,6 +1,7 @@
 package com.tianli.financial.vo;
 
-import com.tianli.financial.enums.FinancialProductType;
+import com.tianli.financial.enums.RecordStatus;
+import com.tianli.financial.enums.ProductType;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -31,7 +32,7 @@ public class FinancialPurchaseResultVO {
     /**
      * 活期/定期产品
      */
-    private FinancialProductType financialProductType;
+    private ProductType financialProductType;
 
     /**
      * 理财本金
@@ -51,7 +52,7 @@ public class FinancialPurchaseResultVO {
     /**
      * 状态
      */
-    private byte status;
+    private RecordStatus status;
 
     /**
      * 状态描述
