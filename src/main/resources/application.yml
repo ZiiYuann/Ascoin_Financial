@@ -19,7 +19,9 @@ server:
     context-path: /api
 mybatis-plus:
   configuration:
-    mapUnderscoreToCamelCase: false
+    mapUnderscoreToCamelCase: true
+
+
 
 # cookie age
 cookie:

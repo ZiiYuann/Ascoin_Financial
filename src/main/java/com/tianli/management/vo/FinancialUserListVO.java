@@ -7,10 +7,10 @@ import java.util.List;
 
 /**
  * @author lzy
- * @date 2022/4/1 6:52 下午
+ * @since  2022/4/1 6:52 下午
  */
 @Data
-public class FinancialUserListVo {
+public class FinancialUserListVO {
     /**
      * 现存款总额
      */
@@ -24,5 +24,5 @@ public class FinancialUserListVo {
      */
     private double totalRedemption = 0;
 
-    private List<FinancialUserRecordListVo> financialUserRecordListVos = new ArrayList<>();
+    private List<FinancialUserRecordListVO> financialUserRecordListVos = new ArrayList<>();
 }

@@ -9,7 +9,9 @@ import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.vo.*;
+import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
+import com.tianli.management.vo.FinancialBoardVO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -66,4 +68,8 @@ public interface FinancialService {
      */
     IPage<OrderFinancialVO> orderPage(Page<OrderFinancialVO> page, FinancialOrdersQuery financialOrdersQuery);
 
+    /**
+     * 看板数据
+     */
+    FinancialBoardVO board(FinancialBoardQuery query);
 }

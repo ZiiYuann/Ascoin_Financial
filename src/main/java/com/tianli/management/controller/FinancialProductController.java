@@ -11,6 +11,7 @@ import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.FinancialProductVO;
 import com.tianli.financial.vo.OrderFinancialVO;
+import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductEditQuery;
 import com.tianli.management.query.FinancialProductsQuery;
@@ -36,6 +37,16 @@ public class FinancialProductController {
     FinancialConverter financialConverter;
     @Resource
     FinancialService financialService;
+
+    /**
+     * 数据展板
+     */
+    @GetMapping("/board")
+    @AdminPrivilege(and = Privilege.理财配置)
+    public Result edit(FinancialBoardQuery query) {
+        query.calTime();
+        return Result.success().setData(financialService.board(query));
+    }
 
     /**
      * 新增或者修改产品

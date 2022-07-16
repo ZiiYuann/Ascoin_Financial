@@ -1,11 +1,12 @@
 package com.tianli.charge.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,10 +25,12 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@TableName(value ="`order`")
 public class Order {
     /**
      * 订单号
      */
+    @TableId
     private String orderNo;
 
     @JsonSerialize(using = ToStringSerializer.class)

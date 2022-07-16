@@ -11,8 +11,8 @@ import com.tianli.management.dao.FinancialUserMapper;
 import com.tianli.management.dto.FinancialUserRecordListDto;
 import com.tianli.management.dto.FinancialUserListDto;
 import com.tianli.management.dto.FinancialUserTotalDto;
-import com.tianli.management.vo.FinancialUserListVo;
-import com.tianli.management.vo.FinancialUserRecordListVo;
+import com.tianli.management.vo.FinancialUserListVO;
+import com.tianli.management.vo.FinancialUserRecordListVO;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,7 +41,7 @@ public class FinancialUserController {
     @GetMapping("/list")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result list(FinancialUserListDto financialUserListDto) {
-        FinancialUserListVo financialUserListVo = new FinancialUserListVo();
+        FinancialUserListVO financialUserListVo = new FinancialUserListVO();
         Map<Object, Object> result = MapUtil.builder()
                 .put("page", financialUserListDto.getPage())
                 .put("size", financialUserListDto.getSize())
@@ -56,9 +56,9 @@ public class FinancialUserController {
         Integer size = financialUserListDto.getSize();
         List<FinancialUserRecordListDto> financialUserRecordListDtos = financialUserMapper.page(page, size, financialUserListDto);
         if (CollUtil.isNotEmpty(financialUserRecordListDtos)) {
-            List<FinancialUserRecordListVo> financialUserRecordListVos = new ArrayList<>(financialUserRecordListDtos.size());
+            List<FinancialUserRecordListVO> financialUserRecordListVos = new ArrayList<>(financialUserRecordListDtos.size());
             for (FinancialUserRecordListDto financialUserRecordListDto : financialUserRecordListDtos) {
-                financialUserRecordListVos.add(FinancialUserRecordListVo.getFinancialUserRecordListVo(financialUserRecordListDto));
+                financialUserRecordListVos.add(FinancialUserRecordListVO.getFinancialUserRecordListVo(financialUserRecordListDto));
             }
             financialUserListVo.setFinancialUserRecordListVos(financialUserRecordListVos);
         }
@@ -77,7 +77,7 @@ public class FinancialUserController {
         return Result.success(names);
     }
 
-    private void setTotalAmount(FinancialUserListDto financialUserListDto, FinancialUserListVo financialUserListVo) {
+    private void setTotalAmount(FinancialUserListDto financialUserListDto, FinancialUserListVO financialUserListVo) {
         FinancialUserTotalDto financialUserTotalDto = financialUserMapper.selectTotalAmount(financialUserListDto);
         BigInteger totalCurrentDeposit = financialUserMapper.selectTotalCurrentAmount(financialUserListDto);
         if (ObjectUtil.isNull(financialUserTotalDto)) {

@@ -15,10 +15,10 @@ import java.time.LocalDateTime;
 
 /**
  * @author lzy
- * @date 2022/4/1 7:51 下午
+ * @since  2022/4/1 7:51 下午
  */
 @Data
-public class FinancialUserRecordListVo {
+public class FinancialUserRecordListVO {
 
     /**
      * id
@@ -66,9 +66,9 @@ public class FinancialUserRecordListVo {
     private double profitAmount;
 
 
-    public static FinancialUserRecordListVo getFinancialUserRecordListVo(FinancialUserRecordListDto financialUserRecordListDto) {
+    public static FinancialUserRecordListVO getFinancialUserRecordListVo(FinancialUserRecordListDto financialUserRecordListDto) {
         long nowDay = LocalDate.now().toEpochDay();
-        FinancialUserRecordListVo financialUserRecordListVo = BeanUtil.copyProperties(financialUserRecordListDto, FinancialUserRecordListVo.class, "amount");
+        FinancialUserRecordListVO financialUserRecordListVo = BeanUtil.copyProperties(financialUserRecordListDto, FinancialUserRecordListVO.class, "amount");
         LocalDate startDate = financialUserRecordListDto.getStart_date();
         long depositDays = Math.max(nowDay - startDate.toEpochDay(), 0L);
         //存入天数

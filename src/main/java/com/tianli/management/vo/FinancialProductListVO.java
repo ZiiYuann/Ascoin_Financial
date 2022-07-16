@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
  * @date 2022/4/1 5:51 下午
  */
 @Data
-public class FinancialProductListVo {
+public class FinancialProductListVO {
 
     /**
      * 主键

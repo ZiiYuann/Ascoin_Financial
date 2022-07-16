@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.EnumMap;
 import java.util.Optional;
 
 /**
@@ -39,5 +40,14 @@ public class CurrencyServiceImpl implements CurrencyService {
             default: break;
         }
         throw ErrorCodeEnum.CURRENCY_NOT_SUPPORT.generalException();
+    }
+
+    @Override
+    public EnumMap<CurrencyCoin, BigDecimal> getDollarRateMap() {
+        EnumMap<CurrencyCoin, BigDecimal> rateMap = new EnumMap<>(CurrencyCoin.class);
+        rateMap.put(CurrencyCoin.usdt,BigDecimal.ONE);
+        rateMap.put(CurrencyCoin.usdc,BigDecimal.ONE);
+        // 设置其他类型的汇率
+        return rateMap;
     }
 }
