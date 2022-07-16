@@ -149,7 +149,7 @@ public class RequestInitService {
 
         // 特殊处理用户信息 如果uid为null，钱包模式为助记词
         // 会出现一个问题
-        if (Objects.isNull(ossUser.getUid()) && ossUser.getSignType().equals(SignWalletType.MNEMONIC)){
+        if (Objects.nonNull(ossUser.getUid()) && Objects.isNull(ossUser.getUid()) && ossUser.getSignType().equals(SignWalletType.MNEMONIC)){
             UserInfo userInfo = userInfoService.getBySignInfo(ossUser.getSignAddress(), ossUser.getSignChain());
             requestInit.getUserInfo().setUid(userInfo.getId());
             requestInit.setUid(userInfo.getId());

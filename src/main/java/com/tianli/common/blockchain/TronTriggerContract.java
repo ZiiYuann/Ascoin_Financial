@@ -56,7 +56,7 @@ public class TronTriggerContract {
     }
 
     public String computeAddress(String walletAddress, BigInteger uid) {
-        String contractAddress = configService.get(ConfigConstants.TRON_CONTRACT_ADDRESS);
+        String contractAddress = configService.get(ConfigConstants.TRON_TRIGGER_ADDRESS);
 
         String data = FunctionEncoder.encode(
                 new Function("computeAddress",
@@ -113,7 +113,7 @@ public class TronTriggerContract {
      */
     public String recycle(String toAddress, List<Long> uids, List<String> trc20AddressList) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
-        String contractAddress = configService.getOrDefault(ConfigConstants.TRON_CONTRACT_ADDRESS, "TEuLfwtYM83r4TjkewRWFFFS1inHzdpsP2");
+        String contractAddress = configService.getOrDefault(ConfigConstants.TRON_TRIGGER_ADDRESS, "TEuLfwtYM83r4TjkewRWFFFS1inHzdpsP2");
         if(toAddress == null || toAddress.isEmpty()) toAddress = ownerAddress;
         String data = FunctionEncoder.encode(
                 new Function("recycle", List.of(new Address(toAddress),

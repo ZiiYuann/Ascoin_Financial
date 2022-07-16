@@ -359,7 +359,7 @@ public class ConfigConstants {
     /**
      * TRON合约地址
      */
-    public static final String TRON_CONTRACT_ADDRESS = "tron_contract_address";
+    public static final String TRON_TRIGGER_ADDRESS = "tron_trigger_address";
     /**
      * TRON私钥
      */
