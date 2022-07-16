@@ -37,6 +37,12 @@ public class ConfigService extends ServiceImpl<ConfigMapper, Config> {
         return config;
     }
 
+    public String getAndDecrypt(String name) {
+        String config = configService._get(name);
+        if (StringUtils.isEmpty(config)) ErrorCodeEnum.NOT_OPEN.throwException();
+        return decrypt(name, config);
+    }
+
     public String getNoCache(String name) {
         String config = configService.get(name);
         if (config == null) ErrorCodeEnum.NOT_OPEN.throwException();
