@@ -57,3 +57,5 @@ email:
 secret:
   ecdsa:
     privateKey: "OTM4NjI5NDIyMTU4NDI1MDcxNDgzMzk3NjgxODUxOTExNDQ3MDYxNDE1MTA3Njc4ODU5MDc2NDkxOTc1NTQwNjkwNjQ5MTE0MzE1MjY="
+mybatis:
+  mapper-locations: classpath:***/*/*.xml

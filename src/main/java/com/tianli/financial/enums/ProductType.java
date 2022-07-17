@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum ProductType {
-
+    // current 定期 fixed 活期
     /**
      *  定期
      */

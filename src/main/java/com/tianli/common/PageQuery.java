@@ -11,6 +11,7 @@ import lombok.Data;
 @Data
 public class PageQuery<T> {
 
+
     private int page;
 
     private int pageSize;

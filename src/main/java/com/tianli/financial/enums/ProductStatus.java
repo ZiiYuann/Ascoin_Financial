@@ -9,6 +9,7 @@ import lombok.Getter;
  **/
 @Getter
 public enum ProductStatus {
+    // open 上线 close 关闭
     // 上线
     open,
     // 关闭

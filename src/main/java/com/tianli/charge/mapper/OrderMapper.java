@@ -2,9 +2,7 @@ package com.tianli.charge.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.entity.Order;
-import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.FinancialOrdersQuery;
 import org.apache.ibatis.annotations.Mapper;
