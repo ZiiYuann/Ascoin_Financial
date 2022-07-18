@@ -45,9 +45,6 @@ facebook:
   host: https://graph.facebook.com
   me_path: /v10.0/me
   debug_token_path: /v10.0/debug_token
-subgraph:
-  coinUrl: "http://13.115.21.38:8000/subgraphs/name/coin"
-  ethCoinUrl: "http://35.76.26.107:8000/subgraphs/name/ethCoin"
 
 email:
   amazon:

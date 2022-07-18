@@ -22,11 +22,6 @@ import java.time.LocalDateTime;
  */
 @Configuration
 public class CommonConfig {
-    @Value("${subgraph.coinUrl}")
-    private String subgraphServerUrl;
-
-    @Value("${subgraph.ethCoinUrl}")
-    private String subgraphETHServerUrl;
 
     @Bean
     BeanValidationPostProcessor beanValidationPostProcessor() {
@@ -55,16 +50,6 @@ public class CommonConfig {
     @Bean
     PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
-
-    @Bean
-    public GraphqlClient graphqlClient() {
-        return GraphqlClient.buildGraphqlClient(subgraphServerUrl);
-    }
-
-    @Bean
-    public GraphqlClient ethGraphqlClient() {
-        return GraphqlClient.buildGraphqlClient(subgraphETHServerUrl);
     }
 
 
