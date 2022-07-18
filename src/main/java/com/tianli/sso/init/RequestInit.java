@@ -14,6 +14,7 @@ public class RequestInit {
     private LocalDateTime now = LocalDateTime.now();
     private Long now_ms = System.currentTimeMillis();
     private Long uid;
+    private String address;
     private SignUserInfo userInfo;
     private String imei = "";
     private String deviceType = "";

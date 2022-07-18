@@ -51,6 +51,19 @@ public class RequestInitService {
         return uid;
     }
 
+    public String _address() {
+        return get().getAddress();
+    }
+
+    /**
+     * 获取登录的address
+     */
+    public String address() {
+        String address = _address();
+        if (address == null || address.trim().equals("")) ErrorCodeEnum.UNLOIGN.throwException();
+        return address;
+    }
+
     public SignUserInfo _userInfo() {
         return get().getUserInfo();
     }
@@ -126,6 +139,7 @@ public class RequestInitService {
          */
         SignUserInfo ossUser = userOssService.loginUser();
         requestInit.setUid(Objects.isNull(ossUser) ? null : ossUser.getUid());
+        requestInit.setAddress(Objects.isNull(ossUser) ? null : ossUser.getSignAddress());
         requestInit.setUserInfo(ossUser);
         requestInit.setIp(ApplicationContextTool.getBean(IpTool.class).getIp(httpServletRequest));
         String lat = httpServletRequest.getHeader("LAT");
