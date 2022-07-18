@@ -27,6 +27,8 @@ public class OrderChargeInfo{
      */
     private Long id;
 
+    private String orderNo;
+
     /**
      * 金额 提币、充值等不包含手续费
      */

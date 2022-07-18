@@ -60,6 +60,7 @@ public class OrderFinancialVO {
      */
     private String rate;
 
+
     /**
      * 预估收益
      */

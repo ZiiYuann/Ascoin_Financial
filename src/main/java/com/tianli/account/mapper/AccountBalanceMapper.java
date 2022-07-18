@@ -23,7 +23,7 @@ import java.util.List;
 public interface AccountBalanceMapper extends BaseMapper<AccountBalance> {
 
     @Select("SELECT * FROM `account_balance` WHERE `uid`=#{uid} AND  `coin`=#{coin}")
-    AccountBalance get(@Param("uid") long uid, @Param("token") CurrencyCoin coin);
+    AccountBalance get(@Param("uid") long uid, @Param("coin") CurrencyCoin coin);
 
     @Select("SELECT * FROM `account_balance` WHERE `uid`=#{uid} ")
     List<AccountBalance> list(long uid);

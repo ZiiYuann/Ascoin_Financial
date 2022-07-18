@@ -6,15 +6,13 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.financial.convert.FinancialConverter;
+import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.FinancialProductVO;
 import com.tianli.financial.vo.OrderFinancialVO;
-import com.tianli.management.query.FinancialBoardQuery;
-import com.tianli.management.query.FinancialOrdersQuery;
-import com.tianli.management.query.FinancialProductEditQuery;
-import com.tianli.management.query.FinancialProductsQuery;
+import com.tianli.management.query.*;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.validation.annotation.Validated;
@@ -25,7 +23,7 @@ import java.time.LocalDateTime;
 
 /**
  * @author lzy
- * @since  2022/4/1 3:40 下午
+ * @since 2022/4/1 3:40 下午
  */
 @RestController
 @RequestMapping("/management/financial")
@@ -51,7 +49,7 @@ public class FinancialProductController {
     /**
      * 新增或者修改产品
      */
-    @PostMapping("/save")
+    @PostMapping("/product/save")
     @AdminPrivilege(and = Privilege.理财配置)
     public Result edit(@RequestBody @Validated FinancialProductEditQuery financialProductQuery) {
 
@@ -64,6 +62,16 @@ public class FinancialProductController {
             // TODO 对于修改操作需要校验很多东西
         }
         financialProductService.saveOrUpdate(product);
+        return Result.success();
+    }
+
+    /**
+     * 修改产品状态
+     */
+    @PostMapping("/product/status")
+    @AdminPrivilege(and = Privilege.理财配置)
+    public Result edit(@RequestBody @Validated FinancialProductEditStatusQuery query) {
+        financialProductService.editProductStatus(query);
         return Result.success();
     }
 
@@ -85,6 +93,16 @@ public class FinancialProductController {
     public Result orders(PageQuery<OrderFinancialVO> page, FinancialOrdersQuery query) {
         IPage<OrderFinancialVO> financialOrderVOIPage = financialService.orderPage(page.page(), query);
         return Result.success(financialOrderVOIPage);
+    }
+
+
+    /**
+     * 用户理财收益记录
+     */
+    @GetMapping("/record/income")
+    @AdminPrivilege(and = Privilege.理财配置)
+    public Result orders(PageQuery<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
+        return Result.success(financialService.incomeRecord(page.page(), query));
     }
 
 }

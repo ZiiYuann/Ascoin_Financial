@@ -1,24 +1,24 @@
 package com.tianli.financial.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.financial.convert.FinancialConverter;
+import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialProduct;
-import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.OrderFinancialVO;
+import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/financial")
@@ -37,12 +37,8 @@ public class FinancialController {
      * 理财产品列表
      */
     @GetMapping("/products")
-    public Result products(){
-        var list = financialProductService.list(new LambdaQueryWrapper<FinancialProduct>()
-                .eq(FinancialProduct::getStatus, ProductStatus.open)
-                .orderByAsc(f-> f.getTerm().getDay())
-        ).stream().map(financialConverter :: toVO).collect(Collectors.toList());
-        return Result.instance().setData(list);
+    public Result products(PageQuery<FinancialProduct> pageQuery,ProductType productType){
+        return Result.instance().setData(financialService.products(pageQuery.page(),productType));
     }
 
     /**
@@ -73,27 +69,32 @@ public class FinancialController {
     }
 
     /**
-     * 收益明细
-     */
-    @GetMapping("/income")
-    public Result income() {
-        Long uid = requestInitService.uid();
-        return Result.instance().setData(financialService.income(uid));
-    }
-
-    /**
      * 我的持用
      */
-    @GetMapping("/myHold")
+    @GetMapping("/hold")
     public Result myHold(ProductType productType) {
         Long uid = requestInitService.uid();
         return Result.instance().setData(financialService.myHold(uid,productType));
     }
 
     /**
+     * 收益明细列表
+     */
+    @GetMapping("/incomes")
+    public Result incomes(PageQuery<FinancialIncomeAccrueDTO> page,ProductType productType) {
+        Long uid = requestInitService.uid();
+
+        FinancialProductIncomeQuery query = new FinancialProductIncomeQuery();
+        query.setUid(uid);
+        query.setProductType(productType);
+
+        return Result.instance().setData(financialService.incomeRecord(page.page(),query));
+    }
+
+    /**
      * 具体收益明细
      */
-    @GetMapping("/income/details/{recordId}")
+    @GetMapping("/income/{recordId}")
     public Result incomeDetails(@PathVariable Long recordId) {
         Long uid = requestInitService.uid();
         return Result.instance().setData(financialService.incomeDetails(uid,recordId));

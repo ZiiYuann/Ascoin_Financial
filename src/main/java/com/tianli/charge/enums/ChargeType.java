@@ -5,6 +5,8 @@ package com.tianli.charge.enums;
  * @since  2020/3/19 15:09
  */
 public enum ChargeType {
+    // recharge 充值 withdraw 提现 income 收益 purchase 申购 redeem 赎回 settle 结算 transfer 转存
+
     //充值
     recharge,
     //提现

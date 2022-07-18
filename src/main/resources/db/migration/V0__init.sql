@@ -8,6 +8,7 @@ create table address
     eth         varchar(60)                              null comment '以太坊地址eth / usdt-erc20',
     tron        varchar(60)                              null comment '波场地址 tron / usdt-trc20',
     bsc         varchar(60)                              null,
+    btc         varchar(60)                              null,
     constraint address_bsc_uindex
         unique (bsc),
     constraint address_tron_uindex

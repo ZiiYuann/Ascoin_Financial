@@ -12,9 +12,7 @@ import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.sso.init.RequestInitService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.Objects;
@@ -40,7 +38,7 @@ public class AccountController {
     /**
      * 激活钱包
      */
-    @GetMapping("/activate")
+    @PostMapping("/activate")
     public Result activateWallet() {
         Long uid = requestInitService.uid();
         addressService.getAndInit(uid);
@@ -72,19 +70,19 @@ public class AccountController {
     /**
      * 查询单个币种余额
      */
-    @GetMapping("/balance")
-    public Result accountBalance(CurrencyCoin currencyCoin) {
+    @GetMapping("/balance/{coin}")
+    public Result accountBalance(@PathVariable CurrencyCoin coin) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(accountBalanceService.getVO(uid,currencyCoin));
+        return Result.instance().setData(accountBalanceService.getVO(uid,coin));
     }
 
     /**
      * 获取余额详情信息
      */
     @GetMapping("/balance/details")
-    public Result accountBalanceDetails(PageQuery<Order> query, ChargeType chargeType, CurrencyCoin currencyCoin) {
+    public Result accountBalanceDetails(PageQuery<Order> query, ChargeType chargeType, CurrencyCoin coin) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(chargeService.pageByChargeType(uid,currencyCoin, chargeType, query.page()));
+        return Result.instance().setData(chargeService.pageByChargeType(uid,coin, chargeType, query.page()));
     }
 
 }

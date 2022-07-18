@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @author  wangqiyun
- * @since  2020/3/31 15:19
+ * @author wangqiyun
+ * @since 2020/3/31 15:19
  */
 @Slf4j
 @RestController
@@ -36,6 +36,8 @@ public class ChargeController {
     private ConfigService configService;
     @Resource
     private ChargeService chargeService;
+    @Resource
+    private RequestInitService requestInitService;
 
     /**
      * 充值回调
@@ -68,6 +70,13 @@ public class ChargeController {
         return Result.instance();
     }
 
-
+    /**
+     * 订单详情
+     */
+    @GetMapping("/details/{orderNo}")
+    public Result details(@PathVariable String orderNo) {
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(chargeService.orderChargeDetails(uid, orderNo));
+    }
 
 }

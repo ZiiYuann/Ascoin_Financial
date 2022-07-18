@@ -1,6 +1,7 @@
 package com.tianli.charge.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
@@ -15,7 +16,7 @@ import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderMapper;
 import com.tianli.charge.query.WithdrawQuery;
-import com.tianli.charge.vo.OrderVO;
+import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -33,9 +34,8 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 /**
  * @author wangqiyun
@@ -60,6 +60,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     private ChargeConverter chargeConverter;
     @Resource
     private OrderService orderService;
+    @Resource
+    private OrderChargeInfoService orderChargeInfoService;
+
 
     /**
      * 充值回调:添加用户余额和记录
@@ -141,6 +144,33 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 , order.getOrderNo(), CurrencyLogDes.提现.name());
     }
 
+    public OrderChargeInfoVO orderChargeDetails(Long uid,String orderNo){
+
+        LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
+                .eq(Order::getUid, uid)
+                .eq(Order::getOrderNo, orderNo);
+        Order order = orderService.getOne(queryWrapper);
+        if(!ChargeType.recharge.equals(order.getType()) && !ChargeType.withdraw.equals(order.getType()) ){
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
+        }
+
+        OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
+        log.info("get orderChargeInfo by id:{},orderNo{}",order.getRelatedId(),order.getOrderNo());
+        Optional.ofNullable(orderChargeInfo).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR :: generalException);
+        if(!orderChargeInfo.getOrderNo().equals(order.getOrderNo())){
+            log.error("orderChargeInfo表 id :{} , 记录 orderNo{} 与  order 表 orderNo{} 不一致",orderChargeInfo.getId()
+                    ,orderChargeInfo.getOrderNo(),order.getOrderNo());
+            ErrorCodeEnum.SYSTEM_ERROR.throwException();
+        }
+        OrderChargeInfoVO orderChargeInfoVO = chargeConverter.toVO(order);
+        orderChargeInfoVO.setFromAddress(orderChargeInfo.getFromAddress());
+        orderChargeInfoVO.setToAddress(orderChargeInfo.getToAddress());
+        orderChargeInfoVO.setTxid(orderChargeInfo.getTxid());
+        orderChargeInfoVO.setCreateTime(orderChargeInfo.getCreateTime());
+        return orderChargeInfoVO;
+    }
+
+
     /**
      * 获取充值DTO数据 不同链的usdt后面的0个数不一样  需要做一个对齐处理 目前是后面8个0为1个u
      */
@@ -208,7 +238,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     /**
      * 获取分页数据
      */
-    public List<OrderVO> pageByChargeType(Long uid, CurrencyCoin currencyCoin, ChargeType chargeType, Page<Order> page) {
+    public IPage<OrderChargeInfoVO> pageByChargeType(Long uid, CurrencyCoin currencyCoin, ChargeType chargeType, Page<Order> page) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)
                 .eq(Order::getCoin, currencyCoin);
@@ -216,7 +246,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             wrapper = wrapper.eq(Order::getType, chargeType);
         }
         Page<Order> charges = this.page(page, wrapper);
-        return charges.getRecords().stream().map(chargeConverter::toVO).collect(Collectors.toList());
+        return charges.convert(chargeConverter::toVO);
     }
 
     /**

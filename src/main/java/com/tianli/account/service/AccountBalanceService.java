@@ -7,6 +7,7 @@ import com.tianli.account.enums.AccountOperationType;
 import com.tianli.account.mapper.AccountBalanceMapper;
 import com.tianli.account.vo.AccountBalanceMainPageVO;
 import com.tianli.account.vo.AccountBalanceVO;
+import com.tianli.address.AddressService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.async.AsyncService;
@@ -44,6 +45,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     private AccountConverter accountConverter;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private AddressService addressService;
 
 
     /**
@@ -257,7 +260,15 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     }
 
     public AccountBalanceVO getVO(Long uid, CurrencyCoin currencyCoin){
-        return  accountConverter.toVO(accountBalanceMapper.get(uid,currencyCoin));
+        AccountBalanceVO accountBalanceVO = accountConverter.toVO(accountBalanceMapper.get(uid, currencyCoin));
+        BigDecimal dollarRate = currencyService.getDollarRate(accountBalanceVO.getCoin());
+
+        accountBalanceVO.setDollarRate(dollarRate);
+        accountBalanceVO.setDollarBalance(dollarRate.multiply(accountBalanceVO.getBalance()));
+        accountBalanceVO.setDollarFreeze(dollarRate.multiply(accountBalanceVO.getFreeze()));
+        accountBalanceVO.setDollarRemain(dollarRate.multiply(accountBalanceVO.getRemain()));
+        return accountBalanceVO;
+
     }
 
 

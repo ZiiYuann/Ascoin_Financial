@@ -61,8 +61,10 @@ public class FinancialProductVO {
     private double rate;
 
     /**
-     * 个人额度
+     * 已经使用
      */
+    private BigDecimal useQuota;
+
     private BigDecimal personQuota;
 
     /**

@@ -1,7 +1,5 @@
 package com.tianli.financial.entity;
 
-import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.financial.enums.ProductType;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
@@ -14,7 +12,7 @@ import java.time.LocalDateTime;
  * @since 2022-07-13
  **/
 @Data
-public class DailyIncomeLog {
+public class FinancialIncomeDaily {
 
     @Id
     private Long id;
@@ -27,19 +25,9 @@ public class DailyIncomeLog {
     private Long recordId;
 
     /**
-     * 产品类型
-     */
-    private ProductType financialProductType;
-
-    /**
-     * 币种
-     */
-    private CurrencyCoin coin;
-
-    /**
      * 收益金额
      */
-    private BigDecimal incomeFee;
+    private BigDecimal incomeAmount;
 
     /**
      * 记息当天时间，自动化脚本凌晨跑，时间就为前一天零点

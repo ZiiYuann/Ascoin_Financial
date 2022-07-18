@@ -1,5 +1,6 @@
 package com.tianli.account.vo;
 
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.Data;
 
@@ -22,12 +23,7 @@ public class AccountBalanceVO {
     /**
      * 币种
      */
-    private CurrencyAdaptType currencyAdaptType;
-
-    /**
-     * 用户账户地址
-     */
-    private String address;
+    private CurrencyCoin coin;
 
     /**
      * 转化成为美元的汇率

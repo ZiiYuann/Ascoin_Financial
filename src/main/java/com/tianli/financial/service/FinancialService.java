@@ -5,13 +5,16 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.vo.*;
 import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
+import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.vo.FinancialBoardVO;
+import com.tianli.management.vo.FinancialIncomeAccrueVO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -72,4 +75,15 @@ public interface FinancialService {
      * 看板数据
      */
     FinancialBoardVO board(FinancialBoardQuery query);
+
+    /**
+     * 用户理财收益记录
+     */
+    IPage<FinancialIncomeAccrueDTO> incomeRecord(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query);
+
+    /**
+     * 产品列表
+     */
+    IPage<FinancialProductVO> products(Page<FinancialProduct> page, ProductType type);
+
 }

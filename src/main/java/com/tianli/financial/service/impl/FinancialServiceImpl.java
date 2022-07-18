@@ -3,30 +3,35 @@ package com.tianli.financial.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.charge.entity.Order;
-import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.ChargeStatus;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
-import com.tianli.account.service.AccountBalanceService;
 import com.tianli.common.TimeUtils;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.log.CurrencyLogDes;
-import com.tianli.account.entity.AccountBalance;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.convert.FinancialConverter;
-import com.tianli.financial.entity.*;
+import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
+import com.tianli.financial.entity.FinancialIncomeDaily;
+import com.tianli.financial.entity.FinancialIncomeAccrue;
+import com.tianli.financial.entity.FinancialProduct;
+import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.*;
-import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.vo.*;
 import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
+import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.vo.FinancialBoardDataVO;
 import com.tianli.management.vo.FinancialBoardVO;
 import com.tianli.sso.init.RequestInitService;
@@ -131,24 +136,25 @@ public class FinancialServiceImpl implements FinancialService {
         var productMap = financialProductService.listByIds(productIds).stream()
                 .collect(Collectors.toMap(FinancialProduct :: getId,o -> o));
         var accrueIncomeMap = accrueIncomeLogService.selectListByRecordId(recordIds).stream()
-                .collect(Collectors.toMap(AccrueIncomeLog::getRecordId, o -> o));
+                .collect(Collectors.toMap(FinancialIncomeAccrue::getRecordId, o -> o));
         var dailyIncomeMap = dailyIncomeLogService.selectListByRecordId(uid,recordIds,requestInitService.yesterday()).stream()
-                .collect(Collectors.toMap(DailyIncomeLog::getRecordId, o -> o));
+                .collect(Collectors.toMap(FinancialIncomeDaily::getRecordId, o -> o));
 
         return financialRecords.stream().map(financialRecord ->{
             var holdProductVo = new HoldProductVo();
             var product = productMap.get(financialRecord.getProductId());
-            var accrueIncomeLog = Optional.ofNullable(accrueIncomeMap.get(financialRecord.getId())).orElse(new AccrueIncomeLog());
-            var dailyIncomeLog = Optional.ofNullable(dailyIncomeMap.get(financialRecord.getId())).orElse(new DailyIncomeLog());
+            var accrueIncomeLog = Optional.ofNullable(accrueIncomeMap.get(financialRecord.getId())).orElse(new FinancialIncomeAccrue());
+            var dailyIncomeLog = Optional.ofNullable(dailyIncomeMap.get(financialRecord.getId())).orElse(new FinancialIncomeDaily());
 
             holdProductVo.setRecordId(financialRecord.getId());
             holdProductVo.setName(product.getName());
             holdProductVo.setRate(product.getRate());
+            holdProductVo.setProductType(product.getType());
 
             IncomeVO incomeVO = new IncomeVO();
-            incomeVO.setHoldFee(financialRecord.getAmount());
-            incomeVO.setAccrueIncomeFee(Optional.ofNullable(accrueIncomeLog.getAccrueIncomeFee()).orElse(BigDecimal.ZERO));
-            incomeVO.setYesterdayIncomeFee(Optional.ofNullable(dailyIncomeLog.getIncomeFee()).orElse(BigDecimal.ZERO));
+            incomeVO.setHoldFee(financialRecord.getHoldAmount());
+            incomeVO.setAccrueIncomeFee(Optional.ofNullable(accrueIncomeLog.getIncomeAmount()).orElse(BigDecimal.ZERO));
+            incomeVO.setYesterdayIncomeFee(Optional.ofNullable(dailyIncomeLog.getIncomeAmount()).orElse(BigDecimal.ZERO));
 
             holdProductVo.setIncomeVO(incomeVO);
             return holdProductVo;
@@ -157,7 +163,7 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     public List<DailyIncomeLogVO> incomeDetails(Long uid, Long recordId) {
-        List<DailyIncomeLog> dailyIncomeLogs = dailyIncomeLogService.selectListByRecordId(uid, List.of(recordId), null);
+        List<FinancialIncomeDaily> dailyIncomeLogs = dailyIncomeLogService.selectListByRecordId(uid, List.of(recordId), null);
         return dailyIncomeLogs.stream().map(DailyIncomeLogVO :: toVO).collect(Collectors.toList());
     }
 
@@ -265,6 +271,32 @@ public class FinancialServiceImpl implements FinancialService {
                 .details(details).build();
     }
 
+    @Override
+    public IPage<FinancialIncomeAccrueDTO> incomeRecord(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
+        return  accrueIncomeLogService.incomeRecord(page,query);
+    }
+
+    @Override
+    public IPage<FinancialProductVO> products(Page<FinancialProduct> page, ProductType type) {
+        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
+                .eq(FinancialProduct::getStatus, ProductStatus.open);
+
+        if(Objects.nonNull(type)){
+            query.eq(FinancialProduct :: getType,type);
+        }
+
+        var list = financialProductService.page(page,query);
+        List<Long> productId = list.getRecords().stream().map(FinancialProduct::getId).distinct().collect(Collectors.toList());
+
+        Map<Long, BigDecimal> useQuota = financialRecordService.getUseQuota(productId);
+        return list.convert( product -> {
+            FinancialProductVO financialProductVO = financialConverter.toVO(product);
+            financialProductVO.setUseQuota(useQuota.getOrDefault(product.getId(),BigDecimal.ZERO));
+            return financialProductVO;
+        });
+
+    }
+
     /**
      * 计算每日利息
      */
@@ -280,42 +312,41 @@ public class FinancialServiceImpl implements FinancialService {
         CurrencyCoin coin = null;
         BigDecimal incomeFee = null;
 
-        DailyIncomeLog dailyIncomeLog = dailyIncomeLogService.getOne(new LambdaQueryWrapper<DailyIncomeLog>()
-                .eq(DailyIncomeLog::getUid, uid)
-                .eq(DailyIncomeLog::getRecordId, recordId)
-                .eq(DailyIncomeLog::getFinishTime, yesterdayTime));
+        FinancialIncomeDaily dailyIncomeLog = dailyIncomeLogService.getOne(new LambdaQueryWrapper<FinancialIncomeDaily>()
+                .eq(FinancialIncomeDaily::getUid, uid)
+                .eq(FinancialIncomeDaily::getRecordId, recordId)
+                .eq(FinancialIncomeDaily::getFinishTime, yesterdayTime));
 
         if(Objects.nonNull(dailyIncomeLog)){
              log.error("申购记录ID：{}，重复计算每日利息，记息日时间：{}，程序运行时间：{}",recordId,yesterdayTime,now);
              return;
         }
-        dailyIncomeLog = new DailyIncomeLog();
-        dailyIncomeLog.setIncomeFee(incomeFee);
-        dailyIncomeLog.setCoin(coin);
+        dailyIncomeLog = new FinancialIncomeDaily();
+        dailyIncomeLog.setIncomeAmount(incomeFee);
         dailyIncomeLog.setId(CommonFunction.generalId());
         dailyIncomeLog.setUid(uid);
         dailyIncomeLog.setCreateTime(now);
         dailyIncomeLog.setFinishTime(yesterdayTime);
         dailyIncomeLogService.save(dailyIncomeLog);
 
-        AccrueIncomeLog accrueIncome = getAccrueIncomeLogAndInit(uid, coin, recordId);
-        accrueIncome.setAccrueIncomeFee(accrueIncome.getAccrueIncomeFee().add(incomeFee));
+        FinancialIncomeAccrue accrueIncome = getAccrueIncomeLogAndInit(uid, coin, recordId);
+        accrueIncome.setIncomeAmount(accrueIncome.getIncomeAmount().add(incomeFee));
         accrueIncome.setUpdateTime(LocalDateTime.now());
         accrueIncomeLogService.updateById(accrueIncome);
     }
 
-    private AccrueIncomeLog getAccrueIncomeLogAndInit(Long uid,CurrencyCoin coin,Long recordId){
-        AccrueIncomeLog accrueIncomeLog = accrueIncomeLogService.getOne(new LambdaQueryWrapper<AccrueIncomeLog>()
-                .eq(AccrueIncomeLog::getUid, uid)
-                .eq(AccrueIncomeLog::getRecordId, recordId));
+    private FinancialIncomeAccrue getAccrueIncomeLogAndInit(Long uid, CurrencyCoin coin, Long recordId){
+        FinancialIncomeAccrue accrueIncomeLog = accrueIncomeLogService.getOne(new LambdaQueryWrapper<FinancialIncomeAccrue>()
+                .eq(FinancialIncomeAccrue::getUid, uid)
+                .eq(FinancialIncomeAccrue::getRecordId, recordId));
         if(Objects.isNull(accrueIncomeLog)){
             LocalDateTime now = LocalDateTime.now();
-            accrueIncomeLog = AccrueIncomeLog.builder()
+            accrueIncomeLog = FinancialIncomeAccrue.builder()
                     .id(CommonFunction.generalId())
-                    .accrueIncomeFee(BigDecimal.ZERO)
-                    .recordId(recordId).uid(uid).createTime(now).updateTime(now).coin(coin)
+                    .incomeAmount(BigDecimal.ZERO)
+                    .recordId(recordId).uid(uid).createTime(now).updateTime(now)
                     .build();
-            final  AccrueIncomeLog accrueIncomeLogFinal = accrueIncomeLog;
+            final FinancialIncomeAccrue accrueIncomeLogFinal = accrueIncomeLog;
             asyncService.async(() -> accrueIncomeLogService.save(accrueIncomeLogFinal));
         }
         return accrueIncomeLog;
@@ -332,9 +363,9 @@ public class FinancialServiceImpl implements FinancialService {
     @Resource
     private FinancialConverter financialConverter;
     @Resource
-    private DailyIncomeLogService dailyIncomeLogService;
+    private FinancialIncomeDailyService dailyIncomeLogService;
     @Resource
-    private AccrueIncomeLogService accrueIncomeLogService;
+    private FinancialIncomeAccrueService accrueIncomeLogService;
     @Resource
     private AsyncService asyncService;
     @Resource

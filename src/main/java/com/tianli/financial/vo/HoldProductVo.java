@@ -21,17 +21,12 @@ public class HoldProductVo {
     /**
      * 活期/定期产品
      */
-    private ProductType financialProductType;
+    private ProductType productType;
 
     /**
      * 产品名称
      */
     private String name;
-
-    /**
-     * 英文产品名称
-     */
-    private String nameEn;
 
     /**
      * 参考年化

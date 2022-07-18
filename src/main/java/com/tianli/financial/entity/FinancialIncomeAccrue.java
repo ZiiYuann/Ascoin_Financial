@@ -1,8 +1,6 @@
 package com.tianli.financial.entity;
 
 import com.baomidou.mybatisplus.extension.activerecord.Model;
-import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.financial.enums.ProductType;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 
@@ -14,11 +12,12 @@ import java.time.LocalDateTime;
  * @apiNote
  * @since 2022-07-13
  **/
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class AccrueIncomeLog extends Model<AccrueIncomeLog> {
+public class FinancialIncomeAccrue extends Model<FinancialIncomeAccrue> {
 
     @Id
     private Long id;
@@ -31,19 +30,9 @@ public class AccrueIncomeLog extends Model<AccrueIncomeLog> {
     private Long recordId;
 
     /**
-     * 产品类型
-     */
-    private ProductType financialProductType;
-
-    /**
-     * 币种
-     */
-    private CurrencyCoin coin;
-
-    /**
      * 累计收益金额
      */
-    private BigDecimal accrueIncomeFee;
+    private BigDecimal incomeAmount;
 
     /**
      * 最近更新时间

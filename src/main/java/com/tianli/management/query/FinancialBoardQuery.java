@@ -1,8 +1,10 @@
 package com.tianli.management.query;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.tianli.common.TimeUtils;
 import com.tianli.exception.ErrorCodeEnum;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -17,8 +19,10 @@ public class FinancialBoardQuery {
 
     private TimeUtils.Util timeUtil;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startTime;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
 
     public void calTime(){

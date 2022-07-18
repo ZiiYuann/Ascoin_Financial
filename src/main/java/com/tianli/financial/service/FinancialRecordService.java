@@ -4,19 +4,25 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.CommonFunction;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.mapper.FinancialRecordMapper;
 import com.tianli.sso.init.RequestInitService;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, FinancialRecord> {
@@ -27,6 +33,33 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     private RequestInitService requestInitService;
 
     /**
+     * 获取不同产品已经使用的总额度
+     */
+    public Map<Long,BigDecimal> getUseQuota(List<Long> productIds){
+        if(CollectionUtils.isEmpty(productIds)){
+            return new HashMap<>();
+        }
+
+        var query =
+                new LambdaQueryWrapper<FinancialRecord>().in(FinancialRecord::getProductId, productIds);
+
+        var financialRecords = financialRecordMapper.selectList(query);
+        return financialRecords.stream()
+                // 按照 productId 分组
+                .collect(Collectors.groupingBy(FinancialRecord :: getProductId))
+                .entrySet().stream()
+                // 将每组的金额相加
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> {
+                            List<FinancialRecord> value = entry.getValue();
+                            return value.stream().map(FinancialRecord :: getHoldAmount)
+                                    .reduce(BigDecimal.ZERO,BigDecimal::add);
+                        }
+                ));
+    }
+
+    /**
      * 生成记录
      */
     public FinancialRecord generateFinancialRecord(Long uid,FinancialProduct product,BigDecimal amount){
@@ -34,11 +67,11 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         FinancialRecord record = FinancialRecord.builder()
                 .id(CommonFunction.generalId())
                 .productId(product.getId())
-                .uid(uid).financialProductType(product.getType())
-                .amount(amount)
+                .uid(uid).productType(product.getType())
+                .holdAmount(amount)
                 .createTime(requestInitService.now())
-                .startDate(startDate)
-                .endDate(startDate.plusDays(product.getTerm().getDay()))
+                .startTime(startDate)
+                .endTime(startDate.plusDays(product.getTerm().getDay()))
                 .rate(product.getRate())
                 .status(RecordStatus.PROCESS)
                 .build();
@@ -57,7 +90,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      */
     public BigDecimal getPurchaseAmount(Long uid, ProductType type, RecordStatus status){
         var financialPurchaseRecords = this.selectList(uid,type,status);
-        return financialPurchaseRecords.stream().map(FinancialRecord::getAmount)
+        return financialPurchaseRecords.stream().map(FinancialRecord::getHoldAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
@@ -73,7 +106,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
                 .eq(FinancialRecord::getStatus, status);
 
         if (Objects.nonNull(type)) {
-            query = query.eq(FinancialRecord::getFinancialProductType, type);
+            query = query.eq(FinancialRecord::getProductType, type);
 
         }
         return financialRecordMapper.selectList(query);

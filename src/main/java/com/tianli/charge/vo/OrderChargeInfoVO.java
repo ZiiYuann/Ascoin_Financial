@@ -20,15 +20,17 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderVO {
+public class OrderChargeInfoVO {
 
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
+    private String orderNo;
+
     /**
      * 交易类型
      */
-    private ChargeType chargeType;
+    private ChargeType type;
 
     /**
      * 交易状态
@@ -63,7 +65,7 @@ public class OrderVO {
     /**
      * 金额
      */
-    private BigDecimal realAmount;
+    private BigDecimal amount;
 
     /**
      * 币种类型

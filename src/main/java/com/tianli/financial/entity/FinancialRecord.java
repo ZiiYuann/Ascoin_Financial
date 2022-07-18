@@ -1,5 +1,7 @@
 package com.tianli.financial.entity;
 
+import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.financial.enums.PurchaseTerm;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.enums.ProductType;
 import lombok.Builder;
@@ -37,22 +39,23 @@ public class FinancialRecord {
     /**
      * 产品名称
      */
-    private String name;
+    private String productName;
 
     /**
      * 活期/定期产品
      */
-    private ProductType financialProductType;
+    private ProductType productType;
+
+    private PurchaseTerm productTerm;
+
+    private CurrencyCoin coin;
 
     /**
      * 状态 {@link RecordStatus}
      */
     private RecordStatus status;
 
-    /**
-     * 理财本金
-     */
-    private BigDecimal amount;
+    private BigDecimal holdAmount;
 
     /**
      * 参考年化
@@ -62,12 +65,12 @@ public class FinancialRecord {
     /**
      * 开始日期
      */
-    private LocalDate startDate;
+    private LocalDate startTime;
 
     /**
      * 结束日期
      */
-    private LocalDate endDate;
+    private LocalDate endTime;
 
     /**
      * 创建时间
@@ -77,6 +80,6 @@ public class FinancialRecord {
     /**
      * 赎回时间
      */
-    private LocalDateTime finishTime;
+    private LocalDateTime redeemTime;
 
 }

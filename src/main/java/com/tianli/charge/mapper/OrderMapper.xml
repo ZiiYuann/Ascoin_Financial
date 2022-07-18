@@ -12,30 +12,29 @@
         o.order_no,
         pro.rate
         FROM `order` o
-        INNER JOIN order_financial ofi ON o.order_no = ofi.order_no
-        LEFT JOIN financial_product pro on ofi.product_id = pro.id
+        LEFT JOIN financial_product pro on pro.id = o.related_id
         WHERE 1=1
 
         <if test="query.uid != null">
-            AND o.uid = uid
+            AND o.uid = #{query.uid}
         </if>
         <if test="query.orderNo != null">
-            AND o.order_no = #{orderNo}
+            AND o.order_no = #{query.orderNo}
         </if>
         <if test="query.status != null">
-            AND o.status = #{status}
+            AND o.status = #{query.status}
         </if>
         <if test="query.productType != null">
-            AND ofi.product_type = #{productType}
+            AND pro.type = #{query.productType}
         </if>
         <if test="query.chargeType != null">
-            AND ofi.charge_type = #{chargeType}
+            AND o.type = #{query.chargeType}
         </if>
         <if test="query.name != null">
-            AND pro.name = like concat('%',#{chargeType},'%')
+            AND pro.name like concat('%',#{query.name},'%')
         </if>
         <if test="query.coin != null">
-            AND pro.coin = #{coin}
+            AND pro.coin = #{query.coin}
         </if>
 
         ORDER BY o.create_time desc
