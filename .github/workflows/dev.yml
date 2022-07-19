@@ -36,6 +36,6 @@ jobs:
         docker build -t registry.ap-northeast-1.aliyuncs.com/fengkong/financial:dev -f Dockerfile-local .
         docker push registry.ap-northeast-1.aliyuncs.com/fengkong/financial:dev
         docker rmi registry.ap-northeast-1.aliyuncs.com/fengkong/financial:dev
-#    - name: redeploy
-#      run: curl https://cs.console.aliyun.com/hook/trigger?token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbHVzdGVySWQiOiJjNzg3MTNiYTcwYTVlNGRmNGE4ZWM3MjE1ZDRiYmJmZDciLCJpZCI6IjIwMjk5MSJ9.mtWFqjmh_J39eeVNXsBwEnhdaeuoO_BVTBatUYwv6YTyN3OjSj3pps4X4SlB6kJsGinDenoz4O-aquFUKBQJ1NqAVn7Fs3Do0O4ibPzsNKOr6Lx-64Jx5m6f1UeDkPekYqJZw24e-gb1UpvSwh3IXciG1e9mbLKiq962CX9aKRI
+    - name: redeploy
+      run: curl https://cs.console.aliyun.com/hook/trigger?token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbHVzdGVySWQiOiJjNzg3MTNiYTcwYTVlNGRmNGE4ZWM3MjE1ZDRiYmJmZDciLCJpZCI6IjIwODYwNiJ9.tsbaKDApEB5-aDHCGrLPNR48o-BDor5KtCvdN3crSOqMuoG3pI0UwChgVjqUt2L7qT-m3MnimwEftSDz8qDT1G1YZhs2wyPkjJCNt7iytg3PzFnAXXjqVQGKUEzQzU90l8QwpxDY35MorHbc_Vm-94aqHdsXthVKS8s-1y62v2Y
 
