@@ -28,7 +28,10 @@ public class OrderFinancialVO {
     private ChargeType chargeType;
 
     private String name;
+
     private String nameEn;
+
+    private String logo;
 
     private PurchaseTerm term;
 
