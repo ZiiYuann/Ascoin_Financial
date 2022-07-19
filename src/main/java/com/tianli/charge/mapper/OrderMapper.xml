@@ -53,4 +53,13 @@
           and record.product_type = #{productType}
           and o.type = 'settle'
     </select>
+    <select id="selectOrderChargeInfoVOPage" resultType="com.tianli.charge.vo.OrderChargeInfoVO">
+
+        SELECT
+        o.order_no,o.type,o.status,o.create_time,o.complete_time,charge.txid,charge.from_address,charge.to_address,
+        charge.fee as amount,charge.currency_adapt_type
+        FROM `order` o
+                        INNER JOIN order_charge_info charge on charge.id = o.related_id
+        WHERE o.type = 'recharge'
+    </select>
 </mapper>

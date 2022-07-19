@@ -1,9 +1,9 @@
 package com.tianli.charge.vo;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.common.blockchain.CurrencyNetworkType;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,9 +21,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderChargeInfoVO {
-
-    @JsonSerialize(using = ToStringSerializer.class)
-    private Long id;
 
     private String orderNo;
 
@@ -71,5 +68,15 @@ public class OrderChargeInfoVO {
      * 币种类型
      */
     private CurrencyAdaptType currencyAdaptType;
+
+    /**
+     * 币别
+     */
+    private CurrencyCoin coin;
+
+    /**
+     * 网络
+     */
+    private CurrencyNetworkType networkType;
 
 }

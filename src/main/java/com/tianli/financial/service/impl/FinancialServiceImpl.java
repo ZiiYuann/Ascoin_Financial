@@ -322,10 +322,19 @@ public class FinancialServiceImpl implements FinancialService {
         var list = financialProductService.page(page, query);
         List<Long> productId = list.getRecords().stream().map(FinancialProduct::getId).distinct().collect(Collectors.toList());
 
-        Map<Long, BigDecimal> useQuota = financialRecordService.getUseQuota(productId);
+        Map<Long, BigDecimal> useQuotaMap = financialRecordService.getUseQuota(productId);
+        Map<Long, BigDecimal> usePersonQuotaMap = financialRecordService.getUseQuota(productId, requestInitService.uid());
         return list.convert(product -> {
+            BigDecimal useQuota = useQuotaMap.getOrDefault(product.getId(), BigDecimal.ZERO);
+            BigDecimal usePersonQuota = usePersonQuotaMap.getOrDefault(product.getId(), BigDecimal.ZERO);
+
             FinancialProductVO financialProductVO = financialConverter.toVO(product);
-            financialProductVO.setUseQuota(useQuota.getOrDefault(product.getId(), BigDecimal.ZERO));
+            financialProductVO.setUseQuota(useQuota);
+            financialProductVO.setUserPersonQuota(usePersonQuota);
+
+            if(usePersonQuota.compareTo(product.getPersonQuota()) < 0 || useQuota.compareTo(product.getTotalQuota()) < 0){
+                financialProductVO.setAllowPurchase(true);
+            }
             return financialProductVO;
         });
     }

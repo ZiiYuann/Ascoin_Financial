@@ -98,4 +98,9 @@ public class FinancialProductVO {
      * 最低申购额度
      */
     private BigDecimal limitPurchaseQuota;
+
+    /**
+     * 是否允许申购
+     */
+    private boolean allowPurchase;
 }
