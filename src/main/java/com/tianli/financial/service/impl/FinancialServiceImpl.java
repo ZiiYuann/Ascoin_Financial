@@ -14,7 +14,6 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.TimeUtils;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
@@ -34,7 +33,7 @@ import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.vo.FinancialBoardDataVO;
-import com.tianli.management.vo.FinancialBoardVO;
+import com.tianli.management.vo.FinancialProductBoardVO;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -194,7 +193,7 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public FinancialBoardVO board(FinancialBoardQuery query) {
+    public FinancialProductBoardVO productBoard(FinancialBoardQuery query) {
         List<ChargeType> chargeTypes = List.of(ChargeType.purchase, ChargeType.income, ChargeType.settle, ChargeType.transfer);
         LambdaQueryWrapper<Order> boardSqlQuery = new LambdaQueryWrapper<Order>()
                 .in(Order::getType, chargeTypes)
@@ -264,12 +263,17 @@ public class FinancialServiceImpl implements FinancialService {
             details.put(key,financialBoardDataVOS);
         }
 
-        return FinancialBoardVO.builder()
+        return FinancialProductBoardVO.builder()
                 .purchaseAmount(purchaseAmount)
                 .redeemAmount(redeemAmount)
                 .settleAmount(settleAmount)
                 .transferAmount(transferAmount)
                 .details(details).build();
+    }
+
+    @Override
+    public FinancialProductBoardVO walletBoard(FinancialBoardQuery query) {
+        return null;
     }
 
     @Override

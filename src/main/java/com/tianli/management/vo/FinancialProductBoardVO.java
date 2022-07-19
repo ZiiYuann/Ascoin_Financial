@@ -15,7 +15,7 @@ import java.util.Map;
  **/
 @Data
 @Builder
-public class FinancialBoardVO {
+public class FinancialProductBoardVO {
 
     // 申购
     private BigDecimal purchaseAmount;

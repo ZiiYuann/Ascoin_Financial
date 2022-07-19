@@ -13,8 +13,7 @@ import com.tianli.financial.vo.*;
 import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
-import com.tianli.management.vo.FinancialBoardVO;
-import com.tianli.management.vo.FinancialIncomeAccrueVO;
+import com.tianli.management.vo.FinancialProductBoardVO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -74,7 +73,10 @@ public interface FinancialService {
     /**
      * 看板数据
      */
-    FinancialBoardVO board(FinancialBoardQuery query);
+    FinancialProductBoardVO productBoard(FinancialBoardQuery query);
+
+
+    FinancialProductBoardVO walletBoard(FinancialBoardQuery query);
 
     /**
      * 用户理财收益记录

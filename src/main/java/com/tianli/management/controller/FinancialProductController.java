@@ -43,7 +43,7 @@ public class FinancialProductController {
     @AdminPrivilege(and = Privilege.理财配置)
     public Result edit(FinancialBoardQuery query) {
         query.calTime();
-        return Result.success().setData(financialService.board(query));
+        return Result.success().setData(financialService.productBoard(query));
     }
 
     /**
