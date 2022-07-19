@@ -7,6 +7,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialProduct;
+import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.vo.*;
@@ -14,6 +15,7 @@ import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.vo.FinancialProductBoardVO;
+import com.tianli.management.vo.FinancialProductWalletVO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -76,7 +78,7 @@ public interface FinancialService {
     FinancialProductBoardVO productBoard(FinancialBoardQuery query);
 
 
-    FinancialProductBoardVO walletBoard(FinancialBoardQuery query);
+    FinancialProductWalletVO walletBoard(FinancialBoardQuery query);
 
     /**
      * 用户理财收益记录
@@ -87,5 +89,9 @@ public interface FinancialService {
      * 产品列表
      */
     IPage<FinancialProductVO> products(Page<FinancialProduct> page, ProductType type);
+    /**
+     * 产品列表
+     */
+    IPage<FinancialProductVO> activitiesProducts(Page<FinancialProduct> page, BusinessType type);
 
 }

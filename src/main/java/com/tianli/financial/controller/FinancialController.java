@@ -5,6 +5,7 @@ import com.tianli.exception.Result;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialProduct;
+import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.FinancialProductService;
@@ -98,7 +99,12 @@ public class FinancialController {
         return Result.instance().setData(financialService.incomeDetails(uid,recordId));
     }
 
-
-
+    /**
+     * 限时活动
+     */
+    @GetMapping("/activities")
+    public Result limitedActivities(PageQuery<FinancialProduct> pageQuery){
+        return Result.instance().setData(financialService.activitiesProducts(pageQuery.page(),BusinessType.limited));
+    }
 
 }

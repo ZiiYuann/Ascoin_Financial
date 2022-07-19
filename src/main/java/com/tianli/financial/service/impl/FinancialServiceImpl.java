@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
+import com.tianli.address.AddressService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
@@ -23,6 +24,7 @@ import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
+import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
@@ -34,6 +36,7 @@ import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.vo.FinancialBoardDataVO;
 import com.tianli.management.vo.FinancialProductBoardVO;
+import com.tianli.management.vo.FinancialProductWalletVO;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -272,7 +275,8 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public FinancialProductBoardVO walletBoard(FinancialBoardQuery query) {
+    public FinancialProductWalletVO walletBoard(FinancialBoardQuery query) {
+        int totalActiveWalletCount = addressService.count();
         return null;
     }
 
@@ -286,20 +290,32 @@ public class FinancialServiceImpl implements FinancialService {
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
                 .eq(FinancialProduct::getStatus, ProductStatus.open);
 
+        return getFinancialProductVOIPage(page, type, query);
+
+    }
+
+    @Override
+    public IPage<FinancialProductVO> activitiesProducts(Page<FinancialProduct> page, BusinessType type) {
+        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
+                .eq(FinancialProduct::getBusinessType, ProductStatus.open);
+        return getFinancialProductVOIPage(page, null, query);
+    }
+
+    private IPage<FinancialProductVO> getFinancialProductVOIPage(Page<FinancialProduct> page, ProductType type, LambdaQueryWrapper<FinancialProduct> query) {
         if(Objects.nonNull(type)){
-            query.eq(FinancialProduct :: getType,type);
+            query.eq(FinancialProduct :: getType, type);
         }
 
-        var list = financialProductService.page(page,query);
+
+        var list = financialProductService.page(page, query);
         List<Long> productId = list.getRecords().stream().map(FinancialProduct::getId).distinct().collect(Collectors.toList());
 
         Map<Long, BigDecimal> useQuota = financialRecordService.getUseQuota(productId);
-        return list.convert( product -> {
+        return list.convert(product -> {
             FinancialProductVO financialProductVO = financialConverter.toVO(product);
-            financialProductVO.setUseQuota(useQuota.getOrDefault(product.getId(),BigDecimal.ZERO));
+            financialProductVO.setUseQuota(useQuota.getOrDefault(product.getId(), BigDecimal.ZERO));
             return financialProductVO;
         });
-
     }
 
     /**
@@ -377,4 +393,6 @@ public class FinancialServiceImpl implements FinancialService {
     private OrderService orderService;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private AddressService addressService;
 }
