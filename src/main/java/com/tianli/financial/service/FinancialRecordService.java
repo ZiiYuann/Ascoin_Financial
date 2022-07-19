@@ -3,6 +3,7 @@ package com.tianli.financial.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.CommonFunction;
+import com.tianli.common.TimeUtils;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.entity.FinancialProduct;
@@ -18,6 +19,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,17 +65,21 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      * 生成记录
      */
     public FinancialRecord generateFinancialRecord(Long uid,FinancialProduct product,BigDecimal amount){
-        LocalDate startDate = requestInitService.now().toLocalDate().plusDays(1L);
+        LocalDateTime startIncomeTime = TimeUtils.StartOfTime(TimeUtils.Util.DAY).plusDays(1);
+        LocalDateTime startDate = requestInitService.now().plusDays(1L);
         FinancialRecord record = FinancialRecord.builder()
                 .id(CommonFunction.generalId())
                 .productId(product.getId())
                 .uid(uid).productType(product.getType())
                 .holdAmount(amount)
-                .createTime(requestInitService.now())
-                .startTime(startDate)
+                .purchaseTime(requestInitService.now())
+                .productTerm(product.getTerm())
+                .startIncomeTime(startIncomeTime)
                 .endTime(startDate.plusDays(product.getTerm().getDay()))
                 .rate(product.getRate())
+                .coin(product.getCoin())
                 .status(RecordStatus.PROCESS)
+                .productName(product.getName())
                 .build();
         int i = financialRecordMapper.insert(record);
         if(i <= 0){

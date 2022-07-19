@@ -1,9 +1,6 @@
 package com.tianli.financial.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.PageQuery;
-import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
@@ -11,14 +8,18 @@ import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.FinancialProductService;
+import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.service.FinancialService;
-import com.tianli.financial.vo.OrderFinancialVO;
+import com.tianli.financial.vo.FinancialProductVO;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/financial")
@@ -32,6 +33,8 @@ public class FinancialController {
     private FinancialService financialService;
     @Resource
     private FinancialConverter financialConverter;
+    @Resource
+    private FinancialRecordService financialRecordService;
 
     /**
      * 理财产品列表
@@ -46,17 +49,12 @@ public class FinancialController {
      */
     @GetMapping("/product/{productId}")
     public Result oneProduct(@PathVariable("productId") Long productId){
-        FinancialProduct financialProduct = financialProductService.getById(productId);
-        return Result.instance().setData(financialConverter.toVO(financialProduct));
-    }
+        FinancialProduct product = financialProductService.getById(productId);
+        Map<Long, BigDecimal> useQuota = financialRecordService.getUseQuota(List.of(product.getId()));
 
-    /**
-     * 申购理财产品（余额）
-     */
-    @PostMapping("/purchase/balance")
-    public Result balancePurchase(@RequestBody @Valid PurchaseQuery purchaseQuery){
-        //TODO 币种的转换，校验密码
-        return Result.instance().setData(financialService.purchase(purchaseQuery));
+        FinancialProductVO productVO = financialConverter.toVO(product);
+        productVO.setUseQuota(useQuota.getOrDefault(productVO.getId(),BigDecimal.ZERO));
+        return Result.instance().setData(productVO);
     }
 
     /**
@@ -100,19 +98,6 @@ public class FinancialController {
         return Result.instance().setData(financialService.incomeDetails(uid,recordId));
     }
 
-    /**
-     * 交易记录
-     */
-    @GetMapping("/order")
-    public Result order(PageQuery<OrderFinancialVO> pageQuery, ProductType productType, ChargeType chargeType) {
-        if(!ChargeType.purchase.equals(chargeType) && !ChargeType.redeem.equals(chargeType)
-             && !ChargeType.transfer.equals(chargeType)){
-            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
-        }
-
-        Long uid = requestInitService.uid();
-        return Result.instance().setData(financialService.orderPage(uid,pageQuery.page(),productType,chargeType));
-    }
 
 
 

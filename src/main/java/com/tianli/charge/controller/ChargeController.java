@@ -2,13 +2,17 @@ package com.tianli.charge.controller;
 
 import com.google.gson.Gson;
 import com.tianli.address.query.RechargeCallbackQuery;
-import com.tianli.charge.service.ChargeService;
-import com.tianli.charge.entity.Order;
-import com.tianli.charge.enums.ChargeStatus;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.query.WithdrawQuery;
-import com.tianli.charge.vo.WithdrawApplyChargeVO;
+import com.tianli.charge.service.ChargeService;
+import com.tianli.charge.vo.OrderSettleInfoVO;
+import com.tianli.common.PageQuery;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.query.PurchaseQuery;
+import com.tianli.financial.service.FinancialService;
+import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.crypto.Crypto;
@@ -18,8 +22,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author wangqiyun
@@ -38,6 +40,8 @@ public class ChargeController {
     private ChargeService chargeService;
     @Resource
     private RequestInitService requestInitService;
+    @Resource
+    private FinancialService financialService;
 
     /**
      * 充值回调
@@ -71,12 +75,47 @@ public class ChargeController {
     }
 
     /**
+     * 申购理财产品（余额）
+     */
+    @PostMapping("/purchase/balance")
+    public Result balancePurchase(@RequestBody @Valid PurchaseQuery purchaseQuery){
+        //TODO 币种的转换，校验密码
+        return Result.instance().setData(financialService.purchase(purchaseQuery));
+    }
+
+
+    /**
      * 订单详情
      */
     @GetMapping("/details/{orderNo}")
     public Result details(@PathVariable String orderNo) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(chargeService.orderChargeDetails(uid, orderNo));
+        return Result.instance().setData(chargeService.chargeOrderDetails(uid, orderNo));
     }
+
+
+    /**
+     * 结算记录
+     */
+    @GetMapping("/settles")
+    public Result settles(PageQuery<OrderSettleInfoVO> page, ProductType productType) {
+        Long uid = requestInitService.uid();;
+        return Result.instance().setData(chargeService.settleOrderPage(page.page(),uid,productType));
+    }
+
+    /**
+     * 交易记录
+     */
+    @GetMapping("/orders")
+    public Result order(PageQuery<OrderFinancialVO> pageQuery, ProductType productType, ChargeType chargeType) {
+        if(!ChargeType.purchase.equals(chargeType) && !ChargeType.redeem.equals(chargeType)
+                && !ChargeType.transfer.equals(chargeType)){
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
+        }
+
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(financialService.orderPage(uid,pageQuery.page(),productType,chargeType));
+    }
+
 
 }

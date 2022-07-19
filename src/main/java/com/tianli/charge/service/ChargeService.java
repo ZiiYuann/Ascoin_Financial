@@ -12,17 +12,20 @@ import com.tianli.address.query.RechargeCallbackQuery;
 import com.tianli.charge.converter.ChargeConverter;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderChargeInfo;
+import com.tianli.charge.entity.OrderSettleInfo;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderMapper;
 import com.tianli.charge.query.WithdrawQuery;
 import com.tianli.charge.vo.OrderChargeInfoVO;
+import com.tianli.charge.vo.OrderSettleInfoVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.financial.enums.ProductType;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +37,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -144,7 +148,15 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 , order.getOrderNo(), CurrencyLogDes.提现.name());
     }
 
-    public OrderChargeInfoVO orderChargeDetails(Long uid,String orderNo){
+    /**
+     * 结算列表
+     */
+    public IPage<OrderSettleInfoVO> settleOrderPage(IPage<OrderSettleInfoVO> page, Long uid, ProductType productType){
+        return orderService.settleOrderPage(page,uid,productType);
+    }
+
+
+    public OrderChargeInfoVO chargeOrderDetails(Long uid, String orderNo){
 
         LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)

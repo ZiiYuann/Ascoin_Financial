@@ -4,6 +4,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.enums.PurchaseTerm;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,8 @@ public class OrderFinancialVO {
     private ChargeType chargeType;
 
     private String name;
+
+    private PurchaseTerm term;
 
     private CurrencyCoin coin;
 
@@ -59,7 +62,6 @@ public class OrderFinancialVO {
      * 年利率
      */
     private String rate;
-
 
     /**
      * 预估收益

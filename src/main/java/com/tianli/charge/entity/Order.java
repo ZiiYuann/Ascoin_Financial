@@ -68,6 +68,7 @@ public class Order {
 
     /**
      * 不同类型的交易关联不同的附录表
+     *
      */
     private Long relatedId;
 
