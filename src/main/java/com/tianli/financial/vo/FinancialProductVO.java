@@ -72,5 +72,25 @@ public class FinancialProductVO {
      */
     private BigDecimal totalQuota;
 
+    /**
+     * 申购时间
+     */
+    private LocalDateTime purchaseTime;
+
+    /**
+     * 记息时间
+     */
+    private LocalDateTime startIncomeTime;
+
+    /**
+     * 结算时间
+     */
+    private LocalDateTime settleTime;
+
+    /**
+     * 可用余额
+     */
+    private BigDecimal availableBalance;
+
 
 }

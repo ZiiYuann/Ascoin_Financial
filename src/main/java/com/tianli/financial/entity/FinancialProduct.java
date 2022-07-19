@@ -32,6 +32,8 @@ public class FinancialProduct {
      */
     private CurrencyCoin coin;
 
+    private String logo;
+
     /**
      * 产品名称
      */

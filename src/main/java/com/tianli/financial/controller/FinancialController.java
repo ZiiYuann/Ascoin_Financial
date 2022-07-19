@@ -1,6 +1,9 @@
 package com.tianli.financial.controller;
 
+import com.tianli.account.entity.AccountBalance;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.common.PageQuery;
+import com.tianli.common.TimeUtils;
 import com.tianli.exception.Result;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +40,8 @@ public class FinancialController {
     private FinancialConverter financialConverter;
     @Resource
     private FinancialRecordService financialRecordService;
+    @Resource
+    private AccountBalanceService accountBalanceService;
 
     /**
      * 理财产品列表
@@ -50,11 +56,23 @@ public class FinancialController {
      */
     @GetMapping("/product/{productId}")
     public Result oneProduct(@PathVariable("productId") Long productId){
+
+        Long uid = requestInitService.uid();
         FinancialProduct product = financialProductService.getById(productId);
-        Map<Long, BigDecimal> useQuota = financialRecordService.getUseQuota(List.of(product.getId()));
+
+
+        var useQuota = financialRecordService.getUseQuota(List.of(product.getId()));
+        var personUseQuota = financialRecordService.getUseQuota(List.of(product.getId()),uid);
+        var accountBalance = accountBalanceService.get(uid, product.getCoin());
 
         FinancialProductVO productVO = financialConverter.toVO(product);
+        LocalDateTime now = LocalDateTime.now();
         productVO.setUseQuota(useQuota.getOrDefault(productVO.getId(),BigDecimal.ZERO));
+        productVO.setUserPersonQuota(personUseQuota.getOrDefault(productVO.getId(),BigDecimal.ZERO));
+        productVO.setAvailableBalance(accountBalance.getRemain());
+        productVO.setPurchaseTime(now);
+        productVO.setStartIncomeTime(TimeUtils.StartOfTime(TimeUtils.Util.DAY).plusDays(1));
+        productVO.setPurchaseTime(now.plusDays(product.getTerm().getDay()));
         return Result.instance().setData(productVO);
     }
 

@@ -55,6 +55,10 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             queryWrapper = queryWrapper.eq(FinancialProduct :: getStatus,query.getStatus());
         }
 
+        if(Objects.nonNull(query.getCoin())){
+            queryWrapper = queryWrapper.eq(FinancialProduct :: getCoin,query.getCoin());
+        }
+
         queryWrapper = queryWrapper.orderByDesc(FinancialProduct :: getCreateTime);
 
         IPage<FinancialProduct> financialProductIPage = financialProductMapper.selectPage(page, queryWrapper);

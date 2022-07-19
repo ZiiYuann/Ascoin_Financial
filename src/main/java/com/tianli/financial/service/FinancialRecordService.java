@@ -38,12 +38,20 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      * 获取不同产品已经使用的总额度
      */
     public Map<Long,BigDecimal> getUseQuota(List<Long> productIds){
+        return getUseQuota(productIds,null);
+    }
+
+    public Map<Long,BigDecimal> getUseQuota(List<Long> productIds,Long uid){
         if(CollectionUtils.isEmpty(productIds)){
             return new HashMap<>();
         }
 
         var query =
                 new LambdaQueryWrapper<FinancialRecord>().in(FinancialRecord::getProductId, productIds);
+
+        if(Objects.nonNull(uid)){
+            query = query.eq(FinancialRecord :: getUid,uid);
+        }
 
         var financialRecords = financialRecordMapper.selectList(query);
         return financialRecords.stream()

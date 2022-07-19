@@ -216,7 +216,19 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @return 账户余额主页面VO
      */
     public AccountBalanceMainPageVO getAccountBalanceMainPageVO(Long uid) {
+        var accountBalanceVOS = accountBalanceVOS(uid);
+        BigDecimal totalDollarBalance = accountBalanceVOS.stream()
+                .map(AccountBalanceVO::getDollarBalance)
+                .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(8, RoundingMode.HALF_DOWN);
 
+
+        var result = new AccountBalanceMainPageVO();
+        result.setTotalAccountBalance(totalDollarBalance);
+        result.setAccountBalances(accountBalanceVOS);
+        return result;
+    }
+
+    public List<AccountBalanceVO> accountBalanceVOS(Long uid){
         List<AccountBalance> accountBalances = Optional.ofNullable(this.list(uid)).orElse(new ArrayList<>());
 
         Map<CurrencyCoin, BigDecimal> currencyDollarRateMap = accountBalances.stream()
@@ -224,8 +236,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
                 .collect(Collectors.toMap(o -> o, currencyService::getDollarRate));
 
         List<AccountBalanceVO> accountBalanceVOS = new ArrayList<>(accountBalances.size());
-        var totalDollarBalance = accountBalances.stream()
-                .map(accountBalance -> {
+        accountBalances.stream()
+                .forEach(accountBalance -> {
                     CurrencyCoin currencyCoin = accountBalance.getCoin();
                     BigDecimal rate = currencyDollarRateMap.getOrDefault(currencyCoin, BigDecimal.ONE);
 
@@ -239,16 +251,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
                     accountBalanceVO.setDollarFreeze(dollarFreeze);
                     accountBalanceVO.setDollarRemain(dollarRemain);
                     accountBalanceVOS.add(accountBalanceVO);
-
-                    return dollarBalance;
-                })
-                .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(8, RoundingMode.HALF_DOWN);
-
-
-        var result = new AccountBalanceMainPageVO();
-        result.setTotalAccountBalance(totalDollarBalance);
-        result.setAccountBalances(accountBalanceVOS);
-        return result;
+                });
+        return accountBalanceVOS;
     }
 
     public AccountBalance get(Long uid, CurrencyCoin currencyCoin){

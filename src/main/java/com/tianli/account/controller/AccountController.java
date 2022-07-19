@@ -68,6 +68,15 @@ public class AccountController {
     }
 
     /**
+     * 查询用户云钱包列表信息
+     */
+    @GetMapping("/balances")
+    public Result balances() {
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(accountBalanceService.getAccountBalanceMainPageVO(uid));
+    }
+
+    /**
      * 查询单个币种余额
      */
     @GetMapping("/balance/{coin}")
