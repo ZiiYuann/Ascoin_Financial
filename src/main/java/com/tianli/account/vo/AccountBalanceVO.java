@@ -26,6 +26,11 @@ public class AccountBalanceVO {
     private CurrencyCoin coin;
 
     /**
+     * logo 地址
+     */
+    private String logo;
+
+    /**
      * 转化成为美元的汇率
      */
     private BigDecimal dollarRate;

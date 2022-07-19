@@ -32,6 +32,11 @@ public class AccountBalance extends Model<AccountBalance> {
     private Long id;
 
     /**
+     * logo 地址
+     */
+    private String logo;
+
+    /**
      * 用户id
      */
     private Long uid;
