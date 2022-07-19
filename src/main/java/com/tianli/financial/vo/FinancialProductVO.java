@@ -92,5 +92,8 @@ public class FinancialProductVO {
      */
     private BigDecimal availableBalance;
 
-
+    /**
+     * 最低申购额度
+     */
+    private BigDecimal limitPurchaseQuota;
 }

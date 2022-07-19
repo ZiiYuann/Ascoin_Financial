@@ -111,6 +111,16 @@ public class FinancialController {
     }
 
     /**
+     * 我的收益
+     */
+    @GetMapping("/income")
+    public Result income() {
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(financialService.income(uid));
+    }
+
+
+    /**
      * 具体收益明细
      */
     @GetMapping("/income/{recordId}")
@@ -118,7 +128,6 @@ public class FinancialController {
         Long uid = requestInitService.uid();
         return Result.instance().setData(financialService.incomeDetails(uid,recordId));
     }
-
 
 
     /**

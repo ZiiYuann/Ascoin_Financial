@@ -77,6 +77,11 @@ public class FinancialProduct {
     private BigDecimal totalQuota;
 
     /**
+     * 最低申购额度
+     */
+    private BigDecimal limitPurchaseQuota;
+
+    /**
      * 添加时间
      */
     private LocalDateTime createTime;

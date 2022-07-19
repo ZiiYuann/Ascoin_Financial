@@ -58,16 +58,4 @@ public class FinancialWalletController {
         return Result.success(names);
     }
 
-    private void setTotalAmount(FinancialUserListDto financialUserListDto, FinancialUserListVO financialUserListVo) {
-        FinancialUserTotalDto financialUserTotalDto = financialUserMapper.selectTotalAmount(financialUserListDto);
-        BigInteger totalCurrentDeposit = financialUserMapper.selectTotalCurrentAmount(financialUserListDto);
-        if (ObjectUtil.isNull(financialUserTotalDto)) {
-            financialUserTotalDto = new FinancialUserTotalDto();
-        } else {
-            financialUserTotalDto.setTotalCurrentDeposit(totalCurrentDeposit);
-        }
-        financialUserListVo.setTotalCurrentDeposit(CurrencyAdaptType.usdt_omni.money(financialUserTotalDto.getTotalCurrentDeposit()));
-        financialUserListVo.setTotalRedemption(CurrencyAdaptType.usdt_omni.money(financialUserTotalDto.getTotalRedemption()));
-        financialUserListVo.setTotalHistoricalDeposits(CurrencyAdaptType.usdt_omni.money(financialUserTotalDto.getTotalHistoricalDeposits()));
-    }
 }
