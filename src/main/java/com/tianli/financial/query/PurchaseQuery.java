@@ -2,6 +2,7 @@ package com.tianli.financial.query;
 
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.PurchaseTerm;
+import lombok.Data;
 import lombok.Getter;
 
 import javax.validation.constraints.DecimalMin;
@@ -13,6 +14,7 @@ import java.math.BigDecimal;
  * @since 2022-07-06 11:22
  **/
 @Getter
+@Data
 public class PurchaseQuery {
 
    /**
@@ -29,7 +31,7 @@ public class PurchaseQuery {
     /**
      * 申购币别
      */
-    private CurrencyCoin currencyCoin;
+    private CurrencyCoin coin;
 
     /**
      * 申购期限

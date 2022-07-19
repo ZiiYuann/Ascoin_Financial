@@ -38,22 +38,14 @@ public class FinancialProductVO {
     private ProductType type;
 
     /**
-     * 风险类型
-     */
-    private RiskType riskType;
-
-    /**
      * 类型 {@link PurchaseTerm}
      */
     private PurchaseTerm term;
-
 
     /**
      * 产品状态 {@link ProductStatus}
      */
     private ProductStatus status;
-
-    private BusinessType businessType;
 
     /**
      * 参考年化
@@ -61,26 +53,24 @@ public class FinancialProductVO {
     private double rate;
 
     /**
+     * 个人已使用额度
+     */
+    private BigDecimal userPersonQuota;
+
+    /**
+     * 个人额度
+     */
+    private BigDecimal personQuota;
+
+    /**
      * 已经使用
      */
     private BigDecimal useQuota;
-
-    private BigDecimal personQuota;
 
     /**
      * 总额度
      */
     private BigDecimal totalQuota;
-
-    /**
-     * 添加时间
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 修改时间
-     */
-    private LocalDateTime updateTime;
 
 
 }

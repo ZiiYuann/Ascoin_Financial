@@ -14,6 +14,7 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.TimeUtils;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
@@ -59,7 +60,7 @@ public class FinancialServiceImpl implements FinancialService {
         validProduct(product);
 
         BigDecimal amount = purchaseQuery.getAmount();
-        validRemainAmount(purchaseQuery.getProductId(),purchaseQuery.getCurrencyCoin(),amount);
+        validRemainAmount(uid,purchaseQuery.getCoin(),amount);
 
         // 生成一笔订单记录(进行中)
         Order order = Order.builder()

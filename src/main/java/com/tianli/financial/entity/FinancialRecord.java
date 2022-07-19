@@ -63,23 +63,27 @@ public class FinancialRecord {
     private double rate;
 
     /**
-     * 开始日期
+     * 申购时间
      */
-    private LocalDate startTime;
+    private LocalDateTime purchaseTime;
 
     /**
-     * 结束日期
+     * 开始计息时间
      */
-    private LocalDate endTime;
+    private LocalDateTime startIncomeTime;
 
     /**
-     * 创建时间
+     * 结算时间
      */
-    private LocalDateTime createTime;
+    private LocalDateTime endTime;
 
     /**
-     * 赎回时间
+     * 赎回时间（最近一次）
      */
     private LocalDateTime redeemTime;
 
+    /**
+     * 自动续费
+     */
+    private boolean autoRenewal;
 }

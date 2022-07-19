@@ -27,7 +27,7 @@ public enum CurrencyAdaptType {
     usdt_trc20(CurrencyCoin.usdt,CurrencyNetworkType.trc20),
     tron,
 
-    usdt_omni,
+    usdt_omni(CurrencyCoin.usdt),
     btc,
 
     cny(true),
@@ -35,7 +35,10 @@ public enum CurrencyAdaptType {
     bnb(CurrencyCoin.bnb,CurrencyNetworkType.bep20),
     BF_bep20;
 
-
+    CurrencyAdaptType(CurrencyCoin currencyCoin) {
+        this.fiat = false;
+        this.currencyCoin = currencyCoin;
+    }
 
     CurrencyAdaptType(CurrencyCoin currencyCoin,CurrencyNetworkType currencyNetworkType) {
         this.fiat = false;

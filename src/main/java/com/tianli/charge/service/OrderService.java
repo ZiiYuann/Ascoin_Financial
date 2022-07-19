@@ -7,11 +7,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.charge.entity.OrderChargeInfo;
+import com.tianli.charge.entity.OrderSettleInfo;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.mapper.OrderChargeInfoMapper;
 import com.tianli.charge.mapper.OrderMapper;
+import com.tianli.charge.vo.OrderSettleInfoVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialProduct;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author chenb
@@ -99,5 +102,10 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
         return order;
     }
 
-
+    /**
+     *
+     */
+    public IPage<OrderSettleInfoVO> settleOrderPage(IPage<OrderSettleInfoVO> page, Long uid, ProductType productType) {
+        return orderMapper.selectOrderSettleInfoVOPage(page, uid, productType);
+    }
 }
