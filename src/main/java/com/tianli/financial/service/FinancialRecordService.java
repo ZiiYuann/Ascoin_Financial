@@ -88,7 +88,8 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
                 .coin(product.getCoin())
                 .status(RecordStatus.PROCESS)
                 .productName(product.getName())
-                .productName(product.getNameEn())
+                .productNameEn(product.getNameEn())
+                .logo(product.getLogo())
                 .build();
         int i = financialRecordMapper.insert(record);
         if(i <= 0){

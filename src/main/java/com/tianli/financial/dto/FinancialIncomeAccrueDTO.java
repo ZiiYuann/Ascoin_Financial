@@ -33,4 +33,8 @@ public class FinancialIncomeAccrueDTO extends FinancialIncomeAccrue {
     private BigDecimal rate;
 
     private BigDecimal holdAmount;
+
+    private String logo;
+
+    private String productNameEn;
 }

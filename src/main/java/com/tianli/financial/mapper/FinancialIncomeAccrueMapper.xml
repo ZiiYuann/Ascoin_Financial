@@ -4,11 +4,13 @@
     <select id="pageByQuery" resultType="com.tianli.financial.dto.FinancialIncomeAccrueDTO">
         SELECT income.*,
         record.product_name,
+        record.product_name_en,
         record.product_type,
         record.rate,
         record.product_term ,
         record.hold_amount,
-        record.coin
+        record.coin,
+        record.logo
         FROM financial_income_accrue income
         INNER JOIN financial_record record ON income.uid = record.uid and income.record_id = record.id
         where 1=1

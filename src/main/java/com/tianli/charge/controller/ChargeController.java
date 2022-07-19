@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.Objects;
 
 /**
  * @author wangqiyun
@@ -108,7 +109,7 @@ public class ChargeController {
      */
     @GetMapping("/orders")
     public Result order(PageQuery<OrderFinancialVO> pageQuery, ProductType productType, ChargeType chargeType) {
-        if(!ChargeType.purchase.equals(chargeType) && !ChargeType.redeem.equals(chargeType)
+        if(Objects.nonNull(chargeType) && !ChargeType.purchase.equals(chargeType) && !ChargeType.redeem.equals(chargeType)
                 && !ChargeType.transfer.equals(chargeType)){
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
