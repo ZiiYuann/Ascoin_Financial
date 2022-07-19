@@ -24,6 +24,8 @@ public class OrderSettleInfoVO {
 
     private String productName;
 
+    private String productNameEn;
+
     private String productTerm;
 
     /**

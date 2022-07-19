@@ -41,6 +41,8 @@ public class FinancialRecord {
      */
     private String productName;
 
+    private String productNameEn;
+
     /**
      * 活期/定期产品
      */

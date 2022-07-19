@@ -9,6 +9,7 @@
         o.order_no,
         record.product_type as type ,
         record.product_name as name,
+        record.product_name_en as name_en,
         record.coin,
         record.product_term as term,
         record.rate
@@ -32,7 +33,8 @@
             AND o.type = #{query.chargeType}
         </if>
         <if test="query.name != null">
-            AND record.product_name like concat('%',#{query.name},'%')
+            AND ( record.product_name like concat('%',#{query.name},'%')
+                  OR record.product_name_en like concat('%',#{query.name},'%')
         </if>
         <if test="query.coin != null">
             AND record.coin = #{query.coin}
@@ -43,7 +45,7 @@
     <select id="selectOrderSettleInfoVOPage" resultType="com.tianli.charge.vo.OrderSettleInfoVO">
         SELECT o.uid, record.id as record_id, income.income_amount, o.amount as settle_amount,
                record.purchase_time ,record.start_income_time,record.redeem_time,
-               record.coin,record.product_name,record.product_term
+               record.coin,record.product_name,record.product_term,record.product_name_en,
         FROM `order` o
                  INNER JOIN financial_record record on record.id = o.related_id and record.uid = o.uid
                  INNER JOIN financial_income_accrue income ON income.uid = o.uid and income.record_id = record.id

@@ -1,6 +1,5 @@
 package com.tianli.financial.controller;
 
-import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.TimeUtils;
@@ -24,10 +23,6 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/financial")
@@ -49,7 +44,7 @@ public class FinancialController {
     /**
      * 理财产品列表
      */
-    @GetMapping("/products")
+    @GetMapping("/products/summary")
     public Result products(PageQuery<FinancialProduct> pageQuery,ProductType productType){
         return Result.instance().setData(financialService.products(pageQuery.page(),productType));
     }
@@ -119,7 +114,6 @@ public class FinancialController {
         return Result.instance().setData(financialService.income(uid));
     }
 
-
     /**
      * 具体收益明细
      */
@@ -128,7 +122,6 @@ public class FinancialController {
         Long uid = requestInitService.uid();
         return Result.instance().setData(financialService.incomeDetails(uid,recordId));
     }
-
 
     /**
      * 限时活动

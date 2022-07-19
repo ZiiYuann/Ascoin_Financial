@@ -1,6 +1,5 @@
 package com.tianli.financial.entity;
 
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.*;
 import lombok.Builder;
@@ -38,6 +37,8 @@ public class FinancialProduct {
      * 产品名称
      */
     private String name;
+
+    private String nameEn;
 
     /**
      * 产品类型 {@link ProductType}
