@@ -52,19 +52,19 @@ public class CommonConfig {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
-
-    @Value("${email.amazon.accessKeyId}")
-    private String emailAmazonAccessKeyId;
-
-    @Value("${email.amazon.secretAccessKey}")
-    private String emailAmazonSecretAccessKey;
-
-    @Bean
-    public SesV2Client sesV2Client() {
-        return SesV2Client.builder().credentialsProvider(() ->
-                        AwsBasicCredentials.create(emailAmazonAccessKeyId, emailAmazonSecretAccessKey))
-                .region(Region.AP_NORTHEAST_1).build();
-    }
+//
+//    @Value("${email.amazon.accessKeyId}")
+//    private String emailAmazonAccessKeyId;
+//
+//    @Value("${email.amazon.secretAccessKey}")
+//    private String emailAmazonSecretAccessKey;
+//
+//    @Bean
+//    public SesV2Client sesV2Client() {
+//        return SesV2Client.builder().credentialsProvider(() ->
+//                        AwsBasicCredentials.create(emailAmazonAccessKeyId, emailAmazonSecretAccessKey))
+//                .region(Region.AP_NORTHEAST_1).build();
+//    }
 
 
 }
