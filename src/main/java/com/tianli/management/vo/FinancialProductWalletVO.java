@@ -14,4 +14,9 @@ public class FinancialProductWalletVO {
      * 激活钱包总人数
      */
     private Long totalActiveWalletCount;
+
+    /**
+     * 日期内激活钱包人数
+     */
+    private Long newActiveWalletCount;
 }

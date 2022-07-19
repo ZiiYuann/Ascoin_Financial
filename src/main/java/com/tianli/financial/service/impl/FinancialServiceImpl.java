@@ -7,6 +7,7 @@ import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.AddressService;
+import com.tianli.address.mapper.Address;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
@@ -277,7 +278,17 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     public FinancialProductWalletVO walletBoard(FinancialBoardQuery query) {
+
+
+        var addressQuery =
+                new LambdaQueryWrapper<Address>().between(Address::getCreateTime, query.getStartTime(), query.getEndTime());
+
+        List<Address> addresses = Optional.ofNullable(addressService.list(addressQuery)).orElse(new ArrayList<>());
+        int newActiveWalletCount = addresses.size();
         int totalActiveWalletCount = addressService.count();
+
+
+
         return null;
     }
 
