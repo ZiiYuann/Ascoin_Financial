@@ -1,0 +1,32 @@
+name: financial
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ dev_aws ]
+  pull_request:
+    branches: [ dev_aws ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build-and-push:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+      - name: Build with Maven
+        run: mvn -B package -DskipTests --file pom.xml
+      - uses: kciter/aws-ecr-action@master
+        with:
+          access_key_id: AKIAXP2AFOT42KGI4MZA
+          secret_access_key: "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"
+          account_id: "514993779961"
+          repo: financial
+          region: ap-northeast-1
+          tags: latest
+          create_repo: true
