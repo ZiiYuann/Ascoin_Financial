@@ -1,6 +1,6 @@
 package com.tianli.chain.controller;
 
-import com.tianli.chain.mapper.ChainTx;
+import com.tianli.chain.entity.ChainTx;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.AllArgsConstructor;

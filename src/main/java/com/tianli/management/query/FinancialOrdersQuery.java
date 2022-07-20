@@ -7,6 +7,9 @@ import com.tianli.financial.enums.ProductType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDateTime;
 
 /**
  * @author chenb
@@ -25,4 +28,10 @@ public class FinancialOrdersQuery {
     private CurrencyCoin coin;
     private ChargeStatus status;
     private ChargeType chargeType;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime startTime;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime endTime;
 }

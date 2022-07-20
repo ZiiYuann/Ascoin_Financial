@@ -1,4 +1,4 @@
-package com.tianli.chain.mapper;
+package com.tianli.chain.entity;
 
 import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.AllArgsConstructor;

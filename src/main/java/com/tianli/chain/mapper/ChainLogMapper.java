@@ -1,6 +1,7 @@
 package com.tianli.chain.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.tianli.chain.entity.ChainLog;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;

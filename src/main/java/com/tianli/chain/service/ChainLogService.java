@@ -1,7 +1,7 @@
 package com.tianli.chain.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.chain.mapper.ChainLog;
+import com.tianli.chain.entity.ChainLog;
 import com.tianli.chain.mapper.ChainLogMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

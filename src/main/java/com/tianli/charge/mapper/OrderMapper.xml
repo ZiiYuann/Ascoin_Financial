@@ -22,7 +22,7 @@
             AND o.uid = #{query.uid}
         </if>
         <if test="query.orderNo != null">
-            AND o.order_no = #{query.orderNo}
+            AND o.order_no  like  concat('%',#{query.orderNo},'%')
         </if>
         <if test="query.status != null">
             AND o.status = #{query.status}
@@ -35,10 +35,13 @@
         </if>
         <if test="query.name != null">
             AND ( record.product_name like concat('%',#{query.name},'%')
-                  OR record.product_name_en like concat('%',#{query.name},'%')
+                  OR record.product_name_en like concat('%',#{query.name},'%'))
         </if>
         <if test="query.coin != null">
             AND record.coin = #{query.coin}
+        </if>
+        <if test="query.startTime != null and query.endTime">
+            AND o.create_time BETWEEN #{query.startTime} AND #{query.endTime}
         </if>
 
         ORDER BY o.create_time desc

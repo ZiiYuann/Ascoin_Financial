@@ -1,6 +1,7 @@
 package com.tianli.chain.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.tianli.chain.entity.ChainTx;
 import com.tianli.chain.service.StatCollectAmount;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;

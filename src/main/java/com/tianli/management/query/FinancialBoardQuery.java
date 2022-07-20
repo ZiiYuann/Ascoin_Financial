@@ -1,6 +1,5 @@
 package com.tianli.management.query;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.tianli.common.TimeUtils;
 import com.tianli.exception.ErrorCodeEnum;
 import lombok.Data;

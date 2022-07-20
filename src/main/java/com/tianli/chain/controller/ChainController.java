@@ -3,12 +3,10 @@ package com.tianli.chain.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tianli.chain.mapper.ChainLog;
+import com.tianli.chain.entity.ChainLog;
 import com.tianli.chain.mapper.ChainLogMapper;
-import com.tianli.chain.mapper.ChainTx;
 import com.tianli.chain.service.ChainTxService;
 import com.tianli.charge.service.ChargeService;
-import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.currency.DigitalCurrency;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.ErrorCodeEnum;
@@ -108,6 +106,5 @@ public class ChainController {
     private ChainTxService chainTxService;
     @Resource
     private ChainLogMapper chainLogMapper;
-    @Resource
-    private ChargeService chargeService;
+
 }

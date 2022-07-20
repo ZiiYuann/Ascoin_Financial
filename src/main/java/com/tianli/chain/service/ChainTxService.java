@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.tianli.address.AddressService;
-import com.tianli.chain.mapper.ChainTx;
+import com.tianli.chain.entity.ChainTx;
 import com.tianli.chain.mapper.ChainTxMapper;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.common.CommonFunction;

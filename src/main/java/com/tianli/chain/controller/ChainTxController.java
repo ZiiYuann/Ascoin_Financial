@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
-import com.tianli.chain.mapper.ChainTx;
+import com.tianli.chain.entity.ChainTx;
 import com.tianli.chain.mapper.ChainTxMapper;
 import com.tianli.chain.service.ChainTxService;
 import com.tianli.charge.enums.ChargeStatus;
