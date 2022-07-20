@@ -37,8 +37,7 @@ import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.vo.FinancialBoardDataVO;
 import com.tianli.management.vo.FinancialProductBoardVO;
-import com.tianli.management.vo.FinancialProductWalletVO;
-import com.tianli.management.vo.FinancialProductBoardVO;
+import com.tianli.management.vo.FinancialWalletBoardSummaryVO;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -113,7 +112,7 @@ public class FinancialServiceImpl implements FinancialService {
             totalAccrueIncomeFee = totalAccrueIncomeFee.add(incomeAmount);
 
             // 单个类型产品昨日收益
-            BigDecimal yesterdayIncomeFee = dailyIncomeLogService.getYesterdayDailyAmount(uid,type);
+            BigDecimal yesterdayIncomeFee = financialIncomeDailyService.getYesterdayDailyAmount(uid,type);
             incomeVO.setYesterdayIncomeFee(yesterdayIncomeFee);
             totalYesterdayIncomeFee = totalYesterdayIncomeFee.add(yesterdayIncomeFee);
 
@@ -142,7 +141,7 @@ public class FinancialServiceImpl implements FinancialService {
                 .collect(Collectors.toMap(FinancialProduct :: getId,o -> o));
         var accrueIncomeMap = accrueIncomeLogService.selectListByRecordId(recordIds).stream()
                 .collect(Collectors.toMap(FinancialIncomeAccrue::getRecordId, o -> o));
-        var dailyIncomeMap = dailyIncomeLogService.selectListByRecordId(uid,recordIds,requestInitService.yesterday()).stream()
+        var dailyIncomeMap = financialIncomeDailyService.selectListByRecordId(uid,recordIds,requestInitService.yesterday()).stream()
                 .collect(Collectors.toMap(FinancialIncomeDaily::getRecordId, o -> o));
 
         return financialRecords.stream().map(financialRecord ->{
@@ -167,9 +166,14 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public List<DailyIncomeLogVO> incomeDetails(Long uid, Long recordId) {
-        List<FinancialIncomeDaily> dailyIncomeLogs = dailyIncomeLogService.selectListByRecordId(uid, List.of(recordId), null);
-        return dailyIncomeLogs.stream().map(DailyIncomeLogVO :: toVO).collect(Collectors.toList());
+    public List<FinancialIncomeDailyVO> incomeDetails(Long uid, Long recordId) {
+        FinancialRecord record = financialRecordService.getById(recordId);
+        List<FinancialIncomeDaily> dailyIncomeLogs = financialIncomeDailyService.selectListByRecordId(uid, List.of(recordId), null);
+        return dailyIncomeLogs.stream().map(income -> {
+            FinancialIncomeDailyVO financialIncomeDailyVO = FinancialIncomeDailyVO.toVO(income);
+            financialIncomeDailyVO.setCoin(record.getCoin());
+            return financialIncomeDailyVO;
+        }).collect(Collectors.toList());
     }
 
     @Override
@@ -277,22 +281,6 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public FinancialProductWalletVO walletBoard(FinancialBoardQuery query) {
-
-
-        var addressQuery =
-                new LambdaQueryWrapper<Address>().between(Address::getCreateTime, query.getStartTime(), query.getEndTime());
-
-        List<Address> addresses = Optional.ofNullable(addressService.list(addressQuery)).orElse(new ArrayList<>());
-        int newActiveWalletCount = addresses.size();
-        int totalActiveWalletCount = addressService.count();
-
-
-
-        return null;
-    }
-
-    @Override
     public IPage<FinancialIncomeAccrueDTO> incomeRecord(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
         return  accrueIncomeLogService.incomeRecord(page,query);
     }
@@ -354,7 +342,7 @@ public class FinancialServiceImpl implements FinancialService {
         CurrencyCoin coin = null;
         BigDecimal incomeFee = null;
 
-        FinancialIncomeDaily dailyIncomeLog = dailyIncomeLogService.getOne(new LambdaQueryWrapper<FinancialIncomeDaily>()
+        FinancialIncomeDaily dailyIncomeLog = financialIncomeDailyService.getOne(new LambdaQueryWrapper<FinancialIncomeDaily>()
                 .eq(FinancialIncomeDaily::getUid, uid)
                 .eq(FinancialIncomeDaily::getRecordId, recordId)
                 .eq(FinancialIncomeDaily::getFinishTime, yesterdayTime));
@@ -369,7 +357,7 @@ public class FinancialServiceImpl implements FinancialService {
         dailyIncomeLog.setUid(uid);
         dailyIncomeLog.setCreateTime(now);
         dailyIncomeLog.setFinishTime(yesterdayTime);
-        dailyIncomeLogService.save(dailyIncomeLog);
+        financialIncomeDailyService.save(dailyIncomeLog);
 
         FinancialIncomeAccrue accrueIncome = getAccrueIncomeLogAndInit(uid, coin, recordId);
         accrueIncome.setIncomeAmount(accrueIncome.getIncomeAmount().add(incomeFee));
@@ -405,7 +393,7 @@ public class FinancialServiceImpl implements FinancialService {
     @Resource
     private FinancialConverter financialConverter;
     @Resource
-    private FinancialIncomeDailyService dailyIncomeLogService;
+    private FinancialIncomeDailyService financialIncomeDailyService;
     @Resource
     private FinancialIncomeAccrueService accrueIncomeLogService;
     @Resource

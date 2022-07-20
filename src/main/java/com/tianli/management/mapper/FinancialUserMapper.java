@@ -1,4 +1,4 @@
-package com.tianli.management.dao;
+package com.tianli.management.mapper;
 
 import com.tianli.management.dto.FinancialUserListDto;
 import com.tianli.management.dto.FinancialUserRecordListDto;

@@ -7,6 +7,7 @@ import com.tianli.exception.Result;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialRechargeQuery;
+import com.tianli.management.service.FinancialWalletBoardService;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +28,8 @@ public class FinancialWalletController {
     private FinancialService financialService;
     @Resource
     private ChargeService chargeService;
+    @Resource
+    private FinancialWalletBoardService financialWalletBoardService;
 
     /**
      * 云钱包数据board
@@ -35,7 +38,7 @@ public class FinancialWalletController {
     @AdminPrivilege(and = Privilege.理财管理)
     public Result board(FinancialBoardQuery query) {
         query.calTime();
-        return Result.success().setData(financialService.walletBoard(query));
+        return Result.success().setData(financialWalletBoardService.walletBoard(query));
     }
 
     @GetMapping("/order/recharge")

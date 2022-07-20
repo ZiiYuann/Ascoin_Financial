@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * @since 2022-07-13
  **/
 @Data
-public class DailyIncomeLogVO {
+public class FinancialIncomeDailyVO {
 
     /**
      * 收益金额
@@ -26,10 +26,15 @@ public class DailyIncomeLogVO {
      */
     private LocalDateTime finishTime;
 
-    public static DailyIncomeLogVO toVO(FinancialIncomeDaily dailyIncomeLog) {
-        DailyIncomeLogVO dailyIncomeLogVO = new DailyIncomeLogVO();
-        dailyIncomeLogVO.setIncomeFee(dailyIncomeLog.getIncomeAmount());
-        dailyIncomeLogVO.setFinishTime(dailyIncomeLog.getFinishTime());
+    /**
+     * 币别
+     */
+    private CurrencyCoin coin;
+
+    public static FinancialIncomeDailyVO toVO(FinancialIncomeDaily financialIncomeDaily) {
+        FinancialIncomeDailyVO dailyIncomeLogVO = new FinancialIncomeDailyVO();
+        dailyIncomeLogVO.setIncomeFee(financialIncomeDaily.getIncomeAmount());
+        dailyIncomeLogVO.setFinishTime(financialIncomeDaily.getFinishTime());
         return dailyIncomeLogVO;
     }
 }

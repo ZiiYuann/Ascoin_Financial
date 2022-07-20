@@ -15,8 +15,7 @@ import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.vo.FinancialProductBoardVO;
-import com.tianli.management.vo.FinancialProductWalletVO;
-import com.tianli.management.vo.FinancialProductBoardVO;
+import com.tianli.management.vo.FinancialWalletBoardSummaryVO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -49,7 +48,7 @@ public interface FinancialService {
     /**
      * 申购的具体每日收益
      */
-    List<DailyIncomeLogVO> incomeDetails(Long uid , Long recordId);
+    List<FinancialIncomeDailyVO> incomeDetails(Long uid , Long recordId);
 
     /**
      * 校验产品是否处于开启状态
@@ -77,9 +76,6 @@ public interface FinancialService {
      * 看板数据
      */
     FinancialProductBoardVO productBoard(FinancialBoardQuery query);
-
-
-    FinancialProductWalletVO walletBoard(FinancialBoardQuery query);
 
     /**
      * 用户理财收益记录

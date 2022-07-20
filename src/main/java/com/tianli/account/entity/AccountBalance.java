@@ -3,9 +3,7 @@ package com.tianli.account.entity;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.enums.CurrencyAdaptType;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
@@ -22,6 +20,8 @@ import java.math.BigDecimal;
 @Builder
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor
+@AllArgsConstructor
 public class AccountBalance extends Model<AccountBalance> {
 
     private static final long serialVersionUID = 1L;

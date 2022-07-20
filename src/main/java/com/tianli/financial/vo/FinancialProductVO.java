@@ -34,6 +34,8 @@ public class FinancialProductVO {
 
     private String nameEn;
 
+    private String logo;
+
     /**
      * 产品类型 {@link ProductType}
      */
