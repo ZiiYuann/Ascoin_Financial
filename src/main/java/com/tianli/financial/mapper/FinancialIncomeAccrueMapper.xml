@@ -18,12 +18,12 @@
             AND record.uid = #{query.uid}
         </if>
         <if test="query.productName != null and query.productName != ''">
-            AND record.product_name = #{query.productName}
+            AND (record.product_name like concat('%',#{query.productName},'%')  or record.product_name_en like concat('%',#{query.productName},'%')  )
         </if>
-        <if test="query.productType != null and query.productType != ''">
+        <if test="query.productType != null">
             AND record.product_type = #{query.productType}
         </if>
-        <if test="query.coin != null and query.coin != ''">
+        <if test="query.coin != null ">
             AND record.coin = #{query.coin}
         </if>
         <if test="query.startTime != null and query.endTime != null">

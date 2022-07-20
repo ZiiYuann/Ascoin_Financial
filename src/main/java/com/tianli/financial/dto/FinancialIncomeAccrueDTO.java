@@ -5,7 +5,10 @@ import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.PurchaseTerm;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
@@ -15,6 +18,9 @@ import java.math.BigDecimal;
  * @since 2022-07-18
  **/
 @Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class FinancialIncomeAccrueDTO extends FinancialIncomeAccrue {
 
     private CurrencyCoin coin;

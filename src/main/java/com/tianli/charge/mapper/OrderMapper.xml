@@ -2,7 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.tianli.charge.mapper.OrderMapper">
     <select id="selectByPage" resultType="com.tianli.financial.vo.OrderFinancialVO">
-        SELECT o.type as charge_type,
+        SELECT
+        o.uid,
+        o.type as charge_type,
         o.status as charge_status,
         o.create_time,
         o.amount,

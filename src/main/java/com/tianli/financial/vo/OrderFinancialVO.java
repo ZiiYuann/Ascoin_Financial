@@ -3,6 +3,7 @@ package com.tianli.financial.vo;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.PurchaseTerm;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderFinancialVO {
+
+    private Long uid;
 
     /**
      * 交易类型
@@ -56,6 +59,8 @@ public class OrderFinancialVO {
      * 金额
      */
     private BigDecimal amount;
+
+    private BigDecimal dollarAmount;
 
     /**
      * 订单号

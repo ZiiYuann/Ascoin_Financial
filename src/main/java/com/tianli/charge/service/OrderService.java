@@ -14,6 +14,8 @@ import com.tianli.charge.mapper.OrderMapper;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderSettleInfoVO;
 import com.tianli.common.CommonFunction;
+import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.ProductType;
@@ -26,6 +28,9 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -36,11 +41,6 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 public class OrderService extends ServiceImpl<OrderMapper,Order> {
-
-    @Resource
-    private OrderMapper orderMapper;
-    @Resource
-    private OrderChargeInfoMapper orderChargeInfoMapper;
 
     public void saveOrder(Order order) {
         int i = orderMapper.insert(order);
@@ -78,7 +78,13 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
     }
 
     public IPage<OrderFinancialVO> selectByPage(IPage<OrderFinancialVO> page, FinancialOrdersQuery financialOrdersQuery) {
-        return orderMapper.selectByPage(page,financialOrdersQuery);
+        var orderFinancialVOIPage = orderMapper.selectByPage(page, financialOrdersQuery);
+        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
+
+        return orderFinancialVOIPage.convert(orderFinancialVO -> {
+            orderFinancialVO.setDollarAmount(orderFinancialVO.getAmount().multiply(dollarRateMap.getOrDefault(orderFinancialVO.getCoin(),BigDecimal.ONE)));
+            return orderFinancialVO;
+        });
     }
 
 
@@ -101,9 +107,6 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
         return order;
     }
 
-    /**
-     *
-     */
     public IPage<OrderSettleInfoVO> OrderSettleInfoVOPage(IPage<OrderSettleInfoVO> page, Long uid, ProductType productType) {
         return orderMapper.selectOrderSettleInfoVOPage(page, uid, productType);
     }
@@ -111,4 +114,12 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
     public IPage<OrderChargeInfoVO> selectOrderChargeInfoVOPage(IPage<OrderChargeInfoVO> page, FinancialChargeQuery query) {
         return orderMapper.selectOrderChargeInfoVOPage(page, query);
     }
+
+
+    @Resource
+    private OrderMapper orderMapper;
+    @Resource
+    private OrderChargeInfoMapper orderChargeInfoMapper;
+    @Resource
+    private CurrencyService currencyService;
 }
