@@ -1,5 +1,6 @@
 package com.tianli.management.query;
 
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.CurrencyNetworkType;
 import lombok.Data;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
  * @since 2022-07-19
  **/
 @Data
-public class FinancialRechargeQuery {
+public class FinancialChargeQuery {
 
     private String txid;
 
@@ -25,5 +26,7 @@ public class FinancialRechargeQuery {
     private LocalDateTime startTime;
 
     private LocalDateTime endTime;
+
+    private ChargeType chargeType;
 
 }

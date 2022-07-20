@@ -65,11 +65,6 @@ public class OrderChargeInfoVO {
     private BigDecimal amount;
 
     /**
-     * 币种类型
-     */
-    private CurrencyAdaptType currencyAdaptType;
-
-    /**
      * 币别
      */
     private CurrencyCoin coin;

@@ -6,7 +6,7 @@ import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.management.query.FinancialBoardQuery;
-import com.tianli.management.query.FinancialRechargeQuery;
+import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.service.FinancialWalletBoardService;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
@@ -43,7 +43,13 @@ public class FinancialWalletController {
 
     @GetMapping("/order/recharge")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result rechargeOrder(PageQuery<OrderChargeInfoVO> page, FinancialRechargeQuery query) {
+    public Result rechargeOrder(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
+        return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(),query));
+    }
+
+    @GetMapping("/order/withdraw")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result withdrawOrder(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
         return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(),query));
     }
 }

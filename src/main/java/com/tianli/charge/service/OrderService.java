@@ -19,7 +19,7 @@ import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.FinancialOrdersQuery;
-import com.tianli.management.query.FinancialRechargeQuery;
+import com.tianli.management.query.FinancialChargeQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -108,7 +108,7 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
         return orderMapper.selectOrderSettleInfoVOPage(page, uid, productType);
     }
 
-    public IPage<OrderChargeInfoVO> selectOrderChargeInfoVOPage(IPage<OrderChargeInfoVO> page, FinancialRechargeQuery query) {
+    public IPage<OrderChargeInfoVO> selectOrderChargeInfoVOPage(IPage<OrderChargeInfoVO> page, FinancialChargeQuery query) {
         return orderMapper.selectOrderChargeInfoVOPage(page, query);
     }
 }

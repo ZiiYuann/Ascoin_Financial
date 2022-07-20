@@ -25,7 +25,7 @@ import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.enums.ProductType;
-import com.tianli.management.query.FinancialRechargeQuery;
+import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
@@ -118,7 +118,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         OrderChargeInfo orderChargeInfo = OrderChargeInfo.builder()
                 .id(CommonFunction.generalId())
                 .txid(null)
-                .currencyAdaptType(currencyAdaptType)
+                .coin(currencyAdaptType.getCurrencyCoin())
+                .network(currencyAdaptType.getCurrencyNetworkType())
                 .fee(withdrawAmount)
                 .realFee(realAmount)
                 .serviceFee(BigDecimal.ZERO)
@@ -157,13 +158,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     /**
      * 充值列表
      */
-    public IPage<OrderChargeInfoVO> selectOrderChargeInfoVOPage(IPage<OrderChargeInfoVO> page, FinancialRechargeQuery query){
-        IPage<OrderChargeInfoVO> orderChargeInfoVOIPage = orderService.selectOrderChargeInfoVOPage(page, query);
-        return orderChargeInfoVOIPage.convert( orderChargeInfoVO -> {
-            orderChargeInfoVO.setCoin(orderChargeInfoVO.getCurrencyAdaptType().getCurrencyCoin());
-            orderChargeInfoVO.setNetworkType(orderChargeInfoVO.getCurrencyAdaptType().getCurrencyNetworkType());
-            return orderChargeInfoVO;
-        });
+    public IPage<OrderChargeInfoVO> selectOrderChargeInfoVOPage(IPage<OrderChargeInfoVO> page, FinancialChargeQuery query){
+        return orderService.selectOrderChargeInfoVOPage(page, query);
     }
 
     public OrderChargeInfoVO chargeOrderDetails(Long uid, String orderNo){
@@ -230,7 +226,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         OrderChargeInfo orderChargeInfo = OrderChargeInfo.builder()
                 .id(CommonFunction.generalId())
                 .txid(query.getTxId())
-                .currencyAdaptType(query.getType())
+                .coin(query.getType().getCurrencyCoin())
+                .network(query.getType().getCurrencyNetworkType())
                 .fee(amount)
                 .realFee(realAmount)
                 .serviceFee(BigDecimal.ZERO)

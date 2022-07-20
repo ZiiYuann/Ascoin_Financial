@@ -8,7 +8,7 @@ import com.tianli.charge.vo.OrderSettleInfoVO;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.FinancialOrdersQuery;
-import com.tianli.management.query.FinancialRechargeQuery;
+import com.tianli.management.query.FinancialChargeQuery;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -29,5 +29,5 @@ public interface OrderMapper extends BaseMapper<Order> {
                                           @Param("productType") ProductType productType);
 
     IPage<OrderChargeInfoVO> selectOrderChargeInfoVOPage(@Param("page") IPage<OrderChargeInfoVO> page,
-                                                         @Param("query") FinancialRechargeQuery query);
+                                                         @Param("query") FinancialChargeQuery query);
 }
