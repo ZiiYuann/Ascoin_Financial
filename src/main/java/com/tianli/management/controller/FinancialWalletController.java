@@ -5,10 +5,10 @@ import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
-import com.tianli.financial.service.FinancialService;
 import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.service.FinancialBoardWalletService;
+import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,8 +25,6 @@ import javax.annotation.Resource;
 @RequestMapping("/management/financial/wallet/")
 public class FinancialWalletController {
 
-    @Resource
-    private FinancialService financialService;
     @Resource
     private ChargeService chargeService;
     @Resource
@@ -53,9 +51,10 @@ public class FinancialWalletController {
     @AdminPrivilege(and = Privilege.理财管理)
     public Result rechargeOrderData(FinancialChargeQuery query) {
         query.setChargeType(ChargeType.recharge);
-        return Result.success().setData(chargeService.orderChargeSummaryAmount(query));
-    }
 
+        return Result.success()
+                .setData(FinancialSummaryDataVO.builder().rechargeAmount(chargeService.orderChargeSummaryAmount(query)).build());
+    }
 
     @GetMapping("/order/withdraw")
     @AdminPrivilege(and = Privilege.理财管理)
@@ -64,11 +63,11 @@ public class FinancialWalletController {
         return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(),query));
     }
 
-
     @GetMapping("/order/withdraw/data")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result withdrawOrderData(FinancialChargeQuery query) {
         query.setChargeType(ChargeType.recharge);
-        return Result.success().setData(chargeService.orderChargeSummaryAmount(query));
+        return Result.success()
+                .setData(FinancialSummaryDataVO.builder().withdrawAmount(chargeService.orderChargeSummaryAmount(query)).build());
     }
 }

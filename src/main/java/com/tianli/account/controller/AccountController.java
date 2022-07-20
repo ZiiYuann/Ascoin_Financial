@@ -4,9 +4,9 @@ import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.vo.AddressVO;
-import com.tianli.charge.service.ChargeService;
-import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.entity.Order;
+import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.service.ChargeService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.ErrorCodeEnum;
@@ -15,6 +15,8 @@ import com.tianli.sso.init.RequestInitService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -48,8 +50,20 @@ public class AccountController {
     /**
      * 查看钱包地址
      */
+    @GetMapping("/status")
+    public Result status() {
+        Long uid = requestInitService.uid();
+        Address address = addressService.get(uid);
+        Map<String,Boolean> result = new HashMap<>();
+        result.put("activate",Objects.nonNull(address));
+        return Result.success().setData(result);
+    }
+
+    /**
+     * 查看钱包地址
+     */
     @GetMapping("/address")
-    public Result walletStatus() {
+    public Result address() {
         Long uid = requestInitService.uid();
         Address address = addressService.get(uid);
         if (Objects.isNull(address)) {
