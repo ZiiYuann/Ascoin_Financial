@@ -9,6 +9,7 @@ import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialProduct;
+import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
@@ -43,7 +44,7 @@ public interface FinancialService {
     /**
      * 我的持有列表信息
      */
-    List<HoldProductVo> myHold(Long uid, ProductType financialProductType);
+    IPage<HoldProductVo> myHold(IPage<FinancialRecord> page,Long uid, ProductType financialProductType);
 
 
     /**

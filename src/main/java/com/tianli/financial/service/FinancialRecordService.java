@@ -1,6 +1,7 @@
 package com.tianli.financial.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.TimeUtils;
@@ -127,6 +128,24 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
 
         }
         return financialRecordMapper.selectList(query);
+    }
+
+    /**
+     * 根据产品类型、状态获取列表
+     * @param uid uid
+     * @param type 产品类型
+     * @param status 产品状态
+     */
+    public IPage<FinancialRecord> selectListPage(IPage<FinancialRecord> page,Long uid, ProductType type, RecordStatus status){
+        var query = new LambdaQueryWrapper<FinancialRecord>()
+                .eq(FinancialRecord::getUid, uid)
+                .eq(FinancialRecord::getStatus, status);
+
+        if (Objects.nonNull(type)) {
+            query = query.eq(FinancialRecord::getProductType, type);
+
+        }
+        return financialRecordMapper.selectPage(page,query);
     }
 
     /**

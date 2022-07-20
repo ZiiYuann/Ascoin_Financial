@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,6 +38,10 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
         BigDecimal redeemAmount = financialProductBoards.stream().map(FinancialProductBoardVO::getRedeemAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal settleAmount = financialProductBoards.stream().map(FinancialProductBoardVO::getSettleAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal transferAmount = financialProductBoards.stream().map(FinancialProductBoardVO::getTransferAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigInteger holdUserCount = financialProductBoards.stream().map(FinancialProductBoardVO::getHoldUserCount).reduce(BigInteger.ZERO, BigInteger::add);
+        BigDecimal income = financialProductBoards.stream().map(FinancialProductBoardVO::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigInteger fixedProductCount = financialProductBoards.stream().map(FinancialProductBoardVO::getFixedProductCount).reduce(BigInteger.ZERO, BigInteger::add);
+        BigInteger currentProductCount = financialProductBoards.stream().map(FinancialProductBoardVO::getCurrentProductCount).reduce(BigInteger.ZERO, BigInteger::add);
 
         return FinancialProductBoardSummaryVO.builder()
                 .transferAmount(transferAmount)
@@ -44,6 +49,10 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
                 .redeemAmount(redeemAmount)
                 .settleAmount(settleAmount)
                 .data(financialProductBoards)
+                .holdUserCount(holdUserCount)
+                .income(income)
+                .fixedProductCount(fixedProductCount)
+                .currentProductCount(currentProductCount)
                 .build();
     }
 

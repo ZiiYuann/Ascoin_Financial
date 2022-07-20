@@ -126,12 +126,12 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public List<HoldProductVo> myHold(Long uid, ProductType type) {
+    public IPage<HoldProductVo> myHold(IPage<FinancialRecord> page,Long uid, ProductType type) {
 
-        List<FinancialRecord> financialRecords = financialRecordService.selectList(uid, type, RecordStatus.PROCESS);
+        var financialRecords = financialRecordService.selectListPage(page,uid, type, RecordStatus.PROCESS);
 
-        var productIds = financialRecords.stream().map(FinancialRecord::getProductId).collect(Collectors.toList());
-        var recordIds = financialRecords.stream().map(FinancialRecord::getId).collect(Collectors.toList());
+        var productIds = financialRecords.getRecords().stream().map(FinancialRecord::getProductId).collect(Collectors.toList());
+        var recordIds = financialRecords.getRecords().stream().map(FinancialRecord::getId).collect(Collectors.toList());
 
         var productMap = financialProductService.listByIds(productIds).stream()
                 .collect(Collectors.toMap(FinancialProduct::getId, o -> o));
@@ -140,7 +140,7 @@ public class FinancialServiceImpl implements FinancialService {
         var dailyIncomeMap = financialIncomeDailyService.selectListByRecordId(uid, recordIds, requestInitService.yesterday()).stream()
                 .collect(Collectors.toMap(FinancialIncomeDaily::getRecordId, o -> o));
 
-        return financialRecords.stream().map(financialRecord -> {
+        return financialRecords.convert(financialRecord -> {
             var holdProductVo = new HoldProductVo();
             var product = productMap.get(financialRecord.getProductId());
             var accrueIncomeLog = Optional.ofNullable(accrueIncomeMap.get(financialRecord.getId())).orElse(new FinancialIncomeAccrue());
@@ -148,8 +148,12 @@ public class FinancialServiceImpl implements FinancialService {
 
             holdProductVo.setRecordId(financialRecord.getId());
             holdProductVo.setName(product.getName());
+            holdProductVo.setNameEn(product.getNameEn());
             holdProductVo.setRate(product.getRate());
             holdProductVo.setProductType(product.getType());
+            holdProductVo.setRiskType(product.getRiskType());
+            holdProductVo.setLogo(product.getLogo());
+            holdProductVo.setCoin(product.getCoin());
 
             IncomeVO incomeVO = new IncomeVO();
             incomeVO.setHoldFee(financialRecord.getHoldAmount());
@@ -158,7 +162,7 @@ public class FinancialServiceImpl implements FinancialService {
 
             holdProductVo.setIncomeVO(incomeVO);
             return holdProductVo;
-        }).collect(Collectors.toList());
+        });
     }
 
     @Override

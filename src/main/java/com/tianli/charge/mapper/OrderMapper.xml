@@ -66,8 +66,20 @@
         charge.fee as amount,charge.coin,charge.network as networkType
         FROM `order` o
         INNER JOIN order_charge_info charge on charge.id = o.related_id
-        WHERE o.type = 'recharge'
+        WHERE 1 = 1
+        <include refid="FinancialChargeQuery" />
 
+    </select>
+    <select id="orderChargeSummaryAmount" resultType="java.math.BigDecimal">
+        SELECT
+        sum(o.amount)
+        FROM `order` o
+        INNER JOIN order_charge_info charge on charge.id = o.related_id
+        WHERE 1 = 1
+        <include refid="FinancialChargeQuery" />
+    </select>
+
+    <sql id="FinancialChargeQuery">
         <if test="query.uid != null">
             AND o.uid = #{query.uid}
         </if>
@@ -84,5 +96,5 @@
             AND charge.network = #{query.networkType}
         </if>
 
-    </select>
+    </sql>
 </mapper>

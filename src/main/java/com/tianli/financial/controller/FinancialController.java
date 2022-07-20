@@ -1,5 +1,6 @@
 package com.tianli.financial.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.TimeUtils;
@@ -7,6 +8,7 @@ import com.tianli.exception.Result;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialProduct;
+import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
@@ -94,9 +96,9 @@ public class FinancialController {
      * 我的持用
      */
     @GetMapping("/hold")
-    public Result myHold(ProductType productType) {
+    public Result myHold(PageQuery<FinancialRecord> pageQuery,ProductType productType) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(financialService.myHold(uid,productType));
+        return Result.instance().setData(financialService.myHold(pageQuery.page(),uid,productType));
     }
 
     /**

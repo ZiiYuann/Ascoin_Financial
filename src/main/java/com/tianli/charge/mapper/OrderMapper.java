@@ -12,6 +12,8 @@ import com.tianli.management.query.FinancialChargeQuery;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.math.BigDecimal;
+
 
 /**
  * @author  chenb
@@ -30,4 +32,6 @@ public interface OrderMapper extends BaseMapper<Order> {
 
     IPage<OrderChargeInfoVO> selectOrderChargeInfoVOPage(@Param("page") IPage<OrderChargeInfoVO> page,
                                                          @Param("query") FinancialChargeQuery query);
+
+    BigDecimal orderChargeSummaryAmount(@Param("query") FinancialChargeQuery query);
 }

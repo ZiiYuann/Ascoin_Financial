@@ -1,6 +1,8 @@
 package com.tianli.financial.vo;
 
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.enums.RiskType;
 import lombok.Data;
 
 
@@ -29,6 +31,11 @@ public class HoldProductVo {
     private String name;
 
     /**
+     *  nameEn
+     */
+    private String nameEn;
+
+    /**
      * 参考年化
      */
     private double rate;
@@ -37,4 +44,10 @@ public class HoldProductVo {
      * 收益信息
      */
     private IncomeVO incomeVO;
+
+    private String logo;
+
+    private RiskType riskType;
+
+    private CurrencyCoin coin;
 }

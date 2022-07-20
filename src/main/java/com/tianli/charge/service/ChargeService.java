@@ -20,14 +20,13 @@ import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderSettleInfoVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
-import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.management.query.FinancialChargeQuery;
-import com.tianli.management.vo.FinancialUserInfoVO;
+import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
@@ -81,7 +80,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         BigDecimal finalAmount = query.getType().moneyBigDecimal(query.getValue());
 
         if (orderService.getOrderChargeByTxid(query.getTxId()) != null) {
-            log.error("txid {} 已经存在充值订单",query.getTxId());
+            log.error("txid {} 已经存在充值订单", query.getTxId());
         }
         String orderNo = insertRechargeOrder(query, finalAmount, query.getValue());
         accountBalanceService.increase(uid, ChargeType.recharge, query.getType(), finalAmount, orderNo
@@ -153,33 +152,42 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     /**
      * 结算列表
      */
-    public IPage<OrderSettleInfoVO> settleOrderPage(IPage<OrderSettleInfoVO> page, Long uid, ProductType productType){
-        return orderService.OrderSettleInfoVOPage(page,uid,productType);
+    public IPage<OrderSettleInfoVO> settleOrderPage(IPage<OrderSettleInfoVO> page, Long uid, ProductType productType) {
+        return orderService.OrderSettleInfoVOPage(page, uid, productType);
     }
 
     /**
      * 充值列表
      */
-    public IPage<OrderChargeInfoVO> selectOrderChargeInfoVOPage(IPage<OrderChargeInfoVO> page, FinancialChargeQuery query){
+    public IPage<OrderChargeInfoVO> selectOrderChargeInfoVOPage(IPage<OrderChargeInfoVO> page, FinancialChargeQuery query) {
         return orderService.selectOrderChargeInfoVOPage(page, query);
     }
 
-    public OrderChargeInfoVO chargeOrderDetails(Long uid, String orderNo){
+    /**
+     * 充值列表
+     */
+    public FinancialSummaryDataVO orderChargeSummaryAmount(FinancialChargeQuery query) {
+        return FinancialSummaryDataVO.builder()
+                .rechargeAmount(orderService.orderChargeSummaryAmount(query))
+                .build();
+    }
+
+    public OrderChargeInfoVO chargeOrderDetails(Long uid, String orderNo) {
 
         LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)
                 .eq(Order::getOrderNo, orderNo);
         Order order = orderService.getOne(queryWrapper);
-        if(!ChargeType.recharge.equals(order.getType()) && !ChargeType.withdraw.equals(order.getType()) ){
+        if (!ChargeType.recharge.equals(order.getType()) && !ChargeType.withdraw.equals(order.getType())) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
 
         OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
-        log.info("get orderChargeInfo by id:{},orderNo{}",order.getRelatedId(),order.getOrderNo());
-        Optional.ofNullable(orderChargeInfo).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR :: generalException);
-        if(!orderChargeInfo.getOrderNo().equals(order.getOrderNo())){
-            log.error("orderChargeInfo表 id :{} , 记录 orderNo{} 与  order 表 orderNo{} 不一致",orderChargeInfo.getId()
-                    ,orderChargeInfo.getOrderNo(),order.getOrderNo());
+        log.info("get orderChargeInfo by id:{},orderNo{}", order.getRelatedId(), order.getOrderNo());
+        Optional.ofNullable(orderChargeInfo).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
+        if (!orderChargeInfo.getOrderNo().equals(order.getOrderNo())) {
+            log.error("orderChargeInfo表 id :{} , 记录 orderNo{} 与  order 表 orderNo{} 不一致", orderChargeInfo.getId()
+                    , orderChargeInfo.getOrderNo(), order.getOrderNo());
             ErrorCodeEnum.SYSTEM_ERROR.throwException();
         }
         OrderChargeInfoVO orderChargeInfoVO = chargeConverter.toVO(order);
@@ -242,7 +250,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         LocalDateTime now = LocalDateTime.now();
         Order order = Order.builder()
                 .uid(uid)
-                .orderNo(AccountChangeType.normal.getPrefix()  + CommonFunction.generalSn(CommonFunction.generalId()))
+                .orderNo(AccountChangeType.normal.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
                 .completeTime(now)
                 .amount(realAmount)
                 .status(ChargeStatus.chain_success)

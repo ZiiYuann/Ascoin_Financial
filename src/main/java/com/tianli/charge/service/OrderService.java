@@ -19,6 +19,7 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
+import com.tianli.management.vo.FinancialSummaryDataVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -121,10 +122,16 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
     }
 
 
+    public BigDecimal orderChargeSummaryAmount(FinancialChargeQuery query) {
+        return Optional.ofNullable(orderMapper.orderChargeSummaryAmount(query)).orElse(BigDecimal.ZERO);
+    }
+
+
     @Resource
     private OrderMapper orderMapper;
     @Resource
     private OrderChargeInfoMapper orderChargeInfoMapper;
     @Resource
     private CurrencyService currencyService;
+
 }

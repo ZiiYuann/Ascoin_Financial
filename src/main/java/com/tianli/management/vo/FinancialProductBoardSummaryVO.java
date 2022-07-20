@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 
 /**
@@ -23,6 +24,26 @@ public class FinancialProductBoardSummaryVO {
     private BigDecimal settleAmount;
     //转存
     private BigDecimal  transferAmount;
+
+    /**
+     * 用户累计收益
+     */
+    private BigDecimal income;
+
+    /**
+     * 定期产品持有
+     */
+    private BigInteger currentProductCount;
+
+    /**
+     * 活期产品持有
+     */
+    private BigInteger fixedProductCount;
+
+    /**
+     * 理财产品持有用户数量
+     */
+    private BigInteger holdUserCount;
 
     // 详情
     private List<FinancialProductBoardVO> data;
