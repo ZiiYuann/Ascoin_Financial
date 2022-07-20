@@ -4,7 +4,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 /**
  * @author chenb
@@ -29,5 +29,15 @@ public class FinancialWalletBoardVO {
      */
     private BigInteger activeWalletCount;
 
-    private LocalDateTime createTime;
+    /**
+     * 总手续费
+     */
+    private BigDecimal totalServiceAmount;
+
+    /**
+     * usdt手续费
+     */
+    private BigDecimal usdtServiceAmount;
+
+    private LocalDate createTime;
 }

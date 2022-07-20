@@ -3,7 +3,9 @@ package com.tianli.financial.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tianli.address.mapper.Address;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialProduct;
@@ -11,10 +13,10 @@ import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.vo.*;
-import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
-import com.tianli.management.vo.FinancialProductBoardSummaryVO;
+import com.tianli.management.vo.FinancialSummaryDataVO;
+import com.tianli.management.vo.FinancialUserInfoVO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -77,12 +79,28 @@ public interface FinancialService {
     IPage<FinancialIncomeAccrueDTO> incomeRecord(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query);
 
     /**
+     *
+     */
+    FinancialSummaryDataVO summaryIncomeByQuery(FinancialProductIncomeQuery query);
+
+    /**
      * 产品列表
      */
     IPage<FinancialProductVO> products(Page<FinancialProduct> page, ProductType type);
+
     /**
      * 产品列表
      */
     IPage<FinancialProductVO> activitiesProducts(Page<FinancialProduct> page, BusinessType type);
+
+    /**
+     * 理财用户信息
+     */
+    IPage<FinancialUserInfoVO> user(Long uid, PageQuery<Address> page);
+
+    /**
+     * 理财用户信息左上角信息
+     */
+    FinancialSummaryDataVO userData(Long uid, PageQuery<Address> page);
 
 }

@@ -1,5 +1,6 @@
 package com.tianli.management.controller;
 
+import com.tianli.address.mapper.Address;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.vo.OrderChargeInfoVO;
@@ -9,6 +10,7 @@ import com.tianli.financial.service.FinancialService;
 import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.service.FinancialBoardWalletService;
+import com.tianli.management.vo.FinancialUserInfoVO;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,4 +57,6 @@ public class FinancialWalletController {
         query.setChargeType(ChargeType.withdraw);
         return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(),query));
     }
+
+
 }

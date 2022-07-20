@@ -104,8 +104,19 @@ public class FinancialProductController {
      */
     @GetMapping("/record/income")
     @AdminPrivilege(and = Privilege.理财配置)
-    public Result orders(PageQuery<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
+    public Result income(PageQuery<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
         return Result.success(financialService.incomeRecord(page.page(), query));
     }
+
+    /**
+     * 用户理财收益记录列表累计信息
+     */
+    @GetMapping("/record/income/data")
+    @AdminPrivilege(and = Privilege.理财配置)
+    public Result incomeData(FinancialProductIncomeQuery query) {
+        return Result.success(financialService.summaryIncomeByQuery(query));
+    }
+
+
 
 }

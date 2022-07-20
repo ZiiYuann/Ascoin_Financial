@@ -1,6 +1,7 @@
 package com.tianli.financial.entity;
 
 import com.baomidou.mybatisplus.extension.activerecord.Model;
+import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 
@@ -28,6 +29,8 @@ public class FinancialIncomeAccrue extends Model<FinancialIncomeAccrue> {
      * 申购记录id
      */
     private Long recordId;
+
+    private CurrencyCoin coin;
 
     /**
      * 累计收益金额

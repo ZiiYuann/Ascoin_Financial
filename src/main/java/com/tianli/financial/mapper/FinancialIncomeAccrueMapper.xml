@@ -1,19 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.tianli.financial.mapper.FinancialIncomeAccrueMapper">
-    <select id="pageByQuery" resultType="com.tianli.financial.dto.FinancialIncomeAccrueDTO">
-        SELECT income.*,
-        record.product_name,
-        record.product_name_en,
-        record.product_type,
-        record.rate,
-        record.product_term ,
-        record.hold_amount,
-        record.coin,
-        record.logo
-        FROM financial_income_accrue income
-        INNER JOIN financial_record record ON income.uid = record.uid and income.record_id = record.id
-        where 1=1
+
+
+    <sql id="FinancialProductIncomeQuery" >
+
         <if test="query.uid != null and query.uid != '' ">
             AND record.uid = #{query.uid}
         </if>
@@ -30,7 +21,34 @@
             AND income.update_time BETWEEN #{query.startTime} AND #{query.endTime}
         </if>
 
+    </sql>
+
+    <select id="pageByQuery" resultType="com.tianli.financial.dto.FinancialIncomeAccrueDTO">
+        SELECT income.*,
+        record.product_name,
+        record.product_name_en,
+        record.product_type,
+        record.rate,
+        record.product_term ,
+        record.hold_amount,
+        record.coin,
+        record.logo
+        FROM financial_income_accrue income
+        INNER JOIN financial_record record ON income.uid = record.uid and income.record_id = record.id
+        where 1=1
+        <include refid="FinancialProductIncomeQuery" />
+
     </select>
+
+    <select id="summaryIncomeByQuery" resultType="java.math.BigDecimal">
+        SELECT sum(income.income_amount)
+        FROM financial_income_accrue income
+        INNER JOIN financial_record record ON income.uid = record.uid and income.record_id = record.id
+        where 1=1
+        <include refid="FinancialProductIncomeQuery" />
+    </select>
+
+
     <select id="listByUidAndType" resultType="com.tianli.financial.dto.FinancialIncomeAccrueDTO">
         SELECT income.*,
                record.product_name,

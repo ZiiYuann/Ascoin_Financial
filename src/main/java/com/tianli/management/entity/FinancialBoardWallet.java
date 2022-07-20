@@ -4,7 +4,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 /**
  * @author chenb
@@ -34,5 +34,16 @@ public class FinancialBoardWallet {
     /**
      * 创建时间
      */
-    private LocalDateTime createTime;
+    private LocalDate createTime;
+
+    /**
+     * 总手续费
+     */
+    private BigDecimal totalServiceAmount;
+
+    /**
+     * usdt手续费
+     */
+    private BigDecimal usdtServiceAmount;
+
 }

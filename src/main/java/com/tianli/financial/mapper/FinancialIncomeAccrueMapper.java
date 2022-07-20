@@ -10,6 +10,7 @@ import com.tianli.management.query.FinancialProductIncomeQuery;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Mapper
@@ -19,4 +20,6 @@ public interface FinancialIncomeAccrueMapper extends BaseMapper<FinancialIncomeA
 
     IPage<FinancialIncomeAccrueDTO> pageByQuery(@Param("page") Page<FinancialIncomeAccrueDTO> page
             , @Param("query") FinancialProductIncomeQuery query);
+
+    BigDecimal summaryIncomeByQuery(@Param("query") FinancialProductIncomeQuery query);
 }

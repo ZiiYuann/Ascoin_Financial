@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.TimeUtils;
+import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.entity.FinancialProduct;
@@ -20,10 +22,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +32,8 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     private FinancialRecordMapper financialRecordMapper;
     @Resource
     private RequestInitService requestInitService;
+    @Resource
+    private CurrencyService currencyService;
 
     /**
      * 获取不同产品已经使用的总额度
@@ -126,5 +127,34 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
 
         }
         return financialRecordMapper.selectList(query);
+    }
+
+    /**
+     * 获取不同用户不同产品的汇总金额
+     */
+    public Map<Long,BigDecimal> getSummaryAmount(List<Long> uids,ProductType productType,RecordStatus recordStatus){
+        var recordQuery = new LambdaQueryWrapper<FinancialRecord>()
+                .in(FinancialRecord :: getUid,uids);
+
+        if(Objects.nonNull(productType)){
+            recordQuery= recordQuery.eq(FinancialRecord :: getProductType,productType);
+        }
+        if(Objects.nonNull(recordStatus)){
+            recordQuery= recordQuery.eq(FinancialRecord :: getStatus,recordStatus);
+        }
+
+
+        Map<Long, List<FinancialRecord>> recordMapByUid = Optional.ofNullable(financialRecordMapper.selectList(recordQuery)).orElse(new ArrayList<>())
+                .stream().collect(Collectors.groupingBy(FinancialRecord::getUid));
+        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
+
+        return recordMapByUid.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> entry.getValue().stream().map(record ->{
+                    BigDecimal holdAmount = record.getHoldAmount();
+                    BigDecimal rate = dollarRateMap.getOrDefault(record.getCoin(), BigDecimal.ZERO);
+                    return holdAmount.multiply(rate);
+                }).reduce(BigDecimal.ZERO,BigDecimal::add)
+        ));
     }
 }

@@ -6,11 +6,14 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
+import com.tianli.address.AddressService;
+import com.tianli.address.mapper.Address;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
+import com.tianli.common.PageQuery;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.log.CurrencyLogDes;
@@ -30,6 +33,8 @@ import com.tianli.financial.service.*;
 import com.tianli.financial.vo.*;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
+import com.tianli.management.vo.FinancialSummaryDataVO;
+import com.tianli.management.vo.FinancialUserInfoVO;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -54,7 +59,7 @@ public class FinancialServiceImpl implements FinancialService {
         validProduct(product);
 
         BigDecimal amount = purchaseQuery.getAmount();
-        validRemainAmount(uid,purchaseQuery.getCoin(),amount);
+        validRemainAmount(uid, purchaseQuery.getCoin(), amount);
 
         // 生成一笔订单记录(进行中)
         Order order = Order.builder()
@@ -89,8 +94,8 @@ public class FinancialServiceImpl implements FinancialService {
         BigDecimal totalHoldFee = BigDecimal.ZERO;
         BigDecimal totalAccrueIncomeFee = BigDecimal.ZERO;
         BigDecimal totalYesterdayIncomeFee = BigDecimal.ZERO;
-        EnumMap<ProductType,IncomeVO> incomeMap = new EnumMap<>(ProductType.class);
-        for(ProductType type : types){
+        EnumMap<ProductType, IncomeVO> incomeMap = new EnumMap<>(ProductType.class);
+        for (ProductType type : types) {
             IncomeVO incomeVO = new IncomeVO();
             // 单类型产品持有币数量
             BigDecimal holdFee = financialRecordService.getPurchaseAmount(uid, type, RecordStatus.PROCESS);
@@ -98,16 +103,16 @@ public class FinancialServiceImpl implements FinancialService {
             totalHoldFee = totalHoldFee.add(holdFee);
 
             // 单类型产品累计收益
-            BigDecimal incomeAmount = accrueIncomeLogService.getAccrueAmount(uid, type);
+            BigDecimal incomeAmount = financialIncomeAccrueService.getAccrueAmount(uid, type);
             incomeVO.setAccrueIncomeFee(incomeAmount);
             totalAccrueIncomeFee = totalAccrueIncomeFee.add(incomeAmount);
 
             // 单个类型产品昨日收益
-            BigDecimal yesterdayIncomeFee = financialIncomeDailyService.getYesterdayDailyAmount(uid,type);
+            BigDecimal yesterdayIncomeFee = financialIncomeDailyService.getYesterdayDailyAmount(uid, type);
             incomeVO.setYesterdayIncomeFee(yesterdayIncomeFee);
             totalYesterdayIncomeFee = totalYesterdayIncomeFee.add(yesterdayIncomeFee);
 
-            incomeMap.put(type,incomeVO);
+            incomeMap.put(type, incomeVO);
         }
 
 
@@ -125,17 +130,17 @@ public class FinancialServiceImpl implements FinancialService {
 
         List<FinancialRecord> financialRecords = financialRecordService.selectList(uid, type, RecordStatus.PROCESS);
 
-        var productIds = financialRecords.stream().map(FinancialRecord:: getProductId).collect(Collectors.toList());
-        var recordIds = financialRecords.stream().map(FinancialRecord:: getId).collect(Collectors.toList());
+        var productIds = financialRecords.stream().map(FinancialRecord::getProductId).collect(Collectors.toList());
+        var recordIds = financialRecords.stream().map(FinancialRecord::getId).collect(Collectors.toList());
 
         var productMap = financialProductService.listByIds(productIds).stream()
-                .collect(Collectors.toMap(FinancialProduct :: getId,o -> o));
-        var accrueIncomeMap = accrueIncomeLogService.selectListByRecordId(recordIds).stream()
+                .collect(Collectors.toMap(FinancialProduct::getId, o -> o));
+        var accrueIncomeMap = financialIncomeAccrueService.selectListByRecordId(recordIds).stream()
                 .collect(Collectors.toMap(FinancialIncomeAccrue::getRecordId, o -> o));
-        var dailyIncomeMap = financialIncomeDailyService.selectListByRecordId(uid,recordIds,requestInitService.yesterday()).stream()
+        var dailyIncomeMap = financialIncomeDailyService.selectListByRecordId(uid, recordIds, requestInitService.yesterday()).stream()
                 .collect(Collectors.toMap(FinancialIncomeDaily::getRecordId, o -> o));
 
-        return financialRecords.stream().map(financialRecord ->{
+        return financialRecords.stream().map(financialRecord -> {
             var holdProductVo = new HoldProductVo();
             var product = productMap.get(financialRecord.getProductId());
             var accrueIncomeLog = Optional.ofNullable(accrueIncomeMap.get(financialRecord.getId())).orElse(new FinancialIncomeAccrue());
@@ -168,33 +173,40 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public void validProduct(FinancialProduct financialProduct){
-        if( Objects.isNull(financialProduct) || ProductStatus.open != financialProduct.getStatus()){
+    public void validProduct(FinancialProduct financialProduct) {
+        if (Objects.isNull(financialProduct) || ProductStatus.open != financialProduct.getStatus()) {
             ErrorCodeEnum.NOT_OPEN.throwException();
         }
     }
 
-   @Override
-    public void validRemainAmount(Long uid, CurrencyCoin currencyCoin, BigDecimal amount){
-        AccountBalance accountBalanceBalance = accountBalanceService.getAndInit(uid,currencyCoin);
-        if(accountBalanceBalance.getRemain().compareTo(amount) < 0){
+    @Override
+    public void validRemainAmount(Long uid, CurrencyCoin currencyCoin, BigDecimal amount) {
+        AccountBalance accountBalanceBalance = accountBalanceService.getAndInit(uid, currencyCoin);
+        if (accountBalanceBalance.getRemain().compareTo(amount) < 0) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
     }
 
     @Override
     public IPage<OrderFinancialVO> orderPage(Long uid, Page<OrderFinancialVO> page, ProductType productType, ChargeType chargeType) {
-        return orderService.selectByPage(page,uid,productType,chargeType);
+        return orderService.selectByPage(page, uid, productType, chargeType);
     }
 
     @Override
     public IPage<OrderFinancialVO> orderPage(Page<OrderFinancialVO> page, FinancialOrdersQuery financialOrdersQuery) {
-        return orderService.selectByPage(page,financialOrdersQuery);
+        return orderService.selectByPage(page, financialOrdersQuery);
     }
 
     @Override
     public IPage<FinancialIncomeAccrueDTO> incomeRecord(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
-        return  accrueIncomeLogService.incomeRecord(page,query);
+        return financialIncomeAccrueService.incomeRecord(page, query);
+    }
+
+    @Override
+    public FinancialSummaryDataVO summaryIncomeByQuery(FinancialProductIncomeQuery query) {
+        return FinancialSummaryDataVO.builder()
+                .incomeAmount(Optional.ofNullable(financialIncomeAccrueService.summaryIncomeByQuery(query)).orElse(BigDecimal.ZERO))
+                .build();
     }
 
     @Override
@@ -213,9 +225,67 @@ public class FinancialServiceImpl implements FinancialService {
         return getFinancialProductVOIPage(page, null, query);
     }
 
+    @Override
+    public IPage<FinancialUserInfoVO> user(Long uid, PageQuery<Address> page) {
+
+        LambdaQueryWrapper<Address> queryWrapper = new LambdaQueryWrapper<>();
+
+        if (Objects.nonNull(uid)) {
+            queryWrapper = queryWrapper.eq(Address::getUid, uid);
+        }
+
+        var addresses = addressService.page(page.page(), queryWrapper);
+        List<Long> uids = addresses.getRecords().stream().map(Address::getUid).collect(Collectors.toList());
+
+        var summaryBalanceAmount = accountBalanceService.getSummaryBalanceAmount(uids);
+        var rechargeOrderAmount = orderService.getSummaryOrderAmount(uids, ChargeType.recharge);
+        var withdrawBalanceAmount = orderService.getSummaryOrderAmount(uids, ChargeType.withdraw);
+        var moneyAmount = financialRecordService.getSummaryAmount(uids, null, RecordStatus.PROCESS);
+        var currentAmount = financialRecordService.getSummaryAmount(uids, ProductType.current, null);
+        var fixedAmount = financialRecordService.getSummaryAmount(uids, ProductType.fixed, null);
+        var profitAndLossAmount = financialIncomeAccrueService.getSummaryAmount(uids);
+
+        return addresses.convert(address -> {
+            Long uid1 = address.getUid();
+            return FinancialUserInfoVO.builder()
+                    .fixedAmount(fixedAmount.getOrDefault(uid1, BigDecimal.ZERO))
+                    .balanceAmount(summaryBalanceAmount.getOrDefault(uid1, BigDecimal.ZERO))
+                    .rechargeAmount(rechargeOrderAmount.getOrDefault(uid1, BigDecimal.ZERO))
+                    .withdrawAmount(withdrawBalanceAmount.getOrDefault(uid1, BigDecimal.ZERO))
+                    .moneyAmount(moneyAmount.getOrDefault(uid1, BigDecimal.ZERO))
+                    .currentAmount(currentAmount.getOrDefault(uid1, BigDecimal.ZERO))
+                    .fixedAmount(fixedAmount.getOrDefault(uid1, BigDecimal.ZERO))
+                    .profitAndLossAmount(profitAndLossAmount.getOrDefault(uid1, BigDecimal.ZERO))
+                    .build();
+        });
+    }
+
+    @Override
+    public FinancialSummaryDataVO userData(Long uid, PageQuery<Address> page) {
+        var userInfos = user(uid, page).getRecords();
+
+        BigDecimal rechargeAmount = BigDecimal.ZERO;
+        BigDecimal withdrawAmount = BigDecimal.ZERO;
+        BigDecimal moneyAmount = BigDecimal.ZERO;
+        BigDecimal incomeAmount = BigDecimal.ZERO;
+
+        for(FinancialUserInfoVO financialUserInfoVO : userInfos){
+            rechargeAmount = rechargeAmount.add(financialUserInfoVO.getRechargeAmount());
+            withdrawAmount = withdrawAmount.add(financialUserInfoVO.getWithdrawAmount());
+            moneyAmount = rechargeAmount.add(financialUserInfoVO.getMoneyAmount());
+            incomeAmount = rechargeAmount.add(financialUserInfoVO.getProfitAndLossAmount());
+        }
+        return FinancialSummaryDataVO.builder()
+                .rechargeAmount(rechargeAmount)
+                .withdrawAmount(withdrawAmount)
+                .moneyAmount(moneyAmount)
+                .incomeAmount(incomeAmount)
+                .build();
+    }
+
     private IPage<FinancialProductVO> getFinancialProductVOIPage(Page<FinancialProduct> page, ProductType type, LambdaQueryWrapper<FinancialProduct> query) {
-        if(Objects.nonNull(type)){
-            query.eq(FinancialProduct :: getType, type);
+        if (Objects.nonNull(type)) {
+            query.eq(FinancialProduct::getType, type);
         }
 
 
@@ -232,7 +302,7 @@ public class FinancialServiceImpl implements FinancialService {
             financialProductVO.setUseQuota(useQuota);
             financialProductVO.setUserPersonQuota(usePersonQuota);
 
-            if(usePersonQuota.compareTo(product.getPersonQuota()) < 0 || useQuota.compareTo(product.getTotalQuota()) < 0){
+            if (usePersonQuota.compareTo(product.getPersonQuota()) < 0 || useQuota.compareTo(product.getTotalQuota()) < 0) {
                 financialProductVO.setAllowPurchase(true);
             }
             return financialProductVO;
@@ -243,7 +313,7 @@ public class FinancialServiceImpl implements FinancialService {
      * 计算每日利息
      */
     @Transactional
-    public void calculateDailyIncome(){
+    public void calculateDailyIncome() {
         // 前日零点
         LocalDateTime now = requestInitService.now();
         LocalDateTime yesterdayTime = requestInitService.yesterday();
@@ -259,9 +329,9 @@ public class FinancialServiceImpl implements FinancialService {
                 .eq(FinancialIncomeDaily::getRecordId, recordId)
                 .eq(FinancialIncomeDaily::getFinishTime, yesterdayTime));
 
-        if(Objects.nonNull(dailyIncomeLog)){
-             log.error("申购记录ID：{}，重复计算每日利息，记息日时间：{}，程序运行时间：{}",recordId,yesterdayTime,now);
-             return;
+        if (Objects.nonNull(dailyIncomeLog)) {
+            log.error("申购记录ID：{}，重复计算每日利息，记息日时间：{}，程序运行时间：{}", recordId, yesterdayTime, now);
+            return;
         }
         dailyIncomeLog = new FinancialIncomeDaily();
         dailyIncomeLog.setIncomeAmount(incomeFee);
@@ -274,22 +344,23 @@ public class FinancialServiceImpl implements FinancialService {
         FinancialIncomeAccrue accrueIncome = getAccrueIncomeLogAndInit(uid, coin, recordId);
         accrueIncome.setIncomeAmount(accrueIncome.getIncomeAmount().add(incomeFee));
         accrueIncome.setUpdateTime(LocalDateTime.now());
-        accrueIncomeLogService.updateById(accrueIncome);
+        financialIncomeAccrueService.updateById(accrueIncome);
     }
 
-    private FinancialIncomeAccrue getAccrueIncomeLogAndInit(Long uid, CurrencyCoin coin, Long recordId){
-        FinancialIncomeAccrue accrueIncomeLog = accrueIncomeLogService.getOne(new LambdaQueryWrapper<FinancialIncomeAccrue>()
+    private FinancialIncomeAccrue getAccrueIncomeLogAndInit(Long uid, CurrencyCoin coin, Long recordId) {
+        FinancialIncomeAccrue accrueIncomeLog = financialIncomeAccrueService.getOne(new LambdaQueryWrapper<FinancialIncomeAccrue>()
                 .eq(FinancialIncomeAccrue::getUid, uid)
                 .eq(FinancialIncomeAccrue::getRecordId, recordId));
-        if(Objects.isNull(accrueIncomeLog)){
+        if (Objects.isNull(accrueIncomeLog)) {
             LocalDateTime now = LocalDateTime.now();
             accrueIncomeLog = FinancialIncomeAccrue.builder()
                     .id(CommonFunction.generalId())
                     .incomeAmount(BigDecimal.ZERO)
                     .recordId(recordId).uid(uid).createTime(now).updateTime(now)
+                    .coin(coin)
                     .build();
             final FinancialIncomeAccrue accrueIncomeLogFinal = accrueIncomeLog;
-            asyncService.async(() -> accrueIncomeLogService.save(accrueIncomeLogFinal));
+            asyncService.async(() -> financialIncomeAccrueService.save(accrueIncomeLogFinal));
         }
         return accrueIncomeLog;
     }
@@ -307,10 +378,12 @@ public class FinancialServiceImpl implements FinancialService {
     @Resource
     private FinancialIncomeDailyService financialIncomeDailyService;
     @Resource
-    private FinancialIncomeAccrueService accrueIncomeLogService;
+    private FinancialIncomeAccrueService financialIncomeAccrueService;
     @Resource
     private AsyncService asyncService;
     @Resource
     private OrderService orderService;
+    @Resource
+    private AddressService addressService;
 
 }

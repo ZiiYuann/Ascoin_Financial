@@ -5,10 +5,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeAccrue;
+import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.mapper.FinancialIncomeAccrueMapper;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import org.apache.commons.collections4.MapUtils;
@@ -17,8 +20,8 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -35,6 +38,10 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
 
     public IPage<FinancialIncomeAccrueDTO> incomeRecord(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
         return financialIncomeAccrueMapper.pageByQuery(page, query);
+    }
+
+    public BigDecimal summaryIncomeByQuery(FinancialProductIncomeQuery query) {
+        return financialIncomeAccrueMapper.summaryIncomeByQuery(query);
     }
 
     public List<FinancialIncomeAccrue> selectListByRecordId(List<Long> recordIds) {
@@ -63,5 +70,24 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    /**
+     * 获取不同用户盈亏信息
+     */
+    public Map<Long,BigDecimal> getSummaryAmount(List<Long> uids){
+        var recordQuery = new LambdaQueryWrapper<FinancialIncomeAccrue>()
+                .in(FinancialIncomeAccrue :: getUid,uids);
 
+        var incomeMapByUid = Optional.ofNullable(financialIncomeAccrueMapper.selectList(recordQuery)).orElse(new ArrayList<>())
+                .stream().collect(Collectors.groupingBy(FinancialIncomeAccrue::getUid));
+        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
+
+        return incomeMapByUid.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> entry.getValue().stream().map(income ->{
+                    BigDecimal holdAmount = income.getIncomeAmount();
+                    BigDecimal rate = dollarRateMap.getOrDefault(income.getCoin(), BigDecimal.ZERO);
+                    return holdAmount.multiply(rate);
+                }).reduce(BigDecimal.ZERO,BigDecimal::add)
+        ));
+    }
 }

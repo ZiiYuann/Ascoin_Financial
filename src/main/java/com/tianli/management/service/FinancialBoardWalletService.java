@@ -45,12 +45,16 @@ public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalle
 
         BigDecimal rechargeAmount = financialWalletBoardVOs.stream().map(FinancialWalletBoardVO::getRechargeAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal withdrawAmount = financialWalletBoardVOs.stream().map(FinancialWalletBoardVO::getWithdrawAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalServiceAmount = financialWalletBoardVOs.stream().map(FinancialWalletBoardVO::getTotalServiceAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal usdtServiceAmount = financialWalletBoardVOs.stream().map(FinancialWalletBoardVO::getUsdtServiceAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return FinancialWalletBoardSummaryVO.builder()
                 .rechargeAmount(rechargeAmount)
                 .withdrawAmount(withdrawAmount)
                 .newActiveWalletCount(BigInteger.valueOf(newActiveWalletCount))
                 .totalActiveWalletCount(BigInteger.valueOf(totalActiveWalletCount))
+                .totalServiceAmount(totalServiceAmount)
+                .usdtServiceAmount(usdtServiceAmount)
                 .data(financialWalletBoardVOs)
                 .build();
     }

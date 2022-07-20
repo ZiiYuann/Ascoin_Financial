@@ -4,32 +4,27 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.account.enums.AccountChangeType;
-import com.tianli.charge.entity.OrderChargeInfo;
-import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.entity.Order;
+import com.tianli.charge.entity.OrderChargeInfo;
 import com.tianli.charge.enums.ChargeStatus;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderChargeInfoMapper;
 import com.tianli.charge.mapper.OrderMapper;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderSettleInfoVO;
-import com.tianli.common.CommonFunction;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.vo.OrderFinancialVO;
-import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialChargeQuery;
+import com.tianli.management.query.FinancialOrdersQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.EnumMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -93,26 +88,36 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
     }
 
 
-    private Order generateFinancialOrder(Long uid, FinancialProduct financialProduct, ChargeType chargeType
-            , ChargeStatus chargeStatus, BigDecimal amount) {
-        Order order = new Order();
-        order.setUid(uid);
-        order.setCoin(financialProduct.getCoin());
-        order.setOrderNo( AccountChangeType.financial.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()));
-        order.setRelatedId(financialProduct.getId());
-        order.setType(chargeType);
-        order.setStatus(chargeStatus);
-        order.setAmount(amount);
-        order.setCreateTime(LocalDateTime.now());
-        return order;
-    }
-
     public IPage<OrderSettleInfoVO> OrderSettleInfoVOPage(IPage<OrderSettleInfoVO> page, Long uid, ProductType productType) {
         return orderMapper.selectOrderSettleInfoVOPage(page, uid, productType);
     }
 
     public IPage<OrderChargeInfoVO> selectOrderChargeInfoVOPage(IPage<OrderChargeInfoVO> page, FinancialChargeQuery query) {
         return orderMapper.selectOrderChargeInfoVOPage(page, query);
+    }
+
+
+    /**
+     * 获取不同用户不同订单类型的汇总金额
+     */
+    public Map<Long,BigDecimal> getSummaryOrderAmount(List<Long> uids,ChargeType type){
+        LambdaQueryWrapper<Order> orderQuery = new LambdaQueryWrapper<Order>()
+                .in(Order::getUid, uids)
+                .eq(Order::getType, type)
+                .eq(Order :: getStatus, ChargeStatus.chain_success);
+
+        List<Order> orders = Optional.ofNullable(orderMapper.selectList(orderQuery)).orElse(new ArrayList<>());
+
+        Map<Long, List<Order>> orderMapByUid = orders.stream().collect(Collectors.groupingBy(Order::getUid));
+        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
+        return orderMapByUid.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> entry.getValue().stream().map( order -> {
+                    BigDecimal amount = order.getAmount();
+                    BigDecimal rate = dollarRateMap.getOrDefault(order.getCoin(), BigDecimal.ONE);
+                    return amount.multiply(rate);
+                }).reduce(BigDecimal.ZERO,BigDecimal::add)
+        ));
     }
 
 

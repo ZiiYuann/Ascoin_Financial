@@ -37,6 +37,16 @@ public class FinancialWalletBoardSummaryVO {
     private BigDecimal withdrawAmount;
 
     /**
+     * 总手续费
+     */
+    private BigDecimal totalServiceAmount;
+
+    /**
+     * usdt手续费
+     */
+    private BigDecimal usdtServiceAmount;
+
+    /**
      * 日期详情数据
      */
     private List<FinancialWalletBoardVO> data;

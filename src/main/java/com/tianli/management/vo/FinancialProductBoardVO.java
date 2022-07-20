@@ -4,7 +4,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 /**
  * @author chenb
@@ -23,7 +23,7 @@ public class FinancialProductBoardVO {
     //转存
     private BigDecimal  transferAmount;
 
-    private LocalDateTime createTime;
+    private LocalDate createTime;
 
     /**
      * 用户累计收益

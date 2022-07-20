@@ -61,6 +61,7 @@
     </select>
     <select id="selectOrderChargeInfoVOPage" resultType="com.tianli.charge.vo.OrderChargeInfoVO">
         SELECT
+        o.uid,
         o.order_no,o.type,o.status,o.create_time,o.complete_time,charge.txid,charge.from_address,charge.to_address,
         charge.fee as amount,charge.coin,charge.network as networkType
         FROM `order` o
@@ -71,7 +72,7 @@
             AND o.uid = #{query.uid}
         </if>
         <if test="query.txid != null">
-            AND charge.txid = #{query.txid}
+            AND charge.txid like concat('%',#{query.txid},'%')
         </if>
         <if test="query.chargeType != null">
             AND o.type = #{query.chargeType}

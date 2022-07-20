@@ -1,5 +1,6 @@
 package com.tianli.account.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.convert.AccountConverter;
 import com.tianli.account.entity.AccountBalance;
@@ -7,7 +8,6 @@ import com.tianli.account.enums.AccountOperationType;
 import com.tianli.account.mapper.AccountBalanceMapper;
 import com.tianli.account.vo.AccountBalanceMainPageVO;
 import com.tianli.account.vo.AccountBalanceVO;
-import com.tianli.address.AddressService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.async.AsyncService;
@@ -34,20 +34,6 @@ import java.util.stream.Collectors;
  */
 @Service
 public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, AccountBalance> {
-
-    @Resource
-    private AccountBalanceMapper accountBalanceMapper;
-    @Resource
-    private AccountBalanceOperationLogService accountBalanceOperationLogService;
-    @Resource
-    private AsyncService asyncService;
-    @Resource
-    private AccountConverter accountConverter;
-    @Resource
-    private CurrencyService currencyService;
-    @Resource
-    private AddressService addressService;
-
 
     /**
      * 扣除可用金额
@@ -275,7 +261,38 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
 
     }
 
+    /**
+     * 获取用户云钱包余额数据
+     */
+    public Map<Long,BigDecimal> getSummaryBalanceAmount(List<Long> uids){
+
+        LambdaQueryWrapper<AccountBalance> balanceQuery = new LambdaQueryWrapper<AccountBalance>().in(AccountBalance::getUid, uids);
+        List<AccountBalance> accountBalances = accountBalanceMapper.selectList(balanceQuery);
 
 
+        Map<Long, List<AccountBalance>> balanceMapByUid = accountBalances.stream().collect(Collectors.groupingBy(AccountBalance::getUid));
+        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
+
+        // 云钱包余额map
+        return balanceMapByUid.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> entry.getValue().stream().map(accountBalance -> {
+                    BigDecimal balance = accountBalance.getBalance();
+                    BigDecimal rate = dollarRateMap.getOrDefault(accountBalance.getCoin(), BigDecimal.ONE);
+                    return balance.multiply(rate);
+                }).reduce(BigDecimal.ZERO, BigDecimal::add)
+        ));
+    }
+
+    @Resource
+    private AccountBalanceMapper accountBalanceMapper;
+    @Resource
+    private AccountBalanceOperationLogService accountBalanceOperationLogService;
+    @Resource
+    private AsyncService asyncService;
+    @Resource
+    private AccountConverter accountConverter;
+    @Resource
+    private CurrencyService currencyService;
 
 }

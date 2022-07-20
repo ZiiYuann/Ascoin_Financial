@@ -4,7 +4,6 @@ import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.CurrencyNetworkType;
-import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,6 +20,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderChargeInfoVO {
+
+    private String uid;
 
     private String orderNo;
 
@@ -73,5 +74,10 @@ public class OrderChargeInfoVO {
      * 网络
      */
     private CurrencyNetworkType networkType;
+
+    /**
+     * 手续费
+     */
+    private BigDecimal serviceAmount = BigDecimal.ZERO;
 
 }
