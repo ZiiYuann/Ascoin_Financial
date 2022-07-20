@@ -1,6 +1,7 @@
 package com.tianli.financial.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.TimeUtils;
 import com.tianli.currency.service.CurrencyService;
@@ -8,7 +9,6 @@ import com.tianli.financial.dto.FinancialIncomeDailyDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.mapper.FinancialIncomeDailyMapper;
-import com.tianli.sso.init.RequestInitService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -26,8 +26,6 @@ import java.util.Objects;
 @Service
 public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDailyMapper, FinancialIncomeDaily> {
 
-    @Resource
-    private RequestInitService requestInitService;
     @Resource
     private FinancialIncomeDailyMapper financialIncomeDailyMapper;
     @Resource
@@ -53,7 +51,7 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
                 .reduce(BigDecimal.ZERO,BigDecimal::add);
     }
 
-    public List<FinancialIncomeDaily> selectListByRecordId(Long uid, List<Long> recordIds, LocalDateTime finishTime){
+    public List<FinancialIncomeDaily> selectListByRecordIds(Long uid, List<Long> recordIds, LocalDateTime finishTime){
         LambdaQueryWrapper<FinancialIncomeDaily> query = new LambdaQueryWrapper<FinancialIncomeDaily>()
                 .eq(FinancialIncomeDaily::getUid, uid)
                 .in(FinancialIncomeDaily::getRecordId, recordIds)
@@ -62,5 +60,16 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
            query = query.eq(FinancialIncomeDaily:: getFinishTime,finishTime);
         }
         return financialIncomeDailyMapper.selectList(query);
+    }
+
+    public IPage<FinancialIncomeDaily> pageByRecordId(IPage<FinancialIncomeDaily> page,Long uid, List<Long> recordIds, LocalDateTime finishTime){
+        LambdaQueryWrapper<FinancialIncomeDaily> query = new LambdaQueryWrapper<FinancialIncomeDaily>()
+                .eq(FinancialIncomeDaily::getUid, uid)
+                .in(FinancialIncomeDaily::getRecordId, recordIds)
+                .orderByDesc( FinancialIncomeDaily:: getFinishTime);
+        if(Objects.nonNull(finishTime)){
+           query = query.eq(FinancialIncomeDaily:: getFinishTime,finishTime);
+        }
+        return financialIncomeDailyMapper.selectPage(page,query);
     }
 }

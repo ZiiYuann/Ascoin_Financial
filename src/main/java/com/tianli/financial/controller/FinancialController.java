@@ -1,12 +1,12 @@
 package com.tianli.financial.controller;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.TimeUtils;
 import com.tianli.exception.Result;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
+import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.BusinessType;
@@ -127,10 +127,10 @@ public class FinancialController {
     /**
      * 具体收益明细
      */
-    @GetMapping("/income/{recordId}")
-    public Result incomeDetails(@PathVariable Long recordId) {
+    @GetMapping("/income/details")
+    public Result incomeDetails(PageQuery<FinancialIncomeDaily> pageQuery, Long recordId) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(financialService.incomeDetails(uid,recordId));
+        return Result.instance().setData(financialService.incomeDetails(pageQuery.page(),uid,recordId));
     }
 
     /**

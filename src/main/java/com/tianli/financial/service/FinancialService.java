@@ -8,6 +8,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
+import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.BusinessType;
@@ -20,7 +21,6 @@ import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.FinancialUserInfoVO;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 
 /**
@@ -50,7 +50,7 @@ public interface FinancialService {
     /**
      * 申购的具体每日收益
      */
-    List<FinancialIncomeDailyVO> incomeDetails(Long uid , Long recordId);
+    IPage<FinancialIncomeDailyVO> incomeDetails(IPage<FinancialIncomeDaily> pageQuery, Long uid , Long recordId);
 
     /**
      * 校验产品是否处于开启状态

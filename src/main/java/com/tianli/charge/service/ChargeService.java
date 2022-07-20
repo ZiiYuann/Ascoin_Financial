@@ -26,7 +26,6 @@ import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.management.query.FinancialChargeQuery;
-import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
@@ -182,7 +181,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
         log.info("get orderChargeInfo by id:{},orderNo{}", order.getRelatedId(), order.getOrderNo());
-        Optional.ofNullable(orderChargeInfo).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
+        orderChargeInfo = Optional.ofNullable(orderChargeInfo).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
         if (!orderChargeInfo.getOrderNo().equals(order.getOrderNo())) {
             log.error("orderChargeInfo表 id :{} , 记录 orderNo{} 与  order 表 orderNo{} 不一致", orderChargeInfo.getId()
                     , orderChargeInfo.getOrderNo(), order.getOrderNo());

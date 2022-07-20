@@ -29,7 +29,7 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
 
     public void editProductStatus(FinancialProductEditStatusQuery query){
         FinancialProduct product = financialProductMapper.selectById(query.getProductId());
-        Optional.ofNullable(product).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
+        product = Optional.ofNullable(product).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
 
         product.setUpdateTime(LocalDateTime.now());
         product.setStatus(query.getStatus());

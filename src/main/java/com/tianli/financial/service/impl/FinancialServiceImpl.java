@@ -137,7 +137,7 @@ public class FinancialServiceImpl implements FinancialService {
                 .collect(Collectors.toMap(FinancialProduct::getId, o -> o));
         var accrueIncomeMap = financialIncomeAccrueService.selectListByRecordId(recordIds).stream()
                 .collect(Collectors.toMap(FinancialIncomeAccrue::getRecordId, o -> o));
-        var dailyIncomeMap = financialIncomeDailyService.selectListByRecordId(uid, recordIds, requestInitService.yesterday()).stream()
+        var dailyIncomeMap = financialIncomeDailyService.selectListByRecordIds(uid, recordIds, requestInitService.yesterday()).stream()
                 .collect(Collectors.toMap(FinancialIncomeDaily::getRecordId, o -> o));
 
         return financialRecords.convert(financialRecord -> {
@@ -166,14 +166,14 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public List<FinancialIncomeDailyVO> incomeDetails(Long uid, Long recordId) {
-        FinancialRecord record = financialRecordService.getById(recordId);
-        List<FinancialIncomeDaily> dailyIncomeLogs = financialIncomeDailyService.selectListByRecordId(uid, List.of(recordId), null);
-        return dailyIncomeLogs.stream().map(income -> {
+    public IPage<FinancialIncomeDailyVO> incomeDetails(IPage<FinancialIncomeDaily> page,Long uid, Long recordId) {
+        FinancialRecord financialRecord = financialRecordService.getById(recordId);
+        var dailyIncomeLogs = financialIncomeDailyService.pageByRecordId(page,uid, List.of(recordId), null);
+        return dailyIncomeLogs.convert(income -> {
             FinancialIncomeDailyVO financialIncomeDailyVO = FinancialIncomeDailyVO.toVO(income);
-            financialIncomeDailyVO.setCoin(record.getCoin());
+            financialIncomeDailyVO.setCoin(financialRecord.getCoin());
             return financialIncomeDailyVO;
-        }).collect(Collectors.toList());
+        });
     }
 
     @Override

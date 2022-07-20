@@ -19,7 +19,6 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
-import com.tianli.management.vo.FinancialSummaryDataVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

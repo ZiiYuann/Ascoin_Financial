@@ -1,6 +1,5 @@
 package com.tianli.financial.service;
 
-import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -9,12 +8,9 @@ import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeAccrue;
-import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
-import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.mapper.FinancialIncomeAccrueMapper;
 import com.tianli.management.query.FinancialProductIncomeQuery;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
