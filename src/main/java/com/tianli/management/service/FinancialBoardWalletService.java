@@ -5,8 +5,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.management.converter.ManagementConverter;
-import com.tianli.management.entity.FinancialWalletBoard;
-import com.tianli.management.mapper.FinancialWalletBoardMapper;
+import com.tianli.management.entity.FinancialBoardWallet;
+import com.tianli.management.mapper.FinancialBoardWalletMapper;
 import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.vo.FinancialWalletBoardSummaryVO;
 import com.tianli.management.vo.FinancialWalletBoardVO;
@@ -26,14 +26,14 @@ import java.util.stream.Collectors;
  * @since 2022-07-20
  **/
 @Service
-public class FinancialWalletBoardService extends ServiceImpl<FinancialWalletBoardMapper, FinancialWalletBoard> {
+public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalletMapper, FinancialBoardWallet> {
 
     public FinancialWalletBoardSummaryVO walletBoard(FinancialBoardQuery query) {
         var addressQuery =
                 new LambdaQueryWrapper<Address>().between(Address::getCreateTime, query.getStartTime(), query.getEndTime());
 
         var walletBoardQuery =
-                new LambdaQueryWrapper<FinancialWalletBoard>().between(FinancialWalletBoard::getCreateTime, query.getStartTime(), query.getEndTime());
+                new LambdaQueryWrapper<FinancialBoardWallet>().between(FinancialBoardWallet::getCreateTime, query.getStartTime(), query.getEndTime());
 
         List<Address> addresses = Optional.ofNullable(addressService.list(addressQuery)).orElse(new ArrayList<>());
         long newActiveWalletCount = addresses.size();
@@ -60,6 +60,6 @@ public class FinancialWalletBoardService extends ServiceImpl<FinancialWalletBoar
     @Resource
     private ManagementConverter managementConverter;
     @Resource
-    private FinancialWalletBoardMapper financialWalletBoardMapper;
+    private FinancialBoardWalletMapper financialWalletBoardMapper;
 
 }

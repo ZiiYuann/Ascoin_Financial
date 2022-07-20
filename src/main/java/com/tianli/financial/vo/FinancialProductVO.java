@@ -51,6 +51,8 @@ public class FinancialProductVO {
      */
     private ProductStatus status;
 
+    private BusinessType businessType;
+
     /**
      * 参考年化
      */

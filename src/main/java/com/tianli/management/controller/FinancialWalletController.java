@@ -1,5 +1,6 @@
 package com.tianli.management.controller;
 
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.common.PageQuery;
@@ -7,7 +8,7 @@ import com.tianli.exception.Result;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialChargeQuery;
-import com.tianli.management.service.FinancialWalletBoardService;
+import com.tianli.management.service.FinancialBoardWalletService;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,7 +30,7 @@ public class FinancialWalletController {
     @Resource
     private ChargeService chargeService;
     @Resource
-    private FinancialWalletBoardService financialWalletBoardService;
+    private FinancialBoardWalletService financialWalletBoardService;
 
     /**
      * 云钱包数据board
@@ -44,12 +45,14 @@ public class FinancialWalletController {
     @GetMapping("/order/recharge")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result rechargeOrder(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
+        query.setChargeType(ChargeType.recharge);
         return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(),query));
     }
 
     @GetMapping("/order/withdraw")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result withdrawOrder(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
+        query.setChargeType(ChargeType.withdraw);
         return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(),query));
     }
 }

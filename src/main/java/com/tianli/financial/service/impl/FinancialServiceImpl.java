@@ -6,23 +6,19 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
-import com.tianli.address.AddressService;
-import com.tianli.address.mapper.Address;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
-import com.tianli.common.TimeUtils;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.log.CurrencyLogDes;
-import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
-import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialIncomeAccrue;
+import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.BusinessType;
@@ -32,12 +28,8 @@ import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.*;
 import com.tianli.financial.vo.*;
-import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
-import com.tianli.management.vo.FinancialBoardDataVO;
-import com.tianli.management.vo.FinancialProductBoardVO;
-import com.tianli.management.vo.FinancialWalletBoardSummaryVO;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,7 +38,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -202,85 +193,6 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public FinancialProductBoardVO productBoard(FinancialBoardQuery query) {
-        List<ChargeType> chargeTypes = List.of(ChargeType.purchase, ChargeType.income, ChargeType.settle, ChargeType.transfer);
-        LambdaQueryWrapper<Order> boardSqlQuery = new LambdaQueryWrapper<Order>()
-                .in(Order::getType, chargeTypes)
-                .between(Order::getCreateTime, query.getStartTime(), query.getEndTime())
-                .orderByDesc(Order::getCreateTime);
-
-        List<Order> orders = orderService.list(boardSqlQuery);
-
-        BigDecimal purchaseAmount = BigDecimal.ZERO;
-        BigDecimal redeemAmount = BigDecimal.ZERO;
-        BigDecimal settleAmount = BigDecimal.ZERO;
-        BigDecimal  transferAmount = BigDecimal.ZERO;
-        Map<ChargeType, List<FinancialBoardDataVO>> details = new EnumMap<>(ChargeType.class);
-        chargeTypes.forEach(type -> details.put(type,new ArrayList<>()));
-
-        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
-
-        var orderMap = orders.stream()
-                // 将所有的创建时间格式成当日 0 点
-                .map(order -> {
-                    order.setCreateTime(LocalDateTime.of(order.getCreateTime().toLocalDate(), LocalTime.MIN));
-                    return order;
-                })
-                .collect(Collectors.groupingBy(Order::getType))
-                // Map<ChargeType,List<Order>> 根据类型第一次分类
-                .entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> entry.getValue()
-                                .stream()
-                                // 这里将List<Order> 根据 日期再次分类
-                                .collect(Collectors.groupingBy(o -> TimeUtils.toTimestamp(o.getCreateTime())))
-                                // 分类后内部为 日期 -> 订单列表
-                                .entrySet().stream()
-                                .collect(Collectors.toMap(
-                                        Map.Entry::getKey,
-                                        entry1 -> entry1.getValue().stream()
-                                                .map(order -> {
-                                                    BigDecimal rate = dollarRateMap.get(order.getCoin());
-                                                    Optional.ofNullable(rate).orElseThrow(ErrorCodeEnum.CURRENCY_NOT_SUPPORT::generalException);
-                                                    return rate.multiply(order.getAmount());
-                                                })
-                                                .reduce(BigDecimal.ZERO, BigDecimal::add)
-                                ))
-                ));
-
-        for(var chargeTypeMapEntry : orderMap.entrySet()){
-            ChargeType key = chargeTypeMapEntry.getKey();
-            Map<Long, BigDecimal> value = chargeTypeMapEntry.getValue();
-            // 不同类型所有的金额
-            BigDecimal reduce = value.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-            switch (key){
-                case purchase: purchaseAmount = reduce; break;
-                case settle: settleAmount = reduce; break;
-                case redeem: redeemAmount = reduce; break;
-                case transfer: transferAmount = redeemAmount; break;
-                default: break;
-            }
-            List<FinancialBoardDataVO> financialBoardDataVOS = new ArrayList<>();
-            for(var dateAmountMap : value.entrySet()){
-                LocalDateTime localDateTime = TimeUtils.toLocalDateTime(dateAmountMap.getKey());
-                FinancialBoardDataVO financialBoardDataVO = FinancialBoardDataVO.builder()
-                        .dateTime(localDateTime)
-                        .amount(dateAmountMap.getValue()).build();
-                financialBoardDataVOS.add(financialBoardDataVO);
-            }
-            details.put(key,financialBoardDataVOS);
-        }
-
-        return FinancialProductBoardVO.builder()
-                .purchaseAmount(purchaseAmount)
-                .redeemAmount(redeemAmount)
-                .settleAmount(settleAmount)
-                .transferAmount(transferAmount)
-                .details(details).build();
-    }
-
-    @Override
     public IPage<FinancialIncomeAccrueDTO> incomeRecord(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
         return  accrueIncomeLogService.incomeRecord(page,query);
     }
@@ -400,8 +312,5 @@ public class FinancialServiceImpl implements FinancialService {
     private AsyncService asyncService;
     @Resource
     private OrderService orderService;
-    @Resource
-    private CurrencyService currencyService;
-    @Resource
-    private AddressService addressService;
+
 }

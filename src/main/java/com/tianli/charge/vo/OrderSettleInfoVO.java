@@ -1,5 +1,6 @@
 package com.tianli.charge.vo;
 
+import com.tianli.financial.enums.PurchaseTerm;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -26,7 +27,7 @@ public class OrderSettleInfoVO {
 
     private String productNameEn;
 
-    private String productTerm;
+    private PurchaseTerm productTerm;
 
     /**
      * 累计收益

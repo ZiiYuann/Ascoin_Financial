@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * @since 2022-07-20
  **/
 @Data
-public class FinancialWalletBoard {
+public class FinancialBoardWallet {
 
     private Long id;
 

@@ -14,8 +14,7 @@ import com.tianli.financial.vo.*;
 import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
-import com.tianli.management.vo.FinancialProductBoardVO;
-import com.tianli.management.vo.FinancialWalletBoardSummaryVO;
+import com.tianli.management.vo.FinancialProductBoardSummaryVO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -71,11 +70,6 @@ public interface FinancialService {
      * 获取订单记录信息
      */
     IPage<OrderFinancialVO> orderPage(Page<OrderFinancialVO> page, FinancialOrdersQuery financialOrdersQuery);
-
-    /**
-     * 看板数据
-     */
-    FinancialProductBoardVO productBoard(FinancialBoardQuery query);
 
     /**
      * 用户理财收益记录

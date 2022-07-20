@@ -1,10 +1,10 @@
-package com.tianli.management.vo;
+package com.tianli.management.entity;
 
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 /**
  * @author chenb
@@ -12,18 +12,27 @@ import java.time.LocalDateTime;
  * @since 2022-07-20
  **/
 @Data
-public class FinancialProductBoardVO {
+public class FinancialBoardProduct {
 
-    // 申购
+    /**
+     * 申购
+     */
     private BigDecimal purchaseAmount;
-    // 赎回
-    private BigDecimal redeemAmount;
-    // 结算
-    private BigDecimal settleAmount;
-    //转存
-    private BigDecimal  transferAmount;
 
-    private LocalDateTime createTime;
+    /**
+     * 赎回
+     */
+    private BigDecimal redeemAmount;
+
+    /**
+     * 结算
+     */
+    private BigDecimal settleAmount;
+
+    /**
+     * 转存
+     */
+    private BigDecimal  transferAmount;
 
     /**
      * 用户累计收益
@@ -50,8 +59,5 @@ public class FinancialProductBoardVO {
      */
     private BigInteger holdUserCount;
 
-    /**
-     * 累计单日收益
-     */
-    private BigDecimal incomeDaily;
+    private LocalDate createTime;
 }

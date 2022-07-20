@@ -13,6 +13,7 @@ import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.FinancialProductVO;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.*;
+import com.tianli.management.service.FinancialBoardProductService;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.validation.annotation.Validated;
@@ -30,11 +31,13 @@ import java.time.LocalDateTime;
 public class FinancialProductController {
 
     @Resource
-    FinancialProductService financialProductService;
+    private FinancialProductService financialProductService;
     @Resource
-    FinancialConverter financialConverter;
+    private FinancialConverter financialConverter;
     @Resource
-    FinancialService financialService;
+    private FinancialService financialService;
+    @Resource
+    private FinancialBoardProductService financialProductBoardService;
 
     /**
      * 数据展板
@@ -43,7 +46,7 @@ public class FinancialProductController {
     @AdminPrivilege(and = Privilege.理财配置)
     public Result edit(FinancialBoardQuery query) {
         query.calTime();
-        return Result.success().setData(financialService.productBoard(query));
+        return Result.success().setData(financialProductBoardService.productBoard(query));
     }
 
     /**
