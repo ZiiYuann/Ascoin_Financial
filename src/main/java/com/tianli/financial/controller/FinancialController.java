@@ -67,7 +67,7 @@ public class FinancialController {
         Long uid = requestInitService.uid();
         FinancialProduct product = financialProductService.getById(productId);
 
-        FinancialProductVO productVO = financialConverter.toVO(product);
+        FinancialProductVO productVO = financialConverter.toFinancialProductVO(product);
 
         var useQuota = financialRecordService.getUseQuota(List.of(product.getId()));
         var personUseQuota = financialRecordService.getUseQuota(List.of(product.getId()),uid);
@@ -122,6 +122,15 @@ public class FinancialController {
     public Result income() {
         Long uid = requestInitService.uid();
         return Result.instance().setData(financialService.income(uid));
+    }
+
+    /**
+     * 具体收益的信息
+     */
+    @GetMapping("/income/{recordId}")
+    public Result incomeByRecordId(@PathVariable Long recordId) {
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(financialService.incomeByRecordId(uid,recordId));
     }
 
     /**

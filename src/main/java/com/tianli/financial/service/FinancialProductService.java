@@ -62,6 +62,6 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
         queryWrapper = queryWrapper.orderByDesc(FinancialProduct :: getCreateTime);
 
         IPage<FinancialProduct> financialProductIPage = financialProductMapper.selectPage(page, queryWrapper);
-        return financialProductIPage.convert(financialConverter :: toVO);
+        return financialProductIPage.convert(financialConverter ::toFinancialProductVO);
     }
 }

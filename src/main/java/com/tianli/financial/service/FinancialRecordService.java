@@ -17,6 +17,7 @@ import com.tianli.financial.mapper.FinancialRecordMapper;
 import com.tianli.sso.init.RequestInitService;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
@@ -35,6 +36,28 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     private RequestInitService requestInitService;
     @Resource
     private CurrencyService currencyService;
+
+    /**
+     * 赎回金额
+     */
+    @Transactional
+    public void redeem(Long recordId,BigDecimal redeemAmount){
+
+    }
+
+    /**
+     * 默认通过id查询需要带上uid
+     */
+    public FinancialRecord selectById(Long recordId,Long uid){
+        if(Objects.isNull(recordId) || Objects.isNull(uid)){
+            ErrorCodeEnum.CURRENCY_NOT_SUPPORT.throwException();
+        }
+
+        LambdaQueryWrapper<FinancialRecord> query = new LambdaQueryWrapper<FinancialRecord>()
+                .eq(FinancialRecord::getId, recordId).eq(FinancialRecord::getUid, uid);
+
+     return Optional.ofNullable(financialRecordMapper.selectOne(query)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR :: generalException);
+    }
 
     /**
      * 获取不同产品已经使用的总额度

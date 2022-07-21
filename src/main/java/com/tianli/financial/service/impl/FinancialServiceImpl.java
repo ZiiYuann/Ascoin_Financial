@@ -14,6 +14,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
+import com.tianli.common.TimeUtils;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.log.CurrencyLogDes;
@@ -81,7 +82,7 @@ public class FinancialServiceImpl implements FinancialService {
         order.setStatus(ChargeStatus.chain_success);
         orderService.updateStatus(order);
 
-        FinancialPurchaseResultVO financialPurchaseResultVO = financialConverter.toVO(financialRecord);
+        FinancialPurchaseResultVO financialPurchaseResultVO = financialConverter.toFinancialPurchaseResultVO(financialRecord);
         financialPurchaseResultVO.setName(product.getName());
         financialPurchaseResultVO.setStatusDes(order.getStatus().name());
         return financialPurchaseResultVO;
@@ -126,6 +127,30 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
+    public IncomeByRecordIdVO incomeByRecordId(Long uid,Long recordId) {
+        FinancialRecord record = financialRecordService.selectById(recordId, uid);
+        IncomeByRecordIdVO incomeByRecordIdVO = financialConverter.toIncomeByRecordIdVO(record);
+
+
+        LambdaQueryWrapper<FinancialIncomeDaily> incomeDailyQuery = new LambdaQueryWrapper<FinancialIncomeDaily>().eq(FinancialIncomeDaily::getUid, uid)
+                .eq(FinancialIncomeDaily::getRecordId, recordId)
+                .eq(FinancialIncomeDaily :: getFinishTime, TimeUtils.StartOfTime(TimeUtils.Util.DAY).plusDays(-1));
+        var yesterdayIncomeFee = Optional.ofNullable(financialIncomeDailyService.list(incomeDailyQuery)).orElse(new ArrayList<>())
+                .stream().map(FinancialIncomeDaily::getIncomeAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        LambdaQueryWrapper<FinancialIncomeAccrue> incomeAccrueQuery = new LambdaQueryWrapper<FinancialIncomeAccrue>().eq(FinancialIncomeAccrue::getUid, uid)
+                .eq(FinancialIncomeAccrue::getRecordId, recordId)
+                .eq(FinancialIncomeAccrue :: getCreateTime, TimeUtils.StartOfTime(TimeUtils.Util.DAY).plusDays(-1));
+        FinancialIncomeAccrue incomeAccrue = Optional.ofNullable(financialIncomeAccrueService.getOne(incomeAccrueQuery))
+                .orElse(new FinancialIncomeAccrue());
+
+        incomeByRecordIdVO.setAccrueIncomeFee(Optional.ofNullable(incomeAccrue.getIncomeAmount()).orElse(BigDecimal.ZERO));
+        incomeByRecordIdVO.setYesterdayIncomeFee(yesterdayIncomeFee);
+
+        return incomeByRecordIdVO;
+    }
+
+    @Override
     public IPage<HoldProductVo> myHold(IPage<FinancialRecord> page,Long uid, ProductType type) {
 
         var financialRecords = financialRecordService.selectListPage(page,uid, type, RecordStatus.PROCESS);
@@ -167,7 +192,7 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     public IPage<FinancialIncomeDailyVO> incomeDetails(IPage<FinancialIncomeDaily> page,Long uid, Long recordId) {
-        FinancialRecord financialRecord = financialRecordService.getById(recordId);
+        FinancialRecord financialRecord = financialRecordService.selectById(recordId,uid);
         var dailyIncomeLogs = financialIncomeDailyService.pageByRecordId(page,uid, List.of(recordId), null);
         return dailyIncomeLogs.convert(income -> {
             FinancialIncomeDailyVO financialIncomeDailyVO = FinancialIncomeDailyVO.toVO(income);
@@ -302,7 +327,7 @@ public class FinancialServiceImpl implements FinancialService {
             BigDecimal useQuota = useQuotaMap.getOrDefault(product.getId(), BigDecimal.ZERO);
             BigDecimal usePersonQuota = usePersonQuotaMap.getOrDefault(product.getId(), BigDecimal.ZERO);
 
-            FinancialProductVO financialProductVO = financialConverter.toVO(product);
+            FinancialProductVO financialProductVO = financialConverter.toFinancialProductVO(product);
             financialProductVO.setUseQuota(useQuota);
             financialProductVO.setUserPersonQuota(usePersonQuota);
 

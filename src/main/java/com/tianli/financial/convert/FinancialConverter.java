@@ -4,6 +4,7 @@ import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.vo.FinancialProductVO;
 import com.tianli.financial.vo.FinancialPurchaseResultVO;
+import com.tianli.financial.vo.IncomeByRecordIdVO;
 import com.tianli.management.query.FinancialProductEditQuery;
 import org.mapstruct.Mapper;
 
@@ -15,9 +16,11 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface FinancialConverter {
 
-    FinancialPurchaseResultVO toVO(FinancialRecord financialProductPurchaseLog);
+    FinancialPurchaseResultVO toFinancialPurchaseResultVO(FinancialRecord financialProductPurchaseLog);
 
-    FinancialProductVO toVO(FinancialProduct financialProduct);
+    FinancialProductVO toFinancialProductVO(FinancialProduct financialProduct);
 
     FinancialProduct toDO(FinancialProductEditQuery financialProductQuery);
+
+    IncomeByRecordIdVO toIncomeByRecordIdVO(FinancialRecord financialRecord);
 }

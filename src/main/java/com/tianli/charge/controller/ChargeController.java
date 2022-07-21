@@ -3,12 +3,15 @@ package com.tianli.charge.controller;
 import com.google.gson.Gson;
 import com.tianli.address.query.RechargeCallbackQuery;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.query.RedeemQuery;
 import com.tianli.charge.query.WithdrawQuery;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.vo.OrderSettleInfoVO;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.financial.entity.FinancialProduct;
+import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.FinancialService;
@@ -71,7 +74,18 @@ public class ChargeController {
     public Result withdraw(@RequestBody @Valid WithdrawQuery withdrawDTO) {
         if (withdrawDTO.getCurrencyAdaptType().isFiat())
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
-        chargeService.withdraw(withdrawDTO);
+        Long uid = requestInitService.uid();
+        chargeService.withdraw(uid,withdrawDTO);
+        return Result.instance();
+    }
+
+    /**
+     * 赎回
+     */
+    @PostMapping("/redeem")
+    public Result redeem(@RequestBody @Valid RedeemQuery query){
+        Long uid = requestInitService.uid();
+        chargeService.redeem(uid,query);
         return Result.instance();
     }
 
@@ -83,7 +97,6 @@ public class ChargeController {
         //TODO 币种的转换，校验密码
         return Result.instance().setData(financialService.purchase(purchaseQuery));
     }
-
 
     /**
      * 订单详情

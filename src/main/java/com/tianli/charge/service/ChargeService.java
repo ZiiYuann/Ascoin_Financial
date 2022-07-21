@@ -15,6 +15,7 @@ import com.tianli.charge.entity.OrderChargeInfo;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderMapper;
+import com.tianli.charge.query.RedeemQuery;
 import com.tianli.charge.query.WithdrawQuery;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderSettleInfoVO;
@@ -24,7 +25,10 @@ import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.enums.RecordStatus;
+import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
@@ -51,22 +55,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
     public static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
 
-    @Resource
-    private ConfigService configService;
-    @Resource
-    private RequestInitService requestInitService;
-    @Resource
-    private AccountBalanceService accountBalanceService;
-    @Resource
-    private AddressService addressService;
-    @Resource
-    private ChargeConverter chargeConverter;
-    @Resource
-    private OrderService orderService;
-    @Resource
-    private OrderChargeInfoService orderChargeInfoService;
-
-
     /**
      * 充值回调:添加用户余额和记录
      *
@@ -87,9 +75,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     }
 
     @Transactional
-    public void withdraw(WithdrawQuery withdrawDTO) {
-        Long uid = requestInitService.uid();
-        CurrencyAdaptType currencyAdaptType = withdrawDTO.getCurrencyAdaptType();
+    public void withdraw(Long uid,WithdrawQuery query) {
+        CurrencyAdaptType currencyAdaptType = query.getCurrencyAdaptType();
 
         String fromAddress = getMainWalletAddressUrl(currencyAdaptType);
         // 计算手续费  实际手续费 = 提现数额 * 手续费率 + 固定手续费数额
@@ -101,7 +88,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         String fixedAmount = configService._get(currencyAdaptType.name() + "_withdraw_fixed_amount");
 
         // 提现数额
-        BigDecimal withdrawAmount = currencyAdaptType.moneyBigDecimal(new BigInteger("" + withdrawDTO.getAmount()));
+        BigDecimal withdrawAmount = currencyAdaptType.moneyBigDecimal(new BigInteger("" + query.getAmount()));
         if (withdrawAmount.compareTo(new BigDecimal(withdrawMinAmount)) < 0) ErrorCodeEnum.throwException("提现usdt数额过小");
 
         // 手续费
@@ -125,7 +112,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .serviceFee(BigDecimal.ZERO)
                 .fromAddress(fromAddress)
                 .createTime(now)
-                .toAddress(withdrawDTO.getAddress()).build();
+                .toAddress(query.getAddress()).build();
         orderService.insert(orderChargeInfo);
 
         //创建提现订单(提币申请)
@@ -146,6 +133,28 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         //冻结提现数额
         accountBalanceService.freeze(uid, ChargeType.withdraw, currencyAdaptType, withdrawAmount
                 , order.getOrderNo(), CurrencyLogDes.提现.name());
+    }
+
+    @Transactional
+    public void redeem(Long uid,RedeemQuery query){
+        // todo 计算利息的时候不允许进行赎回操
+        Long recordId = query.getRecordId();
+        FinancialRecord record = Optional.ofNullable(financialRecordService.getOne(new LambdaQueryWrapper<FinancialRecord>()
+                        .eq(FinancialRecord::getUid, uid).eq(FinancialRecord::getId, recordId)))
+                .orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
+
+        if(RecordStatus.SUCCESS.equals(record.getStatus())){
+            log.info("recordId:{},已经处于完成状态，请校验是否有误",recordId);
+            ErrorCodeEnum.TRADE_FAIL.throwException();
+        }
+
+        if(query.getRedeemAmount().compareTo(record.getHoldAmount()) > 0 ){
+            log.info("赎回金额 {}  大于持有金额 {}",query.getRedeemAmount(),record.getHoldAmount());
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
+        }
+
+
+
     }
 
     /**
@@ -301,5 +310,23 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         if (fromAddress == null) ErrorCodeEnum.SYSTEM_ERROR.throwException();
         return fromAddress;
     }
+
+
+    @Resource
+    private ConfigService configService;
+    @Resource
+    private RequestInitService requestInitService;
+    @Resource
+    private AccountBalanceService accountBalanceService;
+    @Resource
+    private AddressService addressService;
+    @Resource
+    private ChargeConverter chargeConverter;
+    @Resource
+    private OrderService orderService;
+    @Resource
+    private OrderChargeInfoService orderChargeInfoService;
+    @Resource
+    private FinancialRecordService financialRecordService;
 
 }

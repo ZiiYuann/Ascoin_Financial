@@ -42,6 +42,11 @@ public interface FinancialService {
     IncomeVO income(Long uid);
 
     /**
+     * 单条记录的收益信息
+     */
+    IncomeByRecordIdVO incomeByRecordId(Long uid,Long recordId);
+
+    /**
      * 我的持有列表信息
      */
     IPage<HoldProductVo> myHold(IPage<FinancialRecord> page,Long uid, ProductType financialProductType);
