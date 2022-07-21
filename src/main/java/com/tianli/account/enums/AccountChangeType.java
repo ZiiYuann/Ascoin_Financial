@@ -12,7 +12,9 @@ public enum AccountChangeType {
     // 理财
     financial("FI"),
     // 常规操作
-    normal("NO"),;
+    normal("NO"),
+    // 借币
+    borrow("BO");
 
 
     AccountChangeType(String prefix){
