@@ -1,4 +1,4 @@
-package com.tianli.management.vo;
+package com.tianli.chain.vo;
 
 import com.tianli.chain.enums.ImputationStatus;
 import com.tianli.common.blockchain.CurrencyCoin;

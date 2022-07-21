@@ -1,6 +1,7 @@
 package com.tianli.management.controller;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.account.entity.AccountBalance;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.chain.entity.WalletImputation;
 import com.tianli.chain.service.WalletImputationService;
 import com.tianli.charge.enums.ChargeType;
@@ -35,6 +36,8 @@ public class FinancialWalletController {
     private FinancialBoardWalletService financialWalletBoardService;
     @Resource
     private WalletImputationService walletImputationService;
+    @Resource
+    private AccountBalanceService accountBalanceService;
 
     /**
      * 云钱包数据board
@@ -77,11 +80,20 @@ public class FinancialWalletController {
     }
 
     /**
+     * 钱包余额
+     */
+    @GetMapping("/accounts")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result accounts() {
+        return Result.success().setData(accountBalanceService.getTotalSummaryData());
+    }
+
+    /**
      * 归集列表
      */
     @GetMapping("/imputations")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result imputations(PageQuery<WalletImputation> page, WalletImputationQuery query) {
-        return Result.success();
+        return Result.success(walletImputationService.walletImputationVOPage(page.page(),query));
     }
 }

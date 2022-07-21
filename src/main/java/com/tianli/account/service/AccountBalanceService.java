@@ -7,6 +7,7 @@ import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountOperationType;
 import com.tianli.account.mapper.AccountBalanceMapper;
 import com.tianli.account.vo.AccountBalanceMainPageVO;
+import com.tianli.account.vo.AccountBalanceSimpleVO;
 import com.tianli.account.vo.AccountBalanceVO;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.CommonFunction;
@@ -287,6 +288,17 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
                 }).reduce(BigDecimal.ZERO, BigDecimal::add)
         ));
     }
+
+    public List<AccountBalanceSimpleVO> getTotalSummaryData(){
+        // todo
+        AccountBalanceSimpleVO accountBalanceSimpleVO = new AccountBalanceSimpleVO();
+        accountBalanceSimpleVO.setBalanceAmount(BigDecimal.ONE);
+        accountBalanceSimpleVO.setBalanceDollarAmount(BigDecimal.ONE);
+        accountBalanceSimpleVO.setCoin(CurrencyCoin.usdt);
+        accountBalanceSimpleVO.setDollarRate(BigDecimal.ONE);
+        return List.of(accountBalanceSimpleVO);
+    }
+
 
     @Resource
     private AccountBalanceMapper accountBalanceMapper;
