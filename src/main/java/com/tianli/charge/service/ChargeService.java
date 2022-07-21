@@ -183,7 +183,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)
                 .eq(Order::getOrderNo, orderNo);
-        Order order = orderService.getOne(queryWrapper);
+
+        Order order = Optional.ofNullable(orderService.getOne(queryWrapper)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR :: generalException);
         if (!ChargeType.recharge.equals(order.getType()) && !ChargeType.withdraw.equals(order.getType())) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
@@ -201,6 +202,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         orderChargeInfoVO.setToAddress(orderChargeInfo.getToAddress());
         orderChargeInfoVO.setTxid(orderChargeInfo.getTxid());
         orderChargeInfoVO.setCreateTime(orderChargeInfo.getCreateTime());
+        orderChargeInfoVO.setCreateTime(orderChargeInfo.getCreateTime());
+        // todo 设置logo
+        orderChargeInfoVO.setLogo("");
         return orderChargeInfoVO;
     }
 

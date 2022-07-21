@@ -5,12 +5,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.mapper.AddressMapper;
 import com.tianli.common.CommonFunction;
+import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.BscTriggerContract;
 import com.tianli.common.blockchain.EthTriggerContract;
 import com.tianli.common.blockchain.TronTriggerContract;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.mconfig.ConfigService;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -39,18 +41,8 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
     private TronTriggerContract tronTriggerContract;
     @Resource
     private EthTriggerContract ethTriggerContract;
-
-
-    @Transactional
-    public String getAddressByCurrencyAdaptType(Long uid,CurrencyAdaptType currencyAdaptType){
-        Address address = this.get(uid);
-        switch (currencyAdaptType.getCurrencyNetworkType()){
-            case bep20: return address.getBsc();
-            case erc20: return address.getEth();
-            case trc20: return address.getTron();
-            default: return null;
-        }
-    }
+    @Resource
+    private ConfigService configService;
 
     /**
      * 获取用户的账户地址 如果没有的话会初始化
@@ -84,6 +76,25 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
     public Address get(long uid){
         return super.getOne(new LambdaQueryWrapper<Address>().eq(Address::getUid, uid));
     }
+
+
+    /**
+     * 获取系统钱包地址
+     */
+    public Address getConfigAddress(){
+        String bscWalletAddress = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
+        String ethWalletAddress = configService.get(ConfigConstants.ETH_MAIN_WALLET_ADDRESS);
+        String tronWalletAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
+
+       return Address.builder()
+                .bsc(bscWalletAddress)
+                .eth(ethWalletAddress)
+                .tron(tronWalletAddress)
+                .build();
+    }
+
+
+
 
     public Address getByEth(String toAddress) {
         return baseMapper.getByEth(toAddress);

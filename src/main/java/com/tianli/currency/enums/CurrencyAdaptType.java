@@ -2,6 +2,7 @@ package com.tianli.currency.enums;
 
 import com.tianli.common.blockchain.CurrencyNetworkType;
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.exception.ErrorCodeEnum;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -57,6 +58,16 @@ public enum CurrencyAdaptType {
     private CurrencyCoin currencyCoin;
     private CurrencyNetworkType currencyNetworkType;
     private final boolean fiat;
+
+    public static CurrencyAdaptType get(CurrencyCoin coin,CurrencyNetworkType networkType){
+        for (CurrencyAdaptType type : CurrencyAdaptType.values()){
+            if(type.getCurrencyCoin().equals(coin) && type.getCurrencyNetworkType().equals(networkType)){
+                return type;
+            }
+        }
+        throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
+    }
+
 
     public double money(BigInteger amount) {
         if (amount == null) {

@@ -4,6 +4,7 @@ import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.PurchaseTerm;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.enums.RiskType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -53,6 +54,8 @@ public class FinancialRecord {
     private ProductType productType;
 
     private PurchaseTerm productTerm;
+
+    private RiskType riskType;
 
     private CurrencyCoin coin;
 

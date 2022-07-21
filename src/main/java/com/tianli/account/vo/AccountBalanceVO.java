@@ -65,4 +65,5 @@ public class AccountBalanceVO {
      */
     private BigDecimal dollarRemain;
 
+
 }

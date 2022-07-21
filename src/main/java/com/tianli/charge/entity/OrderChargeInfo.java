@@ -63,11 +63,6 @@ public class OrderChargeInfo{
 
     private LocalDateTime createTime;
 
-    /**
-     * 币种包装类信息
-     */
-    private CurrencyAdaptType currencyAdaptType;
-
     private CurrencyCoin coin;
 
     private CurrencyNetworkType network;

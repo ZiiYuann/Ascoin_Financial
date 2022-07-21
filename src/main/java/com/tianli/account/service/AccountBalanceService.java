@@ -214,6 +214,10 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         return result;
     }
 
+    public List<AccountBalanceVO> getAccountBalanceList(Long uid) {
+        return accountBalanceVOS(uid);
+    }
+
     public List<AccountBalanceVO> accountBalanceVOS(Long uid){
         List<AccountBalance> accountBalances = Optional.ofNullable(this.list(uid)).orElse(new ArrayList<>());
 

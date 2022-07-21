@@ -80,4 +80,6 @@ public class OrderChargeInfoVO {
      */
     private BigDecimal serviceAmount = BigDecimal.ZERO;
 
+    private String logo;
+
 }

@@ -3,6 +3,7 @@ package com.tianli.financial.vo;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.PurchaseTerm;
+import com.tianli.financial.enums.RiskType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,6 +33,10 @@ public class IncomeByRecordIdVO {
     private BigDecimal rate;
 
     private CurrencyCoin coin;
+
+    private RiskType riskType;
+
+    private String logo;
 
     /**
      * 持有币

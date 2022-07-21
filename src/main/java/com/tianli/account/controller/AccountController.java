@@ -9,12 +9,16 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.common.blockchain.CurrencyNetworkType;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -36,6 +40,8 @@ public class AccountController {
     private AccountBalanceService accountBalanceService;
     @Resource
     private ChargeService chargeService;
+    @Resource
+    private ConfigService configService;
 
     /**
      * 激活钱包
@@ -72,6 +78,27 @@ public class AccountController {
         return Result.success(AddressVO.trans(address));
     }
 
+
+    /**
+     * 查看系统钱包地址
+     */
+    @GetMapping("/address/config")
+    public Result addressConfig() {
+        return Result.success(AddressVO.trans(addressService.getConfigAddress()));
+    }
+
+    /**
+     * 手续费
+     */
+    @GetMapping("/service/rate")
+    public Result serviceRate(CurrencyCoin coin, CurrencyNetworkType networkType) {
+        CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(coin, networkType);
+        String rate = configService.get(currencyAdaptType.name() + "_withdraw_rate");
+        HashMap<String, BigDecimal> rateMap = new HashMap<>();
+        rateMap.put("serviceRate",BigDecimal.valueOf(Double.parseDouble(rate)));
+        return Result.success().setData(rateMap);
+    }
+
     /**
      * 查询用户云钱包余额汇总
      */
@@ -87,7 +114,7 @@ public class AccountController {
     @GetMapping("/balances")
     public Result balances() {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(accountBalanceService.getAccountBalanceMainPageVO(uid));
+        return Result.instance().setData(accountBalanceService.getAccountBalanceList(uid));
     }
 
     /**

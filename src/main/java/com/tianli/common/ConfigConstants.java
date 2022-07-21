@@ -512,4 +512,7 @@ public class ConfigConstants {
 
     public static final String WALLET_NEWS_OSS_VERIFY_PATH = "wallet_news_oss_verify_path";
 
+    public static final String SYSTEM_URL_PATH_PREFIX = "system_url_path_prefix";
+    public static final String DATA_CENTER_URL_PUSH_PATH = "data_center_url_push_path";
+
 }
