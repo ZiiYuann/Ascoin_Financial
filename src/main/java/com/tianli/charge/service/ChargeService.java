@@ -17,8 +17,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderMapper;
 import com.tianli.charge.query.RedeemQuery;
 import com.tianli.charge.query.WithdrawQuery;
-import com.tianli.charge.vo.OrderChargeInfoVO;
-import com.tianli.charge.vo.OrderSettleInfoVO;
+import com.tianli.charge.vo.*;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -153,14 +152,12 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
 
-
-
     }
 
     /**
      * 结算列表
      */
-    public IPage<OrderSettleInfoVO> settleOrderPage(IPage<OrderSettleInfoVO> page, Long uid, ProductType productType) {
+    public IPage<OrderSettleRecordVO> settleOrderPage(IPage<OrderSettleRecordVO> page, Long uid, ProductType productType) {
         return orderService.OrderSettleInfoVOPage(page, uid, productType);
     }
 
@@ -172,7 +169,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     }
 
     /**
-     * 充值列表
+     * 充值总金额
      */
     public BigDecimal orderChargeSummaryAmount(FinancialChargeQuery query) {
         return orderService.orderChargeSummaryAmount(query);
@@ -206,6 +203,35 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         // todo 设置logo
         orderChargeInfoVO.setLogo("");
         return orderChargeInfoVO;
+    }
+
+    public OrderBaseVO orderDetails(Long uid, String orderNo) {
+
+        LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
+                .eq(Order::getUid, uid)
+                .eq(Order::getOrderNo, orderNo);
+        Order order = Optional.ofNullable(orderService.getOne(queryWrapper)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR :: generalException);
+        if (!ChargeType.recharge.equals(order.getType()) && !ChargeType.redeem.equals(order.getType()) && !ChargeType.transfer.equals(order.getType())){
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
+        }
+
+        FinancialRecord record = financialRecordService.selectById(order.getRelatedId(), uid);
+        switch (order.getType()){
+            case recharge:
+                var orderRechargeDetailsVo = chargeConverter.toOrderRechargeDetailsVo(record);
+                orderRechargeDetailsVo.setOrderNo(order.getOrderNo());
+                orderRechargeDetailsVo.setPurchaseTime(record.getPurchaseTime());
+                orderRechargeDetailsVo.setExpectIncome(record.getHoldAmount().multiply(record.getRate()).
+                        multiply(BigDecimal.valueOf(record.getProductTerm().getDay())));
+                return orderRechargeDetailsVo;
+            case redeem:
+                var orderRedeemDetailsVO = chargeConverter.toOrderRedeemDetailsVO(record);
+                orderRedeemDetailsVO.setOrderNo(order.getOrderNo());
+                orderRedeemDetailsVO.setRedeemTime(order.getCreateTime());
+                orderRedeemDetailsVO.setRedeemEndTime(order.getCreateTime());
+                return orderRedeemDetailsVO;
+            default: return chargeConverter.toOrderBaseVO(record);
+        }
     }
 
 

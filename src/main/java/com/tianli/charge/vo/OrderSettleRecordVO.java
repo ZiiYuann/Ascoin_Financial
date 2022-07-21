@@ -1,7 +1,7 @@
 package com.tianli.charge.vo;
 
-import com.tianli.financial.enums.PurchaseTerm;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -12,22 +12,8 @@ import java.time.LocalDateTime;
  * @since 2022-07-18
  **/
 @Data
-public class OrderSettleInfoVO {
-
-    private Long uid;
-
-    /**
-     * financial_record id
-     */
-    private Long recordId;
-
-    private String coin;
-
-    private String productName;
-
-    private String productNameEn;
-
-    private PurchaseTerm productTerm;
+@EqualsAndHashCode(callSuper = true)
+public class OrderSettleRecordVO extends OrderBaseVO {
 
     /**
      * 累计收益

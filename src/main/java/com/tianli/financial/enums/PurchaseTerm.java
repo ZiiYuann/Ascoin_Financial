@@ -10,7 +10,7 @@ public enum PurchaseTerm {
     ONE_MONTH( 30),
     TWO_MONTH(60),
     THREE_MONTH( 90),
-    NONE(0);
+    NONE(1);
 
     PurchaseTerm( int day) {
         this.day = day;

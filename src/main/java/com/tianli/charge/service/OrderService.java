@@ -11,7 +11,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderChargeInfoMapper;
 import com.tianli.charge.mapper.OrderMapper;
 import com.tianli.charge.vo.OrderChargeInfoVO;
-import com.tianli.charge.vo.OrderSettleInfoVO;
+import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
@@ -88,7 +88,7 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
     }
 
 
-    public IPage<OrderSettleInfoVO> OrderSettleInfoVOPage(IPage<OrderSettleInfoVO> page, Long uid, ProductType productType) {
+    public IPage<OrderSettleRecordVO> OrderSettleInfoVOPage(IPage<OrderSettleRecordVO> page, Long uid, ProductType productType) {
         return orderMapper.selectOrderSettleInfoVOPage(page, uid, productType);
     }
 

@@ -5,6 +5,8 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RiskType;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 
 /**
  * 持有产品信息
@@ -38,7 +40,7 @@ public class HoldProductVo {
     /**
      * 参考年化
      */
-    private double rate;
+    private BigDecimal rate;
 
     /**
      * 收益信息

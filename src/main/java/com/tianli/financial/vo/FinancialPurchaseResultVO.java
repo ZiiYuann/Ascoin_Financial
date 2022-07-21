@@ -42,7 +42,7 @@ public class FinancialPurchaseResultVO {
     /**
      * 参考年化
      */
-    private double rate;
+    private BigDecimal rate;
 
     /**
      * 开始日期

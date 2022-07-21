@@ -69,7 +69,7 @@ public class FinancialRecord {
     /**
      * 参考年化
      */
-    private double rate;
+    private BigDecimal rate;
 
     /**
      * 申购时间

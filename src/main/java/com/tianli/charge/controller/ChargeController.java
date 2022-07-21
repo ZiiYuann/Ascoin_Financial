@@ -6,12 +6,10 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.query.RedeemQuery;
 import com.tianli.charge.query.WithdrawQuery;
 import com.tianli.charge.service.ChargeService;
-import com.tianli.charge.vo.OrderSettleInfoVO;
+import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
-import com.tianli.financial.entity.FinancialProduct;
-import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.FinancialService;
@@ -99,20 +97,19 @@ public class ChargeController {
     }
 
     /**
-     * 订单详情
+     * 订单详情【充值、提币】
      */
     @GetMapping("/details/{orderNo}")
-    public Result details(@PathVariable String orderNo) {
+    public Result chargeOrderDetails(@PathVariable String orderNo) {
         Long uid = requestInitService.uid();
         return Result.instance().setData(chargeService.chargeOrderDetails(uid, orderNo));
     }
-
 
     /**
      * 结算记录
      */
     @GetMapping("/settles")
-    public Result settles(PageQuery<OrderSettleInfoVO> page, ProductType productType) {
+    public Result settles(PageQuery<OrderSettleRecordVO> page, ProductType productType) {
         Long uid = requestInitService.uid();;
         return Result.instance().setData(chargeService.settleOrderPage(page.page(),uid,productType));
     }
@@ -131,5 +128,13 @@ public class ChargeController {
         return Result.instance().setData(financialService.orderPage(uid,pageQuery.page(),productType,chargeType));
     }
 
+    /**
+     * 交易订单详情【申购、赎回、转存】
+     */
+    @GetMapping("/order/{orderNo}")
+    public Result orderDetails(@PathVariable String orderNo) {
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(chargeService.orderDetails(uid, orderNo));
+    }
 
 }

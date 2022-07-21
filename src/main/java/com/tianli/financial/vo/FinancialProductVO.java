@@ -56,7 +56,7 @@ public class FinancialProductVO {
     /**
      * 参考年化
      */
-    private double rate;
+    private BigDecimal rate;
 
     /**
      * 个人已使用额度

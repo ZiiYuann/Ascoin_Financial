@@ -51,7 +51,6 @@ public class FinancialWalletController {
     @AdminPrivilege(and = Privilege.理财管理)
     public Result rechargeOrderData(FinancialChargeQuery query) {
         query.setChargeType(ChargeType.recharge);
-
         return Result.success()
                 .setData(FinancialSummaryDataVO.builder().rechargeAmount(chargeService.orderChargeSummaryAmount(query)).build());
     }

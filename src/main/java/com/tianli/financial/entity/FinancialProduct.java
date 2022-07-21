@@ -65,7 +65,7 @@ public class FinancialProduct {
     /**
      * 参考年化
      */
-    private double rate;
+    private BigDecimal rate;
 
     /**
      * 个人额度

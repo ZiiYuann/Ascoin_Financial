@@ -48,7 +48,7 @@
 
         ORDER BY o.create_time desc
     </select>
-    <select id="selectOrderSettleInfoVOPage" resultType="com.tianli.charge.vo.OrderSettleInfoVO">
+    <select id="selectOrderSettleInfoVOPage" resultType="com.tianli.charge.vo.OrderSettleRecordVO">
         SELECT o.uid, record.id as record_id, income.income_amount, o.amount as settle_amount,
                record.purchase_time ,record.start_income_time,record.redeem_time,
                record.coin,record.product_name,record.product_term,record.product_name_en
