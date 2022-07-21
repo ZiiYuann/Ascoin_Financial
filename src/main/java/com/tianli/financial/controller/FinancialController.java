@@ -23,8 +23,11 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/financial")
@@ -81,6 +84,17 @@ public class FinancialController {
         productVO.setStartIncomeTime(TimeUtils.StartOfTime(TimeUtils.Util.DAY).plusDays(1));
         productVO.setPurchaseTime(now.plusDays(product.getTerm().getDay()));
         return Result.instance().setData(productVO);
+    }
+
+    /**
+     * 预计收益接口
+     */
+    @GetMapping("/expect/income")
+    public Result expectIncome(Long productId,BigDecimal amount){
+        FinancialProduct product = financialProductService.getById(productId);
+        Map<String,BigDecimal> result = new HashMap<>();
+        result.put("expectIncome",product.getRate().multiply(amount).divide(BigDecimal.valueOf(365), RoundingMode.HALF_DOWN));
+        return Result.instance().setData(result);
     }
 
     /**

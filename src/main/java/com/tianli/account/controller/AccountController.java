@@ -78,7 +78,6 @@ public class AccountController {
         return Result.success(AddressVO.trans(address));
     }
 
-
     /**
      * 查看系统钱包地址
      */
