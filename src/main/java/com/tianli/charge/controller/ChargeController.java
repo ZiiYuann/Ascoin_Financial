@@ -110,7 +110,7 @@ public class ChargeController {
      */
     @GetMapping("/settles")
     public Result settles(PageQuery<OrderSettleRecordVO> page, ProductType productType) {
-        Long uid = requestInitService.uid();;
+        Long uid = requestInitService.uid();
         return Result.instance().setData(chargeService.settleOrderPage(page.page(),uid,productType));
     }
 

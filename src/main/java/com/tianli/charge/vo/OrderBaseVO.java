@@ -50,7 +50,7 @@ public class OrderBaseVO {
     /**
      * 订单状态
      */
-    private ChargeStatus orderStatus;
+    private ChargeStatus chargeStatus;
 
     /**
      * 开始计息时间

@@ -206,7 +206,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     }
 
     public OrderBaseVO orderDetails(Long uid, String orderNo) {
-
         LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)
                 .eq(Order::getOrderNo, orderNo);
@@ -216,21 +215,27 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         }
 
         FinancialRecord record = financialRecordService.selectById(order.getRelatedId(), uid);
+        OrderBaseVO orderBaseVO = getOrderBaseVO(order, record);
+        orderBaseVO.setChargeStatus(order.getStatus());
+        orderBaseVO.setOrderNo(order.getOrderNo());
+        return orderBaseVO;
+    }
+
+    private OrderBaseVO getOrderBaseVO(Order order, FinancialRecord record) {
         switch (order.getType()){
             case recharge:
                 var orderRechargeDetailsVo = chargeConverter.toOrderRechargeDetailsVo(record);
-                orderRechargeDetailsVo.setOrderNo(order.getOrderNo());
                 orderRechargeDetailsVo.setPurchaseTime(record.getPurchaseTime());
                 orderRechargeDetailsVo.setExpectIncome(record.getHoldAmount().multiply(record.getRate()).
                         multiply(BigDecimal.valueOf(record.getProductTerm().getDay())));
                 return orderRechargeDetailsVo;
             case redeem:
                 var orderRedeemDetailsVO = chargeConverter.toOrderRedeemDetailsVO(record);
-                orderRedeemDetailsVO.setOrderNo(order.getOrderNo());
                 orderRedeemDetailsVO.setRedeemTime(order.getCreateTime());
                 orderRedeemDetailsVO.setRedeemEndTime(order.getCreateTime());
                 return orderRedeemDetailsVO;
-            default: return chargeConverter.toOrderBaseVO(record);
+            default:
+                return chargeConverter.toOrderBaseVO(record);
         }
     }
 
