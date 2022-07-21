@@ -135,7 +135,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     }
 
     @Transactional
-    public void redeem(Long uid,RedeemQuery query){
+    public String redeem(Long uid,RedeemQuery query){
         // todo 计算利息的时候不允许进行赎回操
         Long recordId = query.getRecordId();
         FinancialRecord record = Optional.ofNullable(financialRecordService.getOne(new LambdaQueryWrapper<FinancialRecord>()
@@ -152,6 +152,28 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
 
+        //创建赎回订单  没有审核操作，在一个事物里无需操作
+        LocalDateTime now = LocalDateTime.now();
+        long id = CommonFunction.generalId();
+        Order order = new Order();
+        order.setId(id);
+        order.setUid(uid);
+        order.setAmount(query.getRedeemAmount());
+        order.setOrderNo(AccountChangeType.financial.getPrefix() + CommonFunction.generalSn(id));
+        order.setStatus(ChargeStatus.chain_success);
+        order.setType(ChargeType.redeem);
+        order.setRelatedId(recordId);
+        order.setCoin(record.getCoin());
+        order.setCreateTime(now);
+        order.setCompleteTime(now);
+        orderService.saveOrder(order);
+
+        // 扣除持有金额
+        financialRecordService.redeem(recordId,query.getRedeemAmount());
+        // 解冻余额
+        accountBalanceService.unfreeze(uid,ChargeType.redeem,query.getRedeemAmount(),order.getOrderNo(),CurrencyLogDes.赎回.name());
+
+        return order.getOrderNo();
     }
 
     /**
@@ -217,6 +239,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         FinancialRecord record = financialRecordService.selectById(order.getRelatedId(), uid);
         OrderBaseVO orderBaseVO = getOrderBaseVO(order, record);
         orderBaseVO.setChargeStatus(order.getStatus());
+        orderBaseVO.setChargeType(order.getType());
         orderBaseVO.setOrderNo(order.getOrderNo());
         orderBaseVO.setAmount(order.getAmount());
         return orderBaseVO;

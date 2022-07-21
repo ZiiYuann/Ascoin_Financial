@@ -3,7 +3,7 @@ package com.tianli.charge.vo;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.common.blockchain.CurrencyNetworkType;
+import com.tianli.common.blockchain.NetworkType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -73,7 +73,7 @@ public class OrderChargeInfoVO {
     /**
      * 网络
      */
-    private CurrencyNetworkType networkType;
+    private NetworkType networkType;
 
     /**
      * 手续费

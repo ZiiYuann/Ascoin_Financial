@@ -15,6 +15,8 @@ import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.mapper.FinancialRecordMapper;
 import com.tianli.sso.init.RequestInitService;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, FinancialRecord> {
 
     @Resource
@@ -42,7 +45,10 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      */
     @Transactional
     public void redeem(Long recordId,BigDecimal redeemAmount){
-
+        if(financialRecordMapper.reduce(recordId,redeemAmount,LocalDateTime.now()) < 0){
+            log.error("赎回异常，recordId:{},amount:{}",recordId,redeemAmount);
+            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
+        }
     }
 
     /**

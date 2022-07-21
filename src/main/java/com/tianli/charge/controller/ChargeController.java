@@ -1,5 +1,6 @@
 package com.tianli.charge.controller;
 
+import cn.hutool.core.map.MapUtil;
 import com.google.gson.Gson;
 import com.tianli.address.query.RechargeCallbackQuery;
 import com.tianli.charge.enums.ChargeType;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -85,8 +87,10 @@ public class ChargeController {
     @PostMapping("/redeem")
     public Result redeem(@RequestBody @Valid RedeemQuery query){
         Long uid = requestInitService.uid();
-        chargeService.redeem(uid,query);
-        return Result.instance();
+        String orderNo = chargeService.redeem(uid,query);
+        HashMap<Object, Object> result = MapUtil.newHashMap();
+        result.put("orderNo",orderNo);
+        return Result.instance().setData(result);
     }
 
     /**
@@ -94,7 +98,6 @@ public class ChargeController {
      */
     @PostMapping("/purchase/balance")
     public Result balancePurchase(@RequestBody @Valid PurchaseQuery purchaseQuery){
-        //TODO 币种的转换，校验密码
         return Result.instance().setData(financialService.purchase(purchaseQuery));
     }
 

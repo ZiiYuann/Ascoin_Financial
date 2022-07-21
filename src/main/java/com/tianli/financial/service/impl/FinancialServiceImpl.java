@@ -85,6 +85,7 @@ public class FinancialServiceImpl implements FinancialService {
         FinancialPurchaseResultVO financialPurchaseResultVO = financialConverter.toFinancialPurchaseResultVO(financialRecord);
         financialPurchaseResultVO.setName(product.getName());
         financialPurchaseResultVO.setStatusDes(order.getStatus().name());
+        financialPurchaseResultVO.setOrderNo(order.getOrderNo());
         return financialPurchaseResultVO;
     }
 

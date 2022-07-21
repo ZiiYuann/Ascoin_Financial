@@ -2,7 +2,7 @@ package com.tianli.common.blockchain;
 
 import lombok.Getter;
 
-public enum CurrencyNetworkType {
+public enum NetworkType {
     // erc20 以太坊公链代币标准 trc20 波场公链代币标准 bep20 币安链代币标准
     // 以太坊公链代币标准
     erc20("ETH"),
@@ -12,7 +12,7 @@ public enum CurrencyNetworkType {
     bep20("BSC"),
     // okc公链代币标准
     kip20("KIP");
-    CurrencyNetworkType(String alias){
+    NetworkType(String alias){
         this.alias = alias;
     }
 

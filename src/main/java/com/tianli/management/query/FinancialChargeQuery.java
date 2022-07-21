@@ -2,7 +2,7 @@ package com.tianli.management.query;
 
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.common.blockchain.CurrencyNetworkType;
+import com.tianli.common.blockchain.NetworkType;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -22,7 +22,7 @@ public class FinancialChargeQuery {
 
     private Long uid;
 
-    private CurrencyNetworkType networkType;
+    private NetworkType networkType;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startTime;
