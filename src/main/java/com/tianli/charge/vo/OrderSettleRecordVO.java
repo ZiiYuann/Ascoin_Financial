@@ -40,5 +40,4 @@ public class OrderSettleRecordVO extends OrderBaseVO {
      */
     private LocalDateTime redeemTime;
 
-
 }

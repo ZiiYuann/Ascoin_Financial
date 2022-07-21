@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author chenb
@@ -28,6 +29,8 @@ public class FinancialOrdersQuery {
     private CurrencyCoin coin;
     private ChargeStatus status;
     private ChargeType chargeType;
+
+    private List<ChargeType> defaultChargeType;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startTime;

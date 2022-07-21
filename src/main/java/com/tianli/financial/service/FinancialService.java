@@ -70,11 +70,6 @@ public interface FinancialService {
     void validRemainAmount(Long uid, CurrencyCoin currencyCoin, BigDecimal amount);
 
     /**
-     * 获取交易记录信息
-     */
-    IPage<OrderFinancialVO> orderPage(Long uid, Page<OrderFinancialVO> page, ProductType productType, ChargeType chargeType);
-
-    /**
      * 获取订单记录信息
      */
     IPage<OrderFinancialVO> orderPage(Page<OrderFinancialVO> page, FinancialOrdersQuery financialOrdersQuery);

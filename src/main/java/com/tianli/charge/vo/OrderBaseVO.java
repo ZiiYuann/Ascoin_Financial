@@ -1,6 +1,7 @@
 package com.tianli.charge.vo;
 
 import com.tianli.charge.enums.ChargeStatus;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.PurchaseTerm;
@@ -51,6 +52,11 @@ public class OrderBaseVO {
      * 订单状态
      */
     private ChargeStatus chargeStatus;
+
+    /**
+     * 订单类型
+     */
+    private ChargeType chargeType;
 
     /**
      * 开始计息时间

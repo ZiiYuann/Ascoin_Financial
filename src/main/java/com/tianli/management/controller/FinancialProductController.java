@@ -2,6 +2,7 @@ package com.tianli.management.controller;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author lzy
@@ -94,6 +96,7 @@ public class FinancialProductController {
     @GetMapping("/orders")
     @AdminPrivilege(and = Privilege.理财配置)
     public Result orders(PageQuery<OrderFinancialVO> page, FinancialOrdersQuery query) {
+        query.setDefaultChargeType(List.of(ChargeType.purchase,ChargeType.redeem,ChargeType.transfer,ChargeType.settle));
         IPage<OrderFinancialVO> financialOrderVOIPage = financialService.orderPage(page.page(), query);
         return Result.success(financialOrderVOIPage);
     }

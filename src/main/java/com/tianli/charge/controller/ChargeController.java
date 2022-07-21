@@ -14,6 +14,7 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.OrderFinancialVO;
+import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.crypto.Crypto;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -115,7 +117,7 @@ public class ChargeController {
     }
 
     /**
-     * 交易记录
+     * 交易记录【申购、赎回、转存】
      */
     @GetMapping("/orders")
     public Result order(PageQuery<OrderFinancialVO> pageQuery, ProductType productType, ChargeType chargeType) {
@@ -124,8 +126,12 @@ public class ChargeController {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
 
-        Long uid = requestInitService.uid();
-        return Result.instance().setData(financialService.orderPage(uid,pageQuery.page(),productType,chargeType));
+        FinancialOrdersQuery query  = new FinancialOrdersQuery();
+        query.setProductType(productType);
+        query.setChargeType(chargeType);
+        query.setUid(requestInitService.uid());
+        query.setDefaultChargeType(List.of(ChargeType.purchase,ChargeType.redeem,ChargeType.transfer));
+        return Result.instance().setData(financialService.orderPage(pageQuery.page(),query));
     }
 
     /**

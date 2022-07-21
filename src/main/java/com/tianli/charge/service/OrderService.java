@@ -60,18 +60,6 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
         }
     }
 
-    public IPage<OrderFinancialVO> selectByPage(IPage<OrderFinancialVO> page,
-                                         Long uid,
-                                         ProductType productType,
-                                         ChargeType chargeType) {
-
-        FinancialOrdersQuery query = new FinancialOrdersQuery();
-        query.setUid(uid);
-        query.setProductType(productType);
-        query.setChargeType(chargeType);
-        return this.selectByPage(page,query);
-    }
-
     public IPage<OrderFinancialVO> selectByPage(IPage<OrderFinancialVO> page, FinancialOrdersQuery financialOrdersQuery) {
         var orderFinancialVOIPage = orderMapper.selectByPage(page, financialOrdersQuery);
         EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();

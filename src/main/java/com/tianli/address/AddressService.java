@@ -4,13 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.mapper.AddressMapper;
+import com.tianli.chain.service.ChainService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.BscTriggerContract;
 import com.tianli.common.blockchain.EthTriggerContract;
 import com.tianli.common.blockchain.TronTriggerContract;
 import com.tianli.common.lock.RedisLock;
-import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
 import lombok.SneakyThrows;
@@ -43,6 +43,18 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
     private EthTriggerContract ethTriggerContract;
     @Resource
     private ConfigService configService;
+    @Resource
+    private ChainService chainService;
+
+    /**
+     * 激活钱包，并且会推送数据到数据中心
+     */
+    @Transactional
+    public Address activityAccount(Long uid){
+        Address address = getAndInit(uid);
+        chainService.pushCondition(address);
+        return address;
+    }
 
     /**
      * 获取用户的账户地址 如果没有的话会初始化

@@ -217,11 +217,6 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IPage<OrderFinancialVO> orderPage(Long uid, Page<OrderFinancialVO> page, ProductType productType, ChargeType chargeType) {
-        return orderService.selectByPage(page, uid, productType, chargeType);
-    }
-
-    @Override
     public IPage<OrderFinancialVO> orderPage(Page<OrderFinancialVO> page, FinancialOrdersQuery financialOrdersQuery) {
         return orderService.selectByPage(page, financialOrdersQuery);
     }

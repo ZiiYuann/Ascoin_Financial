@@ -49,8 +49,7 @@ public class AccountController {
     @PostMapping("/activate")
     public Result activateWallet() {
         Long uid = requestInitService.uid();
-        addressService.getAndInit(uid);
-        return Result.success();
+        return Result.success().setData(addressService.activityAccount(uid));
     }
 
     /**
