@@ -92,4 +92,9 @@ public class FinancialRecord {
      * 自动续费
      */
     private boolean autoRenewal;
+
+    /**
+     * 锁定金额
+     */
+    private BigDecimal lockAmount;
 }

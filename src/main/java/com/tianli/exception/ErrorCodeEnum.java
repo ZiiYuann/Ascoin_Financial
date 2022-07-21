@@ -77,6 +77,11 @@ public enum ErrorCodeEnum {
     /*** －－－－－－业务错误码-现货交易－－－－－－*/
     TRADE_FAIL(3400, "交易失败"),
     CANCEL_FAIL(3401, "撤销失败"),
+
+    /*** －－－－－－业务错误码-借币相关－－－－－－*/
+    NO_COIN_CONFIG(3500,"借币配置为空"),
+    BORROW_GT_AVAILABLE_ERROR(3501,"借币数量大于可用数量"),
+    BORROW_RANGE_ERROR(3502,"借币数量小于最小数量或大于最大数量")
     ;
     private int errorNo;
 

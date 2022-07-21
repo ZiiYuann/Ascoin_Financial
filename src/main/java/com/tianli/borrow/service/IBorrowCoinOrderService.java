@@ -1,7 +1,15 @@
 package com.tianli.borrow.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.borrow.controller.BorrowCoinOrderController;
+import com.tianli.borrow.dto.BorrowCoinOrderDTO;
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tianli.borrow.query.BorrowCoinOrderQuery;
+import com.tianli.borrow.vo.BorrowCoinConfigVO;
+import com.tianli.borrow.vo.BorrowCoinMainPageVO;
+import com.tianli.borrow.vo.BorrowCoinOrderVO;
+import com.tianli.common.PageQuery;
 
 /**
  * <p>
@@ -12,5 +20,12 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2022-07-20
  */
 public interface IBorrowCoinOrderService extends IService<BorrowCoinOrder> {
+    BorrowCoinMainPageVO mainPage();
+
+    IPage<BorrowCoinOrderVO> pageList(PageQuery<BorrowCoinOrder> pageQuery, BorrowCoinOrderQuery query);
+
+    BorrowCoinConfigVO config();
+
+    void borrowCoin(BorrowCoinOrderDTO borrowCoinOrderDTO);
 
 }

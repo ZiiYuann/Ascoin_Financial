@@ -17,5 +17,6 @@ public enum CurrencyLogDes {
     //新币状态
     扣款,回款,奖励,
     申购,
+    借币
     ;
 }
