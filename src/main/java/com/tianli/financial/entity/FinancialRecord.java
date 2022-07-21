@@ -72,7 +72,7 @@ public class FinancialRecord {
     private BigDecimal rate;
 
     /**
-     * 申购时间
+     * 申购时间 创建时间
      */
     private LocalDateTime purchaseTime;
 
@@ -95,4 +95,9 @@ public class FinancialRecord {
      * 自动续费
      */
     private boolean autoRenewal;
+
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updateTime;
 }

@@ -9,7 +9,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.common.blockchain.CurrencyNetworkType;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
@@ -89,7 +89,7 @@ public class AccountController {
      * 手续费
      */
     @GetMapping("/service/rate")
-    public Result serviceRate(CurrencyCoin coin, CurrencyNetworkType networkType) {
+    public Result serviceRate(CurrencyCoin coin, NetworkType networkType) {
         CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(coin, networkType);
         String rate = configService.get(currencyAdaptType.name() + "_withdraw_rate");
         HashMap<String, BigDecimal> rateMap = new HashMap<>();

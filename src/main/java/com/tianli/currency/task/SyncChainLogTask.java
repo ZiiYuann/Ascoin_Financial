@@ -1,7 +1,7 @@
 package com.tianli.currency.task;
 
 import com.tianli.chain.mapper.ChainLogMapper;
-import com.tianli.chain.service.ChainLogService;
+import com.tianli.chain.service.WalletImputationService;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.lock.RedisLock;
@@ -24,7 +24,7 @@ public class SyncChainLogTask {
     private ChainLogMapper chainLogMapper;
 
     @Resource
-    private ChainLogService chainLogService;
+    private WalletImputationService chainLogService;
 
     @Resource
     private RedisLock redisLock;

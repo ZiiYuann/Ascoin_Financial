@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 public class FinancialPurchaseResultVO {
 
     private String name;
+
     private String nameEn;
 
     /**
@@ -64,5 +65,5 @@ public class FinancialPurchaseResultVO {
      */
     private LocalDateTime createTime;
 
-
+    private String orderNo;
 }

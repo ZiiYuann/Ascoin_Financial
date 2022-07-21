@@ -1,5 +1,8 @@
 package com.tianli.management.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.chain.entity.WalletImputation;
+import com.tianli.chain.service.WalletImputationService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.vo.OrderChargeInfoVO;
@@ -7,6 +10,7 @@ import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialChargeQuery;
+import com.tianli.management.query.WalletImputationQuery;
 import com.tianli.management.service.FinancialBoardWalletService;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.sso.permission.AdminPrivilege;
@@ -29,6 +33,8 @@ public class FinancialWalletController {
     private ChargeService chargeService;
     @Resource
     private FinancialBoardWalletService financialWalletBoardService;
+    @Resource
+    private WalletImputationService walletImputationService;
 
     /**
      * 云钱包数据board
@@ -68,5 +74,14 @@ public class FinancialWalletController {
         query.setChargeType(ChargeType.recharge);
         return Result.success()
                 .setData(FinancialSummaryDataVO.builder().withdrawAmount(chargeService.orderChargeSummaryAmount(query)).build());
+    }
+
+    /**
+     * 归集列表
+     */
+    @GetMapping("/imputations")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result imputations(PageQuery<WalletImputation> page, WalletImputationQuery query) {
+        return Result.success();
     }
 }

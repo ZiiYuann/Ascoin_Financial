@@ -1,6 +1,6 @@
 package com.tianli.charge.query;
 
-import com.tianli.common.blockchain.CurrencyNetworkType;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.Data;
 
@@ -27,7 +27,7 @@ public class WithdrawQuery {
     /**
      * 提币网络
      */
-    private CurrencyNetworkType currencyNetworkType;
+    private NetworkType currencyNetworkType;
 
 
 }

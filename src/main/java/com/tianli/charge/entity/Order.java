@@ -27,10 +27,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @TableName(value ="`order`")
 public class Order {
+
+    private Long id;
+
     /**
      * 订单号
      */
-    @TableId
     private String orderNo;
 
     @JsonSerialize(using = ToStringSerializer.class)

@@ -1,6 +1,6 @@
 package com.tianli.currency.enums;
 
-import com.tianli.common.blockchain.CurrencyNetworkType;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.ErrorCodeEnum;
 import lombok.Getter;
@@ -17,15 +17,15 @@ import java.util.List;
 @Getter
 public enum CurrencyAdaptType {
 
-    usdt_bep20(CurrencyCoin.usdt, CurrencyNetworkType.bep20),
-    usdc_erc20(CurrencyCoin.usdc,CurrencyNetworkType.erc20),
-    usdc_trc20(CurrencyCoin.usdc,CurrencyNetworkType.trc20),
-    usdc_bep20(CurrencyCoin.usdc,CurrencyNetworkType.bep20),
+    usdt_bep20(CurrencyCoin.usdt, NetworkType.bep20),
+    usdc_erc20(CurrencyCoin.usdc, NetworkType.erc20),
+    usdc_trc20(CurrencyCoin.usdc, NetworkType.trc20),
+    usdc_bep20(CurrencyCoin.usdc, NetworkType.bep20),
 
-    usdt_erc20(CurrencyCoin.usdt,CurrencyNetworkType.erc20),
-    eth(CurrencyCoin.eth,CurrencyNetworkType.erc20),
+    usdt_erc20(CurrencyCoin.usdt, NetworkType.erc20),
+    eth(CurrencyCoin.eth, NetworkType.erc20),
 
-    usdt_trc20(CurrencyCoin.usdt,CurrencyNetworkType.trc20),
+    usdt_trc20(CurrencyCoin.usdt, NetworkType.trc20),
     tron,
 
     usdt_omni(CurrencyCoin.usdt),
@@ -33,7 +33,7 @@ public enum CurrencyAdaptType {
 
     cny(true),
     bsc,
-    bnb(CurrencyCoin.bnb,CurrencyNetworkType.bep20),
+    bnb(CurrencyCoin.bnb, NetworkType.bep20),
     BF_bep20;
 
     CurrencyAdaptType(CurrencyCoin currencyCoin) {
@@ -41,7 +41,7 @@ public enum CurrencyAdaptType {
         this.currencyCoin = currencyCoin;
     }
 
-    CurrencyAdaptType(CurrencyCoin currencyCoin,CurrencyNetworkType currencyNetworkType) {
+    CurrencyAdaptType(CurrencyCoin currencyCoin, NetworkType currencyNetworkType) {
         this.fiat = false;
         this.currencyNetworkType = currencyNetworkType;
         this.currencyCoin = currencyCoin;
@@ -56,10 +56,10 @@ public enum CurrencyAdaptType {
     }
 
     private CurrencyCoin currencyCoin;
-    private CurrencyNetworkType currencyNetworkType;
+    private NetworkType currencyNetworkType;
     private final boolean fiat;
 
-    public static CurrencyAdaptType get(CurrencyCoin coin,CurrencyNetworkType networkType){
+    public static CurrencyAdaptType get(CurrencyCoin coin, NetworkType networkType){
         for (CurrencyAdaptType type : CurrencyAdaptType.values()){
             if(type.getCurrencyCoin().equals(coin) && type.getCurrencyNetworkType().equals(networkType)){
                 return type;

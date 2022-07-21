@@ -1,7 +1,7 @@
 package com.tianli.chain.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tianli.chain.entity.ChainLog;
+import com.tianli.chain.entity.WalletImputation;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -12,9 +12,9 @@ import org.apache.ibatis.annotations.Select;
  */
 
 @Mapper
-public interface ChainLogMapper extends BaseMapper<ChainLog> {
+public interface ChainLogMapper extends BaseMapper<WalletImputation> {
     @Insert("REPLACE INTO `chain_log`(`id`, `address`, `currency_type`, `amount`, `uid`, `username`, `u_create_time`) VALUES (#{id},#{address},#{currency_type},#{amount},#{uid},#{username},#{u_create_time})")
-    long replace(ChainLog chainLog);
+    long replace(WalletImputation chainLog);
 
     @Select("SELECT IFNULL(MAX(`id`), 0) FROM `chain_log`")
     long maxId();
