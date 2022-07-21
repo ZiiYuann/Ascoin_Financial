@@ -2,7 +2,9 @@ package com.tianli.borrow.entity;
 
 import java.math.BigDecimal;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
-import java.time.LocalDateTime;
+import java.util.Date;
+
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -15,6 +17,7 @@ import lombok.EqualsAndHashCode;
  * @since 2022-07-20
  */
 @Data
+@Builder
 @EqualsAndHashCode(callSuper = false)
 public class BorrowPledgeRecord extends Model<BorrowPledgeRecord> {
 
@@ -48,12 +51,12 @@ public class BorrowPledgeRecord extends Model<BorrowPledgeRecord> {
     /**
      * 调整时间
      */
-    private LocalDateTime adjustmentTime;
+    private Date adjustmentTime;
 
     /**
      * 创建时间
      */
-    private LocalDateTime createTime;
+    private Date createTime;
 
 
 }

@@ -28,4 +28,6 @@ public interface IBorrowCoinOrderService extends IService<BorrowCoinOrder> {
 
     void borrowCoin(BorrowCoinOrderDTO borrowCoinOrderDTO);
 
+    BorrowCoinOrderVO info(Long orderId);
+
 }

@@ -4,10 +4,7 @@ import java.math.BigDecimal;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import java.util.Date;
 
-<<<<<<< HEAD
 import lombok.Builder;
-=======
->>>>>>> origin/dev_aws
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -20,10 +17,7 @@ import lombok.EqualsAndHashCode;
  * @since 2022-07-20
  */
 @Data
-<<<<<<< HEAD
 @Builder
-=======
->>>>>>> origin/dev_aws
 @EqualsAndHashCode(callSuper = false)
 public class BorrowCoinOrder extends Model<BorrowCoinOrder> {
 

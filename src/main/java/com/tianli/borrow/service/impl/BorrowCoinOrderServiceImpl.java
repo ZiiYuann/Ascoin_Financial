@@ -7,13 +7,16 @@ import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.borrow.contant.BorrowOrderStatus;
 import com.tianli.borrow.contant.BorrowPledgeRate;
+import com.tianli.borrow.contant.BorrowPledgeType;
 import com.tianli.borrow.convert.BorrowCoinConfigConverter;
 import com.tianli.borrow.convert.BorrowConverter;
 import com.tianli.borrow.dao.BorrowCoinConfigMapper;
+import com.tianli.borrow.dao.BorrowPledgeRecordMapper;
 import com.tianli.borrow.dto.BorrowCoinOrderDTO;
 import com.tianli.borrow.entity.BorrowCoinConfig;
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.tianli.borrow.dao.BorrowCoinOrderMapper;
+import com.tianli.borrow.entity.BorrowPledgeRecord;
 import com.tianli.borrow.query.BorrowCoinOrderQuery;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -38,6 +41,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -79,6 +83,9 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     @Autowired
     private AccountBalanceService accountBalanceService;
 
+    @Autowired
+    private BorrowPledgeRecordMapper borrowPledgeRecordMapper;
+
     @Override
     public BorrowCoinMainPageVO mainPage() {
         Long uid = requestInitService.uid();
@@ -105,7 +112,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .pledgeAmount(pledgeAmount)
                 .borrowQuota(borrowQuota)
                 .borrowOrders(borrowCoinOrders)
-                .borrowRate(borrowAmount.divide(borrowQuota)).build();
+                .borrowRate(borrowAmount.divide(borrowQuota, 2, RoundingMode.HALF_UP)).build();
     }
 
     @Override
@@ -154,7 +161,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .eq(FinancialRecord::getUid, uid).orderByAsc(FinancialRecord::getPurchaseTime));
 
         //锁定持有产品的数量
-        BigDecimal remainAmount = borrowAmount.divide(initialPledgeRate);
+        BigDecimal remainAmount = borrowAmount.divide(initialPledgeRate,2,RoundingMode.UP);
         for(FinancialRecord financialRecord : financialRecords){
             BigDecimal holdAmount = financialRecord.getHoldAmount();
             BigDecimal lockAmount = financialRecord.getLockAmount();
@@ -172,13 +179,14 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         }
 
         //添加订单
+        BigDecimal pledgeAmount = borrowAmount.divide(initialPledgeRate,2,RoundingMode.UP);
         BorrowCoinOrder borrowCoinOrder = BorrowCoinOrder.builder()
                 .uid(uid)
                 .borrowCoin(CurrencyCoin.usdt.getName())
                 .borrowCapital(borrowAmount)
                 .waitRepayCapital(borrowAmount)
                 .pledgeCoin(CurrencyCoin.usdt.getName())
-                .pledgeAmount(borrowAmount.divide(initialPledgeRate))
+                .pledgeAmount(pledgeAmount)
                 .currentPledgeRate(initialPledgeRate)
                 .status(BorrowOrderStatus.INTEREST_ACCRUAL)
                 .borrowTime(new Date())
@@ -201,7 +209,26 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         accountBalanceService.increase(uid, ChargeType.recharge, CurrencyAdaptType.usdt_omni, borrowAmount, order.getOrderNo()
                 , CurrencyLogDes.借币.name());
 
+        //添加质押记录
+        BorrowPledgeRecord pledgeRecord = BorrowPledgeRecord.builder()
+                .coin(CurrencyCoin.usdt.getName())
+                .orderId(borrowCoinOrder.getId())
+                .number(pledgeAmount)
+                .type(BorrowPledgeType.INIT)
+                .adjustmentTime(new Date())
+                .createTime(new Date()).build();
+        borrowPledgeRecordMapper.insert(pledgeRecord);
 
+    }
 
+    @Override
+    public BorrowCoinOrderVO info(Long orderId) {
+        BorrowCoinConfig coinConfig = borrowCoinConfigMapper.selectOne(new QueryWrapper<BorrowCoinConfig>().lambda()
+                .eq(BorrowCoinConfig::getCoin, CurrencyCoin.usdt.getName()));
+        BorrowCoinOrder borrowCoinOrder = borrowCoinOrderMapper.selectById(orderId);
+        if(Objects.isNull(borrowCoinOrder))return new BorrowCoinOrderVO();
+        BorrowCoinOrderVO borrowCoinOrderVO = borrowConverter.toVO(borrowCoinOrder);
+        borrowCoinOrderVO.setCurrentPledgeRate(coinConfig.getAnnualInterestRate());
+        return borrowCoinOrderVO;
     }
 }

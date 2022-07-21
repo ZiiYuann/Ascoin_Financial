@@ -30,13 +30,22 @@ public class BorrowCoinOrderController {
     @Autowired
     private IBorrowCoinOrderService borrowCoinOrderService;
 
-    @GetMapping("/main")
+    /**
+     * 借币主页面
+     * @return
+     */
+    @GetMapping("/main/info")
     public Result main(){
         BorrowCoinMainPageVO borrowCoinMainPageVO = borrowCoinOrderService.mainPage();
         return Result.success(borrowCoinMainPageVO);
     }
 
-    @GetMapping("/history")
+    /**
+     * 借币订单历史
+     * @param pageQuery
+     * @return
+     */
+    @GetMapping("/history/order/list")
     public Result history(PageQuery<BorrowCoinOrder> pageQuery){
         BorrowCoinOrderQuery query = new BorrowCoinOrderQuery();
         Integer[] status = {BorrowOrderStatus.SUCCESSFUL_REPAYMENT,BorrowOrderStatus.FORCED_LIQUIDATION};
@@ -45,19 +54,39 @@ public class BorrowCoinOrderController {
         return Result.success(borrowCoinOrderVOIPage);
     }
 
-    @GetMapping("/config")
+    /**
+     * 借币配置信息
+     * @return
+     */
+    @GetMapping("/config/info")
     public Result config(){
         BorrowCoinConfigVO config = borrowCoinOrderService.config();
         return Result.success(config);
     }
 
-    @PostMapping("/coin")
+    /**
+     * 借币
+     * @param borrowCoinOrderDTO
+     * @return
+     */
+    @PostMapping("/borrow/coin")
     public Result coin(@RequestBody BorrowCoinOrderDTO borrowCoinOrderDTO){
-
-
-
+        borrowCoinOrderService.borrowCoin(borrowCoinOrderDTO);
         return Result.success();
     }
+
+    /**
+     * 订单详情
+     * @param orderId
+     * @return
+     */
+    @GetMapping("/order/{orderId}")
+    public Result orderInfo(@PathVariable Long orderId){
+        borrowCoinOrderService.info(orderId);
+        return Result.success();
+    }
+
+
 
 
 }

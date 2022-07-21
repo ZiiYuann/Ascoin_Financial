@@ -2,6 +2,7 @@ package com.tianli.borrow.dao;
 
 import com.tianli.borrow.entity.BorrowRepayRecord;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
@@ -11,6 +12,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @author xn
  * @since 2022-07-20
  */
+@Mapper
 public interface BorrowRepayRecordMapper extends BaseMapper<BorrowRepayRecord> {
 
 }
