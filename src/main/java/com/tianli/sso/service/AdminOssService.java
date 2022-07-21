@@ -23,6 +23,7 @@ public class AdminOssService {
 
     public void loginStatus() {
         String cookie = CookieTool.getCookie(httpServletRequest, COOKIE_NAME);
+        log.info("AdminOssService-loginStatus-cookie:{}", cookie);
         if(StringUtils.isBlank(cookie) || cookie.length() > 256){
             // cookie不存时获取请求头中信息
             Object headerSession = httpServletRequest.getHeader(SESSION_TMP);
