@@ -192,7 +192,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .build();
         orderService.saveOrder(order);
         //钱包增加余额
-        accountBalanceService.increase(uid, ChargeType.recharge, CurrencyAdaptType.usdt_omni, borrowAmount, order.getOrderNo()
+        accountBalanceService.increase(uid, ChargeType.recharge,CurrencyCoin.usdt,null, borrowAmount, order.getOrderNo()
                 , CurrencyLogDes.借币.name());
 
         //添加质押记录

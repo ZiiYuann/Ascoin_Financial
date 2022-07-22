@@ -13,6 +13,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
@@ -37,30 +38,6 @@ import java.util.stream.Collectors;
 public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, AccountBalance> {
 
     /**
-     * 扣除可用金额
-     *
-     * @param uid    用户id
-     * @param amount 金额
-     * @param sn     订单号
-     */
-    @Transactional
-    public void withdraw(long uid, ChargeType type, BigDecimal amount, String sn, String des) {
-        withdraw(uid, type, CurrencyAdaptType.usdt_omni, amount, sn, des);
-    }
-
-    /**
-     * 解冻金额
-     *
-     * @param uid    用户id
-     * @param amount 金额
-     * @param sn     订单号
-     */
-    @Transactional
-    public void unfreeze(long uid, ChargeType type, BigDecimal amount, String sn, String des) {
-        unfreeze(uid, type, CurrencyAdaptType.usdt_omni, amount, sn, des);
-    }
-
-    /**
      * 冻结金额
      *
      * @param uid    用户id
@@ -68,8 +45,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void freeze(long uid, ChargeType type, BigDecimal amount, String sn, String des) {
-        freeze(uid, type, CurrencyAdaptType.usdt_omni, amount, sn, des);
+    public void freeze(long uid, ChargeType type,CurrencyCoin coin, BigDecimal amount, String sn, String des) {
+        freeze(uid, type, coin,null, amount, sn, des);
     }
 
     /**
@@ -80,8 +57,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void reduce(long uid, ChargeType type, BigDecimal amount, String sn, String des) {
-        reduce(uid, type, CurrencyAdaptType.usdt_omni, amount, sn, des);
+    public void reduce(long uid, ChargeType type,CurrencyCoin coin, BigDecimal amount, String sn, String des) {
+        reduce(uid, type,coin,null, amount, sn, des);
     }
 
     /**
@@ -92,65 +69,83 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void increase(long uid, ChargeType type, BigDecimal amount, String sn, String des) {
-        increase(uid, type, CurrencyAdaptType.usdt_omni, amount, sn, des);
+    public void increase(long uid, ChargeType type,CurrencyCoin coin, BigDecimal amount, String sn, String des) {
+        increase(uid, type, coin,null, amount, sn, des);
     }
 
     @Transactional
-    public void increase(long uid, ChargeType type, CurrencyAdaptType currencyAdaptType, BigDecimal amount, String sn, String des) {
-        getAndInit(uid, currencyAdaptType);
+    public void increase(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+        getAndInit(uid, coin);
 
         if (accountBalanceMapper.increase(uid, amount) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
-        AccountBalance accountBalance = accountBalanceMapper.get(uid, currencyAdaptType.getCurrencyCoin());
-        accountBalanceOperationLogService.save(accountBalance,type,currencyAdaptType, AccountOperationType.increase, amount, sn, des);
+        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
+        accountBalanceOperationLogService.save(accountBalance,type,coin,networkType, AccountOperationType.increase, amount, sn, des);
     }
 
     @Transactional
-    public void reduce(long uid, ChargeType type, CurrencyAdaptType token, BigDecimal amount, String sn, String des) {
-        getAndInit(uid, token);
+    public void reduce(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+        getAndInit(uid, coin);
 
         if (accountBalanceMapper.reduce(uid, amount) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
-        AccountBalance accountBalance = accountBalanceMapper.get(uid, token.getCurrencyCoin());
-        accountBalanceOperationLogService.save(accountBalance,type,token ,AccountOperationType.reduce, amount, sn, des);
+        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
+        accountBalanceOperationLogService.save(accountBalance,type,coin,networkType ,AccountOperationType.reduce, amount, sn, des);
     }
 
+    /**
+     * 扣除可用金额
+     *
+     * @param uid    用户id
+     * @param amount 金额
+     * @param sn     订单号
+     */
     @Transactional
-    public void withdraw(long uid, ChargeType type, CurrencyAdaptType token, BigDecimal amount, String sn, String des) {
-        getAndInit(uid, token);
+    public void withdraw(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+        getAndInit(uid, coin);
 
         if (accountBalanceMapper.withdraw(uid, amount) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
-        AccountBalance accountBalance = accountBalanceMapper.get(uid, token.getCurrencyCoin());
-        accountBalanceOperationLogService.save(accountBalance,type,token, AccountOperationType.withdraw, amount, sn, des);
+        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
+        accountBalanceOperationLogService.save(accountBalance,type,coin,networkType, AccountOperationType.withdraw, amount, sn, des);
     }
 
     @Transactional
-    public void freeze(long uid, ChargeType type, CurrencyAdaptType token, BigDecimal amount, String sn, String des) {
-        getAndInit(uid, token);
+    public void freeze(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+        getAndInit(uid, coin);
 
         if (accountBalanceMapper.freeze(uid, amount) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
-        AccountBalance accountBalance = accountBalanceMapper.get(uid, token.getCurrencyCoin());
-        accountBalanceOperationLogService.save(accountBalance,type,token, AccountOperationType.freeze, amount, sn, des);
+        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
+        accountBalanceOperationLogService.save(accountBalance,type,coin,networkType, AccountOperationType.freeze, amount, sn, des);
 
     }
 
+    /**
+     * 解冻金额
+     *
+     * @param uid    用户id
+     * @param amount 金额
+     * @param sn     订单号
+     */
     @Transactional
-    public void unfreeze(long uid, ChargeType type, CurrencyAdaptType token, BigDecimal amount, String sn, String des) {
-        getAndInit(uid, token);
+    public void unfreeze(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+        getAndInit(uid, coin);
 
         if (accountBalanceMapper.unfreeze(uid, amount) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
 
-        AccountBalance accountBalance = accountBalanceMapper.get(uid, token.getCurrencyCoin());
-        accountBalanceOperationLogService.save(accountBalance,type,token, AccountOperationType.unfreeze, amount, sn, des);
+        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
+        accountBalanceOperationLogService.save(accountBalance,type,coin,networkType, AccountOperationType.unfreeze, amount, sn, des);
+    }
+
+    public void unfreeze(long uid, ChargeType type, CurrencyCoin coin, BigDecimal amount, String sn, String des) {
+        unfreeze(uid,type,coin,null,amount,sn,des);
     }
 
     /**

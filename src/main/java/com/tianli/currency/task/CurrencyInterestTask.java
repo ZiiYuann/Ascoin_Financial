@@ -103,30 +103,30 @@ public class CurrencyInterestTask {
     /**
      * 统计每日利息
      */
-    private void interestStat(AccountBalance accountBalanceBalance, double rate) {
+    private void interestStat(AccountBalance balance, double rate) {
         try {
             // 1. 计算利息
             // 真是的今日利息数额
-            BigDecimal dayInterest = accountBalanceBalance.getRemain().multiply(new BigDecimal(String.valueOf(rate)));
+            BigDecimal dayInterest = balance.getRemain().multiply(new BigDecimal(String.valueOf(rate)));
             if(dayInterest.compareTo(BigDecimal.ZERO) <= 0){
                 return;
             }
             // TODO 生成类型为INCOME 的订单
             // 2. 更新余额
-            accountBalanceService.increase(accountBalanceBalance.getUid(), ChargeType.income,dayInterest,
+            accountBalanceService.increase(balance.getUid(), ChargeType.income,balance.getCoin(),dayInterest,
                     TimeTool.getDateTimeDisplayString(LocalDateTime.now()), CurrencyLogDes.利息.name());
         } catch (Exception e) {
-            String toJson = gson.toJson(accountBalanceBalance);
+            String toJson = gson.toJson(balance);
             log.warn("统计每日利息异常: currency:{}, rate:{}", toJson, rate, e);
             CURRENCY_INTEREST_TASK_SCHEDULE_EXECUTOR.schedule(() -> {
-                AtomicInteger atomicInteger = FAIL_COUNT_CACHE.get(String.valueOf(accountBalanceBalance.getId()));
+                AtomicInteger atomicInteger = FAIL_COUNT_CACHE.get(String.valueOf(balance.getId()));
                 if (Objects.isNull(atomicInteger)) {
                     atomicInteger = new AtomicInteger(3);
-                    FAIL_COUNT_CACHE.put(String.valueOf(accountBalanceBalance.getId()), atomicInteger);
+                    FAIL_COUNT_CACHE.put(String.valueOf(balance.getId()), atomicInteger);
                 }
                 int andDecrement = atomicInteger.getAndDecrement();
                 if (andDecrement > 0) {
-                    interestStat(accountBalanceBalance, rate);
+                    interestStat(balance, rate);
                 } else {
                     log.error("统计每日利息失败: currency:{}, rate:{}", toJson, rate);
                 }

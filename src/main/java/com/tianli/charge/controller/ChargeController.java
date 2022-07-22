@@ -3,6 +3,7 @@ package com.tianli.charge.controller;
 import cn.hutool.core.map.MapUtil;
 import com.google.gson.Gson;
 import com.tianli.address.query.RechargeCallbackQuery;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.query.RedeemQuery;
 import com.tianli.charge.query.WithdrawQuery;
@@ -25,6 +26,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -52,21 +55,26 @@ public class ChargeController {
     /**
      * 充值回调
      */
-    @RequestMapping(value = "/recharge" , produces = "text/plain")
-    public Result rechargeCallback(@RequestBody String str, @RequestHeader("AppKey") String appKey
-            , @RequestHeader("Sign") String sign) {
-        String walletAppKey = configService.get("wallet_app_key");
-        String walletAppSecret = configService.get("wallet_app_secret");
-
-        log.info("充值回调参数 ==> {}", gson.toJson(str));
-
-        if (walletAppKey.equals(appKey) && Crypto.hmacToString(DigestFactory.createSHA256(), walletAppSecret, str).equals(sign)) {
-            ErrorCodeEnum.SIGN_ERROR.throwException();
+    @RequestMapping(value = "/recharge/{chain}" , produces = "text/plain")
+    public String rechargeCallback(@PathVariable(required = false) ChainType chain,
+                                   @RequestBody String str ,
+                                   @RequestHeader("Sign") String sign,
+                                   @RequestHeader("timestamp") String timestamp) {
+        if (chain == null) { //等于ping
+            return "success";
         }
 
-        RechargeCallbackQuery query = gson.fromJson(str, RechargeCallbackQuery.class);
-        chargeService.rechargeCallback(query);
-        return Result.success();
+        if (Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp", timestamp).equals(sign)) {
+            long l = LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8"));
+            if ((Long.parseLong(timestamp) + 10) >= l) {
+                log.info("验签成功， {}", sign);
+                chargeService.rechargeCallback(chain,str);
+                return "success";
+            } else {
+                throw ErrorCodeEnum.SIGN_ERROR.generalException();
+            }
+        }
+           throw ErrorCodeEnum.SIGN_ERROR.generalException();
     }
 
     /**

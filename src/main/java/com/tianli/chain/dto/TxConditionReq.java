@@ -1,6 +1,6 @@
 package com.tianli.chain.dto;
 
-import com.tianli.chain.enums.ChainTypeEnum;
+import com.tianli.chain.enums.ChainType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,6 +26,6 @@ public class TxConditionReq {
      */
     private String contractAddress;
 
-    private ChainTypeEnum chain;
+    private ChainType chain;
 
 }

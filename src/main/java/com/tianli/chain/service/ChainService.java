@@ -4,7 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.dto.PushConditionReq;
 import com.tianli.chain.dto.TxConditionReq;
-import com.tianli.chain.enums.ChainTypeEnum;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.common.ConfigConstants;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
@@ -40,11 +40,11 @@ public class ChainService {
         String eth = address.getEth();
 
         TxConditionReq bscTxConditionReq = TxConditionReq.builder().contractAddress(bscContractAddress).to(bscWalletAddress).from(bsc)
-                .chain(ChainTypeEnum.BSC).build();
+                .chain(ChainType.BSC).build();
         TxConditionReq ethTxConditionReq = TxConditionReq.builder().contractAddress(ethContractAddress).to(ethWalletAddress).from(eth)
-                .chain(ChainTypeEnum.BSC).build();
+                .chain(ChainType.BSC).build();
         TxConditionReq tronTxConditionReq = TxConditionReq.builder().contractAddress(tronContractAddress).to(tronWalletAddress).from(tron)
-                .chain(ChainTypeEnum.BSC).build();
+                .chain(ChainType.BSC).build();
 
         List<TxConditionReq> txConditionReqs = List.of(bscTxConditionReq, ethTxConditionReq, tronTxConditionReq);
 

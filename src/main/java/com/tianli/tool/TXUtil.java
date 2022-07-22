@@ -7,7 +7,7 @@ import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.tianli.chain.enums.ChainTypeEnum;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.wallet.vo.TXBlockQueryVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +31,7 @@ public class TXUtil {
     }
 
 
-    public static Long getBlockNumber(String url, ChainTypeEnum txChainTypeEnum) {
+    public static Long getBlockNumber(String url, ChainType txChainTypeEnum) {
         Long blockNumber = -1L;
         if (StringUtils.isBlank(url) || Objects.isNull(txChainTypeEnum)) {
             return blockNumber;
@@ -54,7 +54,7 @@ public class TXUtil {
     /**
      * 根据指定的区块查询
      */
-    public static List<TXBlockQueryVo> blockQuery(String url, ChainTypeEnum txChainTypeEnum, List<String> contractAddress, Long blockNumber) {
+    public static List<TXBlockQueryVo> blockQuery(String url, ChainType txChainTypeEnum, List<String> contractAddress, Long blockNumber) {
         List<TXBlockQueryVo> txBlockQueryVos = null;
         if (StringUtils.isBlank(url) || ObjectUtil.isNull(txChainTypeEnum) || CollUtil.isEmpty(contractAddress) || blockNumber < 0) {
             return Collections.emptyList();
@@ -82,7 +82,7 @@ public class TXUtil {
      * @param txChainTypeEnum 链
      * @param txHash 归集哈希
      */
-    public static Object insiderTrading(String url, ChainTypeEnum txChainTypeEnum, String txHash) {
+    public static Object insiderTrading(String url, ChainType txChainTypeEnum, String txHash) {
         if (StringUtils.isBlank(url) || ObjectUtil.isNull(txChainTypeEnum) || StringUtils.isBlank(txHash)) {
             return null;
         }

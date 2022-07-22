@@ -7,19 +7,21 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-
+/**
+ * @author chenb
+ * @apiNote
+ * @since 2022-07-22
+ **/
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class WalletImputation {
+public class WalletImputationTemporary {
 
-    @Id
     private Long id;
 
     private Long uid;
@@ -32,10 +34,6 @@ public class WalletImputation {
 
     private NetworkType network;
 
-    private ImputationStatus status;
-
     private LocalDateTime createTime;
-
-    private LocalDateTime updateTime;
 
 }

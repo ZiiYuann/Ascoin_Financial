@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
-import com.tianli.address.AddressService;
 import com.tianli.chain.entity.ChainTx;
 import com.tianli.chain.mapper.ChainTxMapper;
 import com.tianli.charge.enums.ChargeStatus;
@@ -15,7 +14,6 @@ import com.tianli.common.HttpUtils;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.common.log.LoggerHandle;
-import com.tianli.currency.DigitalCurrency;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
@@ -34,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -56,15 +53,9 @@ public class ChainTxService extends ServiceImpl<ChainTxMapper, ChainTx> {
         if (exist != null && exist > 0) return;
         String main_address = null;
         switch (currencyAdaptType) {
-            case usdt_omni:
-            case btc:
-                main_address = configService.get("btc_address");
-                break;
-            case eth:
             case usdt_erc20:
                 main_address = configService.get("eth_address");
                 break;
-            case tron:
             case usdt_trc20:
                 main_address = configService.get("tron_address");
                 break;
@@ -85,21 +76,12 @@ public class ChainTxService extends ServiceImpl<ChainTxMapper, ChainTx> {
                 String url = configService.get("url");
                 MapTool paramMap;
                 switch (currencyAdaptType) {
-                    case usdt_omni:
-                    case btc:
-                        paramMap = MapTool.Map().put("sn", chainTx.getSn()).put("amount", chainTx.getAmount().toString()).put("from_address",
-                                chainTx.getCollect_address()).put("to_address", chainTx.getMain_address())
-                                .put("fee_address", chainTx.getMain_address()).put("type", chainTx.getCurrency_type().toString())
-                                .put("notify_url", url + "/chain/tx/webhooks").put("collect", "true");
-                        break;
-                    case eth:
                     case usdt_erc20:
                         paramMap = MapTool.Map().put("sn", chainTx.getSn()).put("amount", chainTx.getAmount().toString()).put("from_address",
                                 chainTx.getMain_address()).put("to_address", chainTx.getCollect_address())
                                 .put("type", chainTx.getCurrency_type().toString())
                                 .put("notify_url", url + "/chain/tx/webhooks").put("collect", "true");
                         break;
-                    case tron:
                     case usdt_trc20:
                         paramMap = MapTool.Map().put("sn", chainTx.getSn()).put("amount", chainTx.getAmount().toString())
                                 .put("from_address", chainTx.getMain_address()).put("to_address", chainTx.getCollect_address())
@@ -150,8 +132,7 @@ public class ChainTxService extends ServiceImpl<ChainTxMapper, ChainTx> {
         return chainTxMapper.selectPage(new Page<>(page, size), lambdaQueryWrapper);
     }
 
-    @Resource
-    private ChainService chainService;
+
     @Resource
     private LoggerHandle loggerHandle;
     @Resource
@@ -161,12 +142,6 @@ public class ChainTxService extends ServiceImpl<ChainTxMapper, ChainTx> {
     @Resource
     private RedisLock redisLock;
     @Resource
-    private AddressService addressService;
-    @Resource
     private ChainTxMapper chainTxMapper;
 
-    public double totalAmount() {
-        List<StatCollectAmount> statCollectAmounts = chainTxMapper.totalAmount();
-        return statCollectAmounts.stream().map(e -> new DigitalCurrency(e.getCurrency_type(), e.getTotal_amount()).toOther(CurrencyAdaptType.usdt_omni).getMoney()).reduce(Double::sum).orElse(0.0);
-    }
 }

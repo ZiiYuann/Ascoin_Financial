@@ -31,7 +31,7 @@ public class OrderChargeInfo{
     private String orderNo;
 
     /**
-     * 金额 提币、充值等不包含手续费
+     * 格式化之后的费用
      */
     private BigDecimal fee;
 

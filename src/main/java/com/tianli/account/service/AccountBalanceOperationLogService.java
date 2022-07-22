@@ -2,12 +2,13 @@ package com.tianli.account.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.entity.AccountBalance;
+import com.tianli.account.entity.AccountBalanceOperationLog;
+import com.tianli.account.enums.AccountOperationType;
 import com.tianli.account.mapper.AccountBalanceOperationLogMapper;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.CommonFunction;
-import com.tianli.account.entity.AccountBalanceOperationLog;
-import com.tianli.account.enums.AccountOperationType;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.common.blockchain.NetworkType;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -31,13 +32,19 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
     /**
      * 添加余额操作日志
      */
-    public void save(AccountBalance accountBalance, ChargeType type, CurrencyAdaptType currencyAdaptType,
+    public void save(AccountBalance accountBalance, ChargeType type, CurrencyCoin coin,
+                     AccountOperationType logType, BigDecimal amount, String sn, String des) {
+        this.save(accountBalance,type,coin,null,logType,amount,sn,des);
+    }
+
+    public void save(AccountBalance accountBalance, ChargeType type, CurrencyCoin coin, NetworkType networkType,
                      AccountOperationType logType, BigDecimal amount, String sn, String des) {
         AccountBalanceOperationLog currencyLog = AccountBalanceOperationLog.builder()
                 .id(CommonFunction.generalId())
                 .uid(accountBalance.getUid())
                 .accountBalanceId(accountBalance.getId())
-                .currencyAdaptType(currencyAdaptType)
+                .coin(coin)
+                .network(networkType)
                 .chargeType(type)
                 .orderNo(sn)
                 .logType(logType)
@@ -50,6 +57,5 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
                 .build();
         accountBalanceOperationLogMapper.insert(currencyLog);
     }
-
 
 }

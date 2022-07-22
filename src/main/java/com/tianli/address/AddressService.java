@@ -89,7 +89,6 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
         return super.getOne(new LambdaQueryWrapper<Address>().eq(Address::getUid, uid));
     }
 
-
     /**
      * 获取系统钱包地址
      */
@@ -104,9 +103,6 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
                 .tron(tronWalletAddress)
                 .build();
     }
-
-
-
 
     public Address getByEth(String toAddress) {
         return baseMapper.getByEth(toAddress);
