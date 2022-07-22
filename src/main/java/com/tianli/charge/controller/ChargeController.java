@@ -2,7 +2,6 @@ package com.tianli.charge.controller;
 
 import cn.hutool.core.map.MapUtil;
 import com.google.gson.Gson;
-import com.tianli.address.query.RechargeCallbackQuery;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.query.RedeemQuery;
@@ -82,8 +81,6 @@ public class ChargeController {
      */
     @PostMapping("/withdraw/apply")
     public Result withdraw(@RequestBody @Valid WithdrawQuery withdrawDTO) {
-        if (withdrawDTO.getCurrencyAdaptType().isFiat())
-            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         Long uid = requestInitService.uid();
         chargeService.withdraw(uid,withdrawDTO);
         return Result.instance();

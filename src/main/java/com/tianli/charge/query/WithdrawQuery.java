@@ -1,5 +1,6 @@
 package com.tianli.charge.query;
 
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.Data;
@@ -15,19 +16,19 @@ import javax.validation.constraints.NotNull;
 @Data
 public class WithdrawQuery {
 
-    @NotNull(message = "币种不能为空")
-    private CurrencyAdaptType currencyAdaptType;
-
     @DecimalMin(value = "0.0001", message = "提现金额不能为空")
     private double amount;
-
-    @NotBlank(message = "接收地址不能为空")
-    private String address;
 
     /**
      * 提币网络
      */
-    private NetworkType currencyNetworkType;
+    @NotNull
+    private NetworkType network;
 
+    @NotNull
+    private CurrencyCoin coin;
+
+    @NotNull
+    private String to;
 
 }

@@ -9,7 +9,6 @@ import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
-import com.tianli.address.query.RechargeCallbackQuery;
 import com.tianli.chain.dto.TRONTokenReq;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.WalletImputationService;
@@ -69,15 +68,15 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      * @param str 充值信息
      */
     @Transactional
-    public void rechargeCallback(ChainType chain,String str) {
+    public void rechargeCallback(ChainType chain, String str) {
         var jsonArray = JSONUtil.parseObj(str).getJSONArray("token");
 
         List<TRONTokenReq> tronTokenReqs = JSONUtil.toList(jsonArray, TRONTokenReq.class);
 
-        for(TRONTokenReq req : tronTokenReqs){
+        for (TRONTokenReq req : tronTokenReqs) {
             CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(req.getContractAddress());
             String to = req.getTo();
-            Address address = getAddress(currencyAdaptType.getNetwork(),to);
+            Address address = getAddress(currencyAdaptType.getNetwork(), to);
             Long uid = address.getUid();
             BigDecimal finalAmount = currencyAdaptType.moneyBigDecimal(req.getValue());
 
@@ -85,20 +84,19 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 log.error("txid {} 已经存在充值订单", req.getHash());
             }
             // 生成订单数据
-            String orderNo = insertRechargeOrder(req,currencyAdaptType,finalAmount, req.getValue());
+            String orderNo = insertRechargeOrder(req, currencyAdaptType, finalAmount, req.getValue());
             // 操作余额信息
             accountBalanceService.increase(uid, ChargeType.recharge, currencyAdaptType.getCurrencyCoin()
-                    ,currencyAdaptType.getNetwork(), finalAmount, orderNo, CurrencyLogDes.充值.name());
+                    , currencyAdaptType.getNetwork(), finalAmount, orderNo, CurrencyLogDes.充值.name());
             // 操作归集信息
-            walletImputationService.insert(uid,currencyAdaptType,req);
+            walletImputationService.insert(uid, currencyAdaptType, req);
         }
     }
 
     @Transactional
-    public void withdraw(Long uid,WithdrawQuery query) {
-        CurrencyAdaptType currencyAdaptType = query.getCurrencyAdaptType();
+    public void withdraw(Long uid, WithdrawQuery query) {
+        CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(query.getCoin(), query.getNetwork());
 
-        String fromAddress = getMainWalletAddressUrl(currencyAdaptType);
         // 计算手续费  实际手续费 = 提现数额 * 手续费率 + 固定手续费数额
         // 最小提现金额
         String withdrawMinAmount = configService._get(currencyAdaptType.name() + "_withdraw_min_amount");
@@ -121,6 +119,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         LocalDateTime now = requestInitService.now();
 
+        String fromAddress = getMainWalletAddressUrl(currencyAdaptType);
+
         // 链信息
         OrderChargeInfo orderChargeInfo = OrderChargeInfo.builder()
                 .id(CommonFunction.generalId())
@@ -132,7 +132,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .serviceFee(BigDecimal.ZERO)
                 .fromAddress(fromAddress)
                 .createTime(now)
-                .toAddress(query.getAddress()).build();
+                .toAddress(query.getTo()).build();
         orderService.insert(orderChargeInfo);
 
         //创建提现订单(提币申请)
@@ -152,24 +152,24 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         //冻结提现数额
         accountBalanceService.freeze(uid, ChargeType.withdraw, currencyAdaptType.getCurrencyCoin()
-                ,currencyAdaptType.getNetwork(), withdrawAmount, order.getOrderNo(), CurrencyLogDes.提现.name());
+                , currencyAdaptType.getNetwork(), withdrawAmount, order.getOrderNo(), CurrencyLogDes.提现.name());
     }
 
     @Transactional
-    public String redeem(Long uid,RedeemQuery query){
+    public String redeem(Long uid, RedeemQuery query) {
         // todo 计算利息的时候不允许进行赎回操
         Long recordId = query.getRecordId();
         FinancialRecord record = Optional.ofNullable(financialRecordService.getOne(new LambdaQueryWrapper<FinancialRecord>()
                         .eq(FinancialRecord::getUid, uid).eq(FinancialRecord::getId, recordId)))
                 .orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
 
-        if(RecordStatus.SUCCESS.equals(record.getStatus())){
-            log.info("recordId:{},已经处于完成状态，请校验是否有误",recordId);
+        if (RecordStatus.SUCCESS.equals(record.getStatus())) {
+            log.info("recordId:{},已经处于完成状态，请校验是否有误", recordId);
             ErrorCodeEnum.TRADE_FAIL.throwException();
         }
 
-        if(query.getRedeemAmount().compareTo(record.getHoldAmount()) > 0 ){
-            log.info("赎回金额 {}  大于持有金额 {}",query.getRedeemAmount(),record.getHoldAmount());
+        if (query.getRedeemAmount().compareTo(record.getHoldAmount()) > 0) {
+            log.info("赎回金额 {}  大于持有金额 {}", query.getRedeemAmount(), record.getHoldAmount());
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
 
@@ -190,9 +190,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         orderService.saveOrder(order);
 
         // 扣除持有金额
-        financialRecordService.redeem(recordId,query.getRedeemAmount());
+        financialRecordService.redeem(recordId, query.getRedeemAmount());
         // 解冻余额
-        accountBalanceService.unfreeze(uid,ChargeType.redeem,record.getCoin(),query.getRedeemAmount(),order.getOrderNo(),CurrencyLogDes.赎回.name());
+        accountBalanceService.unfreeze(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount(), order.getOrderNo(), CurrencyLogDes.赎回.name());
 
         return order.getOrderNo();
     }
@@ -224,7 +224,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .eq(Order::getUid, uid)
                 .eq(Order::getOrderNo, orderNo);
 
-        Order order = Optional.ofNullable(orderService.getOne(queryWrapper)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR :: generalException);
+        Order order = Optional.ofNullable(orderService.getOne(queryWrapper)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
         if (!ChargeType.recharge.equals(order.getType()) && !ChargeType.withdraw.equals(order.getType())) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
@@ -252,8 +252,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)
                 .eq(Order::getOrderNo, orderNo);
-        Order order = Optional.ofNullable(orderService.getOne(queryWrapper)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR :: generalException);
-        if (!ChargeType.purchase.equals(order.getType()) && !ChargeType.redeem.equals(order.getType()) && !ChargeType.transfer.equals(order.getType())){
+        Order order = Optional.ofNullable(orderService.getOne(queryWrapper)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
+        if (!ChargeType.purchase.equals(order.getType()) && !ChargeType.redeem.equals(order.getType()) && !ChargeType.transfer.equals(order.getType())) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
 
@@ -267,13 +267,13 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     }
 
     private OrderBaseVO getOrderBaseVO(Order order, FinancialRecord record) {
-        switch (order.getType()){
+        switch (order.getType()) {
             case purchase:
                 var orderRechargeDetailsVo = chargeConverter.toOrderRechargeDetailsVo(record);
                 orderRechargeDetailsVo.setPurchaseTime(record.getPurchaseTime());
                 orderRechargeDetailsVo.setExpectIncome(record.getHoldAmount().multiply(record.getRate())
-                                .multiply(BigDecimal.valueOf(record.getProductTerm().getDay()))
-                        .divide(BigDecimal.valueOf(356), 8,RoundingMode.HALF_DOWN));
+                        .multiply(BigDecimal.valueOf(record.getProductTerm().getDay()))
+                        .divide(BigDecimal.valueOf(356), 8, RoundingMode.HALF_DOWN));
                 return orderRechargeDetailsVo;
             case redeem:
                 var orderRedeemDetailsVO = chargeConverter.toOrderRedeemDetailsVO(record);
@@ -288,11 +288,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     /**
      * 获取充值DTO数据 不同链的usdt后面的0个数不一样  需要做一个对齐处理 目前是后面8个0为1个u
      */
-    private Address getAddress(RechargeCallbackQuery query) {
-        String addressQuery = query.getFromAddress();
-        return getAddress(query.getType().getNetwork(),addressQuery);
-    }
-
     private Address getAddress(NetworkType network, String addressStr) {
         Address address = null;
         switch (network) {
@@ -318,7 +313,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      * 理财充值记录添加
      */
     @Transactional
-    private String insertRechargeOrder(TRONTokenReq query,CurrencyAdaptType currencyAdaptType,BigDecimal amount, BigDecimal realAmount) {
+    public String insertRechargeOrder(TRONTokenReq query, CurrencyAdaptType currencyAdaptType, BigDecimal amount, BigDecimal realAmount) {
         Long uid = requestInitService.get().getUid();
         // 链信息
         OrderChargeInfo orderChargeInfo = OrderChargeInfo.builder()
