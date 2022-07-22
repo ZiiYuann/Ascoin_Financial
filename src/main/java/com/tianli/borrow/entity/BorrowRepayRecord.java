@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import java.util.Date;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -16,6 +17,7 @@ import lombok.EqualsAndHashCode;
  * @since 2022-07-20
  */
 @Data
+@Builder
 @EqualsAndHashCode(callSuper = false)
 public class BorrowRepayRecord extends Model<BorrowRepayRecord> {
 

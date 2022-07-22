@@ -3,9 +3,11 @@ package com.tianli.borrow.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.borrow.contant.BorrowOrderStatus;
-import com.tianli.borrow.dto.BorrowCoinOrderDTO;
+import com.tianli.borrow.bo.AdjustPledgeBO;
+import com.tianli.borrow.bo.BorrowOrderBO;
+import com.tianli.borrow.bo.BorrowOrderRepayBO;
 import com.tianli.borrow.entity.BorrowCoinOrder;
-import com.tianli.borrow.query.BorrowCoinOrderQuery;
+import com.tianli.borrow.query.BorrowOrderQuery;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
@@ -13,6 +15,7 @@ import com.tianli.exception.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -47,7 +50,7 @@ public class BorrowCoinOrderController {
      */
     @GetMapping("/order/history/list")
     public Result history(PageQuery<BorrowCoinOrder> pageQuery){
-        BorrowCoinOrderQuery query = new BorrowCoinOrderQuery();
+        BorrowOrderQuery query = new BorrowOrderQuery();
         Integer[] status = {BorrowOrderStatus.SUCCESSFUL_REPAYMENT,BorrowOrderStatus.FORCED_LIQUIDATION};
         query.setOrderStatus(status);
         IPage<BorrowCoinOrderVO> borrowCoinOrderVOIPage = borrowCoinOrderService.pageList(pageQuery, query);
@@ -70,7 +73,7 @@ public class BorrowCoinOrderController {
      * @return
      */
     @PostMapping("/order/borrow")
-    public Result coin(@RequestBody BorrowCoinOrderDTO borrowCoinOrderDTO){
+    public Result coin(@RequestBody BorrowOrderBO borrowCoinOrderDTO){
         borrowCoinOrderService.borrowCoin(borrowCoinOrderDTO);
         return Result.success();
     }
@@ -126,12 +129,31 @@ public class BorrowCoinOrderController {
      */
     @GetMapping("/order/repay/record/{orderId}")
     public Result repayRecord(@PathVariable Long orderId){
-        List<BorrowInterestRecordVO> borrowInterestRecordVOS = borrowCoinOrderService.interestRecord(orderId);
-        return Result.success(borrowInterestRecordVOS);
+        List<BorrowRepayRecordVO> borrowRepayRecordVOS = borrowCoinOrderService.repayRecord(orderId);
+        return Result.success(borrowRepayRecordVOS);
     }
 
+    /**
+     * 还款
+     * @param bo
+     * @return
+     */
+    @PostMapping("/order/repay")
+    public Result orderRepay(@RequestBody @Valid BorrowOrderRepayBO bo){
+        borrowCoinOrderService.orderRepay(bo);
+        return Result.success();
+    }
 
-
+    /**
+     * 调整质押率
+     * @param bo
+     * @return
+     */
+    @PostMapping("/order/adjust/pledge")
+    public Result adjustPledge(@RequestBody @Valid AdjustPledgeBO bo){
+        borrowCoinOrderService.adjustPledge(bo);
+        return Result.success();
+    }
 
 }
 

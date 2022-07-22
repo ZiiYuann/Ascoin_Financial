@@ -22,5 +22,7 @@ public enum ChargeType {
     //转存
     transfer,
     //借币
-    borrow
+    borrow,
+    //还币
+    repay
 }

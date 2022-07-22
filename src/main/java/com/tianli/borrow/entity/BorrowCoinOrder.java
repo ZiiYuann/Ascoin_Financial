@@ -91,7 +91,7 @@ public class BorrowCoinOrder extends Model<BorrowCoinOrder> {
     /**
      * 借款时长
      */
-    private BigDecimal borrowDuration;
+    private Long borrowDuration;
 
     /**
      * 结算时间
