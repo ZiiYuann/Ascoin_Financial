@@ -232,11 +232,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
         log.info("get orderChargeInfo by id:{},orderNo{}", order.getRelatedId(), order.getOrderNo());
         orderChargeInfo = Optional.ofNullable(orderChargeInfo).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
-        if (!orderChargeInfo.getOrderNo().equals(order.getOrderNo())) {
-            log.error("orderChargeInfo表 id :{} , 记录 orderNo{} 与  order 表 orderNo{} 不一致", orderChargeInfo.getId()
-                    , orderChargeInfo.getOrderNo(), order.getOrderNo());
-            ErrorCodeEnum.SYSTEM_ERROR.throwException();
-        }
+
         OrderChargeInfoVO orderChargeInfoVO = chargeConverter.toVO(order);
         orderChargeInfoVO.setFromAddress(orderChargeInfo.getFromAddress());
         orderChargeInfoVO.setToAddress(orderChargeInfo.getToAddress());
