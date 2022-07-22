@@ -7,13 +7,13 @@ import com.tianli.borrow.dto.BorrowCoinOrderDTO;
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.tianli.borrow.query.BorrowCoinOrderQuery;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
-import com.tianli.borrow.vo.BorrowCoinConfigVO;
-import com.tianli.borrow.vo.BorrowCoinMainPageVO;
-import com.tianli.borrow.vo.BorrowCoinOrderVO;
+import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * <p>
@@ -45,7 +45,7 @@ public class BorrowCoinOrderController {
      * @param pageQuery
      * @return
      */
-    @GetMapping("/history/order/list")
+    @GetMapping("/order/history/list")
     public Result history(PageQuery<BorrowCoinOrder> pageQuery){
         BorrowCoinOrderQuery query = new BorrowCoinOrderQuery();
         Integer[] status = {BorrowOrderStatus.SUCCESSFUL_REPAYMENT,BorrowOrderStatus.FORCED_LIQUIDATION};
@@ -69,7 +69,7 @@ public class BorrowCoinOrderController {
      * @param borrowCoinOrderDTO
      * @return
      */
-    @PostMapping("/borrow/coin")
+    @PostMapping("/order/borrow")
     public Result coin(@RequestBody BorrowCoinOrderDTO borrowCoinOrderDTO){
         borrowCoinOrderService.borrowCoin(borrowCoinOrderDTO);
         return Result.success();
@@ -82,8 +82,52 @@ public class BorrowCoinOrderController {
      */
     @GetMapping("/order/{orderId}")
     public Result orderInfo(@PathVariable Long orderId){
-        borrowCoinOrderService.info(orderId);
-        return Result.success();
+        BorrowCoinOrderVO info = borrowCoinOrderService.info(orderId);
+        return Result.success(info);
+    }
+
+    /**
+     * 借款记录
+     * @param orderId
+     * @return
+     */
+    @GetMapping("/order/borrow/record/{orderId}")
+    public Result orderBorrowRecord(@PathVariable Long orderId){
+        BorrowRecordVO recordVO = borrowCoinOrderService.borrowRecord(orderId);
+        return Result.success(recordVO);
+    }
+
+    /**
+     * 质押记录
+     * @param orderId
+     * @return
+     */
+    @GetMapping("/order/pledge/record/{orderId}")
+    public Result pledgeRecord(@PathVariable Long orderId){
+        List<BorrowPledgeRecordVO> borrowPledgeRecordVOS = borrowCoinOrderService.pledgeRecord(orderId);
+        return Result.success(borrowPledgeRecordVOS);
+    }
+
+    /**
+     * 利息记录
+     * @param orderId
+     * @return
+     */
+    @GetMapping("/order/interest/record/{orderId}")
+    public Result interestRecord(@PathVariable Long orderId){
+        List<BorrowInterestRecordVO> borrowInterestRecordVOS = borrowCoinOrderService.interestRecord(orderId);
+        return Result.success(borrowInterestRecordVOS);
+    }
+
+    /**
+     * 还款记录
+     * @param orderId
+     * @return
+     */
+    @GetMapping("/order/repay/record/{orderId}")
+    public Result repayRecord(@PathVariable Long orderId){
+        List<BorrowInterestRecordVO> borrowInterestRecordVOS = borrowCoinOrderService.interestRecord(orderId);
+        return Result.success(borrowInterestRecordVOS);
     }
 
 

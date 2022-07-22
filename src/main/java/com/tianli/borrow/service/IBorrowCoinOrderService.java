@@ -6,10 +6,10 @@ import com.tianli.borrow.dto.BorrowCoinOrderDTO;
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.borrow.query.BorrowCoinOrderQuery;
-import com.tianli.borrow.vo.BorrowCoinConfigVO;
-import com.tianli.borrow.vo.BorrowCoinMainPageVO;
-import com.tianli.borrow.vo.BorrowCoinOrderVO;
+import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
+
+import java.util.List;
 
 /**
  * <p>
@@ -29,5 +29,13 @@ public interface IBorrowCoinOrderService extends IService<BorrowCoinOrder> {
     void borrowCoin(BorrowCoinOrderDTO borrowCoinOrderDTO);
 
     BorrowCoinOrderVO info(Long orderId);
+
+    BorrowRecordVO borrowRecord(Long orderId);
+
+    List<BorrowPledgeRecordVO> pledgeRecord (Long orderId);
+
+    List<BorrowInterestRecordVO> interestRecord(Long orderId);
+
+    List<BorrowRepayRecordVO> repayRecord(Long orderId);
 
 }

@@ -1,5 +1,7 @@
 package com.tianli.borrow.service.impl;
 
+import cn.hutool.core.date.DateUnit;
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -10,19 +12,13 @@ import com.tianli.borrow.contant.BorrowPledgeRate;
 import com.tianli.borrow.contant.BorrowPledgeType;
 import com.tianli.borrow.convert.BorrowCoinConfigConverter;
 import com.tianli.borrow.convert.BorrowConverter;
-import com.tianli.borrow.dao.BorrowCoinConfigMapper;
-import com.tianli.borrow.dao.BorrowPledgeRecordMapper;
+import com.tianli.borrow.dao.*;
 import com.tianli.borrow.dto.BorrowCoinOrderDTO;
-import com.tianli.borrow.entity.BorrowCoinConfig;
-import com.tianli.borrow.entity.BorrowCoinOrder;
-import com.tianli.borrow.dao.BorrowCoinOrderMapper;
-import com.tianli.borrow.entity.BorrowPledgeRecord;
+import com.tianli.borrow.entity.*;
 import com.tianli.borrow.query.BorrowCoinOrderQuery;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.borrow.vo.BorrowCoinConfigVO;
-import com.tianli.borrow.vo.BorrowCoinMainPageVO;
-import com.tianli.borrow.vo.BorrowCoinOrderVO;
+import com.tianli.borrow.vo.*;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
@@ -43,6 +39,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -85,6 +82,12 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
     @Autowired
     private BorrowPledgeRecordMapper borrowPledgeRecordMapper;
+
+    @Autowired
+    private BorrowInterestRecordMapper borrowInterestRecordMapper;
+
+    @Autowired
+    private BorrowRepayRecordMapper borrowRepayRecordMapper;
 
     @Override
     public BorrowCoinMainPageVO mainPage() {
@@ -156,30 +159,13 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid);
         if(borrowAmount.compareTo(availableAmount.multiply(initialPledgeRate)) > 0)ErrorCodeEnum.BORROW_GT_AVAILABLE_ERROR.throwException();
 
-        //查询用户所有产品
-        List<FinancialRecord> financialRecords = financialRecordMapper.selectList(new QueryWrapper<FinancialRecord>().lambda()
-                .eq(FinancialRecord::getUid, uid).orderByAsc(FinancialRecord::getPurchaseTime));
+        //质押数量
+        BigDecimal pledgeAmount = borrowAmount.divide(initialPledgeRate,2,RoundingMode.UP);
 
-        //锁定持有产品的数量
-        BigDecimal remainAmount = borrowAmount.divide(initialPledgeRate,2,RoundingMode.UP);
-        for(FinancialRecord financialRecord : financialRecords){
-            BigDecimal holdAmount = financialRecord.getHoldAmount();
-            BigDecimal lockAmount = financialRecord.getLockAmount();
-            BigDecimal available = holdAmount.subtract(lockAmount);
-
-            if(remainAmount.compareTo(available) <= 0){
-                financialRecord.setLockAmount(lockAmount.add(remainAmount));
-                financialRecordMapper.updateById(financialRecord);
-                break;
-            }else {
-                remainAmount = remainAmount.subtract(available);
-                financialRecord.setLockAmount(holdAmount);
-                financialRecordMapper.updateById(financialRecord);
-            }
-        }
+        //锁定理财产品
+        lockFinancialRecordAmount(uid,pledgeAmount);
 
         //添加订单
-        BigDecimal pledgeAmount = borrowAmount.divide(initialPledgeRate,2,RoundingMode.UP);
         BorrowCoinOrder borrowCoinOrder = BorrowCoinOrder.builder()
                 .uid(uid)
                 .borrowCoin(CurrencyCoin.usdt.getName())
@@ -230,5 +216,86 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BorrowCoinOrderVO borrowCoinOrderVO = borrowConverter.toVO(borrowCoinOrder);
         borrowCoinOrderVO.setCurrentPledgeRate(coinConfig.getAnnualInterestRate());
         return borrowCoinOrderVO;
+    }
+
+    @Override
+    public BorrowRecordVO borrowRecord(Long orderId) {
+        BorrowCoinOrder borrowCoinOrder = borrowCoinOrderMapper.selectById(orderId);
+        if(Objects.isNull(borrowCoinOrder))return new BorrowRecordVO();
+        BorrowRecordVO recordVO = new BorrowRecordVO();
+        Integer status = borrowCoinOrder.getStatus();
+        List<BorrowRecordVO.Record> records = new ArrayList<>();
+        BorrowRecordVO.Record record = new BorrowRecordVO.Record();
+        record.setRecord("订单创建");
+        record.setTime(borrowCoinOrder.getCreateTime());
+        records.add(record);
+        record = new BorrowRecordVO.Record();
+        record.setRecord("借币中");
+        record.setTime(new Date());
+        records.add(record);
+        record = new BorrowRecordVO.Record();
+        records.add(record);
+        record.setTime(borrowCoinOrder.getSettlementTime());
+        long borrowDuration ;
+        if(status.equals(BorrowOrderStatus.SUCCESSFUL_REPAYMENT)){
+            record.setRecord("还款成功");
+            borrowDuration = DateUtil.between(borrowCoinOrder.getCreateTime(),borrowCoinOrder.getSettlementTime(), DateUnit.HOUR);
+        }else if (status.equals(BorrowOrderStatus.FORCED_LIQUIDATION)){
+            record.setRecord("已平仓");
+            borrowDuration = DateUtil.between(borrowCoinOrder.getCreateTime(),borrowCoinOrder.getSettlementTime(), DateUnit.HOUR);
+        }else {
+            borrowDuration = DateUtil.between(borrowCoinOrder.getCreateTime(),new Date(), DateUnit.HOUR);
+        }
+        recordVO.setRecords(records);
+        recordVO.setBorrowDuration(borrowDuration);
+        return recordVO;
+    }
+
+    @Override
+    public List<BorrowPledgeRecordVO> pledgeRecord(Long orderId) {
+        return borrowPledgeRecordMapper.selectList(new QueryWrapper<BorrowPledgeRecord>().lambda()
+                .eq(BorrowPledgeRecord::getOrderId, orderId)).stream().map(borrowConverter::toPledgeVO).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BorrowInterestRecordVO> interestRecord(Long orderId) {
+        return borrowInterestRecordMapper.selectList(new QueryWrapper<BorrowInterestRecord>().lambda()
+                .eq(BorrowInterestRecord::getOrderId,orderId)).stream().map(borrowConverter::toInterestVO).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BorrowRepayRecordVO> repayRecord(Long orderId) {
+        return borrowRepayRecordMapper.selectList(new QueryWrapper<BorrowRepayRecord>().lambda()
+                .eq(BorrowRepayRecord::getOrderId,orderId)).stream().map(borrowConverter::toRepayVO).collect(Collectors.toList());
+    }
+
+    /**
+     * 锁定理财产品数量
+     * @param uid 用户ID
+     * @param addLockAmount 增加或减少的理财数量
+     */
+    private void lockFinancialRecordAmount(Long uid,BigDecimal addLockAmount){
+        //查询用户所有产品
+        List<FinancialRecord> financialRecords = financialRecordMapper.selectList(new QueryWrapper<FinancialRecord>().lambda()
+                .eq(FinancialRecord::getUid, uid).orderByAsc(FinancialRecord::getPurchaseTime));
+        //锁定总数
+        BigDecimal totalLockAmount = financialRecords.stream().map(FinancialRecord::getLockAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add).add(addLockAmount);
+
+        for(FinancialRecord financialRecord : financialRecords){
+            BigDecimal holdAmount = financialRecord.getHoldAmount();
+            BigDecimal lockAmount = BigDecimal.ZERO;
+            if(!totalLockAmount.equals(BigDecimal.ZERO)){
+                if(totalLockAmount.compareTo(holdAmount) <= 0){
+                    lockAmount = totalLockAmount;
+                    totalLockAmount = BigDecimal.ZERO;
+                }else {
+                    lockAmount = holdAmount;
+                    totalLockAmount = totalLockAmount.subtract(lockAmount);
+                }
+            }
+            financialRecord.setLockAmount(lockAmount);
+            financialRecordMapper.updateById(financialRecord);
+        }
     }
 }
