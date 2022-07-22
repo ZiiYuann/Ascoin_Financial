@@ -65,6 +65,17 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      return Optional.ofNullable(financialRecordMapper.selectOne(query)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR :: generalException);
     }
 
+    public List<FinancialRecord> selectByProductId(Long productId){
+        if(Objects.isNull(productId)){
+            ErrorCodeEnum.CURRENCY_NOT_SUPPORT.throwException();
+        }
+
+        LambdaQueryWrapper<FinancialRecord> query = new LambdaQueryWrapper<FinancialRecord>()
+                .eq(FinancialRecord::getProductId, productId);
+
+     return Optional.ofNullable(financialRecordMapper.selectList(query)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR :: generalException);
+    }
+
     /**
      * 获取不同产品已经使用的总额度
      */

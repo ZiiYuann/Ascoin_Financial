@@ -92,5 +92,9 @@ public class FinancialProduct {
      */
     private LocalDateTime updateTime;
 
+    /**
+     * 删除状态
+     */
+    private boolean deleted;
 
 }

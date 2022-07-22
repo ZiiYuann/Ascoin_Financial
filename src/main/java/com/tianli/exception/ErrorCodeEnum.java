@@ -73,7 +73,9 @@ public enum ErrorCodeEnum {
     KYC_TRIGGER_ERROR(3333, "需要KYC认证"),
     SIGN_ERROR(3104,"验签失败"),
     UPLOAD_CHAIN_ERROR(3105,"上链失败, 请稍后重试"),
-    UPLOAD_DATACENTER_ERROR(3105,"链接数据中心失败, 请稍后重试"),
+    UPLOAD_DATACENTER_ERROR(3106,"链接数据中心失败, 请稍后重试"),
+    PRODUCT_USER_HOLD(3107,"用户持有中，不可删除"),
+    PRODUCT_CAN_NOT_BUY(3108,"产品暂时不可购买"),
 
     /*** －－－－－－业务错误码-现货交易－－－－－－*/
     TRADE_FAIL(3400, "交易失败"),

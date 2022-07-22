@@ -98,15 +98,6 @@ public class FinancialController {
     }
 
     /**
-     * 申购理财产品（钱包）
-     */
-    @PostMapping("/purchase/wallet")
-    public Result walletPurchase(@RequestBody @Valid PurchaseQuery purchaseQuery){
-        //TODO 币种的转换，校验密码
-        return Result.instance().setData(financialService.purchase(purchaseQuery));
-    }
-
-    /**
      * 我的持用
      */
     @GetMapping("/hold")

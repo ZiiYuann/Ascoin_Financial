@@ -15,14 +15,19 @@ import com.tianli.financial.vo.FinancialProductVO;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.*;
 import com.tianli.management.service.FinancialBoardProductService;
+import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+
+import static com.tianli.common.ConfigConstants.SYSTEM_PURCHASE__MIN_AMOUNT;
 
 /**
  * @author lzy
@@ -35,11 +40,10 @@ public class FinancialProductController {
     @Resource
     private FinancialProductService financialProductService;
     @Resource
-    private FinancialConverter financialConverter;
-    @Resource
     private FinancialService financialService;
     @Resource
     private FinancialBoardProductService financialProductBoardService;
+
 
     /**
      * 数据展板
@@ -57,16 +61,17 @@ public class FinancialProductController {
     @PostMapping("/product/save")
     @AdminPrivilege(and = Privilege.理财配置)
     public Result edit(@RequestBody @Validated FinancialProductEditQuery financialProductQuery) {
+        financialProductService.saveOrUpdate(financialProductQuery);
+        return Result.success();
+    }
 
-        FinancialProduct product = financialConverter.toDO(financialProductQuery);
-        if (ObjectUtil.isNull(product.getId())) {
-            product.setCreateTime(LocalDateTime.now());
-            product.setId(CommonFunction.generalId());
-        } else {
-            product.setUpdateTime(LocalDateTime.now());
-            // TODO 对于修改操作需要校验很多东西
-        }
-        financialProductService.saveOrUpdate(product);
+    /**
+     * 删除
+     */
+    @DeleteMapping("/product/{productId}")
+    @AdminPrivilege(and = Privilege.理财配置)
+    public Result delete(@PathVariable Long productId) {
+        financialProductService.delete(productId);
         return Result.success();
     }
 

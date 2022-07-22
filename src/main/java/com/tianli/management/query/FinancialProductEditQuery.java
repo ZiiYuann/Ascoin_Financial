@@ -100,6 +100,8 @@ public class FinancialProductEditQuery {
      */
     private LocalDateTime updateTime;
 
-
-
+    /**
+     * 最小申购限额
+     */
+    private BigDecimal limitPurchaseQuota;
 }

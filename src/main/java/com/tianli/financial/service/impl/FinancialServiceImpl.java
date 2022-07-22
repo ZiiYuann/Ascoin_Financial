@@ -12,9 +12,7 @@ import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
-import com.tianli.common.CommonFunction;
-import com.tianli.common.PageQuery;
-import com.tianli.common.TimeUtils;
+import com.tianli.common.*;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.log.CurrencyLogDes;
@@ -54,6 +52,12 @@ public class FinancialServiceImpl implements FinancialService {
     @Override
     @Transactional
     public FinancialPurchaseResultVO purchase(PurchaseQuery purchaseQuery) {
+        // 如果产品处于要下线的情况，不允许购买
+        boolean exists = redisService.exists(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + purchaseQuery.getProductId());
+        if(exists){
+            ErrorCodeEnum.PRODUCT_CAN_NOT_BUY.throwException();
+        }
+
         Long uid = requestInitService.uid();
 
         FinancialProduct product = financialProductService.getById(purchaseQuery.getProductId());
@@ -410,5 +414,7 @@ public class FinancialServiceImpl implements FinancialService {
     private OrderService orderService;
     @Resource
     private AddressService addressService;
+    @Resource
+    private RedisService redisService;
 
 }

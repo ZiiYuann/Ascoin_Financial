@@ -453,6 +453,11 @@ public class ConfigConstants {
     public static final String USDC_BEP20_WITHDRAW_MIN_AMOUNT = "usdc_bep20_withdraw_min_amount";
 
     /**
+     * 系统用户最小申购金额
+     */
+    public static final String SYSTEM_PURCHASE__MIN_AMOUNT = "system_purchase_min_amount";
+
+    /**
      * 现货交易买入手续费
      */
     public static final String ACTUAL_BUY_RATE = "actual_buy_rate";
