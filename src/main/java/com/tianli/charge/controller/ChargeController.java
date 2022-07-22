@@ -52,7 +52,7 @@ public class ChargeController {
     /**
      * 充值回调
      */
-    @PostMapping("/recharge")
+    @RequestMapping(value = "/recharge" , produces = "text/plain")
     public Result rechargeCallback(@RequestBody String str, @RequestHeader("AppKey") String appKey
             , @RequestHeader("Sign") String sign) {
         String walletAppKey = configService.get("wallet_app_key");

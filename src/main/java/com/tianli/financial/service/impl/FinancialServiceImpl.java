@@ -70,7 +70,7 @@ public class FinancialServiceImpl implements FinancialService {
         Order order = Order.builder()
                 .uid(uid)
                 .coin(product.getCoin())
-                .relatedId(product.getId())
+                .relatedId(null)
                 .orderNo(AccountChangeType.financial.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
                 .amount(amount)
                 .type(ChargeType.purchase)
@@ -84,6 +84,7 @@ public class FinancialServiceImpl implements FinancialService {
         FinancialRecord financialRecord = financialRecordService.generateFinancialRecord(uid, product, amount);
         // 修改订单状态
         order.setStatus(ChargeStatus.chain_success);
+        order.setRelatedId(financialRecord.getId());
         orderService.updateStatus(order);
 
         FinancialPurchaseResultVO financialPurchaseResultVO = financialConverter.toFinancialPurchaseResultVO(financialRecord);
