@@ -70,19 +70,25 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
      */
     @Transactional
     public void saveOrUpdate(FinancialProductEditQuery financialProductQuery) {
-        FinancialProduct product = financialConverter.toDO(financialProductQuery);
+        FinancialProduct productDO = financialConverter.toDO(financialProductQuery);
         if(Objects.isNull(financialProductQuery.getLimitPurchaseQuota())){
             String sysPurchaseMinAmount = configService.get(SYSTEM_PURCHASE__MIN_AMOUNT);
-            product.setLimitPurchaseQuota(BigDecimal.valueOf(Double.parseDouble(sysPurchaseMinAmount)));
+            productDO.setLimitPurchaseQuota(BigDecimal.valueOf(Double.parseDouble(sysPurchaseMinAmount)));
         }
 
-        if (ObjectUtil.isNull(product.getId())) {
-            product.setCreateTime(LocalDateTime.now());
-            product.setId(CommonFunction.generalId());
-        } else {
-            product.setUpdateTime(LocalDateTime.now());
+        if (ObjectUtil.isNull(productDO.getId())) {
+            productDO.setCreateTime(LocalDateTime.now());
+            productDO.setId(CommonFunction.generalId());
+            super.saveOrUpdate(productDO);
+            return;
         }
-        super.saveOrUpdate(product);
+
+        FinancialProduct product = super.getById(productDO.getId());
+        if( ProductStatus.open.equals(product.getStatus())){
+            ErrorCodeEnum.PRODUCT_CAN_NOT_EDIT.throwException();
+        }
+        product.setUpdateTime(LocalDateTime.now());
+        super.saveOrUpdate(productDO);
     }
 
     /**
@@ -91,12 +97,16 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
     @Transactional
     public void editProductStatus(FinancialProductEditStatusQuery query){
         try {
-            if(ProductStatus.close.equals(query.getStatus())){
-                redisLock.lock(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + query.getProductId(),5L, TimeUnit.SECONDS);
-            }
 
             FinancialProduct product = financialProductMapper.selectById(query.getProductId());
             product = Optional.ofNullable(product).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
+
+            if( ProductStatus.open.equals(product.getStatus())){
+                ErrorCodeEnum.PRODUCT_CAN_NOT_EDIT.throwException();
+            }
+            if(ProductStatus.close.equals(query.getStatus())){
+                redisLock.lock(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + query.getProductId(),5L, TimeUnit.SECONDS);
+            }
 
             product.setUpdateTime(LocalDateTime.now());
             product.setStatus(query.getStatus());

@@ -247,7 +247,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
     private OrderBaseVO getOrderBaseVO(Order order, FinancialRecord record) {
         switch (order.getType()){
-            case recharge:
+            case purchase:
                 var orderRechargeDetailsVo = chargeConverter.toOrderRechargeDetailsVo(record);
                 orderRechargeDetailsVo.setPurchaseTime(record.getPurchaseTime());
                 orderRechargeDetailsVo.setExpectIncome(record.getHoldAmount().multiply(record.getRate()).
