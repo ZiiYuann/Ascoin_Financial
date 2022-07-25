@@ -39,12 +39,13 @@ public class BaseTokenReq {
         int hour = time.getHour();
         int minute = time.getMinute();
         int second = time.getSecond();
-        String dateStr = new StringBuilder(year)
-                .append("-").append(String.format("%2d", month))
-                .append("-").append(String.format("%2d", day))
-                .append(" ").append(String.format("%2d", hour))
-                .append(":").append(String.format("%2d", minute))
-                .append(":").append(String.format("%2d", second)).toString();
-        return LocalDateTime.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-dd-MM HH:mm:ss"));
+        String dateStr = new StringBuilder()
+                .append(year)
+                .append("-").append(String.format("%02d", month))
+                .append("-").append(String.format("%02d", day))
+                .append(" ").append(String.format("%02d", hour))
+                .append(":").append(String.format("%02d", minute))
+                .append(":").append(String.format("%02d", second)).toString();
+        return LocalDateTime.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 }

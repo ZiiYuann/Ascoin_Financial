@@ -256,7 +256,7 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IPage<FinancialUserInfoVO> user(Long uid, PageQuery<Address> page) {
+    public IPage<FinancialUserInfoVO> user(Long uid, IPage<Address> page) {
 
         LambdaQueryWrapper<Address> queryWrapper = new LambdaQueryWrapper<>();
 
@@ -264,7 +264,7 @@ public class FinancialServiceImpl implements FinancialService {
             queryWrapper = queryWrapper.eq(Address::getUid, uid);
         }
 
-        var addresses = addressService.page(page.page(), queryWrapper);
+        var addresses = addressService.page(page, queryWrapper);
         List<Long> uids = addresses.getRecords().stream().map(Address::getUid).collect(Collectors.toList());
 
         var summaryBalanceAmount = accountBalanceService.getSummaryBalanceAmount(uids);
@@ -291,7 +291,8 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public FinancialSummaryDataVO userData(Long uid, PageQuery<Address> page) {
+    public FinancialSummaryDataVO userData(Long uid) {
+        IPage<Address> page = new Page<>(1,Integer.MAX_VALUE);
         var userInfos = user(uid, page).getRecords();
 
         BigDecimal rechargeAmount = BigDecimal.ZERO;

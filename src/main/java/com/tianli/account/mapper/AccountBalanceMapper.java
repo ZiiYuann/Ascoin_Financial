@@ -28,61 +28,22 @@ public interface AccountBalanceMapper extends BaseMapper<AccountBalance> {
     @Select("SELECT * FROM `account_balance` WHERE `uid`=#{uid} ")
     List<AccountBalance> list(long uid);
 
-    @Update("UPDATE `account_balance` SET `balance`=`balance`+#{amount},`remain`=`remain`+#{amount} WHERE `uid`=#{id} ")
-    long increase(@Param("id") long id, @Param("amount") BigDecimal amount);
+    @Update("UPDATE `account_balance` SET `balance`=`balance`+#{amount},`remain`=`remain`+#{amount} WHERE `uid`=#{id} and coin=#{coin}")
+    long increase(@Param("id") long id, @Param("amount") BigDecimal amount,@Param("coin") CurrencyCoin coin);
 
-    @Update("UPDATE `account_balance` SET `balance`=`balance`-#{amount},`remain`=`remain`-#{amount} WHERE `uid`=#{id}  AND `remain`>= #{amount}")
-    long decrease(@Param("id") long id, @Param("amount") BigDecimal amount);
+    @Update("UPDATE `account_balance` SET `balance`=`balance`-#{amount},`remain`=`remain`-#{amount} WHERE `uid`=#{id}  and coin=#{coin} AND `remain`>= #{amount}")
+    long decrease(@Param("id") long id, @Param("amount") BigDecimal amount,@Param("coin") CurrencyCoin coin);
 
-    @Update("UPDATE `account_balance` SET `balance_BF`=`balance_BF`+#{amount},`remain_BF`=`remain_BF`+#{amount} WHERE `uid`=#{id} ")
-    long increaseBF(@Param("id") long id, @Param("amount") BigDecimal amount);
+    @Update("UPDATE `account_balance` SET `balance`=`balance`-#{amount},`freeze`=`freeze`-#{amount} WHERE `uid`=#{id} and coin=#{coin} AND  `freeze`>=#{amount} ")
+    long reduce(@Param("id") long id, @Param("amount") BigDecimal amount,@Param("coin") CurrencyCoin coin);
 
-    @Update("UPDATE `account_balance` SET `balance`=`balance`-#{amount},`freeze`=`freeze`-#{amount} WHERE `uid`=#{id} AND `freeze`>=#{amount} ")
-    long reduce(@Param("id") long id, @Param("amount") BigDecimal amount);
+    @Update("UPDATE `account_balance` SET `balance`=`balance`-#{amount},`remain`=`remain`-#{amount} WHERE `uid`=#{id} and coin=#{coin} AND `remain`>=#{amount} ")
+    long withdraw(@Param("id") long id, @Param("amount") BigDecimal amount,@Param("coin") CurrencyCoin coin);
 
-    @Update("UPDATE `account_balance` SET `balance_BF`=`balance_BF`-#{amount},`freeze_BF`=`freeze_BF`-#{amount} WHERE `uid`=#{id} AND `freeze_BF`>=#{amount} ")
-    long reduceBF(@Param("id") long id, @Param("amount") BigDecimal amount);
+    @Update("UPDATE `account_balance` SET `freeze`=`freeze`+#{amount},`remain`=`remain`-#{amount} WHERE `uid`=#{id} and coin=#{coin} AND `remain`>=#{amount} ")
+    long freeze(@Param("id") long id, @Param("amount") BigDecimal amount,@Param("coin") CurrencyCoin coin);
 
-    @Update("UPDATE `account_balance` SET `balance`=`balance`-#{amount},`remain`=`remain`-#{amount} WHERE `uid`=#{id} AND `remain`>=#{amount} ")
-    long withdraw(@Param("id") long id, @Param("amount") BigDecimal amount);
-
-    @Update("UPDATE `account_balance` SET `balance_BF`=`balance_BF`-#{amount},`remain_BF`=`remain_BF`-#{amount} WHERE `uid`=#{id} AND `remain_BF`>=#{amount} ")
-    long withdrawBF(@Param("id") long id, @Param("amount") BigDecimal amount);
-
-    @Update("UPDATE `account_balance` SET `freeze`=`freeze`+#{amount},`remain`=`remain`-#{amount} WHERE `uid`=#{id} AND `remain`>=#{amount} ")
-    long freeze(@Param("id") long id, @Param("amount") BigDecimal amount);
-
-    @Update("UPDATE `account_balance` SET `freeze_BF`=`freeze_BF`+#{amount},`remain_BF`=`remain_BF`-#{amount} WHERE `uid`=#{id} AND `remain_BF`>=#{amount} ")
-    long freezeBF(@Param("id") long id, @Param("amount") BigDecimal amount);
-
-    @Update("UPDATE `account_balance` SET `freeze`=`freeze`- #{amount},`remain`=`remain`+#{amount} WHERE `uid`=#{id} AND `freeze`>=#{amount} ")
-    long unfreeze(@Param("id") long id, @Param("amount") BigDecimal amount);
-
-    @Update("UPDATE `account_balance` SET `freeze_BF`=`freeze_BF`-#{amount},`remain_BF`=`remain_BF`+#{amount} WHERE `uid`=#{id} AND `freeze_BF`>=#{amount} ")
-    long unfreezeBF(@Param("id") long id, @Param("amount") BigDecimal amount);
-
-    @Select("SELECT * FROM `account_balance` WHERE `uid` in (${inSql})")
-    List<AccountBalance> listByIds(@Param("inSql") String sqlString);
-
-    @Select("SELECT * FROM `account_balance` WHERE `uid` in (${inSql}) and `type` = #{type}")
-    List<AccountBalance> listByIdsAndType(@Param("inSql") String sqlString);
-
-    @Update("UPDATE `account_balance` SET `balance`=`balance`-#{amount},`remain`=`remain`-#{amount} WHERE `uid`=#{id}  ")
-    long lowWithdraw(@Param("id") long id, @Param("amount") BigDecimal amount);
-
-    @Update("UPDATE `account_balance` SET `balance_BF`=`balance_BF`-#{amount},`remain_BF`=`remain_BF`-#{amount} WHERE `uid`=#{id}  ")
-    long lowWithdrawBF(@Param("id") long id, @Param("amount") BigDecimal amount);
-
-    @Select("SELECT cd.uid " +
-            "FROM (select * FROM account_balance WHERE type = 'deposit') cd " +
-            "LEFT JOIN account_balance cs ON cd.uid = cs.uid AND cs.type = 'settlement' " +
-            "WHERE cs.balance < 0 AND ABS(cs.balance)/ABS(cd.balance)>0.8")
-    List<Long> listAgentFocus();
-
-    @Update("UPDATE `account_balance` SET `balance`=`balance`- #{amount},`remain`=`remain`-#{amount} WHERE `uid`=#{id} ")
-    long withdrawPresumptuous(@Param("id") long id, @Param("amount") BigDecimal amount);
-
-    @Update("UPDATE `account_balance` SET `balance_BF`=`balance_BF`- #{amount},`remain_BF`=`remain_BF`-#{amount} WHERE `uid`=#{id} ")
-    long withdrawPresumptuousBF(@Param("id") long id ,@Param("amount") BigDecimal amount);
+    @Update("UPDATE `account_balance` SET `freeze`=`freeze`- #{amount},`remain`=`remain`+#{amount} WHERE `uid`=#{id} and coin=#{coin} AND `freeze`>=#{amount} ")
+    long unfreeze(@Param("id") long id, @Param("amount") BigDecimal amount,@Param("coin") CurrencyCoin coin);
 
 }

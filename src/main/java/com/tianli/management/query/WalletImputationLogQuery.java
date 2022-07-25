@@ -1,9 +1,9 @@
 package com.tianli.management.query;
 
-import com.tianli.charge.enums.ChargeStatus;
-import com.tianli.charge.enums.ChargeType;
+import com.tianli.chain.enums.ImputationStatus;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -12,27 +12,24 @@ import java.time.LocalDateTime;
 /**
  * @author chenb
  * @apiNote
- * @since 2022-07-19
+ * @since 2022-07-25
  **/
 @Data
-public class FinancialChargeQuery {
-
-    private String txid;
+@Builder
+public class WalletImputationLogQuery {
 
     private CurrencyCoin coin;
 
-    private Long uid;
+    private String txid;
 
-    private NetworkType networkType;
+    private NetworkType network;
+
+    private ImputationStatus status;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startTime;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
-
-    private ChargeType chargeType;
-
-    private ChargeStatus chargeStatus;
 
 }

@@ -34,7 +34,7 @@ public class WalletImputationLog {
     /**
      * to_address
      */
-    private String toAddress;
+    private String fromAddress;
 
     /**
      * 网络

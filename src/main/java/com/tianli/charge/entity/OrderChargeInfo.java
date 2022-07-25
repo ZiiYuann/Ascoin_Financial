@@ -28,8 +28,6 @@ public class OrderChargeInfo{
      */
     private Long id;
 
-    private String orderNo;
-
     /**
      * 格式化之后的费用
      */

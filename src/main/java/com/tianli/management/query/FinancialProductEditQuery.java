@@ -38,6 +38,12 @@ public class FinancialProductEditQuery {
     private String name;
 
     /**
+     * logo
+     */
+    @NotBlank(message = "logo不允许为空")
+    private String logo;
+
+    /**
      * 产品名称
      */
     @NotBlank(message = "英文名称不允许为空")

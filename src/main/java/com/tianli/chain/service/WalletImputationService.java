@@ -8,18 +8,17 @@ import com.tianli.chain.dto.TRONTokenReq;
 import com.tianli.chain.entity.WalletImputation;
 import com.tianli.chain.entity.WalletImputationTemporary;
 import com.tianli.chain.enums.ImputationStatus;
-import com.tianli.chain.mapper.ChainLogMapper;
 import com.tianli.chain.mapper.WalletImputationMapper;
 import com.tianli.chain.mapper.WalletImputationTemporaryMapper;
+import com.tianli.chain.vo.WalletImputationVO;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.management.query.WalletImputationQuery;
-import com.tianli.chain.vo.WalletImputationVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -36,7 +35,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
      * 通过订单插入或修改归集信息
      */
     @Transactional
-    public void insert(Long uid, CurrencyAdaptType currencyAdaptType,TRONTokenReq tronTokenReq){
+    public void insert(Long uid, CurrencyAdaptType currencyAdaptType, TRONTokenReq tronTokenReq, BigDecimal finalAmount){
         LocalDateTime now = LocalDateTime.now();
         LambdaQueryWrapper<WalletImputation> query = new LambdaQueryWrapper<WalletImputation>().eq(WalletImputation::getUid, uid)
                 .eq(WalletImputation::getNetwork, currencyAdaptType.getNetwork())
@@ -51,19 +50,19 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
             // 如果处于进行中
             if(ImputationStatus.processing.equals(walletImputation.getStatus())){
                 WalletImputationTemporary walletImputationTemporary = chainConverter.toTemporary(walletImputation);
-                walletImputationTemporary.setAmount(tronTokenReq.getValue());
+                walletImputationTemporary.setAmount(finalAmount);
                 walletImputationTemporaryMapper.insert(walletImputationTemporary);
             }
 
             if(ImputationStatus.success.equals(walletImputation.getStatus())){
-                walletImputation.setAmount(tronTokenReq.getValue());
+                walletImputation.setAmount(finalAmount);
                 walletImputation.setUpdateTime(now);
                 walletImputation.setStatus(ImputationStatus.wait);
                 walletImputationMapper.updateById(walletImputation);
             }
 
             if(ImputationStatus.wait.equals(walletImputation.getStatus())){
-                walletImputation.setAmount(walletImputation.getAmount().add(tronTokenReq.getValue()));
+                walletImputation.setAmount(walletImputation.getAmount().add(finalAmount));
                 walletImputation.setUpdateTime(now);
                 walletImputationMapper.updateById(walletImputation);
             }
@@ -76,6 +75,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                 .coin(currencyAdaptType.getCurrencyCoin())
                 .address(tronTokenReq.getTo())
                 .status(ImputationStatus.wait)
+                .amount(finalAmount)
                 .createTime(now).updateTime(now)
                 .build();
         walletImputationMapper.insert(walletImputationInsert);
@@ -97,12 +97,11 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
        if(Objects.nonNull(query.getUid())){
             queryWrapper = queryWrapper.eq(WalletImputation :: getNetwork,query.getNetwork());
         }
-       if(Objects.nonNull(query.getUid())){
-            queryWrapper = queryWrapper.eq(WalletImputation :: getStatus,query.getStatus());
+       if(Objects.nonNull(query.getNetwork())){
+            queryWrapper = queryWrapper.eq(WalletImputation :: getNetwork,query.getNetwork());
         }
 
         return walletImputationMapper.selectPage(page, queryWrapper).convert(chainConverter::toWalletImputationVO);
     }
-
 
 }

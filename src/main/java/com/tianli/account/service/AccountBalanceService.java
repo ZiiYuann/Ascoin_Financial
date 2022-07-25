@@ -77,7 +77,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     public void increase(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
         getAndInit(uid, coin);
 
-        if (accountBalanceMapper.increase(uid, amount) <= 0L) {
+        if (accountBalanceMapper.increase(uid, amount,coin) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
@@ -88,7 +88,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     public void reduce(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
         getAndInit(uid, coin);
 
-        if (accountBalanceMapper.reduce(uid, amount) <= 0L) {
+        if (accountBalanceMapper.reduce(uid, amount,coin) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
@@ -106,7 +106,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     public void withdraw(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
         getAndInit(uid, coin);
 
-        if (accountBalanceMapper.withdraw(uid, amount) <= 0L) {
+        if (accountBalanceMapper.withdraw(uid, amount,coin) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
@@ -117,7 +117,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     public void freeze(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
         getAndInit(uid, coin);
 
-        if (accountBalanceMapper.freeze(uid, amount) <= 0L) {
+        if (accountBalanceMapper.freeze(uid, amount,coin) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
@@ -136,7 +136,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     public void unfreeze(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
         getAndInit(uid, coin);
 
-        if (accountBalanceMapper.unfreeze(uid, amount) <= 0L) {
+        if (accountBalanceMapper.unfreeze(uid, amount,coin) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
 

@@ -97,11 +97,11 @@ public interface FinancialService {
     /**
      * 理财用户信息
      */
-    IPage<FinancialUserInfoVO> user(Long uid, PageQuery<Address> page);
+    IPage<FinancialUserInfoVO> user(Long uid, IPage<Address> page);
 
     /**
      * 理财用户信息左上角信息
      */
-    FinancialSummaryDataVO userData(Long uid, PageQuery<Address> page);
+    FinancialSummaryDataVO userData(Long uid);
 
 }
