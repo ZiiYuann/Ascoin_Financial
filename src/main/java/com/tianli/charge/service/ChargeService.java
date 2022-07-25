@@ -74,21 +74,21 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         for (TRONTokenReq req : tronTokenReqs) {
             CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(req.getContractAddress());
-            String to = req.getTo();
-            Address address = getAddress(currencyAdaptType.getNetwork(), to);
+            Address address = getAddress(currencyAdaptType.getNetwork(), req.getFrom());
             Long uid = address.getUid();
             BigDecimal finalAmount = currencyAdaptType.moneyBigDecimal(req.getValue());
 
             if (orderService.getOrderChargeByTxid(req.getHash()) != null) {
                 log.error("txid {} 已经存在充值订单", req.getHash());
+                ErrorCodeEnum.TRADE_FAIL.throwException();
             }
             // 生成订单数据
-            String orderNo = insertRechargeOrder(req, currencyAdaptType, finalAmount, req.getValue());
+            String orderNo = insertRechargeOrder(uid,req, currencyAdaptType, finalAmount, req.getValue());
             // 操作余额信息
             accountBalanceService.increase(uid, ChargeType.recharge, currencyAdaptType.getCurrencyCoin()
                     , currencyAdaptType.getNetwork(), finalAmount, orderNo, CurrencyLogDes.充值.name());
             // 操作归集信息
-            walletImputationService.insert(uid, currencyAdaptType, req);
+            walletImputationService.insert(uid, currencyAdaptType, req,finalAmount);
         }
     }
 
@@ -309,8 +309,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      * 理财充值记录添加
      */
     @Transactional
-    public String insertRechargeOrder(TRONTokenReq query, CurrencyAdaptType currencyAdaptType, BigDecimal amount, BigDecimal realAmount) {
-        Long uid = requestInitService.get().getUid();
+    public String insertRechargeOrder(Long uid ,TRONTokenReq query, CurrencyAdaptType currencyAdaptType, BigDecimal amount, BigDecimal realAmount) {
         // 链信息
         OrderChargeInfo orderChargeInfo = OrderChargeInfo.builder()
                 .id(CommonFunction.generalId())

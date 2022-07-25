@@ -1,5 +1,6 @@
 package com.tianli.management.query;
 
+import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
@@ -31,5 +32,7 @@ public class FinancialChargeQuery {
     private LocalDateTime endTime;
 
     private ChargeType chargeType;
+
+    private ChargeStatus chargeStatus;
 
 }

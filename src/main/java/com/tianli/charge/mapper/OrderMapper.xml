@@ -97,6 +97,9 @@
         <if test="query.chargeType != null">
             AND o.type = #{query.chargeType}
         </if>
+        <if test="query.chargeStatus != null">
+            AND o.status = #{query.chargeStatus}
+        </if>
         <if test="query.coin != null">
             AND charge.coin = #{query.coin}
         </if>

@@ -35,8 +35,8 @@ class ChargeControllerTest {
         baseTokenReq.setHash("0x4aaff8705253d7eeeb60536328d93083710a81acc038d04f7e3ba9f584a9ece3");
         baseTokenReq.setFrom("0xfbf8b2f9f441f2cf929c2cb7b4de414d2913f73c");
         baseTokenReq.setTo("0x84c44d89d56930aee2f56230c01cbc95e6f8ed4b");
-        baseTokenReq.setValue(new BigDecimal("11.5"));
-        baseTokenReq.setContractAddress("0x55d398326f99059ff775485246999027B3197955");
+        baseTokenReq.setValue(new BigDecimal("100000000000000000000"));
+        baseTokenReq.setContractAddress("0x55d398326f99059ff775485246999027b3197955");
         baseTokenReq.setDate(new DateReq(2022,7,22));
         baseTokenReq.setTime(new TimeReq(12,12,12,2000));
         HashMap<String,Object> hashMap = new HashMap<>();
