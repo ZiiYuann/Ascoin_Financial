@@ -106,8 +106,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         String fixedAmount = configService._get(currencyAdaptType.name() + "_withdraw_fixed_amount");
 
         // 提现数额
-        BigDecimal withdrawAmount = currencyAdaptType.moneyBigDecimal(new BigInteger("" + query.getAmount()));
-        if (withdrawAmount.compareTo(new BigDecimal(withdrawMinAmount)) < 0) ErrorCodeEnum.throwException("提现usdt数额过小");
+        BigDecimal withdrawAmount = currencyAdaptType.moneyBigDecimal(BigDecimal.valueOf(query.getAmount()));
+        if (BigDecimal.valueOf(query.getAmount()).compareTo(new BigDecimal(withdrawMinAmount)) < 0) ErrorCodeEnum.throwException("提现usdt数额过小");
 
         // 手续费
         BigDecimal serviceAmount = (withdrawAmount.multiply(new BigDecimal(StringUtils.isNotBlank(rate) ? rate : "0")))
@@ -130,6 +130,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .fee(withdrawAmount)
                 .realFee(realAmount)
                 .serviceFee(BigDecimal.ZERO)
+                .minerFee(BigDecimal.ZERO)
                 .fromAddress(fromAddress)
                 .createTime(now)
                 .toAddress(query.getTo()).build();
