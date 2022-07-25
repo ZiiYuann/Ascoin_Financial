@@ -10,11 +10,15 @@ import org.apache.commons.lang3.StringUtils;
 @Getter
 public enum AccountChangeType {
     // 理财
-    financial("FI"),
+    purchase("PU"),
+    redeem("RE"),
     // 常规操作
+    withdraw("WD"),
     normal("NO"),
     // 借币
-    borrow("BO");
+    borrow("BO"),
+    // 收益
+    income("IN"),;
 
 
     AccountChangeType(String prefix){

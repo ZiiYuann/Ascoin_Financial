@@ -217,4 +217,14 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
                 }).reduce(BigDecimal.ZERO,BigDecimal::add)
         ));
     }
+
+
+    /**
+     *  获取需要计算利息的分页记录信息
+     */
+    public IPage<FinancialRecord> needCalIncomeRecord(IPage<FinancialRecord> page){
+        LambdaQueryWrapper<FinancialRecord> queryWrapper =
+                new LambdaQueryWrapper<FinancialRecord>().eq(FinancialRecord::getStatus, RecordStatus.PROCESS);
+        return financialRecordMapper.selectPage(page,queryWrapper);
+    }
 }

@@ -1,12 +1,8 @@
 package com.tianli.common.blockchain;
 
-import cn.hutool.core.util.StrUtil;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.List;
-
-// 各种币
+// 各种币ø
 @Getter
 public enum CurrencyCoin {
     usdt,
@@ -98,45 +94,7 @@ public enum CurrencyCoin {
         this.name = super.name();
     }
 
-    CurrencyCoin(String name) {
-        this.name = name;
-    }
-
     private String name;
-
-    public static CurrencyCoin getCurrencyCoinEnum(String token) {
-        for (CurrencyCoin value : CurrencyCoin.values()) {
-            if (StrUtil.equals(value.name(), token)) {
-                return value;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * @param tokenFiat  法币
-     * @param tokenStock 货币
-     * @return
-     */
-    public static String getSymbols(CurrencyCoin tokenFiat, CurrencyCoin tokenStock) {
-        return tokenStock.name.toUpperCase() + tokenFiat.name.toUpperCase();
-    }
-
-    public static CurrencyCoin getTokenStock(String symbols) {
-        symbols = symbols.toLowerCase();
-        return getCurrencyCoinEnum(symbols.replaceAll(CurrencyCoin.usdt.getName(),""));
-    }
-
-    public static List<String> getAllUSDTSymbols() {
-        List<String> allUSDTSymbols = new ArrayList<>();
-        for (CurrencyCoin value : CurrencyCoin.values()) {
-            if (value.equals(CurrencyCoin.usdt)) {
-                continue;
-            }
-            allUSDTSymbols.add(getSymbols(CurrencyCoin.usdt, value));
-        }
-        return allUSDTSymbols;
-    }
 
 
 }

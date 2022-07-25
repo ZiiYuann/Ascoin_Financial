@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 public class FinancialIncomeAccrue extends Model<FinancialIncomeAccrue> {
 
     @Id
-    private Long id;
+    private String id;
 
     private Long uid;
 

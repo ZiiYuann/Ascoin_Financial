@@ -12,8 +12,10 @@ import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
-import com.tianli.common.*;
-import com.tianli.common.async.AsyncService;
+import com.tianli.common.CommonFunction;
+import com.tianli.common.RedisLockConstants;
+import com.tianli.common.RedisService;
+import com.tianli.common.TimeUtils;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
@@ -71,7 +73,7 @@ public class FinancialServiceImpl implements FinancialService {
                 .uid(uid)
                 .coin(product.getCoin())
                 .relatedId(null)
-                .orderNo(AccountChangeType.financial.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
+                .orderNo(AccountChangeType.purchase.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
                 .amount(amount)
                 .type(ChargeType.purchase)
                 .status(ChargeStatus.created)
@@ -339,63 +341,6 @@ public class FinancialServiceImpl implements FinancialService {
             return financialProductVO;
         });
     }
-
-    /**
-     * 计算每日利息
-     */
-    @Transactional
-    public void calculateDailyIncome() {
-        // 前日零点
-        LocalDateTime now = requestInitService.now();
-        LocalDateTime yesterdayTime = requestInitService.yesterday();
-
-
-        Long uid = 0L;
-        Long recordId = 0L;
-        CurrencyCoin coin = null;
-        BigDecimal incomeFee = null;
-
-        FinancialIncomeDaily dailyIncomeLog = financialIncomeDailyService.getOne(new LambdaQueryWrapper<FinancialIncomeDaily>()
-                .eq(FinancialIncomeDaily::getUid, uid)
-                .eq(FinancialIncomeDaily::getRecordId, recordId)
-                .eq(FinancialIncomeDaily::getFinishTime, yesterdayTime));
-
-        if (Objects.nonNull(dailyIncomeLog)) {
-            log.error("申购记录ID：{}，重复计算每日利息，记息日时间：{}，程序运行时间：{}", recordId, yesterdayTime, now);
-            return;
-        }
-        dailyIncomeLog = new FinancialIncomeDaily();
-        dailyIncomeLog.setIncomeAmount(incomeFee);
-        dailyIncomeLog.setId(CommonFunction.generalId());
-        dailyIncomeLog.setUid(uid);
-        dailyIncomeLog.setCreateTime(now);
-        dailyIncomeLog.setFinishTime(yesterdayTime);
-        financialIncomeDailyService.save(dailyIncomeLog);
-
-        FinancialIncomeAccrue accrueIncome = getAccrueIncomeLogAndInit(uid, coin, recordId);
-        accrueIncome.setIncomeAmount(accrueIncome.getIncomeAmount().add(incomeFee));
-        accrueIncome.setUpdateTime(LocalDateTime.now());
-        financialIncomeAccrueService.updateById(accrueIncome);
-    }
-
-    private FinancialIncomeAccrue getAccrueIncomeLogAndInit(Long uid, CurrencyCoin coin, Long recordId) {
-        FinancialIncomeAccrue accrueIncomeLog = financialIncomeAccrueService.getOne(new LambdaQueryWrapper<FinancialIncomeAccrue>()
-                .eq(FinancialIncomeAccrue::getUid, uid)
-                .eq(FinancialIncomeAccrue::getRecordId, recordId));
-        if (Objects.isNull(accrueIncomeLog)) {
-            LocalDateTime now = LocalDateTime.now();
-            accrueIncomeLog = FinancialIncomeAccrue.builder()
-                    .id(CommonFunction.generalId())
-                    .incomeAmount(BigDecimal.ZERO)
-                    .recordId(recordId).uid(uid).createTime(now).updateTime(now)
-                    .coin(coin)
-                    .build();
-            final FinancialIncomeAccrue accrueIncomeLogFinal = accrueIncomeLog;
-            asyncService.async(() -> financialIncomeAccrueService.save(accrueIncomeLogFinal));
-        }
-        return accrueIncomeLog;
-    }
-
     @Resource
     private AccountBalanceService accountBalanceService;
     @Resource
@@ -410,8 +355,6 @@ public class FinancialServiceImpl implements FinancialService {
     private FinancialIncomeDailyService financialIncomeDailyService;
     @Resource
     private FinancialIncomeAccrueService financialIncomeAccrueService;
-    @Resource
-    private AsyncService asyncService;
     @Resource
     private OrderService orderService;
     @Resource

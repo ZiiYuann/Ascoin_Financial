@@ -19,3 +19,5 @@ create table address
         unique (uid, type)
 )
     comment '用户的云账户充值地址表';
+
+

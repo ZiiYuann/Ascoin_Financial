@@ -10,7 +10,6 @@ import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.dto.TRONTokenReq;
-import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.WalletImputationService;
 import com.tianli.charge.converter.ChargeConverter;
 import com.tianli.charge.entity.Order;
@@ -59,15 +58,13 @@ import java.util.Optional;
 @Service
 public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
-    public static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
-
     /**
      * 充值回调:添加用户余额和记录
      *
      * @param str 充值信息
      */
     @Transactional
-    public void rechargeCallback(ChainType chain, String str) {
+    public void rechargeCallback(String str) {
         var jsonArray = JSONUtil.parseObj(str).getJSONArray("token");
 
         List<TRONTokenReq> tronTokenReqs = JSONUtil.toList(jsonArray, TRONTokenReq.class);
@@ -98,15 +95,15 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         // 计算手续费  实际手续费 = 提现数额 * 手续费率 + 固定手续费数额
         // 最小提现金额
-        String withdrawMinAmount = configService._get(currencyAdaptType.name() + "_withdraw_min_amount");
+        String withdrawMinAmount = configService.get(currencyAdaptType.name() + "_withdraw_min_amount");
         // 手续费率
-        String rate = configService._get(currencyAdaptType.name() + "_withdraw_rate");
+        String rate = configService.get(currencyAdaptType.name() + "_withdraw_rate");
         // 固定手续费数额
-        String fixedAmount = configService._get(currencyAdaptType.name() + "_withdraw_fixed_amount");
+        String fixedAmount = configService.get(currencyAdaptType.name() + "_withdraw_fixed_amount");
 
         // 提现数额
         BigDecimal withdrawAmount = currencyAdaptType.moneyBigDecimal(BigDecimal.valueOf(query.getAmount()));
-        if (BigDecimal.valueOf(query.getAmount()).compareTo(new BigDecimal(withdrawMinAmount)) < 0) ErrorCodeEnum.throwException("提现usdt数额过小");
+        if (BigDecimal.valueOf(query.getAmount()).compareTo(new BigDecimal(withdrawMinAmount)) < 0) ErrorCodeEnum.throwException("提现数额过小");
 
         // 手续费
         BigDecimal serviceAmount = (withdrawAmount.multiply(new BigDecimal(StringUtils.isNotBlank(rate) ? rate : "0")))
@@ -128,7 +125,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .network(currencyAdaptType.getNetwork())
                 .fee(withdrawAmount)
                 .realFee(realAmount)
-                .serviceFee(BigDecimal.ZERO)
+                .serviceFee(serviceAmount)
                 .minerFee(BigDecimal.ZERO)
                 .fromAddress(fromAddress)
                 .createTime(now)
@@ -140,15 +137,13 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         Order order = new Order();
         order.setUid(uid);
         order.setAmount(realAmount);
-        order.setOrderNo(AccountChangeType.normal.getPrefix() + CommonFunction.generalSn(id));
+        order.setOrderNo(AccountChangeType.withdraw.getPrefix() + CommonFunction.generalSn(id));
         order.setStatus(ChargeStatus.created);
         order.setType(ChargeType.withdraw);
         order.setCoin(currencyAdaptType.getCurrencyCoin());
         order.setCreateTime(now);
+        order.setRelatedId(orderChargeInfo.getId());
         orderService.saveOrder(order);
-
-        //转换u后面的0的个数
-        withdrawAmount = withdrawAmount.multiply(ONE_HUNDRED);
 
         //冻结提现数额
         accountBalanceService.freeze(uid, ChargeType.withdraw, currencyAdaptType.getCurrencyCoin()
@@ -180,7 +175,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         order.setId(id);
         order.setUid(uid);
         order.setAmount(query.getRedeemAmount());
-        order.setOrderNo(AccountChangeType.financial.getPrefix() + CommonFunction.generalSn(id));
+        order.setOrderNo(AccountChangeType.redeem.getPrefix() + CommonFunction.generalSn(id));
         order.setStatus(ChargeStatus.chain_success);
         order.setType(ChargeType.redeem);
         order.setRelatedId(recordId);
@@ -237,7 +232,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         orderChargeInfoVO.setFromAddress(orderChargeInfo.getFromAddress());
         orderChargeInfoVO.setToAddress(orderChargeInfo.getToAddress());
         orderChargeInfoVO.setTxid(orderChargeInfo.getTxid());
-        orderChargeInfoVO.setCreateTime(orderChargeInfo.getCreateTime());
         orderChargeInfoVO.setCreateTime(orderChargeInfo.getCreateTime());
         // todo 设置logo
         orderChargeInfoVO.setLogo("");
