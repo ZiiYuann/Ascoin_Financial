@@ -104,5 +104,5 @@ public class FinancialRecord {
     /**
      * 锁定金额
      */
-    private BigDecimal lockAmount;
+    private BigDecimal pledgeAmount;
 }

@@ -71,7 +71,12 @@ public class BorrowCoinOrderVO {
     /**
      * 当前质押率
      */
-    private BigDecimal currentPledgeRate;
+    private BigDecimal pledgeRate;
+
+    /**
+     * 质押状态
+     */
+    private Integer pledgeStatus;
 
     /**
      * 订单状态

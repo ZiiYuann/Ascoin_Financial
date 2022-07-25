@@ -51,8 +51,23 @@ public class BorrowCoinConfig extends Model<BorrowCoinConfig> {
     private BigDecimal initialPledgeRate;
 
     /**
+     * 强平质押率
+     */
+    private BigDecimal liquidationPledgeRate;
+
+    /**
+     * 警告质押率
+     */
+    private BigDecimal warnPledgeRate;
+
+    /**
      * 创建时间
      */
     private Date createTime;
+
+    /**
+     * 删除标记
+     */
+    private Integer isDel;
 
 }

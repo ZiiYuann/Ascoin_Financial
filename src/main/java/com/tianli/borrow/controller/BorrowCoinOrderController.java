@@ -7,16 +7,24 @@ import com.tianli.borrow.bo.AdjustPledgeBO;
 import com.tianli.borrow.bo.BorrowOrderBO;
 import com.tianli.borrow.bo.BorrowOrderRepayBO;
 import com.tianli.borrow.entity.BorrowCoinOrder;
+import com.tianli.borrow.entity.BorrowInterestRecord;
+import com.tianli.borrow.entity.BorrowPledgeRecord;
+import com.tianli.borrow.entity.BorrowRepayRecord;
+import com.tianli.borrow.query.BorrowInterestRecordQuery;
 import com.tianli.borrow.query.BorrowOrderQuery;
+import com.tianli.borrow.query.BorrowPledgeRecordQuery;
+import com.tianli.borrow.query.BorrowRepayQuery;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
+import com.tianli.sso.init.RequestInitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * <p>
@@ -29,6 +37,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/borrow")
 public class BorrowCoinOrderController {
+
+    @Autowired
+    private RequestInitService requestInitService;
 
     @Autowired
     private IBorrowCoinOrderService borrowCoinOrderService;
@@ -50,9 +61,13 @@ public class BorrowCoinOrderController {
      */
     @GetMapping("/order/history/list")
     public Result history(PageQuery<BorrowCoinOrder> pageQuery){
+        Long uid = requestInitService.uid();
         BorrowOrderQuery query = new BorrowOrderQuery();
-        Integer[] status = {BorrowOrderStatus.SUCCESSFUL_REPAYMENT,BorrowOrderStatus.FORCED_LIQUIDATION};
-        query.setOrderStatus(status);
+        Set<Integer> status = new HashSet<>(2);
+        status.add(BorrowOrderStatus.SUCCESSFUL_REPAYMENT);
+        status.add(BorrowOrderStatus.FORCED_LIQUIDATION);
+        query.setStatus(status);
+        query.setUid(uid);
         IPage<BorrowCoinOrderVO> borrowCoinOrderVOIPage = borrowCoinOrderService.pageList(pageQuery, query);
         return Result.success(borrowCoinOrderVOIPage);
     }
@@ -102,34 +117,34 @@ public class BorrowCoinOrderController {
 
     /**
      * 质押记录
-     * @param orderId
+     * @param
      * @return
      */
-    @GetMapping("/order/pledge/record/{orderId}")
-    public Result pledgeRecord(@PathVariable Long orderId){
-        List<BorrowPledgeRecordVO> borrowPledgeRecordVOS = borrowCoinOrderService.pledgeRecord(orderId);
-        return Result.success(borrowPledgeRecordVOS);
+    @GetMapping("/order/pledge/record")
+    public Result pledgeRecord(PageQuery<BorrowPledgeRecord> pageQuery, BorrowPledgeRecordQuery query){
+        IPage<BorrowPledgeRecordVO> page = borrowCoinOrderService.pledgeRecord(pageQuery, query);
+        return Result.success(page);
     }
 
     /**
      * 利息记录
-     * @param orderId
+     * @param
      * @return
      */
-    @GetMapping("/order/interest/record/{orderId}")
-    public Result interestRecord(@PathVariable Long orderId){
-        List<BorrowInterestRecordVO> borrowInterestRecordVOS = borrowCoinOrderService.interestRecord(orderId);
-        return Result.success(borrowInterestRecordVOS);
+    @GetMapping("/order/interest/record")
+    public Result interestRecord(PageQuery<BorrowInterestRecord> pageQuery, BorrowInterestRecordQuery query){
+        IPage<BorrowInterestRecordVO> page = borrowCoinOrderService.interestRecord(pageQuery, query);
+        return Result.success(page);
     }
 
     /**
      * 还款记录
-     * @param orderId
+     * @param
      * @return
      */
-    @GetMapping("/order/repay/record/{orderId}")
-    public Result repayRecord(@PathVariable Long orderId){
-        List<BorrowRepayRecordVO> borrowRepayRecordVOS = borrowCoinOrderService.repayRecord(orderId);
+    @GetMapping("/order/repay/record")
+    public Result repayRecord(PageQuery<BorrowRepayRecord> pageQuery, BorrowRepayQuery query){
+        IPage<BorrowRepayRecordVO> borrowRepayRecordVOS = borrowCoinOrderService.repayRecord(pageQuery,query);
         return Result.success(borrowRepayRecordVOS);
     }
 

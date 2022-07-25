@@ -38,7 +38,7 @@ public class StaticScheduleTask {
     private BorrowInterestRecordMapper borrowInterestRecordMapper;
 
     //3.添加定时任务
-    @Scheduled(cron = "0 0 * * * ?")
+    //@Scheduled(cron = "0 0 * * * ?")
     private void configureTasks() {
         Date now = new Date();
         BorrowCoinConfig coinConfig = borrowCoinConfigMapper.selectOne(new QueryWrapper<BorrowCoinConfig>().lambda()
@@ -80,7 +80,7 @@ public class StaticScheduleTask {
                     //修改订单
                     borrowCoinOrder.setWaitRepayInterest(waitRepayInterest);
                     borrowCoinOrder.setCumulativeInterest(totalWaitRepayAmount);
-                    borrowCoinOrder.setCurrentPledgeRate(pledgeRate);
+                    borrowCoinOrder.setPledgeRate(pledgeRate);
                     borrowCoinOrderMapper.updateById(borrowCoinOrder);
 
                     interestRecord.setOrderId(borrowCoinOrder.getId());

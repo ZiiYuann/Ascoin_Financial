@@ -41,7 +41,7 @@ public class BorrowPledgeRecord extends Model<BorrowPledgeRecord> {
     /**
      * 数量
      */
-    private BigDecimal number;
+    private BigDecimal amount;
 
     /**
      * 类型
@@ -51,7 +51,7 @@ public class BorrowPledgeRecord extends Model<BorrowPledgeRecord> {
     /**
      * 调整时间
      */
-    private Date adjustmentTime;
+    private Date pledgeTime;
 
     /**
      * 创建时间

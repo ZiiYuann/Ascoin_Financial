@@ -9,7 +9,7 @@ import com.tianli.borrow.vo.*;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
-public interface BorrowConverter {
+public interface BorrowOrderConverter {
 
     BorrowCoinMainPageVO.BorrowOrder toMainVO(BorrowCoinOrder borrowCoinOrder);
 
