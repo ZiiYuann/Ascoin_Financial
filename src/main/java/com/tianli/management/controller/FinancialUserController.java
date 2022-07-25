@@ -24,13 +24,13 @@ public class FinancialUserController {
     @GetMapping("/list")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result user(PageQuery<Address> page, Long uid) {
-        return Result.success().setData(financialService.user(uid,page));
+        return Result.success().setData(financialService.user(uid,page.page()));
     }
 
     @GetMapping("/data")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result data(PageQuery<Address> page, Long uid) {
-        return Result.success().setData(financialService.userData(uid,page));
+    public Result data(Long uid) {
+        return Result.success().setData(financialService.userData(uid));
     }
 
     @Resource
