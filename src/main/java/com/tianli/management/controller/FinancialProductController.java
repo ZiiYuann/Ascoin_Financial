@@ -1,12 +1,9 @@
 package com.tianli.management.controller;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.charge.enums.ChargeType;
-import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
-import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.service.FinancialProductService;
@@ -15,19 +12,13 @@ import com.tianli.financial.vo.FinancialProductVO;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.*;
 import com.tianli.management.service.FinancialBoardProductService;
-import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
-
-import static com.tianli.common.ConfigConstants.SYSTEM_PURCHASE__MIN_AMOUNT;
 
 /**
  * @author lzy

@@ -67,7 +67,7 @@ public class ChargeController {
             long l = LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8"));
             if ((Long.parseLong(timestamp) + 10) >= l) {
                 log.info("验签成功， {}", sign);
-                chargeService.rechargeCallback(chain,str);
+                chargeService.rechargeCallback(str);
                 return "success";
             } else {
                 throw ErrorCodeEnum.SIGN_ERROR.generalException();

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.common.IdGenerator;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
@@ -12,10 +13,12 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.mapper.FinancialIncomeAccrueMapper;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,6 +48,26 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
                 .in(FinancialIncomeAccrue::getRecordId, recordIds));
     }
 
+    @Transactional
+    public void insertIncomeAccrue(Long uid, Long recordId, CurrencyCoin coin, BigDecimal amount){
+        LambdaQueryWrapper<FinancialIncomeAccrue> queryWrapper = new LambdaQueryWrapper<FinancialIncomeAccrue>()
+                .eq(FinancialIncomeAccrue::getUid, uid)
+                .eq(FinancialIncomeAccrue::getRecordId, recordId);
+        FinancialIncomeAccrue financialIncomeAccrue = financialIncomeAccrueMapper.selectOne(queryWrapper);
+        if(Objects.isNull(financialIncomeAccrue)){
+            var incomeAccrueInsert = FinancialIncomeAccrue.builder().id(IdGenerator.financialIncomeAccrueId())
+                    .coin(coin).uid(uid).recordId(recordId)
+                    .incomeAmount(amount).createTime(LocalDateTime.now()).build();
+            financialIncomeAccrueMapper.insert(incomeAccrueInsert);
+            return;
+        }
+
+        BigDecimal incomeAmountOld = financialIncomeAccrue.getIncomeAmount();
+        BigDecimal incomeAmountNew = incomeAmountOld.add(amount);
+        financialIncomeAccrue.setIncomeAmount(incomeAmountNew);
+        financialIncomeAccrue.setUpdateTime(LocalDateTime.now());
+        financialIncomeAccrueMapper.updateById(financialIncomeAccrue);
+    }
 
 
     /**

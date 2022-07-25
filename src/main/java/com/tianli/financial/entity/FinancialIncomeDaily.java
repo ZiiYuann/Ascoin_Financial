@@ -1,6 +1,9 @@
 package com.tianli.financial.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 
 import java.math.BigDecimal;
@@ -12,10 +15,13 @@ import java.time.LocalDateTime;
  * @since 2022-07-13
  **/
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class FinancialIncomeDaily {
 
     @Id
-    private Long id;
+    private String id;
 
     private Long uid;
 
