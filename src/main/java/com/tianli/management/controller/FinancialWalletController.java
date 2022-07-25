@@ -12,17 +12,12 @@ import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
-import com.tianli.management.query.FinancialBoardQuery;
-import com.tianli.management.query.FinancialChargeQuery;
-import com.tianli.management.query.WalletImputationLogQuery;
-import com.tianli.management.query.WalletImputationQuery;
+import com.tianli.management.query.*;
 import com.tianli.management.service.FinancialBoardWalletService;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -103,6 +98,16 @@ public class FinancialWalletController {
     @AdminPrivilege(and = Privilege.理财管理)
     public Result imputations(PageQuery<WalletImputation> page, WalletImputationQuery query) {
         return Result.success(walletImputationService.walletImputationVOPage(page.page(),query));
+    }
+
+    /**
+     * 手动归集
+     */
+    @PostMapping("/imputation")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result imputation(@RequestBody WalletImputationManualQuery query) {
+
+        return Result.success();
     }
 
     /**

@@ -95,8 +95,8 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
        if(Objects.nonNull(query.getUid())){
             queryWrapper = queryWrapper.eq(WalletImputation :: getNetwork,query.getNetwork());
         }
-       if(Objects.nonNull(query.getUid())){
-            queryWrapper = queryWrapper.eq(WalletImputation :: getStatus,query.getStatus());
+       if(Objects.nonNull(query.getNetwork())){
+            queryWrapper = queryWrapper.eq(WalletImputation :: getNetwork,query.getNetwork());
         }
 
         return walletImputationMapper.selectPage(page, queryWrapper).convert(chainConverter::toWalletImputationVO);

@@ -54,7 +54,7 @@ public class ChargeController {
     /**
      * 充值回调
      */
-    @RequestMapping(value = "/recharge/{chain}" , produces = "text/plain")
+    @PostMapping(value = "/recharge/{chain}" , produces = "text/plain")
     public String rechargeCallback(@PathVariable(required = false) ChainType chain,
                                    @RequestBody String str ,
                                    @RequestHeader("Sign") String sign,
