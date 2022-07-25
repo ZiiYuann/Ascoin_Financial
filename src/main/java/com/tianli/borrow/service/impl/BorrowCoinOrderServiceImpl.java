@@ -1,5 +1,6 @@
 package com.tianli.borrow.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
@@ -102,6 +103,9 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
     @Autowired
     private BorrowRepayRecordMapper borrowRepayRecordMapper;
+
+    @Autowired
+    private FinancialPledgeInfoMapper financialPledgeInfoMapper;
 
     @Override
     public BorrowCoinMainPageVO mainPage() {
@@ -611,5 +615,41 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             financialRecord.setPledgeAmount(lockAmount);
             financialRecordMapper.updateById(financialRecord);
         }
+    }
+
+    private void addPledgeAmount(Long uid,Long orderId, BigDecimal amount){
+        //查询用户所有产品
+        List<FinancialRecord> financialRecords = financialRecordMapper.selectList(new QueryWrapper<FinancialRecord>().lambda()
+                .eq(FinancialRecord::getUid, uid).orderByAsc(FinancialRecord::getPurchaseTime));
+        for(FinancialRecord financialRecord : financialRecords){
+            BigDecimal holdAmount = financialRecord.getHoldAmount();
+            BigDecimal pledgeAmount = financialRecord.getPledgeAmount();
+            BigDecimal availableAmount = holdAmount.subtract(pledgeAmount);
+            if(availableAmount.compareTo(BigDecimal.ZERO) >0 && amount.compareTo(BigDecimal.ZERO) >0){
+                BigDecimal currPledgeAmount;
+                if(availableAmount.compareTo(amount) >= 0){
+                    financialRecord.setPledgeAmount(pledgeAmount.add(amount));
+                    currPledgeAmount = amount;
+                    amount=BigDecimal.ZERO;
+                }else {
+                    amount = amount.subtract(availableAmount);
+                    currPledgeAmount = availableAmount;
+                    financialRecord.setPledgeAmount(holdAmount);
+                }
+                financialRecordMapper.updateById(financialRecord);
+                FinancialPledgeInfo pledgeInfo = FinancialPledgeInfo.builder().financialId(financialRecord.getId())
+                        .borrowOrderId(orderId)
+                        .pledgeAmount(currPledgeAmount)
+                        .createTime(new Date()).build();
+                financialPledgeInfoMapper.insert(pledgeInfo);
+            }
+        }
+    }
+
+    private void reducePledgeAmount(Long uid,Long orderId, BigDecimal amount){
+
+
+
+
     }
 }
