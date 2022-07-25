@@ -8,18 +8,16 @@ import com.tianli.chain.dto.TRONTokenReq;
 import com.tianli.chain.entity.WalletImputation;
 import com.tianli.chain.entity.WalletImputationTemporary;
 import com.tianli.chain.enums.ImputationStatus;
-import com.tianli.chain.mapper.ChainLogMapper;
 import com.tianli.chain.mapper.WalletImputationMapper;
 import com.tianli.chain.mapper.WalletImputationTemporaryMapper;
+import com.tianli.chain.vo.WalletImputationVO;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.management.query.WalletImputationQuery;
-import com.tianli.chain.vo.WalletImputationVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -103,6 +101,5 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         return walletImputationMapper.selectPage(page, queryWrapper).convert(chainConverter::toWalletImputationVO);
     }
-
 
 }

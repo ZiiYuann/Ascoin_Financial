@@ -1,4 +1,4 @@
-package com.tianli.chain.entity;
+package com.tianli.chain.vo;
 
 import com.tianli.chain.enums.ImputationStatus;
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -11,10 +11,10 @@ import java.time.LocalDateTime;
 /**
  * @author chenb
  * @apiNote
- * @since 2022-07-21
+ * @since 2022-07-25
  **/
 @Data
-public class WalletImputationLog {
+public class WalletImputationLogVO {
 
     /**
      * id
@@ -32,7 +32,7 @@ public class WalletImputationLog {
     private BigDecimal amount;
 
     /**
-     * to_address
+     * from_address
      */
     private String fromAddress;
 

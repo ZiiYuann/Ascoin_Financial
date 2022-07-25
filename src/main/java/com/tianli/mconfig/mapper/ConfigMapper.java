@@ -14,9 +14,6 @@ import java.util.List;
 public interface ConfigMapper extends BaseMapper<Config> {
 
     @Insert("REPLACE INTO `config`(`name`, `value`) VALUES (#{name},#{value})")
-    int replace(Config config);
-
-    @Insert("REPLACE INTO `config`(`name`, `value`) VALUES (#{name},#{value})")
     int replace(@Param("name") String name, @Param("value") String value);
 
     @Select("SELECT * FROM `config` WHERE `name`=#{name}")

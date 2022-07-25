@@ -15,9 +15,6 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
 
     int reduce(@Param("recordId") Long recordId, @Param("amount") BigDecimal amount,@Param("now") LocalDateTime now);
 
-    @Update("")
-    int reduce(Long recordId, BigDecimal amount);
-
     @Select("SELECT SUM(hold_amount) FROM financial_record")
     BigDecimal selectTotalHoldAmount();
 
