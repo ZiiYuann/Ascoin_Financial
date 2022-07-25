@@ -1,5 +1,6 @@
 package com.tianli.common.blockchain;
 
+import cn.hutool.core.util.StrUtil;
 import lombok.Getter;
 
 // 各种币ø
@@ -96,5 +97,13 @@ public enum CurrencyCoin {
 
     private String name;
 
+    public static CurrencyCoin getCurrencyCoinEnum(String token) {
+        for (CurrencyCoin value : CurrencyCoin.values()) {
+            if (StrUtil.equals(value.name(), token)) {
+                return value;
+            }
+        }
+        return null;
+    }
 
 }
