@@ -5,6 +5,7 @@ import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -19,7 +20,9 @@ public class WalletImputationVO {
 
     private Long uid;
 
-    private String toAddress;
+    private String address;
+
+    private BigDecimal amount;
 
     private CurrencyCoin coin;
 
