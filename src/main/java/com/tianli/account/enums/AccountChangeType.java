@@ -18,7 +18,9 @@ public enum AccountChangeType {
     // 借币
     borrow("BO"),
     // 收益
-    income("IN"),;
+    income("IN"),
+    // 结算
+    settle("SE"),;
 
 
     AccountChangeType(String prefix){

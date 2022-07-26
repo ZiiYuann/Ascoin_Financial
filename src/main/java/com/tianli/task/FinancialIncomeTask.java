@@ -14,6 +14,7 @@ import com.tianli.common.RedisLockConstants;
 import com.tianli.common.TimeUtils;
 import com.tianli.common.async.AsyncService;
 import com.tianli.currency.log.CurrencyLogDes;
+import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.service.FinancialIncomeAccrueService;
@@ -110,17 +111,16 @@ public class FinancialIncomeTask {
             ProductType type = financialRecord.getProductType();
             LocalDateTime todayZero = TimeUtils.StartOfTime(TimeUtils.Util.DAY);
             LocalDateTime endTime = financialRecord.getEndTime();
-            Long uid = financialRecord.getUid();
             LocalDateTime now = LocalDateTime.now();
 
             // 如果是定期产品且当前时间为到期前一天则计算利息
             if(ProductType.current.equals(type) && endTime.compareTo(todayZero) > 0 && todayZero.plusDays(1).compareTo(endTime) > 0){
-                incomeOperation(financialRecord, uid, now);
-                // todo 生成结算订单
+                incomeOperation(financialRecord, now);
+                settleOperation(financialRecord, now);
             }
 
             if(ProductType.fixed.equals(type)){
-                incomeOperation(financialRecord, uid, now);
+                incomeOperation(financialRecord, now);
             }
 
 
@@ -143,12 +143,37 @@ public class FinancialIncomeTask {
         }
     }
 
-    private void incomeOperation(FinancialRecord financialRecord, Long uid, LocalDateTime now) {
+    private void settleOperation(FinancialRecord financialRecord, LocalDateTime now) {
+        FinancialIncomeAccrue financialIncomeAccrue =
+                financialIncomeAccrueService.selectByRecordId(financialRecord.getUid(), financialRecord.getId());
+        long id = CommonFunction.generalId();
+        Order order = Order.builder()
+                .id(id)
+                .orderNo(AccountChangeType.settle.getPrefix() + CommonFunction.generalSn(id))
+                .type(ChargeType.settle)
+                .status(ChargeStatus.chain_success)
+                .coin(financialRecord.getCoin())
+                // 结算金额为总收益
+                .amount(financialIncomeAccrue.getIncomeAmount())
+                .relatedId(financialRecord.getId())
+                .createTime(now)
+                .completeTime(now)
+                .build();
+        orderService.saveOrder(order);
+
+        // 更新结算时间
+        financialRecord.setEndTime(now);
+        financialRecordService.updateById(financialRecord);
+
+        // todo 自动续期操作
+    }
+
+    private void incomeOperation(FinancialRecord financialRecord, LocalDateTime now) {
         BigDecimal income = financialRecord.getHoldAmount()
                 .multiply(financialRecord.getRate()) // 乘年化利率
                 .multiply(BigDecimal.valueOf(financialRecord.getProductTerm().getDay())) // 乘计息周期，活期默认为1
                 .divide(BigDecimal.valueOf(365),8, RoundingMode.HALF_DOWN);
-
+        Long uid = financialRecord.getUid();
         // 记录利息汇总
         financialIncomeAccrueService.insertIncomeAccrue(uid, financialRecord.getId()
                 , financialRecord.getCoin(),income);

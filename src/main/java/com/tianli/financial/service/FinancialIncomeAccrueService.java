@@ -48,6 +48,12 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
                 .in(FinancialIncomeAccrue::getRecordId, recordIds));
     }
 
+    public FinancialIncomeAccrue selectByRecordId(Long uid,Long recordId) {
+        return financialIncomeAccrueMapper.selectOne(new LambdaQueryWrapper<FinancialIncomeAccrue>()
+                .eq(FinancialIncomeAccrue :: getUid,uid)
+                .eq(FinancialIncomeAccrue::getRecordId, recordId));
+    }
+
     @Transactional
     public void insertIncomeAccrue(Long uid, Long recordId, CurrencyCoin coin, BigDecimal amount){
         LambdaQueryWrapper<FinancialIncomeAccrue> queryWrapper = new LambdaQueryWrapper<FinancialIncomeAccrue>()
