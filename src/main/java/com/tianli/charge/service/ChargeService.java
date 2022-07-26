@@ -234,6 +234,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         orderChargeInfoVO.setTxid(orderChargeInfo.getTxid());
         orderChargeInfoVO.setCreateTime(orderChargeInfo.getCreateTime());
         orderChargeInfoVO.setLogo(order.getCoin().getLogoPath());
+        orderChargeInfoVO.setNetworkType(orderChargeInfo.getNetwork());
         return orderChargeInfoVO;
     }
 
