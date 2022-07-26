@@ -263,7 +263,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BorrowCoinOrder borrowCoinOrder = borrowCoinOrderMapper.selectById(orderId);
         if(Objects.isNull(borrowCoinOrder))return new BorrowCoinOrderVO();
         BorrowCoinOrderVO borrowCoinOrderVO = borrowConverter.toVO(borrowCoinOrder);
-        BorrowCoinConfig coinConfig = borrowCoinConfigService.getByCoin(CurrencyCoin.getCurrencyCoinEnum(borrowCoinOrder.getBorrowCoin()));
+        BorrowCoinConfig coinConfig = borrowCoinConfigService.getByCoin(CurrencyCoin.valueOf(borrowCoinOrder.getBorrowCoin()));
         borrowCoinOrderVO.setPledgeRate(coinConfig.getAnnualInterestRate());
         return borrowCoinOrderVO;
     }

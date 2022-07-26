@@ -115,36 +115,15 @@ public class FinancialIncomeTask {
 
             // 如果是定期产品且当前时间为到期前一天则计算利息
             if(ProductType.current.equals(type) && endTime.compareTo(todayZero) > 0 && todayZero.plusDays(1).compareTo(endTime) > 0){
-
-                BigDecimal income = financialRecord.getHoldAmount()
-                        .multiply(financialRecord.getRate()) // 乘年化利率
-                        .multiply(BigDecimal.valueOf(financialRecord.getProductTerm().getDay())) // 乘计息周期，活期默认为1
-                        .divide(BigDecimal.valueOf(365),8, RoundingMode.HALF_DOWN);
-
-                // 记录利息汇总
-                financialIncomeAccrueService.insertIncomeAccrue(uid,financialRecord.getId()
-                        ,financialRecord.getCoin(),income);
-                // 记录昨日利息
-                financialIncomeDailyService.insertIncomeDaily(uid, financialRecord.getId()
-                        , income);
-                // 生成订单
-                long id = CommonFunction.generalId();
-                Order order = Order.builder()
-                        .id(id)
-                        .orderNo(AccountChangeType.income.getPrefix() + CommonFunction.generalSn(id))
-                        .type(ChargeType.income)
-                        .status(ChargeStatus.chain_success)
-                        .coin(financialRecord.getCoin())
-                        .amount(income)
-                        .createTime(now)
-                        .completeTime(now)
-                        .relatedId(financialRecord.getId()).build();
-                orderService.saveOrder(order);
-
-                // 操作余额
-                accountBalanceService.increase(uid,ChargeType.income,financialRecord.getCoin()
-                        ,income,order.getOrderNo(),CurrencyLogDes.收益.name());
+                incomeOperation(financialRecord, uid, now);
+                // todo 生成结算订单
             }
+
+            if(ProductType.fixed.equals(type)){
+                incomeOperation(financialRecord, uid, now);
+            }
+
+
         } catch (Exception e) {
             String toJson = gson.toJson(financialRecord);
             log.warn("统计每日利息异常: record:{}", toJson, e);
@@ -162,6 +141,37 @@ public class FinancialIncomeTask {
                 }
             }, 30, TimeUnit.MINUTES);
         }
+    }
+
+    private void incomeOperation(FinancialRecord financialRecord, Long uid, LocalDateTime now) {
+        BigDecimal income = financialRecord.getHoldAmount()
+                .multiply(financialRecord.getRate()) // 乘年化利率
+                .multiply(BigDecimal.valueOf(financialRecord.getProductTerm().getDay())) // 乘计息周期，活期默认为1
+                .divide(BigDecimal.valueOf(365),8, RoundingMode.HALF_DOWN);
+
+        // 记录利息汇总
+        financialIncomeAccrueService.insertIncomeAccrue(uid, financialRecord.getId()
+                , financialRecord.getCoin(),income);
+        // 记录昨日利息
+        financialIncomeDailyService.insertIncomeDaily(uid, financialRecord.getId()
+                , income);
+        // 生成订单
+        long id = CommonFunction.generalId();
+        Order order = Order.builder()
+                .id(id)
+                .orderNo(AccountChangeType.income.getPrefix() + CommonFunction.generalSn(id))
+                .type(ChargeType.income)
+                .status(ChargeStatus.chain_success)
+                .coin(financialRecord.getCoin())
+                .amount(income)
+                .createTime(now)
+                .completeTime(now)
+                .relatedId(financialRecord.getId()).build();
+        orderService.saveOrder(order);
+
+        // 操作余额
+        accountBalanceService.increase(uid,ChargeType.income, financialRecord.getCoin()
+                ,income,order.getOrderNo(),CurrencyLogDes.收益.name());
     }
 
 }

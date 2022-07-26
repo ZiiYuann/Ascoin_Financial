@@ -2,7 +2,11 @@ package com.tianli.account.vo;
 
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.enums.CurrencyAdaptType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.bitcoinj.core.Coin;
 
 import java.math.BigDecimal;
 
@@ -12,6 +16,9 @@ import java.math.BigDecimal;
  * @since 2022-07-11
  **/
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class AccountBalanceVO {
 
 
@@ -64,6 +71,24 @@ public class AccountBalanceVO {
      * 剩余余额 美元
      */
     private BigDecimal dollarRemain;
+
+    public static AccountBalanceVO getDefault(String coinName){
+        CurrencyCoin coin = CurrencyCoin.valueOf(coinName);
+       return AccountBalanceVO.builder()
+                .id(-1L)
+                .coin(coin)
+                .balance(BigDecimal.ZERO)
+               //  todo 设置logo
+                .logo("")
+                .dollarRate(BigDecimal.ZERO)
+                .balance(BigDecimal.ZERO)
+                .freeze(BigDecimal.ZERO)
+                .remain(BigDecimal.ZERO)
+                .dollarBalance(BigDecimal.ZERO)
+                .dollarFreeze(BigDecimal.ZERO)
+                .dollarRemain(BigDecimal.ZERO).build();
+
+    }
 
 
 }

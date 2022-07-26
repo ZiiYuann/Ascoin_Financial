@@ -32,7 +32,7 @@ public class FinancialBoardProduct {
     /**
      * 转存
      */
-    private BigDecimal  transferAmount;
+    private BigDecimal transferAmount;
 
     /**
      * 用户累计收益

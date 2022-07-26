@@ -203,6 +203,14 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
                 .map(AccountBalanceVO::getDollarBalance)
                 .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(8, RoundingMode.HALF_DOWN);
 
+        var existCoinNames =
+                accountBalanceVOS.stream().map(balance -> balance.getCoin().getName()).collect(Collectors.toList());
+        List<String> coinNames = CurrencyCoin.getNameList();
+        coinNames.removeAll(existCoinNames);
+
+        for(String coin : coinNames){
+            accountBalanceVOS.add(AccountBalanceVO.getDefault(coin));
+        }
 
         var result = new AccountBalanceMainPageVO();
         result.setTotalAccountBalance(totalDollarBalance);
