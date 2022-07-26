@@ -1,5 +1,6 @@
 package com.tianli.chain.service;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -15,9 +16,13 @@ import com.tianli.chain.mapper.WalletImputationTemporaryMapper;
 import com.tianli.chain.service.contract.BaseContractService;
 import com.tianli.chain.vo.WalletImputationVO;
 import com.tianli.common.CommonFunction;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.management.query.WalletImputationManualQuery;
 import com.tianli.management.query.WalletImputationQuery;
+import com.tianli.mconfig.ConfigService;
+import com.tianli.tool.ApplicationContextTool;
+import com.tianli.tool.TXUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +52,8 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     private WalletImputationLogService walletImputationLogService;
     @Resource
     private WalletImputationLogAppendixService walletImputationLogAppendixService;
+    @Resource
+    private ConfigService configService;
 
     private static final ScheduledThreadPoolExecutor WALLET_IMPUTATION_SCHEDULE_EXECUTOR =
             new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors());
@@ -164,8 +171,26 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         walletImputationLogAppendixService.saveBatch(logAppendices);
 
         WALLET_IMPUTATION_SCHEDULE_EXECUTOR.schedule(() -> {
-            //todo 查看归集状态
-
+            WalletImputationService bean = ApplicationContextTool.getBean(WalletImputationService.class);
+            if(Objects.nonNull(bean)){
+                bean.updateWalletImputationStatus(walletImputations, network, hash, walletImputationLog);
+            }
         }, 20, TimeUnit.MINUTES);
+    }
+
+    /**
+     * 更新归集状态
+     */
+    @Transactional
+    public void updateWalletImputationStatus(List<WalletImputation> walletImputations, NetworkType network, String hash, WalletImputationLog walletImputationLog) {
+        String url = configService.get("data_center_url");
+        Object o = TXUtil.insiderTrading(url, network.getChainType(), hash);
+        if (ObjectUtil.isNull(o)) {
+            return;
+        }
+        walletImputations.stream().forEach(walletImputation -> walletImputation.setStatus(ImputationStatus.success));
+        walletImputationLog.setStatus(ImputationStatus.success);
+        this.updateBatchById(walletImputations);
+        walletImputationLogService.updateById(walletImputationLog);
     }
 }
