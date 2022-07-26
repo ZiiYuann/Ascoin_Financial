@@ -54,9 +54,9 @@ public class ChargeController {
     /**
      * 充值回调
      */
-    @PostMapping(value = "/recharge/{chain}" , produces = "text/plain")
+    @RequestMapping(value = {"/recharge/{chain}","/recharge"} , produces = "text/plain")
     public String rechargeCallback(@PathVariable(required = false) ChainType chain,
-                                   @RequestBody String str ,
+                                   @RequestBody(required = false) String str ,
                                    @RequestHeader("Sign") String sign,
                                    @RequestHeader("timestamp") String timestamp) {
         if (chain == null) { //等于ping
