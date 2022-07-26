@@ -92,8 +92,8 @@ public class AccountController {
     public Result serviceRate(CurrencyCoin coin, NetworkType networkType) {
         CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(coin, networkType);
         String rate = configService.get(currencyAdaptType.name() + "_withdraw_rate");
-        HashMap<String, BigDecimal> rateMap = new HashMap<>();
-        rateMap.put("serviceRate",BigDecimal.valueOf(Double.parseDouble(rate)));
+        HashMap<String, String> rateMap = new HashMap<>();
+        rateMap.put("serviceRate",BigDecimal.valueOf(Double.parseDouble(rate)).toString());
         return Result.success().setData(rateMap);
     }
 
