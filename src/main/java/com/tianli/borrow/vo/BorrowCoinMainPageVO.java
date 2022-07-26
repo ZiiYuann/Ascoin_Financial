@@ -1,5 +1,7 @@
 package com.tianli.borrow.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.tianli.common.annotation.BigDecimalFormat;
 import lombok.Builder;
 import lombok.Data;
@@ -35,6 +37,9 @@ public class BorrowCoinMainPageVO {
     private List<BorrowOrder> borrowOrders;
     @Data
     public static class BorrowOrder{
+        //id
+        @JsonSerialize(using = ToStringSerializer.class)
+        private Long id;
         //币别
         private String borrowCoin;
         //借出数量

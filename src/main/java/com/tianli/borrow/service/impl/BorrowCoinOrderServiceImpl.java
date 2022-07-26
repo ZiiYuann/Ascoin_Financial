@@ -223,7 +223,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         borrowCoinOrderMapper.insert(borrowCoinOrder);
 
         //锁定理财产品
-        addPledgeAmount(uid,borrowCoinOrder.getId(),pledgeAmount);
+        addPledgeAmount(uid,borrowCoinOrder.getId(),borrowCoinOrder.getBorrowCoin(), pledgeAmount);
 
         // 生成一笔订单记录(进行中)
         Order order = Order.builder()
@@ -259,7 +259,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         if(Objects.isNull(borrowCoinOrder))return new BorrowCoinOrderVO();
         BorrowCoinOrderVO borrowCoinOrderVO = borrowConverter.toVO(borrowCoinOrder);
         BorrowCoinConfig coinConfig = borrowCoinConfigService.getByCoin(CurrencyCoin.valueOf(borrowCoinOrder.getBorrowCoin()));
-        borrowCoinOrderVO.setPledgeRate(coinConfig.getAnnualInterestRate());
+        borrowCoinOrderVO.setAnnualInterestRate(coinConfig.getAnnualInterestRate());
         return borrowCoinOrderVO;
     }
 
@@ -362,6 +362,17 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     }
 
     @Override
+    public BorrowRepayPageVO repayPage(Long orderId, CurrencyCoin coin) {
+        BorrowCoinOrder borrowCoinOrder = borrowCoinOrderMapper.selectById(orderId);
+        if(Objects.isNull(borrowCoinOrder))return null;
+        Long uid = requestInitService.uid();
+        AccountBalance accountBalance = accountBalanceService.get(uid, coin);
+        return BorrowRepayPageVO.builder()
+                .totalRepayAmount(borrowCoinOrder.getWaitRepayCapital().add(borrowCoinOrder.getWaitRepayInterest()))
+                .availableBalance(accountBalance.getRemain()).build();
+    }
+
+    @Override
     public void orderRepay(BorrowOrderRepayBO bo) {
         Long uid = requestInitService.uid();
         Long orderId = bo.getOrderId();
@@ -415,7 +426,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         //修改借币订单
         if(repayAmount.compareTo(totalAmount) == 0){
             //释放锁定数量
-            lockFinancialRecordAmount(uid,borrowCoinOrder.getPledgeAmount().negate());
+            reducePledgeAmount(orderId,borrowCoinOrder.getPledgeAmount());
             //借币质押记录
             pledgeRecord.setAmount(borrowCoinOrder.getPledgeAmount());
             borrowPledgeRecordMapper.insert(pledgeRecord);
@@ -431,7 +442,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             //还款记录
             repayRecord.setRepayCapital(waitRepayCapital);
             repayRecord.setRepayInterest(waitRepayInterest);
-
+            repayRecord.setStatus(BorrowRepayStatus.SUCCESSFUL_REPAYMENT);
+            repayRecord.setReleasePledgeAmount(borrowCoinOrder.getPledgeAmount());
         }else {
             BorrowCoinConfig coinConfig = borrowCoinConfigService.getByCoin(currencyCoin);
             BigDecimal initialPledgeRate = coinConfig.getInitialPledgeRate();
@@ -448,7 +460,9 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 //还款记录
                 repayRecord.setRepayCapital(repayAmount.subtract(waitRepayInterest));
                 repayRecord.setRepayInterest(waitRepayInterest);
+
             }
+            repayRecord.setStatus(BorrowRepayStatus.REPAYMENT);
             //计算质押率
             BigDecimal totalWaitBorrowAmount = waitRepayCapital.add(waitRepayInterest);
             BigDecimal pledgeRate = totalWaitBorrowAmount.divide(pledgeAmount,4,RoundingMode.UP);
@@ -457,7 +471,9 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 pledgeRate = initialPledgeRate;
                 BigDecimal currPledgeAmount = totalWaitBorrowAmount.divide(pledgeRate, 4, RoundingMode.UP);
                 BigDecimal reducePledgeAmount = currPledgeAmount.subtract(pledgeAmount);
-                lockFinancialRecordAmount(uid,reducePledgeAmount.negate());
+                reducePledgeAmount(orderId,reducePledgeAmount);
+                //还款记录
+                repayRecord.setReleasePledgeAmount(borrowCoinOrder.getPledgeAmount());
                 //借币质押记录
                 pledgeRecord.setAmount(reducePledgeAmount);
                 borrowPledgeRecordMapper.insert(pledgeRecord);
@@ -484,7 +500,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BigDecimal adjustAmount = bo.getAdjustAmount();
         Integer pledgeType = bo.getPledgeType();
         Long orderId = bo.getOrderId();
-        CurrencyCoin currencyCoin = bo.getCurrencyCoin();
+        CurrencyCoin currencyCoin = bo.getCoin();
         Long uid = requestInitService.uid();
 
         BorrowCoinOrder borrowCoinOrder = borrowCoinOrderMapper.selectById(orderId);
@@ -515,7 +531,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             borrowCoinOrder.setPledgeAmount(pledgeAmount);
             borrowCoinOrderMapper.updateById(borrowCoinOrder);
             //调整锁定数额
-            addPledgeAmount(uid,orderId,adjustAmount);
+            addPledgeAmount(uid,orderId,borrowCoinOrder.getBorrowCoin(),adjustAmount);
             //质押记录
             pledgeRecord.setType(BorrowPledgeType.INCREASE);
 
@@ -627,10 +643,12 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
      * @param orderId
      * @param amount
      */
-    private void addPledgeAmount(Long uid,Long orderId, BigDecimal amount){
+    private void addPledgeAmount(Long uid,Long orderId,String coin, BigDecimal amount){
         //查询用户所有产品
         List<FinancialRecord> financialRecords = financialRecordMapper.selectList(new QueryWrapper<FinancialRecord>().lambda()
-                .eq(FinancialRecord::getUid, uid).orderByAsc(FinancialRecord::getPurchaseTime));
+                .eq(FinancialRecord::getUid, uid)
+                .eq(FinancialRecord::getCoin,coin)
+                .orderByAsc(FinancialRecord::getPurchaseTime));
         for(FinancialRecord financialRecord : financialRecords){
             BigDecimal holdAmount = financialRecord.getHoldAmount();
             BigDecimal pledgeAmount = financialRecord.getPledgeAmount();
@@ -666,7 +684,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     private void reducePledgeAmount(Long orderId, BigDecimal amount){
         List<FinancialPledgeInfo> financialPledgeInfos = financialPledgeInfoMapper.selectList(
                 new QueryWrapper<FinancialPledgeInfo>().lambda()
-                        .eq(FinancialPledgeInfo::getBorrowOrderId,orderId).orderByDesc(FinancialPledgeInfo::getCreateTime));
+                        .eq(FinancialPledgeInfo::getBorrowOrderId,orderId)
+                        .orderByDesc(FinancialPledgeInfo::getCreateTime));
         for (FinancialPledgeInfo info: financialPledgeInfos) {
             FinancialRecord financialRecord = financialRecordMapper.selectById(info.getFinancialId());
             BigDecimal pledgeAmount = info.getPledgeAmount();

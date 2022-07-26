@@ -16,6 +16,7 @@ import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.ErrorCodeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -30,6 +31,7 @@ import java.util.Objects;
  * @since 2022-07-21
  */
 @Service
+@Transactional
 public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMapper, BorrowCoinConfig> implements IBorrowCoinConfigService {
 
     @Autowired
@@ -64,10 +66,12 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
     }
 
     @Override
-    public void delConfig(Long[] id) {
-        BorrowCoinConfig borrowCoinConfig = borrowCoinConfigMapper.selectById(id);
-        if(Objects.isNull(borrowCoinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
-        Arrays.asList(id).forEach(borrowCoinConfigMapper::loginDel);
+    public void delConfig(Long[] ids) {
+        Arrays.asList(ids).forEach(id ->{
+            BorrowCoinConfig borrowCoinConfig = borrowCoinConfigMapper.selectById(id);
+            if(Objects.isNull(borrowCoinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
+            borrowCoinConfigMapper.loginDel(id);
+        });
     }
 
     @Override
@@ -75,6 +79,7 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
 
         LambdaQueryWrapper<BorrowCoinConfig> queryWrapper = new QueryWrapper<BorrowCoinConfig>().lambda();
 
+        queryWrapper.eq(BorrowCoinConfig::getIsDel,0);
         if(!Objects.isNull(coin)){
             queryWrapper.like(BorrowCoinConfig::getCoin,coin.getName());
         }

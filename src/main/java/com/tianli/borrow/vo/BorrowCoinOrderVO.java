@@ -1,5 +1,8 @@
 package com.tianli.borrow.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import com.tianli.common.annotation.BigDecimalFormat;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -21,6 +24,7 @@ public class BorrowCoinOrderVO {
     /**
      * ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     /**
@@ -71,6 +75,7 @@ public class BorrowCoinOrderVO {
     /**
      * 当前质押率
      */
+    @BigDecimalFormat("#.##%")
     private BigDecimal pledgeRate;
 
     /**
@@ -91,7 +96,14 @@ public class BorrowCoinOrderVO {
     /**
      * 借款时长
      */
+    @BigDecimalFormat
     private BigDecimal borrowDuration;
+
+    /**
+     * 年利率
+     */
+    @BigDecimalFormat("#.##%")
+    private BigDecimal annualInterestRate;
 
     /**
      * 结算时间

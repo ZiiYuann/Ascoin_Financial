@@ -60,7 +60,7 @@ public class BorrowCoinOrderController {
      * @param pageQuery
      * @return
      */
-    @GetMapping("/order/history/list")
+    @GetMapping("/order/history")
     public Result history(PageQuery<BorrowCoinOrder> pageQuery){
         Long uid = requestInitService.uid();
         BorrowOrderQuery query = new BorrowOrderQuery();
@@ -74,7 +74,7 @@ public class BorrowCoinOrderController {
     }
 
     /**
-     * 借币配置信息
+     * 借币申请页面
      * @return
      */
     @GetMapping("/apply/page")
@@ -122,7 +122,7 @@ public class BorrowCoinOrderController {
      * @return
      */
     @GetMapping("/order/pledge/record")
-    public Result pledgeRecord(PageQuery<BorrowPledgeRecord> pageQuery, BorrowPledgeRecordQuery query){
+    public Result pledgeRecord(PageQuery<BorrowPledgeRecord> pageQuery,@Valid BorrowPledgeRecordQuery query){
         IPage<BorrowPledgeRecordVO> page = borrowCoinOrderService.pledgeRecord(pageQuery, query);
         return Result.success(page);
     }
@@ -133,7 +133,7 @@ public class BorrowCoinOrderController {
      * @return
      */
     @GetMapping("/order/interest/record")
-    public Result interestRecord(PageQuery<BorrowInterestRecord> pageQuery, BorrowInterestRecordQuery query){
+    public Result interestRecord(PageQuery<BorrowInterestRecord> pageQuery,@Valid BorrowInterestRecordQuery query){
         IPage<BorrowInterestRecordVO> page = borrowCoinOrderService.interestRecord(pageQuery, query);
         return Result.success(page);
     }
@@ -144,9 +144,21 @@ public class BorrowCoinOrderController {
      * @return
      */
     @GetMapping("/order/repay/record")
-    public Result repayRecord(PageQuery<BorrowRepayRecord> pageQuery, BorrowRepayQuery query){
+    public Result repayRecord(PageQuery<BorrowRepayRecord> pageQuery,@Valid BorrowRepayQuery query){
         IPage<BorrowRepayRecordVO> borrowRepayRecordVOS = borrowCoinOrderService.repayRecord(pageQuery,query);
         return Result.success(borrowRepayRecordVOS);
+    }
+
+    /**
+     * 还款页面
+     * @param orderId
+     * @param coin
+     * @return
+     */
+    @GetMapping("/order/repay/page")
+    public Result repayPage(Long orderId,CurrencyCoin coin){
+        BorrowRepayPageVO borrowRepayPageVO = borrowCoinOrderService.repayPage(orderId, coin);
+        return Result.success(borrowRepayPageVO);
     }
 
     /**

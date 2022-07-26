@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 @Data
 public class BorrowOrderRepayBO {
 
+    @NotNull
     private Long orderId;
 
     @DecimalMin(value = "0.0",message = "还款金额必须大于0")

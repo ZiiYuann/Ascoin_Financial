@@ -29,13 +29,13 @@ public class BorrowCoinConfigManageController {
         return Result.success();
     }
 
-    @DeleteMapping
-    private Result delete(@RequestBody Long[] ids){
+    @DeleteMapping("/{ids}")
+    private Result delete(@PathVariable Long[] ids){
         borrowCoinConfigService.delConfig(ids);
         return Result.success();
     }
 
-    @GetMapping("/page")
+    @GetMapping
     private Result pageList(PageQuery<BorrowCoinConfig> pageQuery, CurrencyCoin coin){
         IPage<BorrowApplePageVO> pageList = borrowCoinConfigService.pageList(pageQuery, coin);
         return Result.success(pageList);

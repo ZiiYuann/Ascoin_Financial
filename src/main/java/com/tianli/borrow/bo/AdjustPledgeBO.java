@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 @Data
 public class AdjustPledgeBO {
 
+    @NotNull
     private Long orderId;
 
     private Integer pledgeType;
@@ -21,6 +22,6 @@ public class AdjustPledgeBO {
      * 币别
      */
     @NotNull(message = "币别不能为空")
-    private CurrencyCoin currencyCoin;
+    private CurrencyCoin coin;
 
 }

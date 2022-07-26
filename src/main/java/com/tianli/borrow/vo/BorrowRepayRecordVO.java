@@ -49,6 +49,11 @@ public class BorrowRepayRecordVO{
     private BigDecimal repayInterest;
 
     /**
+     * 释放质押数
+     */
+    private BigDecimal releasePledgeAmount;
+
+    /**
      * 状态
      */
     private Integer status;

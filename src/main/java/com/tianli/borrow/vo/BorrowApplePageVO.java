@@ -48,6 +48,12 @@ public class BorrowApplePageVO {
     private BigDecimal initialPledgeRate;
 
     /**
+     * 强制平仓质押率
+     */
+    @BigDecimalFormat
+    private BigDecimal liquidationPledgeRate;
+
+    /**
      * 可用数额
      */
     @BigDecimalFormat

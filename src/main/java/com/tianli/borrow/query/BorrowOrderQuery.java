@@ -1,6 +1,7 @@
 package com.tianli.borrow.query;
 
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -19,8 +20,10 @@ public class BorrowOrderQuery {
 
     private BigDecimal maxPledgeRate;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date startTime;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date endTime;
 
     private Set<Integer> status;

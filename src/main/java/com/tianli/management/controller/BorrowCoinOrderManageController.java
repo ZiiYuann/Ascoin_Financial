@@ -17,6 +17,7 @@ import com.tianli.exception.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Date;
 import java.util.List;
 
@@ -55,7 +56,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/pledge/record")
-    public Result pledgeRecord(PageQuery<BorrowPledgeRecord> pageQuery, BorrowPledgeRecordQuery query){
+    public Result pledgeRecord(PageQuery<BorrowPledgeRecord> pageQuery,@Valid BorrowPledgeRecordQuery query){
         IPage<BorrowPledgeRecordVO> page = borrowCoinOrderService.pledgeRecord(pageQuery, query);
         return Result.success(page);
     }
@@ -66,7 +67,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/interest/record")
-    public Result interestRecord(PageQuery<BorrowInterestRecord> pageQuery, BorrowInterestRecordQuery query){
+    public Result interestRecord(PageQuery<BorrowInterestRecord> pageQuery,@Valid BorrowInterestRecordQuery query){
         IPage<BorrowInterestRecordVO> page = borrowCoinOrderService.interestRecord(pageQuery, query);
         return Result.success(page);
     }
@@ -77,7 +78,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/repay/record")
-    public Result repayRecord(PageQuery<BorrowRepayRecord> pageQuery, BorrowRepayQuery query){
+    public Result repayRecord(PageQuery<BorrowRepayRecord> pageQuery, @Valid BorrowRepayQuery query){
         IPage<BorrowRepayRecordVO> borrowRepayRecordVOS = borrowCoinOrderService.repayRecord(pageQuery,query);
         return Result.success(borrowRepayRecordVOS);
     }

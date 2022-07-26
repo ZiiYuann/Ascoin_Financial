@@ -48,6 +48,8 @@ public interface IBorrowCoinOrderService extends IService<BorrowCoinOrder> {
 
     IPage<BorrowRepayRecordVO> repayRecord(PageQuery<BorrowRepayRecord> pageQuery, BorrowRepayQuery query);
 
+    BorrowRepayPageVO repayPage(Long orderId,CurrencyCoin coin);
+
     void orderRepay(BorrowOrderRepayBO bo);
 
     void adjustPledge(AdjustPledgeBO bo);
