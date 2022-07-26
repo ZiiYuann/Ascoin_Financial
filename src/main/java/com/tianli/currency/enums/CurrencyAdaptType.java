@@ -22,8 +22,8 @@ public enum CurrencyAdaptType {
     usdc_erc20(CurrencyCoin.usdc, NetworkType.erc20,"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
     usdt_erc20(CurrencyCoin.usdt, NetworkType.erc20,"0xdac17f958d2ee523a2206206994597c13d831ec7"),
     // 6位
-    usdc_trc20(CurrencyCoin.usdc, NetworkType.trc20,"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
-    usdt_trc20(CurrencyCoin.usdt, NetworkType.trc20,"TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8");
+    usdc_trc20(CurrencyCoin.usdc, NetworkType.trc20,"TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"),
+    usdt_trc20(CurrencyCoin.usdt, NetworkType.trc20,"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t");
 
     CurrencyAdaptType(CurrencyCoin currencyCoin) {
         this.fiat = false;
