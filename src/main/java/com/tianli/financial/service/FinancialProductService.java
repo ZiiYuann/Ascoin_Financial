@@ -1,7 +1,6 @@
 package com.tianli.financial.service;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -33,7 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static com.tianli.common.ConfigConstants.SYSTEM_PURCHASE__MIN_AMOUNT;
+import static com.tianli.common.ConfigConstants.SYSTEM_PURCHASE_MIN_AMOUNT;
 
 @Slf4j
 @Service
@@ -72,7 +71,7 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
     public void saveOrUpdate(FinancialProductEditQuery financialProductQuery) {
         FinancialProduct productDO = financialConverter.toDO(financialProductQuery);
         if(Objects.isNull(financialProductQuery.getLimitPurchaseQuota())){
-            String sysPurchaseMinAmount = configService.get(SYSTEM_PURCHASE__MIN_AMOUNT);
+            String sysPurchaseMinAmount = configService.get(SYSTEM_PURCHASE_MIN_AMOUNT);
             productDO.setLimitPurchaseQuota(BigDecimal.valueOf(Double.parseDouble(sysPurchaseMinAmount)));
         }
 

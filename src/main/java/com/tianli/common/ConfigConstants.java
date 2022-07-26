@@ -455,7 +455,7 @@ public class ConfigConstants {
     /**
      * 系统用户最小申购金额
      */
-    public static final String SYSTEM_PURCHASE__MIN_AMOUNT = "system_purchase_min_amount";
+    public static final String SYSTEM_PURCHASE_MIN_AMOUNT = "system_purchase_min_amount";
 
     /**
      * 现货交易买入手续费
