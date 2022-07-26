@@ -259,7 +259,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     }
 
     public AccountBalanceVO getVO(Long uid, CurrencyCoin currencyCoin){
-        AccountBalanceVO accountBalanceVO = accountConverter.toVO(accountBalanceMapper.get(uid, currencyCoin));
+        AccountBalanceVO accountBalanceVO = accountConverter.toVO(this.getAndInit(uid,currencyCoin));
         BigDecimal dollarRate = currencyService.getDollarRate(accountBalanceVO.getCoin());
 
         accountBalanceVO.setDollarRate(dollarRate);
