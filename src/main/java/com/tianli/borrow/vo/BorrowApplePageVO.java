@@ -1,11 +1,9 @@
 package com.tianli.borrow.vo;
 
-import com.baomidou.mybatisplus.extension.activerecord.Model;
+import com.tianli.common.annotation.BigDecimalFormat;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 /**
  * <p>
@@ -16,7 +14,7 @@ import java.util.Date;
  * @since 2022-07-21
  */
 @Data
-public class BorrowCoinConfigVO{
+public class BorrowApplePageVO {
 
     private static final long serialVersionUID=1L;
 
@@ -28,26 +26,31 @@ public class BorrowCoinConfigVO{
     /**
      * 最小可借
      */
+    @BigDecimalFormat
     private BigDecimal minimumBorrow;
 
     /**
      * 最大可借
      */
+    @BigDecimalFormat
     private BigDecimal maximumBorrow;
 
     /**
      * 年利率
      */
+    @BigDecimalFormat
     private BigDecimal annualInterestRate;
 
     /**
      * 初始质押率
      */
+    @BigDecimalFormat
     private BigDecimal initialPledgeRate;
 
     /**
      * 可用数额
      */
+    @BigDecimalFormat
     private BigDecimal availableAmount;
 
 

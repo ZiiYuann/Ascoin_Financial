@@ -1,5 +1,6 @@
 package com.tianli.borrow.vo;
 
+import com.tianli.common.annotation.BigDecimalFormat;
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,18 +11,25 @@ import java.util.List;
 @Builder
 public class BorrowCoinMainPageVO {
     //存款市场总额
+    @BigDecimalFormat
     private BigDecimal totalDepositAmount;
     //借款市场总额
+    @BigDecimalFormat
     private BigDecimal totalBorrowAmount;
     //存款金额
+    @BigDecimalFormat
     private BigDecimal depositAmount;
     //借款金额
+    @BigDecimalFormat
     private BigDecimal borrowAmount;
     //质押金额
+    @BigDecimalFormat
     private BigDecimal pledgeAmount;
     //借款额度
+    @BigDecimalFormat
     private BigDecimal borrowQuota;
     //已借额度比率
+    @BigDecimalFormat
     private BigDecimal borrowRate;
     //订单
     private List<BorrowOrder> borrowOrders;
@@ -30,13 +38,17 @@ public class BorrowCoinMainPageVO {
         //币别
         private String borrowCoin;
         //借出数量
+        @BigDecimalFormat
         private BigDecimal borrowCapital;
         //质押数量
+        @BigDecimalFormat
         private BigDecimal pledgeAmount;
         //利息
+        @BigDecimalFormat
         private BigDecimal cumulativeInterest;
         //质押率
-        private BigDecimal currentPledgeRate;
+        @BigDecimalFormat
+        private BigDecimal pledgeRate;
 
     }
 }

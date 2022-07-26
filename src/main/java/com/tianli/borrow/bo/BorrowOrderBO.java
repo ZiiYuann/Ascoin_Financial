@@ -17,6 +17,6 @@ public class BorrowOrderBO {
      * 币别
      */
     @NotNull(message = "币别不能为空")
-    private CurrencyCoin currencyCoin;
+    private CurrencyCoin coin;
 
 }

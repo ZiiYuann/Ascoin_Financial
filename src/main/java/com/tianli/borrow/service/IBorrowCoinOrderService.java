@@ -1,7 +1,6 @@
 package com.tianli.borrow.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.borrow.bo.AdjustPledgeBO;
 import com.tianli.borrow.bo.BorrowOrderBO;
 import com.tianli.borrow.bo.BorrowOrderRepayBO;
@@ -17,6 +16,7 @@ import com.tianli.borrow.query.BorrowPledgeRecordQuery;
 import com.tianli.borrow.query.BorrowRepayQuery;
 import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
+import com.tianli.common.blockchain.CurrencyCoin;
 
 import java.util.Date;
 import java.util.List;
@@ -34,9 +34,9 @@ public interface IBorrowCoinOrderService extends IService<BorrowCoinOrder> {
 
     IPage<BorrowCoinOrderVO> pageList(PageQuery<BorrowCoinOrder> pageQuery, BorrowOrderQuery query);
 
-    BorrowCoinConfigVO config();
+    BorrowApplePageVO applyPage(CurrencyCoin coin);
 
-    void borrowCoin(BorrowOrderBO borrowCoinOrderDTO);
+    void borrowCoin(BorrowOrderBO bo);
 
     BorrowCoinOrderVO info(Long orderId);
 

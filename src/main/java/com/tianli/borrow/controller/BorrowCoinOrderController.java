@@ -17,6 +17,7 @@ import com.tianli.borrow.query.BorrowRepayQuery;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.Result;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class BorrowCoinOrderController {
      * 借币主页面
      * @return
      */
-    @GetMapping("/main/info")
+    @GetMapping("/main/page")
     public Result main(){
         BorrowCoinMainPageVO borrowCoinMainPageVO = borrowCoinOrderService.mainPage();
         return Result.success(borrowCoinMainPageVO);
@@ -76,20 +77,20 @@ public class BorrowCoinOrderController {
      * 借币配置信息
      * @return
      */
-    @GetMapping("/config/info")
-    public Result config(){
-        BorrowCoinConfigVO config = borrowCoinOrderService.config();
+    @GetMapping("/apply/page")
+    public Result applyPage(CurrencyCoin coin){
+        BorrowApplePageVO config = borrowCoinOrderService.applyPage(coin);
         return Result.success(config);
     }
 
     /**
      * 借币
-     * @param borrowCoinOrderDTO
+     * @param bo
      * @return
      */
-    @PostMapping("/order/borrow")
-    public Result coin(@RequestBody BorrowOrderBO borrowCoinOrderDTO){
-        borrowCoinOrderService.borrowCoin(borrowCoinOrderDTO);
+    @PostMapping("/order")
+    public Result coin(@RequestBody @Valid BorrowOrderBO bo){
+        borrowCoinOrderService.borrowCoin(bo);
         return Result.success();
     }
 

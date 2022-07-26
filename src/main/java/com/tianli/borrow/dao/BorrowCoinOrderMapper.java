@@ -22,19 +22,19 @@ import java.util.List;
 @Mapper
 public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
 
-    @Select("SELECT SUM(borrow_capital) FROM borrow_coin_order")
+    @Select("SELECT ifnull(SUM(borrow_capital),0.0) FROM borrow_coin_order")
     BigDecimal selectTotalBorrowAmount();
 
-    @Select("SELECT SUM(borrow_capital) FROM borrow_coin_order where uid = #{uid}")
+    @Select("SELECT ifnull(SUM(borrow_capital),0.0) FROM borrow_coin_order where uid = #{uid}")
     BigDecimal selectBorrowAmountByUid(Long uid);
 
-    @Select("SELECT SUM(pledge_amount) FROM borrow_coin_order where uid = #{uid}")
+    @Select("SELECT ifnull(SUM(pledge_amount),0.0) FROM borrow_coin_order where uid = #{uid}")
     BigDecimal selectPledgeAmountByUid(Long uid);
 
-    @Select("SELECT SUM(borrow_capital) FROM borrow_coin_order where borrow_time >= #{startTime} and borrow_time<= #{endTime}")
+    @Select("SELECT ifnull(SUM(borrow_capital),0.0) FROM borrow_coin_order where borrow_time >= #{startTime} and borrow_time<= #{endTime}")
     BigDecimal selectBorrowCapitalSumByBorrowTime(@Param("startTime")Date startTime,@Param("endTime") Date endTime);
 
-    @Select("SELECT count(*) FROM borrow_coin_order where status = #{status} and borrow_time >= #{startTime} and borrow_time<= #{endTime}")
+    @Select("SELECT ifnull(count(*),0) FROM borrow_coin_order where status = #{status} and borrow_time >= #{startTime} and borrow_time<= #{endTime}")
     Integer selectCountByBorrowTime(@Param("status") Integer status , @Param("startTime")Date startTime,@Param("endTime") Date endTime);
 
     @Select("SELECT DATE_FORMAT(borrow_time,'%Y-%m-%d') time,SUM(borrow_capital) amount FROM borrow_coin_order\n" +

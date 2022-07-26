@@ -32,6 +32,11 @@ public class FinancialPledgeInfo extends Model<FinancialPledgeInfo> {
     private Long id;
 
     /**
+     * 用户ID
+     */
+    private Long uid;
+
+    /**
      * 理财产品ID
      */
     private Long financialId;

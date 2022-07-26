@@ -10,7 +10,7 @@ import com.tianli.borrow.entity.BorrowCoinConfig;
 import com.tianli.borrow.dao.BorrowCoinConfigMapper;
 import com.tianli.borrow.service.IBorrowCoinConfigService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.borrow.vo.BorrowCoinConfigVO;
+import com.tianli.borrow.vo.BorrowApplePageVO;
 import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.ErrorCodeEnum;
@@ -71,7 +71,7 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
     }
 
     @Override
-    public IPage<BorrowCoinConfigVO> pageList(PageQuery<BorrowCoinConfig> pageQuery, CurrencyCoin coin) {
+    public IPage<BorrowApplePageVO> pageList(PageQuery<BorrowCoinConfig> pageQuery, CurrencyCoin coin) {
 
         LambdaQueryWrapper<BorrowCoinConfig> queryWrapper = new QueryWrapper<BorrowCoinConfig>().lambda();
 
@@ -85,7 +85,7 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
     @Override
     public BorrowCoinConfig getByCoin(CurrencyCoin coin) {
         return borrowCoinConfigMapper.selectOne(new QueryWrapper<BorrowCoinConfig>().lambda()
-                .eq(BorrowCoinConfig::getCoin,coin)
+                .eq(BorrowCoinConfig::getCoin,coin.getName())
                 .eq(BorrowCoinConfig::getIsDel,0)
         );
     }

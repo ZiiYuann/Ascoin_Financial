@@ -2,7 +2,7 @@ package com.tianli.borrow.contant;
 
 import java.math.BigDecimal;
 
-public class BorrowOrderPledgeStatus {
+public interface BorrowOrderPledgeStatus {
 
     Integer SAFE_PLEDGE = 1;
 
