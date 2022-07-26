@@ -12,7 +12,7 @@ import com.tianli.chain.entity.WalletImputationTemporary;
 import com.tianli.chain.enums.ImputationStatus;
 import com.tianli.chain.mapper.WalletImputationMapper;
 import com.tianli.chain.mapper.WalletImputationTemporaryMapper;
-import com.tianli.chain.service.contract.ContractService;
+import com.tianli.chain.service.contract.BaseContractService;
 import com.tianli.chain.vo.WalletImputationVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.currency.enums.CurrencyAdaptType;
@@ -42,7 +42,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     @Resource
     private WalletImputationTemporaryMapper walletImputationTemporaryMapper;
     @Resource
-    private ContractService contractService;
+    private BaseContractService baseContractService;
     @Resource
     private WalletImputationLogService walletImputationLogService;
     @Resource
@@ -142,7 +142,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         List<String> addresses = walletImputations.stream().map(WalletImputation::getAddress).collect(Collectors.toList());
         List<Long> uids = walletImputations.stream().map(WalletImputation::getUid).collect(Collectors.toList());
-        String hash = contractService.getOne(network).recycle(null, uids, addresses);
+        String hash = baseContractService.getOne(network).recycle(null, uids, addresses);
         // 事务问题如何解决？
         BigDecimal amount = walletImputations.stream().map(WalletImputation::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         WalletImputationLog walletImputationLog = WalletImputationLog.builder()
@@ -165,6 +165,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         WALLET_IMPUTATION_SCHEDULE_EXECUTOR.schedule(() -> {
             //todo 查看归集状态
+
         }, 20, TimeUnit.MINUTES);
     }
 }

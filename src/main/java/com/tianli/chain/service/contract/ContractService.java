@@ -1,10 +1,7 @@
 package com.tianli.chain.service.contract;
 
-import com.tianli.common.blockchain.NetworkType;
-import com.tianli.exception.ErrorCodeEnum;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
@@ -16,14 +13,6 @@ import java.util.List;
  **/
 @Component
 public abstract class ContractService {
-
-    @Resource
-    private BscTriggerContract bscTriggerContract;
-    @Resource
-    private EthTriggerContract ethTriggerContract;
-    @Resource
-    private TronTriggerContract tronTriggerContract;
-
 
     public abstract String computeAddress(long uid) throws IOException;
 
@@ -39,18 +28,5 @@ public abstract class ContractService {
      * @return 返回交易hash
      */
     public abstract String recycle(String toAddress, List<Long> uids, List<String> addresses);
-
-    public ContractService getOne(NetworkType networkType) {
-        switch (networkType) {
-            case trc20:
-                return tronTriggerContract;
-            case bep20:
-                return bscTriggerContract;
-            case erc20:
-                return ethTriggerContract;
-            default:
-                throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
-        }
-    }
 
 }
