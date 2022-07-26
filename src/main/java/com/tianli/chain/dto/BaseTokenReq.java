@@ -28,17 +28,15 @@ public class BaseTokenReq {
 
     private String contractAddress;
 
-    private DateReq date;
-
-    private TimeReq time;
+    private CreateTimeReq createTime;
 
     public LocalDateTime getCreateTime() {
-        int day = date.getDay();
-        int month = date.getMonth();
-        int year = date.getYear();
-        int hour = time.getHour();
-        int minute = time.getMinute();
-        int second = time.getSecond();
+        int day = createTime.getDate().getDay();
+        int month = createTime.getDate().getMonth();
+        int year = createTime.getDate().getYear();
+        int hour = createTime.getTime().getHour();
+        int minute = createTime.getTime().getMinute();
+        int second = createTime.getTime().getSecond();
         String dateStr = new StringBuilder()
                 .append(year)
                 .append("-").append(String.format("%02d", month))

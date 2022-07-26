@@ -30,18 +30,6 @@ class ChargeControllerTest {
         long l = TimeUtils.toTimestamp(LocalDateTime.now());
         String sign = Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp",l+"");
 
-        BaseTokenReq baseTokenReq = new BaseTokenReq();
-        baseTokenReq.setBlock("19848454");
-        baseTokenReq.setHash("0x4aaff8705253d7eeeb60536328d93083710a81acc038d04f7e3ba9f584a9ece3");
-        baseTokenReq.setFrom("0xfbf8b2f9f441f2cf929c2cb7b4de414d2913f73c");
-        baseTokenReq.setTo("0x84c44d89d56930aee2f56230c01cbc95e6f8ed4b");
-        baseTokenReq.setValue(new BigDecimal("100000000000000000000"));
-        baseTokenReq.setContractAddress("0x55d398326f99059ff775485246999027b3197955");
-        baseTokenReq.setDate(new DateReq(2022,7,22));
-        baseTokenReq.setTime(new TimeReq(12,12,12,2000));
-        HashMap<String,Object> hashMap = new HashMap<>();
-        hashMap.put("token", List.of(baseTokenReq));
-
 
         HttpClient client = HttpClientBuilder.create().build();
         // BSC链
@@ -49,7 +37,7 @@ class ChargeControllerTest {
         httpPost.setHeader("Content-Type", "text/plain");
         httpPost.setHeader("Sign", sign);
         httpPost.setHeader("timestamp", l+ "");
-        httpPost.setEntity(new StringEntity(JSONUtil.toJsonStr(hashMap)));
+        httpPost.setEntity(new StringEntity("{\"token\": [{\"id\": 1739393333552857549, \"to\": \"0x0203fad8e9bf8f4c4c98adff6b5d29d68cdd7454\", \"from\": \"0xe208d2fb37df02061b78848b83f02b4ad33540e4\", \"hash\": \"0xe61e173839f83bceea54e0f465b8c204662cd28e1b87bdb5a25ae94fbf422fbc\", \"block\": 19879916, \"value\": 1000000000000000, \"createTime\": {\"date\": {\"day\": 26, \"year\": 2022, \"month\": 7}, \"time\": {\"hour\": 13, \"nano\": 0, \"minute\": 52, \"second\": 18}}, \"contractAddress\": \"0x55d398326f99059ff775485246999027b3197955\"}], \"standardCurrency\": []}\n"));
 
         client.execute(httpPost);
     }
