@@ -1,6 +1,8 @@
-package com.tianli.common.blockchain;
+package com.tianli.chain.service.contract;
 
 import com.google.protobuf.ByteString;
+import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.common.blockchain.SignTransactionResult;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.common.ConfigConstants;
 import com.tianli.mconfig.ConfigService;
@@ -39,13 +41,14 @@ import java.util.stream.Collectors;
  * @Date 2022-01-06 2:27 下午
  */
 @Component
-public class TronTriggerContract {
+public class TronTriggerContract extends ContractService {
 
     @Resource
     private ConfigService configService;
     @Resource
     private WalletGrpc.WalletBlockingStub blockingStub;
 
+    @Override
     public String computeAddress(long uid) {
         return computeAddress(BigInteger.valueOf(uid));
     }
@@ -104,13 +107,6 @@ public class TronTriggerContract {
         return triggerSmartContract(ownerAddress, contractAddress, data, 40000000L);
     }
 
-    /**
-     * 归集接口
-     * @param toAddress 归集地址 如果为null，修改为主钱包地址
-     * @param uids Address表中的id
-     * @param trc20AddressList trc20的币种合约地址列表 可以传入多个一次性归集 地址数*用户数<400 最好
-     * @return 返回交易hash
-     */
     public String recycle(String toAddress, List<Long> uids, List<String> trc20AddressList) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
         String contractAddress = configService.getOrDefault(ConfigConstants.TRON_TRIGGER_ADDRESS, "TEuLfwtYM83r4TjkewRWFFFS1inHzdpsP2");

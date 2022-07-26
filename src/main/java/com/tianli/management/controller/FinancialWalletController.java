@@ -106,7 +106,7 @@ public class FinancialWalletController {
     @PostMapping("/imputation")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result imputation(@RequestBody WalletImputationManualQuery query) {
-
+       walletImputationService.imputationOperation(query);
         return Result.success();
     }
 

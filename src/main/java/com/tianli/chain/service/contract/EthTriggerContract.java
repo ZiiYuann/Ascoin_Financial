@@ -1,6 +1,8 @@
-package com.tianli.common.blockchain;
+package com.tianli.chain.service.contract;
 
 import com.tianli.common.ConfigConstants;
+import com.tianli.common.blockchain.EthBlockChainActuator;
+import com.tianli.exception.Result;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
 import lombok.extern.slf4j.Slf4j;
@@ -25,29 +27,30 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class BscTriggerContract {
+public class EthTriggerContract extends ContractService {
 
     @Resource
     private ConfigService configService;
 
     @Resource
-    private BscBlockChainActuator bscBlockChainActuator;
+    private JsonRpc2_0Web3j ethWeb3j;
 
     @Resource
-    private JsonRpc2_0Web3j bscWeb3j;
+    private EthBlockChainActuator ethBlockChainActuator;
 
+    @Override
     public String computeAddress(long uid) throws IOException {
         return computeAddress(new BigInteger("" + uid));
     }
 
     public String computeAddress(BigInteger uid) throws IOException {
-        String address = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
+        String address = configService.get(ConfigConstants.ETH_MAIN_WALLET_ADDRESS);
         return computeAddress(address, uid);
     }
 
     public String computeAddress(String walletAddress, BigInteger uid) throws IOException {
-        String contractAddress = configService.get(ConfigConstants.BSC_TRIGGER_ADDRESS);
-        EthCall send = bscWeb3j.ethCall(Transaction.createEthCallTransaction(null, contractAddress,
+        String contractAddress = configService.get(ConfigConstants.ETH_TRIGGER_ADDRESS);
+        EthCall send = ethWeb3j.ethCall(Transaction.createEthCallTransaction(null, contractAddress,
                 new DefaultFunctionEncoder().encodeFunction(
                         new Function("computeAddress", List.of(new Address(walletAddress), new Uint(uid)),
                                 List.of())
@@ -56,42 +59,24 @@ public class BscTriggerContract {
         return address.getValue();
     }
 
-    /**
-     * 归集
-     *
-     * @param toAddress 归集的地址
-     * @param uid 用户的id(address表的ID)
-     * @param erc20Address 归集的代币地址
-     */
-    public String recycle(String toAddress, long uid, String erc20Address) {
-        return recycle(toAddress, List.of(uid), List.of(erc20Address));
-    }
-
-    /**
-     * 归集接口
-     * @param toAddress 归集地址 如果为null，修改为主钱包地址
-     * @param uids Address表中的id
-     * @param bep20AddressList erc20的币种合约地址列表 可以传入多个一次性归集 地址数*用户数<400 最好
-     * @return 返回交易hash
-     */
-    public String recycle(String toAddress, List<Long> uids, List<String> bep20AddressList) {
-        String contractAddress = configService.get(ConfigConstants.BSC_TRIGGER_ADDRESS);
+    public String recycle(String toAddress, List<Long> uids, List<String> erc20AddressList) {
+        String contractAddress = configService.get(ConfigConstants.ETH_TRIGGER_ADDRESS);
         String address = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
-        long nonce = bscBlockChainActuator.getNonce(address);
+        long nonce = ethBlockChainActuator.getNonce(address);
         String password = configService.get(ConfigConstants.MAIN_WALLET_PASSWORD);
         if(toAddress == null || toAddress.isEmpty()) toAddress = address;
         Result result = null;
         try {
-            result = bscBlockChainActuator.tokenSendRawTransaction(nonce,
+            result = ethBlockChainActuator.tokenSendRawTransaction(nonce,
                     contractAddress,
                     FunctionEncoder.encode(
                             new Function("recycle", List.of(new Address(toAddress),
                                     new DynamicArray(Uint256.class, uids.stream().map(e -> new Uint256(new BigInteger(e + ""))).collect(Collectors.toList())),
-                                    new DynamicArray(Address.class, bep20AddressList.stream().map(Address::new).collect(Collectors.toList())))
+                                    new DynamicArray(Address.class, erc20AddressList.stream().map(Address::new).collect(Collectors.toList())))
                                     , new ArrayList<>())
                     ),
-                    configService.getOrDefault(ConfigConstants.BSC_GAS_PRICE,"5"),
-                    configService.getOrDefault(ConfigConstants.BSC_GAS_LIMIT_PLUS,"10000000"),
+                    ethBlockChainActuator.getPrice(),
+                    configService.getOrDefault(ConfigConstants.ETH_GAS_LIMIT_PLUS,"800000"),
                     password, "归集: ");
             return (String) result.getData();
         } catch (Exception ignored) {
@@ -99,10 +84,10 @@ public class BscTriggerContract {
         }
     }
 
-    public BigInteger bep20Balance(String address, String contract) {
+    public BigInteger erc20Balance(String address, String contract) {
         String balanceOf = null;
         try {
-             balanceOf = bscWeb3j.ethCall(Transaction.createEthCallTransaction(null, contract, new DefaultFunctionEncoder().encodeFunction(
+            balanceOf = ethWeb3j.ethCall(Transaction.createEthCallTransaction(null, contract, new DefaultFunctionEncoder().encodeFunction(
                     new Function("balanceOf", List.of(new Address(address)),
                             List.of(TypeReference.create(Uint.class)))
             )), DefaultBlockParameterName.LATEST).send().getValue();
@@ -117,10 +102,10 @@ public class BscTriggerContract {
         return new BigInteger(balanceOf);
     }
 
-    public BigInteger bnbBalance(String address) {
+    public BigInteger ethBalance(String address) {
         BigInteger balanceOf = null;
         try {
-            balanceOf = bscWeb3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send().getBalance();
+            balanceOf = ethWeb3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send().getBalance();
 
         } catch (IOException e) {
             e.printStackTrace();

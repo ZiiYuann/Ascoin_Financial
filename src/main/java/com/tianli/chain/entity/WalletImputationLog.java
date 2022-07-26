@@ -3,6 +3,7 @@ package com.tianli.chain.entity;
 import com.tianli.chain.enums.ImputationStatus;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
  * @since 2022-07-21
  **/
 @Data
+@Builder
 public class WalletImputationLog {
 
     /**

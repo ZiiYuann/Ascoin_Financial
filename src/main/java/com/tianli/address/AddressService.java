@@ -5,11 +5,13 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.mapper.AddressMapper;
 import com.tianli.chain.service.ChainService;
+import com.tianli.chain.service.contract.ContractService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
-import com.tianli.common.blockchain.BscTriggerContract;
-import com.tianli.common.blockchain.EthTriggerContract;
-import com.tianli.common.blockchain.TronTriggerContract;
+import com.tianli.chain.service.contract.BscTriggerContract;
+import com.tianli.chain.service.contract.EthTriggerContract;
+import com.tianli.chain.service.contract.TronTriggerContract;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
@@ -36,11 +38,7 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
     @Resource
     private RedisLock redisLock;
     @Resource
-    private BscTriggerContract bscTriggerContract;
-    @Resource
-    private TronTriggerContract tronTriggerContract;
-    @Resource
-    private EthTriggerContract ethTriggerContract;
+    private ContractService computeAddress;
     @Resource
     private ConfigService configService;
     @Resource
@@ -66,9 +64,9 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
         Address address = this.get(uid);
         if (address != null) return address;
         long generalId = CommonFunction.generalId();
-        String bsc = bscTriggerContract.computeAddress(generalId);
-        String tron = tronTriggerContract.computeAddress(generalId);
-        String eth = ethTriggerContract.computeAddress(generalId);
+        String bsc = computeAddress.getOne(NetworkType.bep20).computeAddress(generalId);
+        String tron = computeAddress.getOne(NetworkType.trc20).computeAddress(generalId);
+        String eth = computeAddress.getOne(NetworkType.erc20).computeAddress(generalId);
         if (StringUtils.isEmpty(bsc) || StringUtils.isEmpty(tron) || StringUtils.isEmpty(eth)) ErrorCodeEnum.NETWORK_ERROR.throwException();
         address = Address.builder()
                 .id(generalId)

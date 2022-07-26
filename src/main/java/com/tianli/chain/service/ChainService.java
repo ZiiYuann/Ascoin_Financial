@@ -1,6 +1,5 @@
 package com.tianli.chain.service;
 
-import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.tianli.address.mapper.Address;
@@ -25,7 +24,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -109,6 +107,7 @@ public class ChainService {
             throw ErrorCodeEnum.UPLOAD_DATACENTER_ERROR.generalException();
         }
     }
+
 
     @Resource
     private ConfigService configService;
