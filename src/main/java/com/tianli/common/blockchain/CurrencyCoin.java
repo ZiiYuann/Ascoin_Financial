@@ -9,8 +9,8 @@ import java.util.List;
 // 各种币ø
 @Getter
 public enum CurrencyCoin {
-    usdt("https://github.com/MeekSir/static/blob/main/usdt.png"),
-    usdc("https://github.com/MeekSir/static/blob/main/usdc.png")
+    usdt("https://wallet-news-dev.oss-cn-shanghai.aliyuncs.com/file/f736f08c-0b0c-4cd0-8beb-1b6445462b80.png"),
+    usdc("https://wallet-news-dev.oss-cn-shanghai.aliyuncs.com/file/e17e613e-5fbd-4317-8b2b-b2ba1858d9c5.png")
 //    eth,
 //    bnb,
 //    usdc,
