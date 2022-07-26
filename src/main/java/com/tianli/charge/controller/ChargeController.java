@@ -66,7 +66,7 @@ public class ChargeController {
         if (Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp", timestamp).equals(sign)) {
             long l = LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8"));
             if ((Long.parseLong(timestamp) + 10) >= l) {
-                log.info("验签成功， {}", sign);
+                log.info("验签成功， {},充值信息为：{}", sign,str);
                 chargeService.rechargeCallback(str);
                 return "success";
             } else {
