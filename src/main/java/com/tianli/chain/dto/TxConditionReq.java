@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TxConditionReq {
+public class TxConditionReq{
 
     private String from;
 
@@ -27,5 +27,6 @@ public class TxConditionReq {
     private String contractAddress;
 
     private ChainType chain;
+
 
 }

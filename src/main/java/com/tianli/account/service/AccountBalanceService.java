@@ -163,6 +163,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
                     .id(CommonFunction.generalId())
                     .uid(uid)
                     .coin(currencyCoin)
+                    .logo(currencyCoin.getLogoPath())
                     .balance(BigDecimal.ZERO)
                     .freeze(BigDecimal.ZERO)
                     .remain(BigDecimal.ZERO)

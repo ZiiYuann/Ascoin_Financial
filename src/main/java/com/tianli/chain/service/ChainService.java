@@ -8,6 +8,7 @@ import com.tianli.chain.dto.PushConditionReq;
 import com.tianli.chain.dto.TxConditionReq;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.common.ConfigConstants;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
 import lombok.extern.slf4j.Slf4j;
@@ -39,24 +40,27 @@ import java.util.List;
 public class ChainService {
 
     public void pushCondition(Address address) {
-        String bscContractAddress = configService.get(ConfigConstants.BSC_TRIGGER_ADDRESS);
-        String bscWalletAddress = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
-        String ethContractAddress = configService.get(ConfigConstants.ETH_TRIGGER_ADDRESS);
-        String ethWalletAddress = configService.get(ConfigConstants.ETH_MAIN_WALLET_ADDRESS);
-        String tronContractAddress = configService.get(ConfigConstants.TRON_TRIGGER_ADDRESS);
-        String tronWalletAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
         String tron = address.getTron();
         String bsc = address.getBsc();
         String eth = address.getEth();
 
-        TxConditionReq bscTxConditionReq = TxConditionReq.builder().contractAddress(bscContractAddress).to(bscWalletAddress).from(bsc)
+        TxConditionReq bscTxConditionReqUsdt = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdt_bep20.getContractAddress()).to(bsc)
                 .chain(ChainType.BSC).build();
-        TxConditionReq ethTxConditionReq = TxConditionReq.builder().contractAddress(ethContractAddress).to(ethWalletAddress).from(eth)
-                .chain(ChainType.BSC).build();
-        TxConditionReq tronTxConditionReq = TxConditionReq.builder().contractAddress(tronContractAddress).to(tronWalletAddress).from(tron)
+        TxConditionReq bscTxConditionReqUsdc = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdc_bep20.getContractAddress()).to(bsc)
                 .chain(ChainType.BSC).build();
 
-        List<TxConditionReq> txConditionReqs = List.of(bscTxConditionReq, ethTxConditionReq, tronTxConditionReq);
+        TxConditionReq ethTxConditionReqUsdt = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdt_erc20.getContractAddress()).to(eth)
+                .chain(ChainType.ETH).build();
+        TxConditionReq ethTxConditionReqUsdc = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdc_erc20.getContractAddress()).to(eth)
+                .chain(ChainType.ETH).build();
+
+        TxConditionReq tronTxConditionReqUsdt = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdt_trc20.getContractAddress()).to(tron)
+                .chain(ChainType.TRON).build();
+        TxConditionReq tronTxConditionReqUsdc = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdc_trc20.getContractAddress()).to(tron)
+                .chain(ChainType.TRON).build();
+
+        List<TxConditionReq> txConditionReqs = List.of(bscTxConditionReqUsdt, bscTxConditionReqUsdc, ethTxConditionReqUsdt,
+                ethTxConditionReqUsdc,tronTxConditionReqUsdt,tronTxConditionReqUsdc);
         HttpClient client = HttpClientBuilder.create().build();
 
         String urlPrefix = configService.get(ConfigConstants.SYSTEM_URL_PATH_PREFIX);
