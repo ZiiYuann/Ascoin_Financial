@@ -294,7 +294,7 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     public FinancialSummaryDataVO userData(Long uid) {
-        IPage<Address> page = new Page<>(1,Integer.MAX_VALUE);
+        IPage<Address> page = new Page<>(1, Integer.MAX_VALUE);
         var userInfos = user(uid, page).getRecords();
 
         BigDecimal rechargeAmount = BigDecimal.ZERO;
@@ -334,13 +334,25 @@ public class FinancialServiceImpl implements FinancialService {
             FinancialProductVO financialProductVO = financialConverter.toFinancialProductVO(product);
             financialProductVO.setUseQuota(useQuota);
             financialProductVO.setUserPersonQuota(usePersonQuota);
-
-            if (usePersonQuota.compareTo(product.getPersonQuota()) < 0 || useQuota.compareTo(product.getTotalQuota()) < 0) {
+            if (Objects.isNull(product.getPersonQuota()) && Objects.isNull(product.getTotalQuota())) {
                 financialProductVO.setAllowPurchase(true);
             }
+
+            if (Objects.nonNull(product.getPersonQuota()) && Objects.nonNull(product.getTotalQuota())) {
+                financialProductVO.setAllowPurchase(usePersonQuota.compareTo(product.getPersonQuota()) < 0 && useQuota.compareTo(product.getTotalQuota()) < 0);
+            }
+
+            if (Objects.nonNull(product.getPersonQuota()) && Objects.isNull(product.getTotalQuota())) {
+                financialProductVO.setAllowPurchase(usePersonQuota.compareTo(product.getPersonQuota()) < 0);
+            }
+            if (Objects.isNull(product.getPersonQuota()) && Objects.nonNull(product.getTotalQuota())) {
+                financialProductVO.setAllowPurchase(useQuota.compareTo(product.getTotalQuota()) < 0);
+            }
+
             return financialProductVO;
         });
     }
+
     @Resource
     private AccountBalanceService accountBalanceService;
     @Resource

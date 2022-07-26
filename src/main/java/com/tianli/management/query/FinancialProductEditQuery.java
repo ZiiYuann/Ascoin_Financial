@@ -80,15 +80,11 @@ public class FinancialProductEditQuery {
     /**
      * 个人额度
      */
-    @NotNull(message = "个人额度不能为空")
-    @DecimalMin(value = "0.00000001", message = "个人额度填写有误")
     private BigDecimal personQuota;
 
     /**
      * 总额度
      */
-    @NotNull(message = "总额度不能为空")
-    @DecimalMin(value = "0.00000001", message = "总额度填写有误")
     private BigDecimal totalQuota;
 
     /**
