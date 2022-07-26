@@ -83,7 +83,7 @@ public class FinancialController {
         productVO.setAvailableBalance(accountBalance.getRemain());
         productVO.setPurchaseTime(now);
         productVO.setStartIncomeTime(TimeUtils.StartOfTime(TimeUtils.Util.DAY).plusDays(1));
-        productVO.setPurchaseTime(now.plusDays(product.getTerm().getDay()));
+        productVO.setSettleTime(now.plusDays(product.getTerm().getDay()));
         return Result.instance().setData(productVO);
     }
 

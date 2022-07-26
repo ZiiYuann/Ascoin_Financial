@@ -244,7 +244,8 @@ public class FinancialServiceImpl implements FinancialService {
     @Override
     public IPage<FinancialProductVO> products(Page<FinancialProduct> page, ProductType type) {
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
-                .eq(FinancialProduct::getStatus, ProductStatus.open);
+                .eq(FinancialProduct::getStatus, ProductStatus.open)
+                .orderByDesc(FinancialProduct :: getRate);
 
         return getFinancialProductVOIPage(page, type, query);
 
