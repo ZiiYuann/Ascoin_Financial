@@ -8,6 +8,7 @@ import com.tianli.chain.enums.ChainType;
 import com.tianli.common.ConfigConstants;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.InputStreamEntity;
@@ -25,6 +26,7 @@ import java.util.List;
  * @since 2020/11/14 15:55
  */
 
+@Slf4j
 @Service
 public class ChainService {
 
@@ -60,9 +62,11 @@ public class ChainService {
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost httpPost = new HttpPost(dataCenterPathUrlPath);
         httpPost.setHeader("Content-Type", "application/json");
-        byte[] bytes = JSONUtil.parse(pushConditionReq).toString().getBytes(StandardCharsets.UTF_8);
+        var jsonStr = JSONUtil.parse(pushConditionReq);
+        byte[] bytes = jsonStr.toString().getBytes(StandardCharsets.UTF_8);
         httpPost.setEntity(new InputStreamEntity(new ByteArrayInputStream(bytes), bytes.length));
         try{
+            log.info("推送钱包地址监控信息为: 【{}】",jsonStr);
             client.execute(httpPost);
         }catch (IOException e){
             throw ErrorCodeEnum.UPLOAD_DATACENTER_ERROR.generalException();

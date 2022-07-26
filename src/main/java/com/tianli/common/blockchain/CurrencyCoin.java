@@ -9,8 +9,8 @@ import java.util.List;
 // 各种币ø
 @Getter
 public enum CurrencyCoin {
-    usdt,
-    usdc
+    usdt("https://github.com/MeekSir/static/blob/main/usdt.png"),
+    usdc("https://github.com/MeekSir/static/blob/main/usdc.png")
 //    eth,
 //    bnb,
 //    usdc,
@@ -95,11 +95,14 @@ public enum CurrencyCoin {
 //    stepn
     ;
 
-    CurrencyCoin() {
+    CurrencyCoin(String logoPath) {
         this.name = super.name();
+        this.logoPath = logoPath;
     }
 
     private final String name;
+
+    private final String logoPath;
 
 
     public static List<String> getNameList(){

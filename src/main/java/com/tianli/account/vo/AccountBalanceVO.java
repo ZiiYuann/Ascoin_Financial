@@ -78,8 +78,7 @@ public class AccountBalanceVO {
                 .id(-1L)
                 .coin(coin)
                 .balance(BigDecimal.ZERO)
-               //  todo 设置logo
-                .logo("")
+                .logo(coin.getLogoPath())
                 .dollarRate(BigDecimal.ZERO)
                 .balance(BigDecimal.ZERO)
                 .freeze(BigDecimal.ZERO)

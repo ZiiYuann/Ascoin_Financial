@@ -233,8 +233,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         orderChargeInfoVO.setToAddress(orderChargeInfo.getToAddress());
         orderChargeInfoVO.setTxid(orderChargeInfo.getTxid());
         orderChargeInfoVO.setCreateTime(orderChargeInfo.getCreateTime());
-        // todo 设置logo
-        orderChargeInfoVO.setLogo("");
+        orderChargeInfoVO.setLogo(order.getCoin().getLogoPath());
         return orderChargeInfoVO;
     }
 
