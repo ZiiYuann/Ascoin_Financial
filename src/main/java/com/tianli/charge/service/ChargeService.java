@@ -325,7 +325,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         LocalDateTime now = LocalDateTime.now();
         Order order = Order.builder()
                 .uid(uid)
-                .orderNo(AccountChangeType.normal.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
+                .orderNo(AccountChangeType.recharge.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
                 .completeTime(now)
                 .amount(amount)
                 .status(ChargeStatus.chain_success)
@@ -345,7 +345,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     public IPage<OrderChargeInfoVO> pageByChargeType(Long uid, CurrencyCoin currencyCoin, ChargeType chargeType, Page<Order> page) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)
-                .eq(Order::getCoin, currencyCoin);
+                .eq(Order::getCoin, currencyCoin)
+                .orderByDesc(Order :: getCreateTime);
         if (Objects.nonNull(chargeType)) {
             wrapper = wrapper.eq(Order::getType, chargeType);
         }

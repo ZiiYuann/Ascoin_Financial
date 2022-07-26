@@ -15,6 +15,7 @@ public enum AccountChangeType {
     // 常规操作
     withdraw("WD"),
     normal("NO"),
+    recharge("RE"),
     // 借币
     borrow("BO"),
     // 收益

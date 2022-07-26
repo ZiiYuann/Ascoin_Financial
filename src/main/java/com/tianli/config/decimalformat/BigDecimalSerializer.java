@@ -19,7 +19,7 @@ public class BigDecimalSerializer extends JsonSerializer<BigDecimal> implements 
 
     // 默认格式化方案, 项目中添加了 BigDecimal 的格式化配置后, 
     // 所有未添加 @BigDecimalFormat 注解的 BigDecimal 数据都会变成这个格式;
-    private String format = "#0.00000000";
+    private String format = "#.########";
 
     @Override
     public JsonSerializer<?> createContextual(SerializerProvider serializerProvider, BeanProperty beanProperty) throws JsonMappingException {
@@ -42,7 +42,7 @@ public class BigDecimalSerializer extends JsonSerializer<BigDecimal> implements 
 
     @Override
     public void serialize(BigDecimal bigDecimal, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-        jsonGenerator.writeString(new DecimalFormat(format).format(bigDecimal));
+        jsonGenerator.writeString(new DecimalFormat(format).format(bigDecimal.stripTrailingZeros()));
     }
 }
 
