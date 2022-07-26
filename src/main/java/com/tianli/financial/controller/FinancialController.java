@@ -15,6 +15,7 @@ import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.service.FinancialService;
+import com.tianli.financial.vo.ExpectIncomeVO;
 import com.tianli.financial.vo.FinancialProductVO;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.sso.init.RequestInitService;
@@ -92,9 +93,9 @@ public class FinancialController {
     @GetMapping("/expect/income")
     public Result expectIncome(Long productId,BigDecimal amount){
         FinancialProduct product = financialProductService.getById(productId);
-        Map<String,BigDecimal> result = new HashMap<>();
-        result.put("expectIncome",product.getRate().multiply(amount).divide(BigDecimal.valueOf(365), RoundingMode.HALF_DOWN));
-        return Result.instance().setData(result);
+        ExpectIncomeVO expectIncomeVO = new ExpectIncomeVO();
+        expectIncomeVO.setExpectIncome(product.getRate().multiply(amount).divide(BigDecimal.valueOf(365), RoundingMode.HALF_DOWN));
+        return Result.instance().setData(expectIncomeVO);
     }
 
     /**

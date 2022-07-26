@@ -101,9 +101,6 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             FinancialProduct product = financialProductMapper.selectById(query.getProductId());
             product = Optional.ofNullable(product).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
 
-            if( ProductStatus.open.equals(product.getStatus())){
-                ErrorCodeEnum.PRODUCT_CAN_NOT_EDIT.throwException();
-            }
             if(ProductStatus.close.equals(query.getStatus())){
                 redisLock.lock(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + query.getProductId(),5L, TimeUnit.SECONDS);
             }
