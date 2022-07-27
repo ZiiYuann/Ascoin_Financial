@@ -209,8 +209,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     /**
      * 充值总金额
      */
-    public BigDecimal orderChargeSummaryAmount(FinancialChargeQuery query) {
-        return orderService.orderChargeSummaryAmount(query);
+    public BigDecimal orderAmountSum(FinancialChargeQuery query) {
+        return orderService.orderAmountSum(query);
     }
 
     public OrderChargeInfoVO chargeOrderDetails(Long uid, String orderNo) {

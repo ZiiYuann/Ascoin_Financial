@@ -40,6 +40,7 @@ import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -162,6 +163,9 @@ public class FinancialServiceImpl implements FinancialService {
     public IPage<HoldProductVo> myHold(IPage<FinancialRecord> page, Long uid, ProductType type) {
 
         var financialRecords = financialRecordService.selectListPage(page, uid, type, RecordStatus.PROCESS);
+        if(CollectionUtils.isEmpty(financialRecords.getRecords())){
+            return financialRecords.convert(financialRecord -> new HoldProductVo());
+        }
 
         var productIds = financialRecords.getRecords().stream().map(FinancialRecord::getProductId).collect(Collectors.toList());
         var recordIds = financialRecords.getRecords().stream().map(FinancialRecord::getId).collect(Collectors.toList());

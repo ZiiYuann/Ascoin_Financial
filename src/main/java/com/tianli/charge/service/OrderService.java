@@ -109,8 +109,8 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
     }
 
 
-    public BigDecimal orderChargeSummaryAmount(FinancialChargeQuery query) {
-        return Optional.ofNullable(orderMapper.orderChargeSummaryAmount(query)).orElse(BigDecimal.ZERO);
+    public BigDecimal orderAmountSum(FinancialChargeQuery query) {
+        return Optional.ofNullable(orderMapper.orderAmountSum(query)).orElse(BigDecimal.ZERO);
     }
 
 

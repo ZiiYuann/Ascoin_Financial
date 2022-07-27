@@ -64,7 +64,7 @@ public class FinancialWalletController {
     public Result rechargeOrderData(FinancialChargeQuery query) {
         query.setChargeType(ChargeType.recharge);
         return Result.success()
-                .setData(FinancialSummaryDataVO.builder().rechargeAmount(chargeService.orderChargeSummaryAmount(query)).build());
+                .setData(FinancialSummaryDataVO.builder().rechargeAmount(chargeService.orderAmountSum(query)).build());
     }
 
     @GetMapping("/order/withdraw")
@@ -79,7 +79,7 @@ public class FinancialWalletController {
     public Result withdrawOrderData(FinancialChargeQuery query) {
         query.setChargeType(ChargeType.recharge);
         return Result.success()
-                .setData(FinancialSummaryDataVO.builder().withdrawAmount(chargeService.orderChargeSummaryAmount(query)).build());
+                .setData(FinancialSummaryDataVO.builder().withdrawAmount(chargeService.orderAmountSum(query)).build());
     }
 
     /**

@@ -78,7 +78,7 @@
         <include refid="FinancialChargeQuery" />
 
     </select>
-    <select id="orderChargeSummaryAmount" resultType="java.math.BigDecimal">
+    <select id="orderAmountSum" resultType="java.math.BigDecimal">
         SELECT
         sum(o.amount)
         FROM `order` o
