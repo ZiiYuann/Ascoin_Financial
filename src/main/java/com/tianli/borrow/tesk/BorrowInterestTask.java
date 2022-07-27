@@ -48,7 +48,7 @@ public class BorrowInterestTask {
 
     //3.添加定时任务
     @Scheduled(cron = "0 0 * * * ?")
-    private void interestTasks() {
+    public void interestTasks() {
 
         LocalDateTime now = LocalDateTime.now();
         String hour = String.format("%s_%s_%s", now.getMonthValue(), now.getDayOfMonth(),now.getHour());
