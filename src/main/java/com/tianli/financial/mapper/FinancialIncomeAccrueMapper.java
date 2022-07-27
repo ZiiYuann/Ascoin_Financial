@@ -9,8 +9,10 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Mapper
@@ -22,4 +24,7 @@ public interface FinancialIncomeAccrueMapper extends BaseMapper<FinancialIncomeA
             , @Param("query") FinancialProductIncomeQuery query);
 
     BigDecimal summaryIncomeByQuery(@Param("query") FinancialProductIncomeQuery query);
+
+    @Select("SELECT SUM(income_amount) FROM financial_income_accrue WHERE update_time <= #{endTime}")
+    BigDecimal getAmountSum(@Param("entTime") LocalDateTime entTime);
 }

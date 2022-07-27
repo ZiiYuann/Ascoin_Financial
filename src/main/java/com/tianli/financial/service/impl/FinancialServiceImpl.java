@@ -1,5 +1,6 @@
 package com.tianli.financial.service.impl;
 
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -15,7 +16,6 @@ import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.RedisService;
-import com.tianli.common.TimeUtils;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
@@ -64,10 +64,11 @@ public class FinancialServiceImpl implements FinancialService {
         Long uid = requestInitService.uid();
 
         FinancialProduct product = financialProductService.getById(purchaseQuery.getProductId());
-        validProduct(product);
+        validProduct(product, purchaseQuery.getAmount());
 
         BigDecimal amount = purchaseQuery.getAmount();
         validRemainAmount(uid, purchaseQuery.getCoin(), amount);
+
 
         // 生成一笔订单记录(进行中)
         Order order = Order.builder()
@@ -80,7 +81,7 @@ public class FinancialServiceImpl implements FinancialService {
                 .status(ChargeStatus.created)
                 .createTime(LocalDateTime.now())
                 .build();
-        orderService.saveOrder(order);
+        orderService.save(order);
         // 冻结余额
         accountBalanceService.freeze(uid, ChargeType.purchase, product.getCoin(), amount, order.getOrderNo(), CurrencyLogDes.申购.name());
         // 确认完毕后生成申购记录
@@ -88,7 +89,7 @@ public class FinancialServiceImpl implements FinancialService {
         // 修改订单状态
         order.setStatus(ChargeStatus.chain_success);
         order.setRelatedId(financialRecord.getId());
-        orderService.updateStatus(order);
+        orderService.saveOrUpdate(order);
 
         FinancialPurchaseResultVO financialPurchaseResultVO = financialConverter.toFinancialPurchaseResultVO(financialRecord);
         financialPurchaseResultVO.setName(product.getName());
@@ -143,13 +144,13 @@ public class FinancialServiceImpl implements FinancialService {
 
         LambdaQueryWrapper<FinancialIncomeDaily> incomeDailyQuery = new LambdaQueryWrapper<FinancialIncomeDaily>().eq(FinancialIncomeDaily::getUid, uid)
                 .eq(FinancialIncomeDaily::getRecordId, recordId)
-                .eq(FinancialIncomeDaily::getFinishTime, TimeUtils.StartOfTime(TimeUtils.Util.DAY).plusDays(-1));
+                .eq(FinancialIncomeDaily::getFinishTime, DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(-1));
         var yesterdayIncomeFee = Optional.ofNullable(financialIncomeDailyService.list(incomeDailyQuery)).orElse(new ArrayList<>())
                 .stream().map(FinancialIncomeDaily::getIncomeAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         LambdaQueryWrapper<FinancialIncomeAccrue> incomeAccrueQuery = new LambdaQueryWrapper<FinancialIncomeAccrue>().eq(FinancialIncomeAccrue::getUid, uid)
                 .eq(FinancialIncomeAccrue::getRecordId, recordId)
-                .eq(FinancialIncomeAccrue::getCreateTime, TimeUtils.StartOfTime(TimeUtils.Util.DAY).plusDays(-1));
+                .eq(FinancialIncomeAccrue::getCreateTime, DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(-1));
         FinancialIncomeAccrue incomeAccrue = Optional.ofNullable(financialIncomeAccrueService.getOne(incomeAccrueQuery))
                 .orElse(new FinancialIncomeAccrue());
 
@@ -163,7 +164,7 @@ public class FinancialServiceImpl implements FinancialService {
     public IPage<HoldProductVo> myHold(IPage<FinancialRecord> page, Long uid, ProductType type) {
 
         var financialRecords = financialRecordService.selectListPage(page, uid, type, RecordStatus.PROCESS);
-        if(CollectionUtils.isEmpty(financialRecords.getRecords())){
+        if (CollectionUtils.isEmpty(financialRecords.getRecords())) {
             return financialRecords.convert(financialRecord -> new HoldProductVo());
         }
 
@@ -214,9 +215,13 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public void validProduct(FinancialProduct financialProduct) {
+    public void validProduct(FinancialProduct financialProduct, BigDecimal purchaseAmount) {
         if (Objects.isNull(financialProduct) || ProductStatus.open != financialProduct.getStatus()) {
             ErrorCodeEnum.NOT_OPEN.throwException();
+        }
+
+        if (purchaseAmount.compareTo(financialProduct.getLimitPurchaseQuota()) < 0) {
+            throw ErrorCodeEnum.PURCHASE_AMOUNT_TO_SMALL.generalException("最小金额为:" + financialProduct.getLimitPurchaseQuota());
         }
     }
 
@@ -249,7 +254,7 @@ public class FinancialServiceImpl implements FinancialService {
     public IPage<FinancialProductVO> products(Page<FinancialProduct> page, ProductType type) {
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
                 .eq(FinancialProduct::getStatus, ProductStatus.open)
-                .orderByDesc(FinancialProduct :: getRate);
+                .orderByDesc(FinancialProduct::getRate);
 
         return getFinancialProductVOIPage(page, type, query);
 

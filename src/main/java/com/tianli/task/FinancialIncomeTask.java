@@ -1,5 +1,6 @@
 package com.tianli.task;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
@@ -11,7 +12,6 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisLockConstants;
-import com.tianli.common.TimeUtils;
 import com.tianli.common.async.AsyncService;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.financial.entity.FinancialIncomeAccrue;
@@ -31,6 +31,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -109,7 +110,7 @@ public class FinancialIncomeTask {
     public void interestStat(FinancialRecord financialRecord) {
         try {
             ProductType type = financialRecord.getProductType();
-            LocalDateTime todayZero = TimeUtils.StartOfTime(TimeUtils.Util.DAY);
+            LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
             LocalDateTime endTime = financialRecord.getEndTime();
             LocalDateTime now = LocalDateTime.now();
 
@@ -159,7 +160,7 @@ public class FinancialIncomeTask {
                 .createTime(now)
                 .completeTime(now)
                 .build();
-        orderService.saveOrder(order);
+        orderService.save(order);
 
         // 更新结算时间
         financialRecord.setEndTime(now);
@@ -192,7 +193,7 @@ public class FinancialIncomeTask {
                 .createTime(now)
                 .completeTime(now)
                 .relatedId(financialRecord.getId()).build();
-        orderService.saveOrder(order);
+        orderService.save(order);
 
         // 操作余额
         accountBalanceService.increase(uid,ChargeType.income, financialRecord.getCoin()

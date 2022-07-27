@@ -235,7 +235,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .status(ChargeStatus.created)
                 .createTime(LocalDateTime.now())
                 .build();
-        orderService.saveOrder(order);
+        orderService.save(order);
         //钱包增加余额
         accountBalanceService.increase(uid, ChargeType.recharge,currencyCoin,null, borrowAmount, order.getOrderNo()
                 , CurrencyLogDes.借币.name());
@@ -405,7 +405,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .createTime(now)
                 .relatedId(borrowCoinOrder.getId())
                 .build();
-        orderService.saveOrder(order);
+        orderService.save(order);
         //扣除钱包余额
         accountBalanceService.increase(uid, ChargeType.recharge, currencyCoin, repayAmount.negate(), order.getOrderNo()
                 , CurrencyLogDes.还币.name());

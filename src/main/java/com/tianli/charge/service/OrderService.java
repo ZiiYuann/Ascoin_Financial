@@ -20,10 +20,12 @@ import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,12 +39,29 @@ import java.util.stream.Collectors;
 @Service
 public class OrderService extends ServiceImpl<OrderMapper,Order> {
 
-    public void saveOrder(Order order) {
+
+    /**
+     * 全局保存订单的入口，保存订单的时候请不要调用其他的接口
+     */
+    @Override
+    public boolean save(Order order) {
         int i = orderMapper.insert(order);
         if (i <= 0) {
             log.error("订单order插入失败，数据{}", JSONUtil.parse(order).toString());
             ErrorCodeEnum.SYSTEM_ERROR.throwException();
         }
+
+        return true;
+    }
+
+    @Override
+    public boolean saveOrUpdate(Order entity) {
+        boolean success = super.saveOrUpdate(entity);
+        if (!success) {
+            log.error("订单order更新失败，数据{}", JSONUtil.parse(entity).toString());
+            ErrorCodeEnum.SYSTEM_ERROR.throwException();
+        }
+        return true;
     }
 
     /**
@@ -69,12 +88,6 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
             return orderFinancialVO;
         });
     }
-
-
-    public void updateStatus(Order order){
-        orderMapper.updateById(order);
-    }
-
 
     public IPage<OrderSettleRecordVO> OrderSettleInfoVOPage(IPage<OrderSettleRecordVO> page, Long uid, ProductType productType) {
         return orderMapper.selectOrderSettleInfoVOPage(page, uid, productType);
@@ -113,6 +126,11 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
         return Optional.ofNullable(orderMapper.orderAmountSum(query)).orElse(BigDecimal.ZERO);
     }
 
+    public BigDecimal orderAmountSumByCompleteTime(ChargeType chargeType, LocalDateTime startTime, LocalDateTime endTime) {
+        return Optional.ofNullable(orderMapper.orderAmountSumByCompleteTime(chargeType,startTime,endTime))
+                .orElse(BigDecimal.ZERO);
+    }
+
 
     @Resource
     private OrderMapper orderMapper;
@@ -120,5 +138,6 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
     private OrderChargeInfoMapper orderChargeInfoMapper;
     @Resource
     private CurrencyService currencyService;
+
 
 }

@@ -1,11 +1,7 @@
 package com.tianli.charge.controller;
 
-import cn.hutool.json.JSONUtil;
-import com.tianli.chain.dto.BaseTokenReq;
-import com.tianli.chain.dto.DateReq;
-import com.tianli.chain.dto.TimeReq;
-import com.tianli.common.TimeUtils;
 import com.tianli.tool.crypto.Crypto;
+import com.tianli.tool.time.TimeTool;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -14,20 +10,14 @@ import org.bouncycastle.crypto.util.DigestFactory;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
-import java.net.URI;
-import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
 
 class ChargeControllerTest {
 
     @Test
     void rechargeCallback() throws IOException {
 
-        long l = TimeUtils.toTimestamp(LocalDateTime.now());
+        long l = TimeTool.toTimestamp(LocalDateTime.now());
         String sign = Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp",l+"");
 
 

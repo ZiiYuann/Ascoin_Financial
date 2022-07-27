@@ -25,7 +25,6 @@ public class PurchaseQuery {
     /**
      * 申购数量
      */
-    @DecimalMin(value = "10", message = "最低申购数量为10")
     private BigDecimal amount;
 
     /**

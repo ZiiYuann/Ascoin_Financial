@@ -1,6 +1,11 @@
 package com.tianli.management.entity;
 
+import com.tianli.common.CommonFunction;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -12,7 +17,13 @@ import java.time.LocalDate;
  * @since 2022-07-20
  **/
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class FinancialBoardProduct {
+
+    @Id
+    private Long id;
 
     /**
      * 申购
@@ -60,4 +71,18 @@ public class FinancialBoardProduct {
     private BigInteger holdUserCount;
 
     private LocalDate createTime;
+
+    public static FinancialBoardProduct getDefault(){
+        return FinancialBoardProduct.builder()
+                .id(CommonFunction.generalId())
+                .purchaseAmount(BigDecimal.ZERO)
+                .redeemAmount(BigDecimal.ZERO)
+                .settleAmount(BigDecimal.ZERO)
+                .transferAmount(BigDecimal.ZERO)
+                .income(BigDecimal.ZERO)
+                .currentProductCount(BigInteger.ZERO)
+                .fixedProductCount(BigInteger.ZERO)
+                .totalProductCount(BigInteger.ZERO)
+                .holdUserCount(BigInteger.ZERO).build();
+    }
 }
