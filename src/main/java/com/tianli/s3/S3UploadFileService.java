@@ -81,7 +81,7 @@ public class S3UploadFileService {
     }
 
     private String AWSSecretAccessKey() {
-        return configService.get("s3_AWSSecretAccessKey");
+        return configService.getAndDecrypt("s3_AWSSecretAccessKey");
     }
 
     static byte[] HmacSHA256(String data, byte[] key) {
