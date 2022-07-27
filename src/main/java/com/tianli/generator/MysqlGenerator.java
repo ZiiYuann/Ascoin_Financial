@@ -26,11 +26,11 @@ public class MysqlGenerator {
     /**
      * 作者
      */
-    private static final String AUTHOR = "lzy";
+    private static final String AUTHOR = "xianeng";
     /**
      * 需生成数据库表
      */
-    private static final String[] TABLE_ARR = new String[]{"exchange_msg_fail"};
+    private static final String[] TABLE_ARR = new String[]{"financial_pledge_info"};
 
     public static void main(String[] args) {
         generator();
@@ -103,7 +103,7 @@ public class MysqlGenerator {
 
         // 包配置
         PackageConfig pc = new PackageConfig();
-        pc.setParent("com.tianli.exchange");
+        pc.setParent("com.tianli.borrow");
         pc.setController("controller");
         pc.setEntity("entity");
         pc.setMapper("dao");
@@ -144,7 +144,7 @@ public class MysqlGenerator {
         strategy.setCapitalMode(false);
         // 表名生成策略
         strategy.setNaming(NamingStrategy.underline_to_camel);
-        strategy.setColumnNaming(NamingStrategy.no_change);
+        strategy.setColumnNaming(NamingStrategy.underline_to_camel);
         strategy.setEntityLombokModel(true);
         // 需要生成的表
         strategy.setInclude(TABLE_ARR);
