@@ -3,7 +3,7 @@ package com.tianli.borrow.vo;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -46,12 +46,12 @@ public class BorrowPledgeRecordVO{
     /**
      * 调整时间
      */
-    private Date pledgeTime;
+    private LocalDateTime pledgeTime;
 
     /**
      * 创建时间
      */
-    private Date createTime;
+    private LocalDateTime createTime;
 
 
 }

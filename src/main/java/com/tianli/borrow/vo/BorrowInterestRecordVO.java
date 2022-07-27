@@ -3,7 +3,7 @@ package com.tianli.borrow.vo;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -51,12 +51,7 @@ public class BorrowInterestRecordVO{
     /**
      * 计息时间
      */
-    private Date interestAccrualTime;
-
-    /**
-     * 创建日期
-     */
-    private Date createTime;
+    private LocalDateTime interestAccrualTime;
 
 
 }

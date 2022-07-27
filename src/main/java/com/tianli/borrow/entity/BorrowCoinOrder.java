@@ -2,7 +2,8 @@ package com.tianli.borrow.entity;
 
 import java.math.BigDecimal;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
-import java.util.Date;
+
+import java.time.LocalDateTime;
 
 import lombok.Builder;
 import lombok.Data;
@@ -91,7 +92,7 @@ public class BorrowCoinOrder extends Model<BorrowCoinOrder> {
     /**
      * 借出时间
      */
-    private Date borrowTime;
+    private LocalDateTime borrowTime;
 
     /**
      * 借款时长
@@ -101,11 +102,11 @@ public class BorrowCoinOrder extends Model<BorrowCoinOrder> {
     /**
      * 结算时间
      */
-    private Date settlementTime;
+    private LocalDateTime settlementTime;
 
     /**
      * 创建时间
      */
-    private Date createTime;
+    private LocalDateTime createTime;
 
 }

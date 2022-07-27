@@ -2,7 +2,7 @@ package com.tianli.borrow.vo;
 
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -16,7 +16,7 @@ public class BorrowRecordVO {
 
         private String record;
 
-        private Date time;
+        private LocalDateTime time;
 
     }
 }

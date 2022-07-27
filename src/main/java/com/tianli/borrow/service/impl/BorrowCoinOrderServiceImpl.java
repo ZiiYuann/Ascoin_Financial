@@ -39,6 +39,7 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.mapper.FinancialRecordMapper;
 import com.tianli.sso.init.RequestInitService;
+import com.tianli.tool.time.TimeTool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -216,8 +217,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .pledgeRate(initialPledgeRate)
                 .status(BorrowOrderStatus.INTEREST_ACCRUAL)
                 .pledgeStatus(BorrowOrderPledgeStatus.SAFE_PLEDGE)
-                .borrowTime(new Date())
-                .createTime(new Date()).build();
+                .borrowTime(LocalDateTime.now())
+                .createTime(LocalDateTime.now()).build();
         borrowCoinOrderMapper.insert(borrowCoinOrder);
 
         //锁定理财产品
@@ -245,8 +246,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .orderId(borrowCoinOrder.getId())
                 .amount(pledgeAmount)
                 .type(BorrowPledgeType.INIT)
-                .pledgeTime(new Date())
-                .createTime(new Date()).build();
+                .pledgeTime(LocalDateTime.now())
+                .createTime(LocalDateTime.now()).build();
         borrowPledgeRecordMapper.insert(pledgeRecord);
 
     }
@@ -274,7 +275,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         records.add(record);
         record = new BorrowRecordVO.Record();
         record.setRecord("借币中");
-        record.setTime(new Date());
+        record.setTime(LocalDateTime.now());
         records.add(record);
         record = new BorrowRecordVO.Record();
         records.add(record);
@@ -282,12 +283,12 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         long borrowDuration ;
         if(status.equals(BorrowOrderStatus.SUCCESSFUL_REPAYMENT)){
             record.setRecord("还款成功");
-            borrowDuration = DateUtil.between(borrowCoinOrder.getCreateTime(),borrowCoinOrder.getSettlementTime(), DateUnit.HOUR);
+            borrowDuration = DateUtil.between(TimeTool.toDate(borrowCoinOrder.getCreateTime()) ,TimeTool.toDate(borrowCoinOrder.getSettlementTime()), DateUnit.HOUR);
         }else if (status.equals(BorrowOrderStatus.FORCED_LIQUIDATION)){
             record.setRecord("已平仓");
-            borrowDuration = DateUtil.between(borrowCoinOrder.getCreateTime(),borrowCoinOrder.getSettlementTime(), DateUnit.HOUR);
+            borrowDuration = DateUtil.between(TimeTool.toDate(borrowCoinOrder.getCreateTime()) ,TimeTool.toDate(borrowCoinOrder.getSettlementTime()), DateUnit.HOUR);
         }else {
-            borrowDuration = DateUtil.between(borrowCoinOrder.getCreateTime(),new Date(), DateUnit.HOUR);
+            borrowDuration = DateUtil.between(TimeTool.toDate(borrowCoinOrder.getCreateTime()),new Date(), DateUnit.HOUR);
         }
         recordVO.setRecords(records);
         recordVO.setBorrowDuration(borrowDuration);
@@ -413,16 +414,16 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .orderId(borrowCoinOrder.getId())
                 .coin(currencyCoin.getName())
                 .type(BorrowPledgeType.REDUCE)
-                .pledgeTime(new Date())
-                .createTime(new Date()).build();
+                .pledgeTime(LocalDateTime.now())
+                .createTime(LocalDateTime.now()).build();
         //还款记录
         BorrowRepayRecord repayRecord = BorrowRepayRecord.builder()
                 .orderId(borrowCoinOrder.getId())
                 .coin(currencyCoin.getName())
                 .repayAmount(repayAmount)
                 .type(BorrowRepayType.NORMAL_REPAYMENT)
-                .repayTime(new Date())
-                .createTime(new Date()).build();
+                .repayTime(LocalDateTime.now())
+                .createTime(LocalDateTime.now()).build();
 
 
         //修改借币订单
@@ -438,8 +439,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             borrowCoinOrder.setPledgeAmount(BigDecimal.ZERO);
             borrowCoinOrder.setPledgeRate(BigDecimal.ZERO);
             borrowCoinOrder.setStatus(BorrowOrderStatus.SUCCESSFUL_REPAYMENT);
-            borrowCoinOrder.setSettlementTime(new Date());
-            borrowCoinOrder.setBorrowDuration(DateUtil.between(borrowCoinOrder.getCreateTime(),borrowCoinOrder.getSettlementTime(),DateUnit.HOUR));
+            borrowCoinOrder.setSettlementTime(LocalDateTime.now());
+            borrowCoinOrder.setBorrowDuration(DateUtil.between(TimeTool.toDate(borrowCoinOrder.getCreateTime()) ,TimeTool.toDate(borrowCoinOrder.getSettlementTime()),DateUnit.HOUR));
             borrowCoinOrderMapper.updateById(borrowCoinOrder);
             //还款记录
             repayRecord.setRepayCapital(waitRepayCapital);
@@ -498,6 +499,19 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     }
 
     @Override
+    public BorrowAdjustPageVO adjustPage(Long orderId,CurrencyCoin coin) {
+        Long uid = requestInitService.uid();
+        BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid, coin);
+        BorrowCoinOrder borrowCoinOrder = borrowCoinOrderMapper.selectById(orderId);
+        if(Objects.isNull(borrowCoinOrder))ErrorCodeEnum.BORROW_ORDER_NO_EXIST.throwException();
+        BigDecimal waitRepay = borrowCoinOrder.getWaitRepayCapital().add(borrowCoinOrder.getWaitRepayInterest());
+        BigDecimal pledge = borrowCoinOrder.getPledgeAmount().subtract(waitRepay.divide(BigDecimal.valueOf(0.65), 8, RoundingMode.UP));
+        return BorrowAdjustPageVO.builder()
+                .availableAmount(availableAmount)
+                .ableReduceAmount(pledge).build();
+    }
+
+    @Override
     public void adjustPledge(AdjustPledgeBO bo) {
         BigDecimal adjustAmount = bo.getAdjustAmount();
         Integer pledgeType = bo.getPledgeType();
@@ -519,15 +533,15 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .orderId(orderId)
                 .coin(currencyCoin.getName())
                 .amount(adjustAmount)
-                .pledgeTime(new Date())
-                .createTime(new Date()).build();
+                .pledgeTime(LocalDateTime.now())
+                .createTime(LocalDateTime.now()).build();
 
         if(pledgeType.equals(BorrowPledgeType.INCREASE)){
             BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid,currencyCoin);
             if(adjustAmount.compareTo(availableAmount) > 0)ErrorCodeEnum.ADJUST_GT_AVAILABLE.throwException();
 
             pledgeAmount = pledgeAmount.add(adjustAmount);
-            BigDecimal pledgeRate = totalWaitRepay.divide(pledgeAmount,4,RoundingMode.UP);
+            BigDecimal pledgeRate = totalWaitRepay.divide(pledgeAmount,8,RoundingMode.UP);
             //修改借币订单
             borrowCoinOrder.setPledgeRate(pledgeRate);
             borrowCoinOrder.setPledgeAmount(pledgeAmount);
@@ -540,8 +554,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         }else {
             if(adjustAmount.compareTo(pledgeAmount) > 0)ErrorCodeEnum.ADJUST_GT_AVAILABLE.throwException();
             pledgeAmount = pledgeAmount.subtract(adjustAmount);
-            BigDecimal pledgeRate = totalWaitRepay.divide(pledgeAmount,4,RoundingMode.UP);
-            if(pledgeRate.compareTo(BigDecimal.ONE) >0) ErrorCodeEnum.PLEDGE_RATE_RANGE_ERROR.throwException();
+            BigDecimal pledgeRate = totalWaitRepay.divide(pledgeAmount,8,RoundingMode.UP);
+            if(pledgeRate.compareTo(new BigDecimal("0.65")) >0) ErrorCodeEnum.PLEDGE_RATE_RANGE_ERROR.throwException();
             //修改借币订单
             borrowCoinOrder.setPledgeRate(pledgeRate);
             borrowCoinOrder.setPledgeAmount(pledgeAmount);
@@ -564,7 +578,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         if(borrowCoinOrder.getPledgeRate().compareTo(coinConfig.getLiquidationPledgeRate()) < 0 )ErrorCodeEnum.PLEDGE_LT_LIQUIDATION.throwException();
         //修改订单状态
         borrowCoinOrder.setStatus(BorrowOrderStatus.FORCED_LIQUIDATION);
-        borrowCoinOrder.setSettlementTime(new Date());
+        borrowCoinOrder.setSettlementTime(LocalDateTime.now());
         borrowCoinOrderMapper.updateById(borrowCoinOrder);
         //释放锁定
         releasePledgeAmount(orderId);

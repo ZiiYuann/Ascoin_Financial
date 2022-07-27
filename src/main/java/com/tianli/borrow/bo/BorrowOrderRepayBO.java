@@ -13,7 +13,7 @@ public class BorrowOrderRepayBO {
     @NotNull
     private Long orderId;
 
-    @DecimalMin(value = "0.0",message = "还款金额必须大于0")
+    @DecimalMin(value = "0.00",message = "还款金额小于0")
     private BigDecimal repayAmount;
 
     /**

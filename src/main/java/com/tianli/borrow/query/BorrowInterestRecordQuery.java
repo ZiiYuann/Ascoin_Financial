@@ -4,7 +4,7 @@ import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotNull;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 public class BorrowInterestRecordQuery {
@@ -13,8 +13,8 @@ public class BorrowInterestRecordQuery {
     private Long orderId;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
-    private Date startTime;
+    private LocalDateTime startTime;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
-    private Date endTime;
+    private LocalDateTime endTime;
 }

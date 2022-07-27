@@ -13,9 +13,16 @@ public class AdjustPledgeBO {
     @NotNull
     private Long orderId;
 
+    /**
+     * 质押类型
+     */
+    @NotNull(message = "调整类型不能为空")
     private Integer pledgeType;
 
-    @DecimalMin(value = "0.0",message = "调整金额必须大于0")
+    /**
+     * 调整金额
+     */
+    @DecimalMin(value = "0.00",message = "调整金额必须大于0")
     private BigDecimal adjustAmount;
 
     /**

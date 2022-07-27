@@ -3,6 +3,7 @@ package com.tianli.borrow.bo;
 import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
@@ -11,6 +12,8 @@ public class BorrowOrderBO {
     /**
      * 借币数量
      */
+    @NotNull
+    @DecimalMin(value = "0.00", message = "借币数量小于0")
     private BigDecimal borrowAmount;
 
     /**

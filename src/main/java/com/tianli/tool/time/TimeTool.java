@@ -2,6 +2,7 @@ package com.tianli.tool.time;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -156,6 +157,24 @@ public class TimeTool {
     public static int getNowInteger() {
         LocalDateTime now = LocalDateTime.now();
         return now.getYear() * 10000 + now.getMonth().getValue() * 100 + now.getDayOfMonth();
+    }
+
+    /**
+     * LocalDateTime转 Date
+     * @param date
+     * @return
+     */
+    public static LocalDateTime toLocalDateTime(Date date) {
+        return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+    }
+
+    /**
+     *  Date转LocalDateTime
+     * @param localDateTime
+     * @return
+     */
+    public static Date toDate(LocalDateTime localDateTime) {
+        return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 
     public static void sleep(long time, TimeUnit timeUnit) {

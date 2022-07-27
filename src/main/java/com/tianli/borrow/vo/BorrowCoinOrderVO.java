@@ -6,7 +6,7 @@ import com.tianli.common.annotation.BigDecimalFormat;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -91,7 +91,7 @@ public class BorrowCoinOrderVO {
     /**
      * 借出时间
      */
-    private Date borrowTime;
+    private LocalDateTime borrowTime;
 
     /**
      * 借款时长
@@ -108,11 +108,6 @@ public class BorrowCoinOrderVO {
     /**
      * 结算时间
      */
-    private Date settlementTime;
-
-    /**
-     * 创建时间
-     */
-    private Date createTime;
+    private LocalDateTime settlementTime;
 
 }

@@ -156,7 +156,7 @@ public class BorrowCoinOrderController {
      * @return
      */
     @GetMapping("/order/repay/page")
-    public Result repayPage(Long orderId,CurrencyCoin coin){
+    public Result repayPage(@RequestParam Long orderId,@RequestParam CurrencyCoin coin){
         BorrowRepayPageVO borrowRepayPageVO = borrowCoinOrderService.repayPage(orderId, coin);
         return Result.success(borrowRepayPageVO);
     }
@@ -170,6 +170,17 @@ public class BorrowCoinOrderController {
     public Result orderRepay(@RequestBody @Valid BorrowOrderRepayBO bo){
         borrowCoinOrderService.orderRepay(bo);
         return Result.success();
+    }
+
+    /**
+     * 调整质押页面
+     * @param coin
+     * @return
+     */
+    @GetMapping("order/adjust/page")
+    public Result adjustPage(@RequestParam Long orderId, @RequestParam CurrencyCoin coin){
+        BorrowAdjustPageVO borrowAdjustPageVO = borrowCoinOrderService.adjustPage(orderId, coin);
+        return Result.success(borrowAdjustPageVO);
     }
 
     /**

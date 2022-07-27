@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Set;
 
@@ -21,10 +22,10 @@ public class BorrowOrderQuery {
     private BigDecimal maxPledgeRate;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
-    private Date startTime;
+    private LocalDateTime startTime;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
-    private Date endTime;
+    private LocalDateTime endTime;
 
     private Set<Integer> status;
 
