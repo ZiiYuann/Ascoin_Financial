@@ -19,6 +19,7 @@ import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -47,11 +48,11 @@ public class BorrowInterestTask {
 
     //3.添加定时任务
     @Scheduled(cron = "0 0 * * * ?")
-    private void configureTasks() {
+    private void interestTasks() {
 
         LocalDateTime now = LocalDateTime.now();
-        String day = String.format("%s_%s", now.getMonthValue(), now.getDayOfMonth());
-        String redisKey = RedisLockConstants.FINANCIAL_INCOME_TASK + day;
+        String hour = String.format("%s_%s_%s", now.getMonthValue(), now.getDayOfMonth(),now.getHour());
+        String redisKey = RedisLockConstants.BORROW_INCOME_TASK + hour;
         BoundValueOperations<String, Object> operation = redisTemplate.boundValueOps(redisKey);
         operation.setIfAbsent(0, 30, TimeUnit.MINUTES);
 
@@ -73,38 +74,44 @@ public class BorrowInterestTask {
             if(CollUtil.isEmpty(records)){
                 break;
             }
-            records.forEach(borrowCoinOrder -> {
-                BigDecimal waitRepayCapital = borrowCoinOrder.getWaitRepayCapital();
-                BigDecimal waitRepayInterest = borrowCoinOrder.getWaitRepayInterest();
-                BigDecimal cumulativeInterest = borrowCoinOrder.getCumulativeInterest();
-                //总待还款
-                BigDecimal totalWaitRepayAmount = waitRepayCapital.add(waitRepayInterest);
-                BigDecimal pledgeAmount = borrowCoinOrder.getPledgeAmount();
-                //计算每小时利息
-                BigDecimal interest = (totalWaitRepayAmount.multiply(annualInterestRate))
-                        .divide(new BigDecimal(365 * 24), 8, RoundingMode.UP);
-                waitRepayInterest = waitRepayInterest.add(interest);
-                //计算质押率
-                BigDecimal pledgeRate = (totalWaitRepayAmount.add(interest)).divide(pledgeAmount,8, RoundingMode.UP);
-                totalWaitRepayAmount = cumulativeInterest.add(interest);
-                //修改订单
-                borrowCoinOrder.setWaitRepayInterest(waitRepayInterest);
-                borrowCoinOrder.setCumulativeInterest(totalWaitRepayAmount);
-                borrowCoinOrder.setPledgeRate(pledgeRate);
-                borrowCoinOrderMapper.updateById(borrowCoinOrder);
-
-                //添加利息记录
-                BorrowInterestRecord interestRecord = BorrowInterestRecord.builder()
-                        .interestAccrualTime(now)
-                        .createTime(now)
-                        .orderId(borrowCoinOrder.getId())
-                        .coin(borrowCoinOrder.getBorrowCoin())
-                        .waitRepayCapital(borrowCoinOrder.getWaitRepayCapital())
-                        .waitRepayInterest(borrowCoinOrder.getWaitRepayInterest())
-                        .interestAccrual(interest)
-                        .build();
-                borrowInterestRecordMapper.insert(interestRecord);
-            });
+            records.forEach(borrowCoinOrder -> calculateInterest(borrowCoinOrder,annualInterestRate,now));
         }
+    }
+
+    @Transactional
+    public void calculateInterest(BorrowCoinOrder borrowCoinOrder, BigDecimal annualInterestRate, LocalDateTime now){
+        BigDecimal waitRepayCapital = borrowCoinOrder.getWaitRepayCapital();
+        BigDecimal waitRepayInterest = borrowCoinOrder.getWaitRepayInterest();
+        BigDecimal cumulativeInterest = borrowCoinOrder.getCumulativeInterest();
+        //总待还款
+        BigDecimal totalWaitRepayAmount = waitRepayCapital.add(waitRepayInterest);
+        BigDecimal pledgeAmount = borrowCoinOrder.getPledgeAmount();
+        //计算每小时利息
+        BigDecimal interest = (totalWaitRepayAmount.multiply(annualInterestRate))
+                .divide(new BigDecimal(365 * 24), 8, RoundingMode.UP);
+        waitRepayInterest = waitRepayInterest.add(interest);
+        //计算质押率
+        totalWaitRepayAmount = totalWaitRepayAmount.add(interest);
+        BigDecimal pledgeRate = totalWaitRepayAmount.divide(pledgeAmount,8, RoundingMode.UP);
+        cumulativeInterest = cumulativeInterest.add(interest);
+        //修改订单
+        borrowCoinOrder.setWaitRepayInterest(waitRepayInterest);
+        borrowCoinOrder.setCumulativeInterest(cumulativeInterest);
+        borrowCoinOrder.setPledgeRate(pledgeRate);
+        borrowCoinOrder.setRepayAmount(totalWaitRepayAmount);
+        borrowCoinOrderMapper.updateById(borrowCoinOrder);
+
+        //添加利息记录
+        BorrowInterestRecord interestRecord = BorrowInterestRecord.builder()
+                .interestAccrualTime(now)
+                .createTime(now)
+                .orderId(borrowCoinOrder.getId())
+                .coin(borrowCoinOrder.getBorrowCoin())
+                .waitRepayCapital(borrowCoinOrder.getWaitRepayCapital())
+                .waitRepayInterest(borrowCoinOrder.getWaitRepayInterest())
+                .interestAccrual(interest)
+                .build();
+        borrowInterestRecordMapper.insert(interestRecord);
+
     }
 }

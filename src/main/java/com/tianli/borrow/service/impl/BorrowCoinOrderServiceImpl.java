@@ -212,6 +212,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .borrowCoin(currencyCoin.getName())
                 .borrowCapital(borrowAmount)
                 .waitRepayCapital(borrowAmount)
+                .repayAmount(borrowAmount)
                 .pledgeCoin(currencyCoin.getName())
                 .pledgeAmount(pledgeAmount)
                 .pledgeRate(initialPledgeRate)
