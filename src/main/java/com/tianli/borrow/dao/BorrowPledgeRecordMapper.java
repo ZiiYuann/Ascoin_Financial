@@ -22,7 +22,7 @@ import java.util.List;
 @Mapper
 public interface BorrowPledgeRecordMapper extends BaseMapper<BorrowPledgeRecord> {
 
-    @Select("SELECT SUM(amount) FROM borrow_pledge_record where pledge_time >= #{startTime and pledge_time <= #{endTime}")
+    @Select("SELECT SUM(amount) FROM borrow_pledge_record where pledge_time >= #{startTime} and pledge_time <= #{endTime}")
     BigDecimal selectAmountSumByTime(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
 
     @Select("SELECT DATE_FORMAT(pledge_time,'%Y-%m-%d') time,SUM(amount)amount FROM borrow_pledge_record\n" +

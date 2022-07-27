@@ -15,6 +15,7 @@ import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -33,8 +34,8 @@ public class BorrowCoinOrderManageController {
      * @param orderId
      * @return
      */
-    @PostMapping("/order/liquidation")
-    public Result liquidation(@RequestBody Long orderId){
+    @PostMapping("/order/liquidation/{orderId}")
+    public Result liquidation(@PathVariable Long orderId){
         borrowCoinOrderService.forcedLiquidation(orderId);
         return Result.success();
     }
@@ -90,7 +91,8 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/statistics")
-    public Result statistics(Date startTime,Date endTime){
+    public Result statistics(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date startTime,
+                             @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") @RequestParam Date endTime){
         BorrowOrderStatisticsVO statistics = borrowCoinOrderService.statistics(startTime, endTime);
         return Result.success(statistics);
     }
@@ -101,7 +103,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/statistics/chart")
-    public Result statisticsChart(BorrowOrderStatisticsType statisticsType){
+    public Result statisticsChart(@RequestParam BorrowOrderStatisticsType statisticsType){
         List<BorrowOrderStatisticsChartVO> borrowOrderStatisticsChartVOS = borrowCoinOrderService.statisticsChart(statisticsType);
         return Result.success(borrowOrderStatisticsChartVOS);
     }

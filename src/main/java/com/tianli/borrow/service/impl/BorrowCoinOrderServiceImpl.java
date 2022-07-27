@@ -1,5 +1,6 @@
 package com.tianli.borrow.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
@@ -46,10 +47,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -351,6 +349,10 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             queryWrapper.eq(BorrowRepayRecord::getType,query.getType());
         }
 
+        if(Objects.nonNull(query.getStatus())){
+            queryWrapper.eq(BorrowRepayRecord::getStatus,query.getStatus());
+        }
+
         if(Objects.nonNull(query.getStartTime())){
             queryWrapper.ge(BorrowRepayRecord::getRepayTime,query.getStartTime());
         }
@@ -583,9 +585,16 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
     @Override
     public List<BorrowOrderStatisticsChartVO> statisticsChart(BorrowOrderStatisticsType statisticsType) {
+        int offsetDay = -14;
         //获取14天前零点时间
-        DateTime dateTime = DateUtil.offsetDay(new Date(), -14);
-        DateTime beginOfDay = DateUtil.beginOfDay(dateTime);
+        DateTime beginOfDay = DateUtil.beginOfDay(DateUtil.offsetDay(new Date(), offsetDay));
+        //构建十四天的数据
+        Map<String,BorrowOrderStatisticsChartVO> borrowOrderStatisticsChartVOMap = new LinkedHashMap<>();
+        for(int i = offsetDay;i<=0;i++){
+            String dateTime = DateUtil.format(DateUtil.offsetDay(new Date(), i), "yyyy-MM-dd");
+            borrowOrderStatisticsChartVOMap.put(dateTime,new BorrowOrderStatisticsChartVO(dateTime,BigDecimal.ZERO));
+        }
+
         List<BorrowOrderStatisticsChartVO> borrowOrderStatisticsChartVOS = null;
         switch (statisticsType){
             case borrow:{
@@ -603,8 +612,9 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             default:
                 borrowOrderStatisticsChartVOS = borrowCoinOrderMapper.selectTotalChartByTime(BorrowOrderStatus.INTEREST_ACCRUAL,beginOfDay);
         }
+        borrowOrderStatisticsChartVOS.forEach(item -> borrowOrderStatisticsChartVOMap.put(item.getTime(),item));
 
-        return borrowOrderStatisticsChartVOS;
+        return CollUtil.list(false,borrowOrderStatisticsChartVOMap.values()) ;
     }
 
     /**
