@@ -82,8 +82,9 @@ public class FinancialController {
         productVO.setUserPersonQuota(personUseQuota.getOrDefault(productVO.getId(),BigDecimal.ZERO));
         productVO.setAvailableBalance(accountBalance.getRemain());
         productVO.setPurchaseTime(now);
-        productVO.setStartIncomeTime(DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(1));
-        productVO.setSettleTime(now.plusDays(product.getTerm().getDay()));
+        LocalDateTime startIncomeTime = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(1);
+        productVO.setStartIncomeTime(startIncomeTime);
+        productVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
         return Result.instance().setData(productVO);
     }
 
@@ -94,7 +95,8 @@ public class FinancialController {
     public Result expectIncome(Long productId,BigDecimal amount){
         FinancialProduct product = financialProductService.getById(productId);
         ExpectIncomeVO expectIncomeVO = new ExpectIncomeVO();
-        expectIncomeVO.setExpectIncome(product.getRate().multiply(amount).divide(BigDecimal.valueOf(365), RoundingMode.HALF_DOWN));
+        expectIncomeVO.setExpectIncome(product.getRate().multiply(amount)
+                .divide(BigDecimal.valueOf(365), RoundingMode.HALF_DOWN).multiply(BigDecimal.valueOf(product.getTerm().getDay())));
         return Result.instance().setData(expectIncomeVO);
     }
 
