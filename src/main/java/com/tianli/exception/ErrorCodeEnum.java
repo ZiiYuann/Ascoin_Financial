@@ -31,6 +31,7 @@ public enum ErrorCodeEnum {
     WRONG_SETTINGS(121,"不能设置自己为组长"),
     OPERATION_PASSWORD_ERROR(122, "操作密码错误"),
     INSUFFICIENT_BALANCE(123,"余额不足"),
+    PURCHASE_AMOUNT_TO_SMALL(124,"申购金额低于系统限制"),
 
 
     /*** －－－－－－业务错误码-账号相关－－－－－－*/

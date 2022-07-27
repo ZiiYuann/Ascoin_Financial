@@ -18,6 +18,9 @@ public class BigDecimalDeSerializer extends JsonDeserializer<BigDecimal> {
         // return new BigDecimal(jsonParser.getText().replaceAll(",", ""));
 
         // 上面的代码是 copy 过来的, 原本是用于解析 #,###.000 这样的字符串, 本项目的场景暂时不需要
+        if("".equals(jsonParser.getText())){
+            return null;
+        }
         return new BigDecimal(jsonParser.getText());
     }
 }

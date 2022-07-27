@@ -11,6 +11,7 @@ public class RedisLockConstants {
 
     public static String FINANCIAL_INCOME_TASK = "FinancialIncomeTask#currencyInterestStat:pageFlag:";
 
+    public static String FINANCIAL_PRODUCT_BOARD_GET = "FinancialBoardProduct:getToday";
 
     public static String BORROW_INCOME_TASK = "BorrowInterestTask#interestTasks:pageFlag:";
 }

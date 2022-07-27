@@ -1,6 +1,7 @@
 package com.tianli.common.lock;
 
 import com.tianli.exception.ErrorCodeEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -10,10 +11,31 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Component
 public class RedisLock {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    public void waitLock(String key,long timeoutMillis){
+        int time = 0;
+        while(time < timeoutMillis){
+            Boolean hasKey = stringRedisTemplate.hasKey(key);
+            if(Boolean.TRUE.equals(hasKey)){
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    Thread.currentThread().interrupt();
+                }
+                time = time + 100;
+                continue;
+            }
+            return;
+        }
+        log.error("redis等待锁释放超时,key:{}",key);
+        ErrorCodeEnum.SYSTEM_ERROR.throwException();
+    }
 
     public void lock(String key, Long expireTime, TimeUnit timeUnit) {
         if (!this._lock(key, expireTime, timeUnit)) ErrorCodeEnum.SYSTEM_BUSY.throwException();

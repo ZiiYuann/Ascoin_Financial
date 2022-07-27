@@ -1,30 +1,27 @@
 package com.tianli.financial.service;
 
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.CommonFunction;
-import com.tianli.common.TimeUtils;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
-import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.mapper.FinancialRecordMapper;
 import com.tianli.sso.init.RequestInitService;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -115,7 +112,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      * 生成记录
      */
     public FinancialRecord generateFinancialRecord(Long uid,FinancialProduct product,BigDecimal amount){
-        LocalDateTime startIncomeTime = TimeUtils.StartOfTime(TimeUtils.Util.DAY).plusDays(1);
+        LocalDateTime startIncomeTime = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(1);
         LocalDateTime startDate = requestInitService.now().plusDays(1L);
         FinancialRecord record = FinancialRecord.builder()
                 .id(CommonFunction.generalId())
@@ -226,5 +223,19 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         LambdaQueryWrapper<FinancialRecord> queryWrapper =
                 new LambdaQueryWrapper<FinancialRecord>().eq(FinancialRecord::getStatus, RecordStatus.PROCESS);
         return financialRecordMapper.selectPage(page,queryWrapper);
+    }
+
+    /**
+     * 正持有的产品数量
+     */
+    public BigInteger countProcess(ProductType productType){
+        return Optional.ofNullable(financialRecordMapper.countProcess(productType)).orElse(BigInteger.ZERO);
+    }
+
+    /**
+     * 正持有的产品的用户数量
+     */
+    public BigInteger countUid(){
+        return Optional.ofNullable(financialRecordMapper.countUid()).orElse(BigInteger.ZERO);
     }
 }

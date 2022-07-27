@@ -183,4 +183,39 @@ public class TimeTool {
         } catch (InterruptedException ignored) {
         }
     }
+
+    public static long toTimestamp(LocalDateTime localDateTime){
+        return localDateTime.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+    }
+
+    public static LocalDateTime StartOfTime(TimeTool.Util timeUtil){
+        LocalDate date;
+        LocalDate now = LocalDate.now();
+        switch (timeUtil){
+            case DAY: date = now; break;
+            case WEEK:
+                int week = now.getDayOfWeek().getValue();
+                date = now.minusDays(week - 1);
+                break;
+            case MONTH:
+                int month = now.getDayOfMonth();
+                date = now.minusDays(month - 1);
+                break;
+            case YEAR:
+                int year = now.getDayOfYear();
+                date = now.minusDays(year - 1);
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
+
+        return LocalDateTime.of(date, LocalTime.MIN);
+    }
+
+    public enum Util {
+        DAY,
+        WEEK,
+        MONTH,
+        YEAR
+    }
 }

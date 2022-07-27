@@ -1,14 +1,12 @@
 package com.tianli.financial.service;
 
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.IdGenerator;
-import com.tianli.common.TimeUtils;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.financial.dto.FinancialIncomeDailyDTO;
-import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.mapper.FinancialIncomeDailyMapper;
@@ -20,6 +18,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -44,7 +43,7 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
      */
     public BigDecimal getYesterdayDailyAmount(Long uid, ProductType type){
 
-        LocalDateTime todayZero = TimeUtils.StartOfTime(TimeUtils.Util.DAY);
+        LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
         LocalDateTime yesterdayZero = todayZero.plusDays(-1);
 
         List<FinancialIncomeDailyDTO> dailyIncomeLogs = financialIncomeDailyMapper.listByUidAndType(uid,type,yesterdayZero,todayZero);
@@ -59,7 +58,7 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
 
     @Transactional
     public void insertIncomeDaily(Long uid, Long recordId, BigDecimal amount){
-        LocalDateTime yesterdayZero = TimeUtils.StartOfTime(TimeUtils.Util.DAY).plusDays(-1);
+        LocalDateTime yesterdayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(-1);
         LambdaQueryWrapper<FinancialIncomeDaily> queryWrapper = new LambdaQueryWrapper<FinancialIncomeDaily>()
                 .eq(FinancialIncomeDaily::getUid, uid)
                 .eq(FinancialIncomeDaily::getRecordId, recordId)

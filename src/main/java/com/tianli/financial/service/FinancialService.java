@@ -61,7 +61,7 @@ public interface FinancialService {
      * 校验产品是否处于开启状态
      * @param financialProduct 产品
      */
-    void validProduct(FinancialProduct financialProduct);
+    void validProduct(FinancialProduct financialProduct, BigDecimal purchaseAmount);
 
     /**
      * 校验账户额度

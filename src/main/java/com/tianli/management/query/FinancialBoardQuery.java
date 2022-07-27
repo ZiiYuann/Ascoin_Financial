@@ -1,7 +1,7 @@
 package com.tianli.management.query;
 
-import com.tianli.common.TimeUtils;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.tool.time.TimeTool;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -16,7 +16,7 @@ import java.util.Optional;
 @Data
 public class FinancialBoardQuery {
 
-    private TimeUtils.Util timeUtil;
+    private TimeTool.Util timeUtil;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startTime;
@@ -26,7 +26,7 @@ public class FinancialBoardQuery {
 
     public void calTime(){
         Optional.ofNullable(timeUtil).ifPresent(util -> {
-            startTime = TimeUtils.StartOfTime(timeUtil);
+            startTime = TimeTool.StartOfTime(timeUtil);
             endTime = startTime.plusDays(1);
         });
 

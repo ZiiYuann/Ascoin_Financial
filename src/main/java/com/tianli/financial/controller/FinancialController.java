@@ -1,8 +1,8 @@
 package com.tianli.financial.controller;
 
+import cn.hutool.core.date.DateUtil;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.common.PageQuery;
-import com.tianli.common.TimeUtils;
 import com.tianli.exception.Result;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
@@ -11,7 +11,6 @@ import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductType;
-import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.service.FinancialService;
@@ -19,16 +18,17 @@ import com.tianli.financial.vo.ExpectIncomeVO;
 import com.tianli.financial.vo.FinancialProductVO;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.sso.init.RequestInitService;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/financial")
@@ -82,7 +82,7 @@ public class FinancialController {
         productVO.setUserPersonQuota(personUseQuota.getOrDefault(productVO.getId(),BigDecimal.ZERO));
         productVO.setAvailableBalance(accountBalance.getRemain());
         productVO.setPurchaseTime(now);
-        productVO.setStartIncomeTime(TimeUtils.StartOfTime(TimeUtils.Util.DAY).plusDays(1));
+        productVO.setStartIncomeTime(DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(1));
         productVO.setSettleTime(now.plusDays(product.getTerm().getDay()));
         return Result.instance().setData(productVO);
     }

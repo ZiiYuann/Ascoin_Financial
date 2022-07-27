@@ -63,7 +63,10 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
         if(Objects.isNull(financialIncomeAccrue)){
             var incomeAccrueInsert = FinancialIncomeAccrue.builder().id(IdGenerator.financialIncomeAccrueId())
                     .coin(coin).uid(uid).recordId(recordId)
-                    .incomeAmount(amount).createTime(LocalDateTime.now()).build();
+                    .incomeAmount(amount)
+                    .createTime(LocalDateTime.now())
+                    .updateTime(LocalDateTime.now())
+                    .build();
             financialIncomeAccrueMapper.insert(incomeAccrueInsert);
             return;
         }
@@ -93,6 +96,10 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
 
         return accrueIncomeLogs.stream().map(log -> log.getIncomeAmount().multiply(currencyService.getDollarRate(log.getCoin())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal getAmountSum(LocalDateTime endTime) {
+        return financialIncomeAccrueMapper.getAmountSum(endTime);
     }
 
     /**

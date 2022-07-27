@@ -143,7 +143,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         order.setCoin(currencyAdaptType.getCurrencyCoin());
         order.setCreateTime(now);
         order.setRelatedId(orderChargeInfo.getId());
-        orderService.saveOrder(order);
+        orderService.save(order);
 
         //冻结提现数额
         accountBalanceService.freeze(uid, ChargeType.withdraw, currencyAdaptType.getCurrencyCoin()
@@ -182,7 +182,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         order.setCoin(record.getCoin());
         order.setCreateTime(now);
         order.setCompleteTime(now);
-        orderService.saveOrder(order);
+        orderService.save(order);
 
         // 扣除持有金额
         financialRecordService.redeem(recordId, query.getRedeemAmount());
@@ -335,7 +335,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .relatedId(orderChargeInfo.getId())
                 .build();
 
-        orderService.saveOrder(order);
+        orderService.save(order);
         return order.getOrderNo();
     }
 
