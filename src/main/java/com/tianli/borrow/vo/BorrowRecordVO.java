@@ -17,6 +17,8 @@ public class BorrowRecordVO {
 
         private String record;
 
+        private String recordEn;
+
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
         private LocalDateTime time;
 

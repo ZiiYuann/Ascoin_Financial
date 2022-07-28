@@ -280,10 +280,12 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         List<BorrowRecordVO.Record> records = new ArrayList<>();
         BorrowRecordVO.Record record = new BorrowRecordVO.Record();
         record.setRecord("订单创建");
+        record.setRecordEn("create order");
         record.setTime(borrowCoinOrder.getCreateTime());
         records.add(record);
         record = new BorrowRecordVO.Record();
         record.setRecord("借币中");
+        record.setRecordEn("borrowing");
         record.setTime(LocalDateTime.now());
         records.add(record);
         record = new BorrowRecordVO.Record();
@@ -292,9 +294,11 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         long borrowDuration ;
         if(status.equals(BorrowOrderStatus.SUCCESSFUL_REPAYMENT)){
             record.setRecord("还款成功");
+            record.setRecordEn("successful repayment");
             borrowDuration = DateUtil.between(TimeTool.toDate(borrowCoinOrder.getCreateTime()) ,TimeTool.toDate(borrowCoinOrder.getSettlementTime()), DateUnit.HOUR);
         }else if (status.equals(BorrowOrderStatus.FORCED_LIQUIDATION)){
             record.setRecord("已平仓");
+            record.setRecordEn("liquidated");
             borrowDuration = DateUtil.between(TimeTool.toDate(borrowCoinOrder.getCreateTime()) ,TimeTool.toDate(borrowCoinOrder.getSettlementTime()), DateUnit.HOUR);
         }else {
             borrowDuration = DateUtil.between(TimeTool.toDate(borrowCoinOrder.getCreateTime()),new Date(), DateUnit.HOUR);
