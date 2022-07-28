@@ -18,6 +18,7 @@ import com.tianli.chain.service.contract.ContractService;
 import com.tianli.charge.converter.ChargeConverter;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderChargeInfo;
+import com.tianli.charge.enums.ChargeGroup;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderMapper;
@@ -428,13 +429,13 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     /**
      * 获取分页数据
      */
-    public IPage<OrderChargeInfoVO> pageByChargeType(Long uid, CurrencyCoin currencyCoin, ChargeType chargeType, Page<Order> page) {
+    public IPage<OrderChargeInfoVO> pageByChargeGroup(Long uid, CurrencyCoin currencyCoin, ChargeGroup chargeGroup, Page<Order> page) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)
                 .eq(Order::getCoin, currencyCoin)
                 .orderByDesc(Order::getCreateTime);
-        if (Objects.nonNull(chargeType)) {
-            wrapper = wrapper.eq(Order::getType, chargeType);
+        if (Objects.nonNull(chargeGroup)) {
+            wrapper = wrapper.in(Order::getType, chargeGroup.getChargeTypes());
         }
         Page<Order> charges = this.page(page, wrapper);
         return charges.convert(chargeConverter::toVO);

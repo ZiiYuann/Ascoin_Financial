@@ -5,7 +5,7 @@ import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.vo.AddressVO;
 import com.tianli.charge.entity.Order;
-import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.enums.ChargeGroup;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -128,9 +128,9 @@ public class AccountController {
      * 获取余额详情信息
      */
     @GetMapping("/balance/details")
-    public Result accountBalanceDetails(PageQuery<Order> query, ChargeType chargeType, CurrencyCoin coin) {
+    public Result accountBalanceDetails(PageQuery<Order> query, ChargeGroup chargeGroup, CurrencyCoin coin) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(chargeService.pageByChargeType(uid,coin, chargeType, query.page()));
+        return Result.instance().setData(chargeService.pageByChargeGroup(uid,coin, chargeGroup, query.page()));
     }
 
 }

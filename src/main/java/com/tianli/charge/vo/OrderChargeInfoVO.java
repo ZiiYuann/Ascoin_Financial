@@ -82,4 +82,15 @@ public class OrderChargeInfoVO {
 
     private String logo;
 
+    private String typeName;
+
+    private String typeNameEn;
+
+    public String getTypeName() {
+        return type.getNameEn();
+    }
+
+    public String getTypeNameEn() {
+        return type.getNameZn();
+    }
 }
