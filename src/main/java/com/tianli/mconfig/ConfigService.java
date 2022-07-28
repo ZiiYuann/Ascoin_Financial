@@ -21,7 +21,7 @@ import java.util.List;
 public class ConfigService extends ServiceImpl<ConfigMapper, Config> {
 
     public static List<String> encryptList = Arrays.asList(
-            "main_wallet_password", "s3_AWSAccessKeyId", "s3_AWSSecretAccessKey",
+            "main_wallet_password", "s3_AWSSecretAccessKey",
             "tron_private_key"
     );
 

@@ -38,7 +38,7 @@ public class DataSecurityTool {
 //        return dataSecurityProperties.getPrivateKey();
 //    }
     public String privateKey() {
-        return Base64.decode(privateKey);
+        return privateKey;
     }
 
     public BigInteger bigIntegerPrivateKey() {
