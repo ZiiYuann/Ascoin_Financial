@@ -18,7 +18,8 @@ import com.tianli.borrow.bo.AdjustPledgeBO;
 import com.tianli.borrow.bo.BorrowOrderBO;
 import com.tianli.borrow.bo.BorrowOrderRepayBO;
 import com.tianli.borrow.entity.*;
-import com.tianli.borrow.enums.BorrowOrderStatisticsType;
+import com.tianli.borrow.enums.BorrowStatisticsChartDay;
+import com.tianli.borrow.enums.BorrowStatisticsType;
 import com.tianli.borrow.query.BorrowInterestRecordQuery;
 import com.tianli.borrow.query.BorrowOrderQuery;
 import com.tianli.borrow.query.BorrowPledgeRecordQuery;
@@ -592,7 +593,21 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     }
 
     @Override
-    public BorrowOrderStatisticsVO statistics(Date startTime, Date endTime) {
+    public BorrowOrderStatisticsVO statistics(BorrowStatisticsChartDay chartDay,Date startTime, Date endTime) {
+
+        if(Objects.isNull(chartDay) && Objects.isNull(startTime) && Objects.isNull(endTime)){
+            chartDay = BorrowStatisticsChartDay.day;
+        }
+        if(Objects.nonNull(chartDay)){
+            endTime = null;
+            if(chartDay == BorrowStatisticsChartDay.day){
+                startTime = DateUtil.beginOfDay(new Date());
+            }else if (chartDay == BorrowStatisticsChartDay.week){
+                startTime = DateUtil.beginOfWeek(new Date());
+            }else {
+                startTime = DateUtil.beginOfMonth(new Date());
+            }
+        }
         BigDecimal borrowAmount = borrowCoinOrderMapper.selectBorrowCapitalSumByBorrowTime(startTime, endTime);
         BigDecimal pledgeAmount = borrowPledgeRecordMapper.selectAmountSumByTime(startTime, endTime);
         BigDecimal interestAmount = borrowInterestRecordMapper.selectInterestSumByTime(startTime, endTime);
@@ -605,7 +620,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     }
 
     @Override
-    public List<BorrowOrderStatisticsChartVO> statisticsChart(BorrowOrderStatisticsType statisticsType) {
+    public List<BorrowOrderStatisticsChartVO> statisticsChart(BorrowStatisticsType statisticsType) {
         int offsetDay = -14;
         //获取14天前零点时间
         DateTime beginOfDay = DateUtil.beginOfDay(DateUtil.offsetDay(new Date(), offsetDay));

@@ -31,10 +31,8 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
     @Select("SELECT ifnull(SUM(pledge_amount),0.0) FROM borrow_coin_order where uid = #{uid}")
     BigDecimal selectPledgeAmountByUid(Long uid);
 
-    @Select("SELECT ifnull(SUM(borrow_capital),0.0) FROM borrow_coin_order where borrow_time >= #{startTime} and borrow_time<= #{endTime}")
     BigDecimal selectBorrowCapitalSumByBorrowTime(@Param("startTime")Date startTime,@Param("endTime") Date endTime);
 
-    @Select("SELECT ifnull(count(*),0) FROM borrow_coin_order where status = #{status} and borrow_time >= #{startTime} and borrow_time<= #{endTime}")
     Integer selectCountByBorrowTime(@Param("status") Integer status , @Param("startTime")Date startTime,@Param("endTime") Date endTime);
 
     @Select("SELECT DATE_FORMAT(borrow_time,'%Y-%m-%d') time,SUM(borrow_capital) amount FROM borrow_coin_order\n" +

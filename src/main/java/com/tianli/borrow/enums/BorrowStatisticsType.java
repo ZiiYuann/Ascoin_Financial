@@ -1,6 +1,6 @@
 package com.tianli.borrow.enums;
 
-public enum BorrowOrderStatisticsType {
+public enum BorrowStatisticsType {
     borrow,
     pledge,
     interest,

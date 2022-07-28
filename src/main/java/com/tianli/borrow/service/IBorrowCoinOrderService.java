@@ -9,7 +9,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.borrow.entity.BorrowInterestRecord;
 import com.tianli.borrow.entity.BorrowPledgeRecord;
 import com.tianli.borrow.entity.BorrowRepayRecord;
-import com.tianli.borrow.enums.BorrowOrderStatisticsType;
+import com.tianli.borrow.enums.BorrowStatisticsChartDay;
+import com.tianli.borrow.enums.BorrowStatisticsType;
 import com.tianli.borrow.query.BorrowInterestRecordQuery;
 import com.tianli.borrow.query.BorrowOrderQuery;
 import com.tianli.borrow.query.BorrowPledgeRecordQuery;
@@ -58,8 +59,8 @@ public interface IBorrowCoinOrderService extends IService<BorrowCoinOrder> {
 
     void forcedLiquidation(Long orderId);
 
-    BorrowOrderStatisticsVO statistics(Date startTime,Date endTime);
+    BorrowOrderStatisticsVO statistics(BorrowStatisticsChartDay chartDay,Date startTime, Date endTime);
 
-    List<BorrowOrderStatisticsChartVO> statisticsChart(BorrowOrderStatisticsType statisticsType);
+    List<BorrowOrderStatisticsChartVO> statisticsChart(BorrowStatisticsType statisticsType);
 
 }

@@ -21,7 +21,6 @@ import java.util.List;
  */
 @Mapper
 public interface BorrowInterestRecordMapper extends BaseMapper<BorrowInterestRecord> {
-    @Select("SELECT ifnull(SUM(interest_accrual),0) FROM borrow_interest_record where interest_accrual_time >= #{startTime} and interest_accrual_time <= #{endTime}")
     BigDecimal selectInterestSumByTime(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
 
     @Select("SELECT DATE_FORMAT(interest_accrual_time,'%Y-%m-%d') time,SUM(interest_accrual)amount FROM borrow_interest_record\n" +

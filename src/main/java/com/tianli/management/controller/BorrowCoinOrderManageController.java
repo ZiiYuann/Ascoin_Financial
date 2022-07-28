@@ -5,7 +5,8 @@ import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.tianli.borrow.entity.BorrowInterestRecord;
 import com.tianli.borrow.entity.BorrowPledgeRecord;
 import com.tianli.borrow.entity.BorrowRepayRecord;
-import com.tianli.borrow.enums.BorrowOrderStatisticsType;
+import com.tianli.borrow.enums.BorrowStatisticsChartDay;
+import com.tianli.borrow.enums.BorrowStatisticsType;
 import com.tianli.borrow.query.BorrowInterestRecordQuery;
 import com.tianli.borrow.query.BorrowOrderQuery;
 import com.tianli.borrow.query.BorrowPledgeRecordQuery;
@@ -91,9 +92,10 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/statistics")
-    public Result statistics(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date startTime,
-                             @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") @RequestParam Date endTime){
-        BorrowOrderStatisticsVO statistics = borrowCoinOrderService.statistics(startTime, endTime);
+    public Result statistics(@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date startTime,
+                             @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date endTime,
+                             BorrowStatisticsChartDay day){
+        BorrowOrderStatisticsVO statistics = borrowCoinOrderService.statistics(day,startTime, endTime);
         return Result.success(statistics);
     }
 
@@ -103,7 +105,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/statistics/chart")
-    public Result statisticsChart(@RequestParam BorrowOrderStatisticsType statisticsType){
+    public Result statisticsChart(@RequestParam BorrowStatisticsType statisticsType){
         List<BorrowOrderStatisticsChartVO> borrowOrderStatisticsChartVOS = borrowCoinOrderService.statisticsChart(statisticsType);
         return Result.success(borrowOrderStatisticsChartVOS);
     }

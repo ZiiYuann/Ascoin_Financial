@@ -54,7 +54,7 @@ public class BorrowInterestTask {
         String hour = String.format("%s_%s_%s", now.getMonthValue(), now.getDayOfMonth(),now.getHour());
         String redisKey = RedisLockConstants.BORROW_INCOME_TASK + hour;
         BoundValueOperations<String, Object> operation = redisTemplate.boundValueOps(redisKey);
-        operation.setIfAbsent(0, 30, TimeUnit.MINUTES);
+        operation.setIfAbsent(0, 1, TimeUnit.HOURS);
 
         BorrowCoinConfig coinConfig = borrowCoinConfigMapper.selectOne(new QueryWrapper<BorrowCoinConfig>().lambda()
                 .eq(BorrowCoinConfig::getCoin, CurrencyCoin.usdt.getName()));
