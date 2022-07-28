@@ -74,6 +74,12 @@ public class BorrowCoinOrderManageController {
         return Result.success(page);
     }
 
+    @GetMapping("/order/interest/amount")
+    public Result interestAmount( @Valid BorrowInterestRecordQuery query){
+        AmountVO amountVO = borrowCoinOrderService.interestAmount(query);
+        return Result.success(amountVO);
+    }
+
     /**
      * 还款记录
      * @param

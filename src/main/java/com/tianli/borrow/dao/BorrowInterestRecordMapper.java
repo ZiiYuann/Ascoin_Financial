@@ -2,6 +2,7 @@ package com.tianli.borrow.dao;
 
 import com.tianli.borrow.entity.BorrowInterestRecord;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.tianli.borrow.query.BorrowInterestRecordQuery;
 import com.tianli.borrow.vo.BorrowOrderStatisticsChartVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -21,7 +22,7 @@ import java.util.List;
  */
 @Mapper
 public interface BorrowInterestRecordMapper extends BaseMapper<BorrowInterestRecord> {
-    BigDecimal selectInterestSumByTime(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
+    BigDecimal selectInterestSumByQuery(BorrowInterestRecordQuery query);
 
     @Select("SELECT DATE_FORMAT(interest_accrual_time,'%Y-%m-%d') time,SUM(interest_accrual)amount FROM borrow_interest_record\n" +
             "WHERE interest_accrual_time >= #{startTime}\n" +

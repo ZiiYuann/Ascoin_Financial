@@ -345,8 +345,33 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     }
 
     @Override
+    public AmountVO interestAmount(BorrowInterestRecordQuery query) {
+        return new AmountVO(borrowInterestRecordMapper.selectInterestSumByQuery(query)) ;
+    }
+
+    @Override
     public IPage<BorrowRepayRecordVO> repayRecord(PageQuery<BorrowRepayRecord> pageQuery, BorrowRepayQuery query) {
-        LambdaQueryWrapper<BorrowRepayRecord> queryWrapper = getBorrowRepayRecordLambdaQueryWrapper(query);
+        LambdaQueryWrapper<BorrowRepayRecord> queryWrapper = new QueryWrapper<BorrowRepayRecord>().lambda();
+
+        if(Objects.nonNull(query.getOrderId())){
+            queryWrapper.eq(BorrowRepayRecord::getOrderId, query.getOrderId());
+        }
+
+        if(Objects.nonNull(query.getType())){
+            queryWrapper.eq(BorrowRepayRecord::getType, query.getType());
+        }
+
+        if(Objects.nonNull(query.getStatus())){
+            queryWrapper.eq(BorrowRepayRecord::getStatus, query.getStatus());
+        }
+
+        if(Objects.nonNull(query.getStartTime())){
+            queryWrapper.ge(BorrowRepayRecord::getRepayTime, query.getStartTime());
+        }
+
+        if(Objects.nonNull(query.getEndTime())){
+            queryWrapper.le(BorrowRepayRecord::getRepayTime, query.getEndTime());
+        }
 
         queryWrapper.orderByDesc(BorrowRepayRecord::getRepayTime);
         return borrowRepayRecordMapper.selectPage(pageQuery.page(),queryWrapper).convert(borrowConverter::toRepayVO);
@@ -355,8 +380,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
     @Override
     public AmountVO repayAmount(BorrowRepayQuery query) {
-        LambdaQueryWrapper<BorrowRepayRecord> queryWrapper = getBorrowRepayRecordLambdaQueryWrapper(query);
-        return null;
+        BigDecimal repaySum = borrowRepayRecordMapper.selectRepaySumQuery(query);
+        return new AmountVO(repaySum);
     }
 
     @Override
@@ -605,7 +630,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         }
         BigDecimal borrowAmount = borrowCoinOrderMapper.selectBorrowCapitalSumByBorrowTime(startTime, endTime);
         BigDecimal pledgeAmount = borrowPledgeRecordMapper.selectAmountSumByTime(startTime, endTime);
-        BigDecimal interestAmount = borrowInterestRecordMapper.selectInterestSumByTime(startTime, endTime);
+        BigDecimal interestAmount = borrowInterestRecordMapper.selectInterestSumByQuery(BorrowInterestRecordQuery.builder().startTime(startTime).endTime(endTime).build());
         Integer orderNum = borrowCoinOrderMapper.selectCountByBorrowTime(BorrowOrderStatus.INTEREST_ACCRUAL,startTime, endTime);
         return BorrowOrderStatisticsVO.builder()
                 .borrowAmount(borrowAmount)

@@ -2,7 +2,23 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tianli.borrow.dao.BorrowInterestRecordMapper">
 
-    <select id="selectInterestSumByTime" resultType="decimal">
+    <select id="selectInterestSumByQuery" resultType="decimal">
+        SELECT ifnull(SUM(interest_accrual),0)
+        FROM borrow_interest_record
+        <where>
+            <if test="orderId != null">
+                order_id = #{orderId}
+            </if>
+            <if test="startTime != null">
+                and interest_accrual_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null">
+                and interest_accrual_time &lt;= #{endTime}
+            </if>
+        </where>
+
+    </select>
+    <select id="selectAmountByQuery" resultType="decimal">
         SELECT ifnull(SUM(interest_accrual),0)
         FROM borrow_interest_record
         <where>
@@ -13,7 +29,5 @@
                 and interest_accrual_time &lt;= #{endTime}
             </if>
         </where>
-
-
     </select>
 </mapper>

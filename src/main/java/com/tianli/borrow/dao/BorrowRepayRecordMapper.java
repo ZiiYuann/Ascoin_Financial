@@ -2,7 +2,10 @@ package com.tianli.borrow.dao;
 
 import com.tianli.borrow.entity.BorrowRepayRecord;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.tianli.borrow.query.BorrowRepayQuery;
 import org.apache.ibatis.annotations.Mapper;
+
+import java.math.BigDecimal;
 
 /**
  * <p>
@@ -14,5 +17,5 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface BorrowRepayRecordMapper extends BaseMapper<BorrowRepayRecord> {
-
+    BigDecimal selectRepaySumQuery(BorrowRepayQuery query);
 }
