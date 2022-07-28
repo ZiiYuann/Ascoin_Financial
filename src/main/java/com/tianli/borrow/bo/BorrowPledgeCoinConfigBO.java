@@ -34,7 +34,7 @@ public class BorrowPledgeCoinConfigBO{
     private BigDecimal initialPledgeRate;
 
     /**
-     * 警告质押率
+     * 预警质押率
      */
     private BigDecimal warnPledgeRate;
 

@@ -25,4 +25,6 @@ public interface IBorrowPledgeCoinConfigService extends IService<BorrowPledgeCoi
     void delConfig(Long[] ids);
 
     IPage<BorrowPledgeCoinConfigVO> pageList(PageQuery<BorrowPledgeCoinConfig> pageQuery, CurrencyCoin coin);
+
+    BorrowPledgeCoinConfig getByCoin(CurrencyCoin coin);
 }

@@ -3,6 +3,7 @@ package com.tianli.borrow.dao;
 import com.tianli.borrow.entity.BorrowPledgeCoinConfig;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Update;
 
 /**
  * <p>
@@ -15,4 +16,6 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface BorrowPledgeCoinConfigMapper extends BaseMapper<BorrowPledgeCoinConfig> {
 
+    @Update("update borrow_pledge_coin_config set  is_del = 1 where id = #{id}")
+    void loginDel(Long id);
 }
