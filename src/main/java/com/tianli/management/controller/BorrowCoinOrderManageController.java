@@ -94,8 +94,8 @@ public class BorrowCoinOrderManageController {
     @GetMapping("/order/statistics")
     public Result statistics(@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date startTime,
                              @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date endTime,
-                             BorrowStatisticsChartDay day){
-        BorrowOrderStatisticsVO statistics = borrowCoinOrderService.statistics(day,startTime, endTime);
+                             BorrowStatisticsChartDay date){
+        BorrowOrderStatisticsVO statistics = borrowCoinOrderService.statistics(date,startTime, endTime);
         return Result.success(statistics);
     }
 
