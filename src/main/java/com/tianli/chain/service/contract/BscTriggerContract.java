@@ -2,6 +2,9 @@ package com.tianli.chain.service.contract;
 
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.BscBlockChainActuator;
+import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.common.blockchain.NetworkType;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
 import lombok.extern.slf4j.Slf4j;
@@ -83,6 +86,28 @@ public class BscTriggerContract extends ContractService{
         } catch (Exception ignored) {
             return null;
         }
+    }
+
+    @Override
+    public Result transfer(String to, BigInteger val, CurrencyCoin coin) {
+        String address = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
+        String password = configService.get(ConfigConstants.MAIN_WALLET_PASSWORD);
+        long nonce = bscBlockChainActuator.getNonce(address);
+        Result result = null;
+        try {
+            CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(coin, NetworkType.bep20);
+            result = bscBlockChainActuator.tokenSendRawTransaction(nonce,
+                    currencyAdaptType.getContractAddress(),
+                    FunctionEncoder.encode(
+                            new Function("transfer", List.of(new Address(to), new Uint(val)), new ArrayList<>())
+                    ),
+                    configService.getOrDefault(ConfigConstants.BSC_GAS_PRICE,"5"),
+                    configService.getOrDefault(ConfigConstants.BSC_GAS_LIMIT,"800000"),
+                    password, String.format("转账%s",coin.getName()));
+        } catch (Exception ignored) {
+        }
+
+        return result;
     }
 
     public BigInteger bep20Balance(String address, String contract) {

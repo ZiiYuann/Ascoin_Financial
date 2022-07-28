@@ -33,8 +33,8 @@ public class ChainTxDetailVO {
     public static ChainTxDetailVO trans(ChainTx chainTx) {
         ChainTxDetailVO chainTxDetailVO = new ChainTxDetailVO();
         BeanUtils.copyProperties(chainTx, chainTxDetailVO);
-        chainTxDetailVO.setAmount(chainTx.getCurrency_type().money(chainTx.getAmount()));
-        chainTxDetailVO.setOther_amount(chainTx.getCurrency_type().money(chainTx.getOther_amount()));
+        chainTxDetailVO.setAmount(chainTx.getCurrency_type().alignment(chainTx.getAmount()));
+        chainTxDetailVO.setOther_amount(chainTx.getCurrency_type().alignment(chainTx.getOther_amount()));
         return chainTxDetailVO;
     }
 }

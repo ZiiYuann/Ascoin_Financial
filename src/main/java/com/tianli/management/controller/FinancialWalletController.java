@@ -79,13 +79,18 @@ public class FinancialWalletController {
         return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(), query));
     }
 
+    /**
+     * 审核详情信息
+     */
     @GetMapping("/order/withdraw/review/{orderNo}")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result orderReview(@PathVariable String orderNo) {
         return Result.success().setData(orderReviewService.getVOByOrderNo(orderNo));
     }
 
-
+    /**
+     * 管理端审核
+     */
     @PostMapping("/order/withdraw/review")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result orderReview(@RequestBody @Valid OrderReviewQuery query) {

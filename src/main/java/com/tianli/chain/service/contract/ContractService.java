@@ -1,5 +1,7 @@
 package com.tianli.chain.service.contract;
 
+import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.exception.Result;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -28,5 +30,14 @@ public abstract class ContractService {
      * @return 返回交易hash
      */
     public abstract String recycle(String toAddress, List<Long> uids, List<String> addresses);
+
+    /**
+     * 转账
+     * @param to 发送地址
+     * @param coin 币别
+     * @param val 转账数额
+     * @return 交易结果
+     */
+    public abstract Result transfer(String to, BigInteger val, CurrencyCoin coin);
 
 }

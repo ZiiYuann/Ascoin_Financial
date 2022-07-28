@@ -3,14 +3,18 @@ package com.tianli.chain.service;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.tianli.address.mapper.Address;
+import com.tianli.chain.dto.CallbackPathDTO;
 import com.tianli.chain.dto.PushConditionReq;
 import com.tianli.chain.dto.TxConditionReq;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.common.ConfigConstants;
+import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -26,6 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,39 +42,64 @@ import java.util.List;
 @Service
 public class ChainService {
 
-    public void pushCondition(Address address) {
+    public void pushCondition(Address address,CallbackPathDTO urlPath){
         String tron = address.getTron();
         String bsc = address.getBsc();
         String eth = address.getEth();
+        pushCondition(tron,bsc,eth,urlPath);
+    }
 
-        TxConditionReq bscTxConditionReqUsdt = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdt_bep20.getContractAddress()).to(bsc)
-                .chain(ChainType.BSC).build();
-        TxConditionReq bscTxConditionReqUsdc = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdc_bep20.getContractAddress()).to(bsc)
-                .chain(ChainType.BSC).build();
+    public void pushCondition(NetworkType networkType, CurrencyCoin coin, CallbackPathDTO callBackPath, String to){
+        CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(coin, networkType);
+        TxConditionReq txConditionReq = TxConditionReq.builder().contractAddress(currencyAdaptType.getContractAddress())
+                .to(to)
+                .chain(networkType.getChainType()).build();
+        httpPush(List.of(txConditionReq),callBackPath.getPath());
+    }
 
-        TxConditionReq ethTxConditionReqUsdt = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdt_erc20.getContractAddress()).to(eth)
-                .chain(ChainType.ETH).build();
-        TxConditionReq ethTxConditionReqUsdc = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdc_erc20.getContractAddress()).to(eth)
-                .chain(ChainType.ETH).build();
+    public void pushCondition(String tron,String bsc,String eth,CallbackPathDTO urlPath) {
 
-        TxConditionReq tronTxConditionReqUsdt = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdt_trc20.getContractAddress()).to(tron)
-                .chain(ChainType.TRON).build();
-        TxConditionReq tronTxConditionReqUsdc = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdc_trc20.getContractAddress()).to(tron)
-                .chain(ChainType.TRON).build();
-
-        List<TxConditionReq> txConditionReqs = List.of(bscTxConditionReqUsdt, bscTxConditionReqUsdc, ethTxConditionReqUsdt,
-                ethTxConditionReqUsdc,tronTxConditionReqUsdt,tronTxConditionReqUsdc);
-        HttpClient client = HttpClientBuilder.create().build();
-
+        List<TxConditionReq> txConditionReqs = new ArrayList<>();
         String urlPrefix = configService.get(ConfigConstants.SYSTEM_URL_PATH_PREFIX);
+        String url = urlPrefix + urlPath.getPath();
+
+        if(StringUtils.isNotBlank(bsc)){
+            TxConditionReq bscTxConditionReqUsdt = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdt_bep20.getContractAddress()).to(bsc)
+                    .chain(ChainType.BSC).build();
+            TxConditionReq bscTxConditionReqUsdc = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdc_bep20.getContractAddress()).to(bsc)
+                    .chain(ChainType.BSC).build();
+            txConditionReqs.add(bscTxConditionReqUsdt);
+            txConditionReqs.add(bscTxConditionReqUsdc);
+        }
+
+        if(StringUtils.isNotBlank(eth)){
+            TxConditionReq ethTxConditionReqUsdt = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdt_erc20.getContractAddress()).to(eth)
+                    .chain(ChainType.ETH).build();
+            TxConditionReq ethTxConditionReqUsdc = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdc_erc20.getContractAddress()).to(eth)
+                    .chain(ChainType.ETH).build();
+            txConditionReqs.add(ethTxConditionReqUsdt);
+            txConditionReqs.add(ethTxConditionReqUsdc);
+        }
+
+        if(StringUtils.isNotBlank(tron)){
+            TxConditionReq tronTxConditionReqUsdt = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdt_trc20.getContractAddress()).to(tron)
+                    .chain(ChainType.TRON).build();
+            TxConditionReq tronTxConditionReqUsdc = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdc_trc20.getContractAddress()).to(tron)
+                    .chain(ChainType.TRON).build();
+            txConditionReqs.add(tronTxConditionReqUsdt);
+            txConditionReqs.add(tronTxConditionReqUsdc);
+        }
+
+        httpPush(txConditionReqs, url);
+    }
+
+    private void httpPush(List<TxConditionReq> txConditionReqs, String url) {
+        HttpClient client = HttpClientBuilder.create().build();
         String dataCenterUrlPath = configService.get(ConfigConstants.DATA_CENTER_URL_PUSH_PATH);
         String dataCenterCallBackRegisterPath = configService.get(ConfigConstants.DATA_CENTER_URL_REGISTER_PATH);
 
-        String url = urlPrefix + "/api/charge/recharge";
-
         // 注册域名
         try {
-
             var uriBuilder = new URIBuilder(dataCenterCallBackRegisterPath);
             uriBuilder.setParameter("callbackAddress", url);
             HttpPost httpRegisterPost = new HttpPost(uriBuilder.build());
@@ -78,7 +108,7 @@ public class ChainService {
             HttpResponse registerRep = client.execute(httpRegisterPost);
             this.handlerRep(registerRep.getEntity());
 
-            /**
+            /*
              * {@link com.tianli.charge.controller.ChargeController#rechargeCallback}
              */
             PushConditionReq pushConditionReq = PushConditionReq.builder()
@@ -111,5 +141,6 @@ public class ChainService {
 
     @Resource
     private ConfigService configService;
+
 
 }

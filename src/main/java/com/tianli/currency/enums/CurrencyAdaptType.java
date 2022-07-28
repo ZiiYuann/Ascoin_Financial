@@ -25,13 +25,6 @@ public enum CurrencyAdaptType {
     usdc_trc20(CurrencyCoin.usdc, NetworkType.trc20,"TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"),
     usdt_trc20(CurrencyCoin.usdt, NetworkType.trc20,"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t");
 
-    CurrencyAdaptType(CurrencyCoin currencyCoin) {
-        this.fiat = false;
-        this.currencyCoin = currencyCoin;
-        this.network = null;
-        this.contractAddress = null;
-    }
-
     CurrencyAdaptType(CurrencyCoin currencyCoin, NetworkType currencyNetworkType,String contractAddress) {
         this.fiat = false;
         this.network = currencyNetworkType;
@@ -63,7 +56,7 @@ public enum CurrencyAdaptType {
     }
 
 
-    public double money(BigInteger amount) {
+    public double alignment(BigInteger amount) {
         if (amount == null) {
             return 0.0;
         }
@@ -81,11 +74,7 @@ public enum CurrencyAdaptType {
         return 0.0;
     }
 
-    public BigDecimal moneyBigDecimal(BigInteger amount) {
-       return moneyBigDecimal(new BigDecimal(amount));
-    }
-
-    public BigDecimal moneyBigDecimal(BigDecimal amount) {
+    public BigDecimal alignment(BigDecimal amount) {
         if (amount == null) return BigDecimal.ZERO;
         switch (this) {
             case usdt_erc20:
@@ -100,11 +89,11 @@ public enum CurrencyAdaptType {
         return BigDecimal.ZERO;
     }
 
-    public BigInteger amount(double money) {
-        return amount("" + money);
+    public BigInteger restore(double money) {
+        return restore("" + money);
     }
 
-    public BigInteger amount(BigDecimal money) {
+    public BigInteger restore(BigDecimal money) {
         if (money == null) return BigInteger.ZERO;
         switch (this) {
             case usdt_erc20:
@@ -119,9 +108,9 @@ public enum CurrencyAdaptType {
         return BigInteger.ZERO;
     }
 
-    public BigInteger amount(String money) {
+    public BigInteger restore(String money) {
         BigDecimal decimal = new BigDecimal("" + money);
-        return amount(decimal);
+        return restore(decimal);
     }
 
 }

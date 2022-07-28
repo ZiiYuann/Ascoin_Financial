@@ -30,19 +30,19 @@ public class DigitalCurrency {
     public DigitalCurrency(CurrencyAdaptType currencyAdaptType, BigInteger amount) {
         this.currencyAdaptType = currencyAdaptType;
         this.amount = amount;
-        this.money = currencyAdaptType.money(amount);
+        this.money = currencyAdaptType.alignment(amount);
     }
 
     public DigitalCurrency(CurrencyAdaptType currencyAdaptType, double money) {
         this.currencyAdaptType = currencyAdaptType;
-        this.amount = currencyAdaptType.amount(money);
+        this.amount = currencyAdaptType.restore(money);
         this.money = money;
     }
 
     public DigitalCurrency(CurrencyAdaptType currencyAdaptType, String money) {
         this.currencyAdaptType = currencyAdaptType;
-        this.amount = currencyAdaptType.amount(money);
-        this.money = currencyAdaptType.money(this.amount);
+        this.amount = currencyAdaptType.restore(money);
+        this.money = currencyAdaptType.alignment(this.amount);
     }
 
     public DigitalCurrency toOther(CurrencyAdaptType currencyAdaptType) {

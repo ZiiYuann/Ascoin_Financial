@@ -2,9 +2,13 @@ package com.tianli.chain.service.contract;
 
 import com.google.protobuf.ByteString;
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.common.blockchain.EthBlockChainActuator;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.blockchain.SignTransactionResult;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.common.ConfigConstants;
+import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.time.TimeTool;
 import org.apache.commons.lang3.StringUtils;
@@ -43,11 +47,6 @@ import java.util.stream.Collectors;
 @Component
 public class TronTriggerContract extends ContractService {
 
-    @Resource
-    private ConfigService configService;
-    @Resource
-    private WalletGrpc.WalletBlockingStub blockingStub;
-
     @Override
     public String computeAddress(long uid) {
         return computeAddress(BigInteger.valueOf(uid));
@@ -75,30 +74,6 @@ public class TronTriggerContract extends ContractService {
         return Base58Utils.encode58Check(ByteArray.fromHexString("41" + ByteArray.toHexString(constantResult.toByteArray()).substring(24)));
     }
 
-    public String transferUsdt(String toAddress, BigInteger amount) {
-        String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
-        return transfer(ownerAddress, toAddress, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", amount);
-    }
-
-    public String transferUsdc(String toAddress, BigInteger amount) {
-        String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
-        return transfer(ownerAddress, toAddress, "TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8", amount);
-    }
-
-    public String transferToken(String toAddress, BigInteger amount, CurrencyCoin token) {
-        String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
-
-        return transfer(ownerAddress, toAddress, "tokenContract.getContract_address()", amount);
-    }
-
-    /**
-     * trc20代币转账的方法
-     * @param ownerAddress 发送地址
-     * @param toAddress 接收地址
-     * @param contractAddress 合约地址 后续如果需要其他的币种转账，修改这个合约地址即可
-     * @param amount 转账数额
-     * @return
-     */
     public String transfer(String ownerAddress, String toAddress, String contractAddress, BigInteger amount) {
         String data = FunctionEncoder.encode(
                 new Function("transfer",
@@ -117,6 +92,17 @@ public class TronTriggerContract extends ContractService {
                         new DynamicArray(Address.class, trc20AddressList.stream().map(Address::new).collect(Collectors.toList())))
                         , new ArrayList<>()));
         return triggerSmartContract(ownerAddress, contractAddress, data, 1000000000L);
+    }
+
+    @Override
+    public Result transfer(String to, BigInteger val, CurrencyCoin coin) {
+        String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
+        String contractAddress = CurrencyAdaptType.get(coin, NetworkType.erc20).getContractAddress();
+        String data = org.tron.tronj.abi.FunctionEncoder.encode(
+                new org.tron.tronj.abi.datatypes.Function("transfer",
+                        List.of(new org.tron.tronj.abi.datatypes.Address(to), new org.tron.tronj.abi.datatypes.generated.Uint256(val)),
+                        List.of()));
+        return Result.success(triggerSmartContract(ownerAddress, contractAddress, data, 40000000L));
     }
 
     public String triggerSmartContract(String ownerAddress, String contractAddress, String data, long feeLimit) {
@@ -280,4 +266,12 @@ public class TronTriggerContract extends ContractService {
         if (!ret2.getResult()) return null;
         return ByteArray.toHexString(Sha256Sm3Hash.hash(transaction.getRawData().toByteArray()));
     }
+
+
+    @Resource
+    private ConfigService configService;
+    @Resource
+    private WalletGrpc.WalletBlockingStub blockingStub;
+    @Resource
+    private EthBlockChainActuator ethBlockChainActuator;
 }

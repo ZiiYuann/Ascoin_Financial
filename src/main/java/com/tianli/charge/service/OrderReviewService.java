@@ -1,8 +1,10 @@
 package com.tianli.charge.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.charge.converter.ChargeConverter;
 import com.tianli.charge.entity.Order;
+import com.tianli.charge.entity.OrderChargeInfo;
 import com.tianli.charge.entity.OrderReview;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
@@ -28,15 +30,6 @@ import java.util.Optional;
 @Service
 public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderReview> {
 
-    @Resource
-    private ChargeConverter chargeConverter;
-    @Resource
-    private OrderService orderService;
-    @Resource
-    private OrderReviewMapper orderReviewMapper;
-    @Resource
-    private RequestInitService requestInitService;
-
     public OrderReviewVO getVOByOrderNo(String orderNo) {
         Order order = Optional.ofNullable(orderService.getOrderNo(orderNo))
                 .orElseThrow(() -> ErrorCodeEnum.ARGUEMENT_ERROR.generalException("未找到对应的订单：" + orderNo));
@@ -58,11 +51,11 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         Order order = Optional.ofNullable(orderService.getOrderNo(orderNo))
                 .orElseThrow(() -> ErrorCodeEnum.ARGUEMENT_ERROR.generalException("未找到对应的订单：" + orderNo));
 
-        if(!ChargeType.withdraw.equals(order.getType())){
+        if (!ChargeType.withdraw.equals(order.getType())) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "仅限制提现订单能通过审核");
         }
         if (Objects.nonNull(order.getReviewerId()) || !ChargeStatus.created.equals(order.getStatus())) {
-            ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "已存在审核记录，reviewId: " +order.getReviewerId());
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "已存在审核记录，reviewId: " + order.getReviewerId());
         }
         ChargeStatus status = query.isPass() ? ChargeStatus.chaining : ChargeStatus.review_fail;
         LocalDateTime now = LocalDateTime.now();
@@ -73,15 +66,34 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
                 .createTime(now).build();
         orderReviewMapper.insert(orderReview);
 
+        // 审核通过需要上链
+        if (query.isPass()) {
+            chargeService.withdrawChain(order);
+        }
+        // 审核不通过需要解冻金额
+        if (!query.isPass()) {
+            accountBalanceService.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), orderNo, "提现申请未通过");
+        }
+
         order.setStatus(status);
         order.setReviewerId(orderReview.getId());
         orderService.saveOrUpdate(order);
-
-        if(query.isPass()){
-            // todo 进行提现
-        }
     }
 
+    @Resource
+    private ChargeConverter chargeConverter;
+    @Resource
+    private OrderService orderService;
+    @Resource
+    private OrderReviewMapper orderReviewMapper;
+    @Resource
+    private RequestInitService requestInitService;
+    @Resource
+    private ChargeService chargeService;
+    @Resource
+    private AccountBalanceService accountBalanceService;
+    @Resource
+    private OrderChargeInfoService orderChargeInfoService;
 
 
 }

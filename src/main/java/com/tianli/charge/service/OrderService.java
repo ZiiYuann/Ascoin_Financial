@@ -65,6 +65,11 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
         return true;
     }
 
+    public Order getOrderByHash(String hash){
+        OrderChargeInfo orderChargeInfo = this.getOrderChargeByTxid(hash);
+        return orderMapper.selectOne(new LambdaQueryWrapper<Order>().eq(Order :: getRelatedId, orderChargeInfo.getId()));
+    }
+
     /**
      * 通过交易hash查询 区块链订单信息
      */

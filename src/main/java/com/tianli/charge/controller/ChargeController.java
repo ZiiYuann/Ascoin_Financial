@@ -1,7 +1,6 @@
 package com.tianli.charge.controller;
 
 import cn.hutool.core.map.MapUtil;
-import com.google.gson.Gson;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.query.RedeemQuery;
@@ -16,7 +15,6 @@ import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.FinancialOrdersQuery;
-import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.crypto.Crypto;
 import lombok.extern.slf4j.Slf4j;
@@ -40,10 +38,6 @@ import java.util.Objects;
 @RequestMapping("/charge")
 public class ChargeController {
 
-    @Resource
-    private Gson gson;
-    @Resource
-    private ConfigService configService;
     @Resource
     private ChargeService chargeService;
     @Resource
@@ -77,12 +71,37 @@ public class ChargeController {
     }
 
     /**
+     * 充值回调
+     */
+    @RequestMapping(value = {"/withdraw/{chain}","/withdraw"} , produces = "text/plain")
+    public String withdrawCallback(@PathVariable(required = false) ChainType chain,
+                                   @RequestBody(required = false) String str ,
+                                   @RequestHeader("Sign") String sign,
+                                   @RequestHeader("timestamp") String timestamp) {
+        if (chain == null) { //等于ping
+            return "success";
+        }
+
+        if (Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp", timestamp).equals(sign)) {
+            long l = LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8"));
+            if ((Long.parseLong(timestamp) + 10) >= l) {
+                log.info("验签成功， {},充值信息为：{}", sign,str);
+                chargeService.withdrawCallback(str);
+                return "success";
+            } else {
+                throw ErrorCodeEnum.SIGN_ERROR.generalException();
+            }
+        }
+           throw ErrorCodeEnum.SIGN_ERROR.generalException();
+    }
+
+    /**
      * 提现申请
      */
     @PostMapping("/withdraw/apply")
     public Result withdraw(@RequestBody @Valid WithdrawQuery withdrawDTO) {
         Long uid = requestInitService.uid();
-        chargeService.withdraw(uid,withdrawDTO);
+        chargeService.withdrawApply(uid,withdrawDTO);
         return Result.instance();
     }
 

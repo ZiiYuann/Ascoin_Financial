@@ -1,8 +1,10 @@
 package com.tianli.chain.service.contract;
 
 import com.tianli.common.ConfigConstants;
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.EthBlockChainActuator;
-import com.tianli.exception.Result;
+import com.tianli.common.blockchain.NetworkType;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
 import lombok.extern.slf4j.Slf4j;
@@ -28,15 +30,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class EthTriggerContract extends ContractService {
-
-    @Resource
-    private ConfigService configService;
-
-    @Resource
-    private JsonRpc2_0Web3j ethWeb3j;
-
-    @Resource
-    private EthBlockChainActuator ethBlockChainActuator;
 
     @Override
     public String computeAddress(long uid) throws IOException {
@@ -101,16 +94,32 @@ public class EthTriggerContract extends ContractService {
         balanceOf = list.get(0).getValue().toString();
         return new BigInteger(balanceOf);
     }
-
-    public BigInteger ethBalance(String address) {
-        BigInteger balanceOf = null;
+    @Override
+    public Result transfer(String to, BigInteger val, CurrencyCoin coin) {
+        String address = configService.get(ConfigConstants.ETH_MAIN_WALLET_ADDRESS);
+        long nonce = ethBlockChainActuator.getNonce(address);
+        String password = configService.get(ConfigConstants.MAIN_WALLET_PASSWORD);
+        Result result = null;
         try {
-            balanceOf = ethWeb3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send().getBalance();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return BigInteger.ZERO;
+            //后续如果需要其他的币种转账  修改这个合约地址即可
+            String contractAddress = CurrencyAdaptType.get(coin, NetworkType.erc20).getContractAddress();
+            result = ethBlockChainActuator.tokenSendRawTransaction(nonce,
+                    contractAddress,
+                    org.web3j.abi.FunctionEncoder.encode(
+                            new org.web3j.abi.datatypes.Function("transfer", List.of(new org.web3j.abi.datatypes.Address(to), new org.web3j.abi.datatypes.Uint(val)), new ArrayList<>())
+                    ),
+                    ethBlockChainActuator.getPrice(),
+                    configService.getOrDefault(ConfigConstants.ETH_GAS_LIMIT,"200000"),
+                    password, String.format("转账%s",coin.getName()));
+        } catch (Exception ignored) {
         }
-        return balanceOf;
+        return result;
     }
+
+    @Resource
+    private ConfigService configService;
+    @Resource
+    private JsonRpc2_0Web3j ethWeb3j;
+    @Resource
+    private EthBlockChainActuator ethBlockChainActuator;
 }

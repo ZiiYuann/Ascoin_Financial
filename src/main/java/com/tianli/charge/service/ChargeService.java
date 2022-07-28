@@ -9,8 +9,12 @@ import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
+import com.tianli.chain.dto.CallbackPathDTO;
 import com.tianli.chain.dto.TRONTokenReq;
+import com.tianli.chain.service.ChainService;
 import com.tianli.chain.service.WalletImputationService;
+import com.tianli.chain.service.contract.BaseContractService;
+import com.tianli.chain.service.contract.ContractService;
 import com.tianli.charge.converter.ChargeConverter;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderChargeInfo;
@@ -29,6 +33,7 @@ import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.exception.Result;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
@@ -43,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -73,24 +79,53 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(req.getContractAddress());
             Address address = getAddress(currencyAdaptType.getNetwork(), req.getTo());
             Long uid = address.getUid();
-            BigDecimal finalAmount = currencyAdaptType.moneyBigDecimal(req.getValue());
+            BigDecimal finalAmount = currencyAdaptType.alignment(req.getValue());
 
             if (orderService.getOrderChargeByTxid(req.getHash()) != null) {
                 log.error("txid {} 已经存在充值订单", req.getHash());
                 ErrorCodeEnum.TRADE_FAIL.throwException();
             }
             // 生成订单数据
-            String orderNo = insertRechargeOrder(uid,req, currencyAdaptType, finalAmount, req.getValue());
+            String orderNo = insertRechargeOrder(uid, req, currencyAdaptType, finalAmount, req.getValue());
             // 操作余额信息
             accountBalanceService.increase(uid, ChargeType.recharge, currencyAdaptType.getCurrencyCoin()
                     , currencyAdaptType.getNetwork(), finalAmount, orderNo, CurrencyLogDes.充值.name());
             // 操作归集信息
-            walletImputationService.insert(uid, currencyAdaptType, req,finalAmount);
+            walletImputationService.insert(uid, currencyAdaptType, req, finalAmount);
         }
     }
 
+    /**
+     * 提现回调
+     *
+     * @param str 提现信息
+     */
     @Transactional
-    public void withdraw(Long uid, WithdrawQuery query) {
+    public void withdrawCallback(String str) {
+        var jsonArray = JSONUtil.parseObj(str).getJSONArray("token");
+        List<TRONTokenReq> tronTokenReqs = JSONUtil.toList(jsonArray, TRONTokenReq.class);
+
+        for (TRONTokenReq req : tronTokenReqs) {
+            CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(req.getContractAddress());
+            Address address = getAddress(currencyAdaptType.getNetwork(), req.getTo());
+            Long uid = address.getUid();
+            BigDecimal finalAmount = currencyAdaptType.alignment(req.getValue());
+            Order order = orderService.getOrderByHash(req.getHash());
+
+            // 操作余额信息
+            accountBalanceService.reduce(uid, ChargeType.withdraw, currencyAdaptType.getCurrencyCoin()
+                    , currencyAdaptType.getNetwork(), finalAmount,order.getOrderNo() , "提现成功扣除");
+            order.setStatus(ChargeStatus.chain_success);
+            order.setCompleteTime(LocalDateTime.now());
+            orderService.saveOrUpdate(order);
+        }
+    }
+
+    /**
+     * 提现申请
+     */
+    @Transactional
+    public void withdrawApply(Long uid, WithdrawQuery query) {
         CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(query.getCoin(), query.getNetwork());
 
         // 计算手续费  实际手续费 = 提现数额 * 手续费率 + 固定手续费数额
@@ -99,19 +134,21 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         // 手续费率
         String rate = configService.get(currencyAdaptType.name() + "_withdraw_rate");
         // 固定手续费数额
-        String fixedAmount = configService.get(currencyAdaptType.name() + "_withdraw_fixed_amount");
+        String fixedAmount = configService.get(currencyAdaptType.name() + "_withdraw_current_amount");
 
         // 提现数额
-        BigDecimal withdrawAmount = currencyAdaptType.moneyBigDecimal(BigDecimal.valueOf(query.getAmount()));
-        if (BigDecimal.valueOf(query.getAmount()).compareTo(new BigDecimal(withdrawMinAmount)) < 0) ErrorCodeEnum.throwException("提现数额过小");
+        BigDecimal withdrawAmount = currencyAdaptType.alignment(BigDecimal.valueOf(query.getAmount()));
+        if (BigDecimal.valueOf(query.getAmount()).compareTo(new BigDecimal(withdrawMinAmount)) < 0)
+            ErrorCodeEnum.throwException("提现数额过小");
 
         // 手续费
         BigDecimal serviceAmount = (withdrawAmount.multiply(new BigDecimal(StringUtils.isNotBlank(rate) ? rate : "0")))
                 .add(new BigDecimal(StringUtils.isNotBlank(fixedAmount) ? fixedAmount : "0"));
-        BigDecimal realAmount = withdrawAmount.subtract(serviceAmount);
+        BigDecimal realWithdrawAmount = withdrawAmount.subtract(serviceAmount);
 
         if (serviceAmount.compareTo(BigDecimal.ZERO) < 0) ErrorCodeEnum.FEE_LT_ZERO_ERROR.throwException();
-        if (realAmount.compareTo(BigDecimal.ZERO) < 0) ErrorCodeEnum.WITHDRAWAL_AMOUNT_LT_FEE_ERROR.throwException();
+        if (realWithdrawAmount.compareTo(serviceAmount) < 0)
+            ErrorCodeEnum.WITHDRAWAL_AMOUNT_LT_FEE_ERROR.throwException();
 
         LocalDateTime now = requestInitService.now();
 
@@ -123,20 +160,21 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .txid(null)
                 .coin(currencyAdaptType.getCurrencyCoin())
                 .network(currencyAdaptType.getNetwork())
-                .fee(withdrawAmount)
-                .realFee(realAmount)
-                .serviceFee(serviceAmount)
+                .fee(withdrawAmount) // 用户提币金额
+                .serviceFee(serviceAmount) // 手续费金额
+                .realFee(realWithdrawAmount) // 真的需要转账的金额
                 .minerFee(BigDecimal.ZERO)
-                .fromAddress(fromAddress)
+                .fromAddress(fromAddress) // 系统热钱包
+                .toAddress(query.getTo()) // 用户提现地址
                 .createTime(now)
-                .toAddress(query.getTo()).build();
+                .build();
         orderService.insert(orderChargeInfo);
 
         //创建提现订单(提币申请)
         long id = CommonFunction.generalId();
         Order order = new Order();
         order.setUid(uid);
-        order.setAmount(realAmount);
+        order.setAmount(realWithdrawAmount);
         order.setOrderNo(AccountChangeType.withdraw.getPrefix() + CommonFunction.generalSn(id));
         order.setStatus(ChargeStatus.created);
         order.setType(ChargeType.withdraw);
@@ -148,6 +186,54 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         //冻结提现数额
         accountBalanceService.freeze(uid, ChargeType.withdraw, currencyAdaptType.getCurrencyCoin()
                 , currencyAdaptType.getNetwork(), withdrawAmount, order.getOrderNo(), CurrencyLogDes.提现.name());
+    }
+
+    /**
+     * 提现上链
+     */
+    @Transactional
+    public void withdrawChain(Order order) {
+        if (Objects.isNull(order)) {
+            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException("订单为null");
+        }
+        if (!ChargeType.withdraw.equals(order.getType())) {
+            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException("仅有提现订单能操作");
+        }
+        if (!ChargeStatus.chaining.equals(order.getStatus())) {
+            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException("当前提现订单状态异常");
+        }
+        Long relatedId = order.getRelatedId();
+        OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(relatedId);
+        if (Objects.nonNull(orderChargeInfo.getTxid())) {
+            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException(String.format(
+                    "当前订单：[%s]已经在：[%s] 网络存在交易hash：[%s]", order.getOrderNo(), orderChargeInfo.getNetwork(), orderChargeInfo.getTxid()));
+        }
+
+        ContractService contractService = baseContractService.getOne(orderChargeInfo.getNetwork());
+        CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(orderChargeInfo.getCoin(), orderChargeInfo.getNetwork());
+        BigInteger amount = currencyAdaptType.restore(order.getAmount());
+        Result result = null;
+
+        /* 注册监听回调接口
+         * {@link com.tianli.charge.controller.ChargeController#withdrawCallback(ChainType, String, String, String)}
+         */
+        chainService.pushCondition(orderChargeInfo.getNetwork(),orderChargeInfo.getCoin()
+                ,new CallbackPathDTO("/api/charge/withdraw"),orderChargeInfo.getToAddress());
+
+        try {
+            result = contractService.transfer(orderChargeInfo.getToAddress(), amount, order.getCoin());
+        } catch (Exception e) {
+            log.info("上链失败");
+            ErrorCodeEnum.throwException("上链失败");
+        }
+        if (Objects.isNull(result) || Objects.isNull(result.getData())){
+            ErrorCodeEnum.throwException("上链失败");
+        }
+
+
+        String txid = (String) result.getData();
+        orderChargeInfo.setTxid(txid);
+        orderChargeInfoService.updateById(orderChargeInfo);
     }
 
     @Transactional
@@ -303,7 +389,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      * 理财充值记录添加
      */
     @Transactional
-    public String insertRechargeOrder(Long uid ,TRONTokenReq query, CurrencyAdaptType currencyAdaptType, BigDecimal amount, BigDecimal realAmount) {
+    public String insertRechargeOrder(Long uid, TRONTokenReq query, CurrencyAdaptType currencyAdaptType, BigDecimal amount, BigDecimal realAmount) {
         // 链信息
         OrderChargeInfo orderChargeInfo = OrderChargeInfo.builder()
                 .id(CommonFunction.generalId())
@@ -346,7 +432,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)
                 .eq(Order::getCoin, currencyCoin)
-                .orderByDesc(Order :: getCreateTime);
+                .orderByDesc(Order::getCreateTime);
         if (Objects.nonNull(chargeType)) {
             wrapper = wrapper.eq(Order::getType, chargeType);
         }
@@ -398,6 +484,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     private FinancialRecordService financialRecordService;
     @Resource
     private WalletImputationService walletImputationService;
-
+    @Resource
+    private BaseContractService baseContractService;
+    @Resource
+    private ChainService chainService;
 
 }

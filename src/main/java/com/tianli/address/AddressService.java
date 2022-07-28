@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.mapper.AddressMapper;
+import com.tianli.chain.dto.CallbackPathDTO;
 import com.tianli.chain.service.ChainService;
 import com.tianli.chain.service.contract.*;
 import com.tianli.common.CommonFunction;
@@ -47,7 +48,7 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
     @Transactional
     public Address activityAccount(Long uid){
         Address address = getAndInit(uid);
-        chainService.pushCondition(address);
+        chainService.pushCondition(address, new CallbackPathDTO("/api/charge/recharge"));
         return address;
     }
 
