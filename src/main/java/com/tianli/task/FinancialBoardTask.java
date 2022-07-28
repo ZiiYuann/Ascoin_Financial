@@ -10,6 +10,7 @@ import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.service.FinancialBoardProductService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -45,7 +46,10 @@ public class FinancialBoardTask {
             }
     );
 
-    public void task(LocalDateTime todayBegin){
+//    @Scheduled(cron = "0 0/2 * * * ?")
+    public void task(){
+        LocalDateTime todayBegin = null;
+        log.info("========执行计算管理端数据展板定时任务========");
         todayBegin = Optional.ofNullable(todayBegin).orElse(DateUtil.beginOfDay(new DateTime()).toLocalDateTime());
         LocalDateTime yesterdayBegin = todayBegin.plusDays(-1);
 
@@ -70,7 +74,7 @@ public class FinancialBoardTask {
         today.setFixedProductCount(fixedProductCount);
         today.setTotalProductCount(totalProductCount);
         today.setHoldUserCount(holdUserCount);
-        financialBoardProductService.save(today);
+        financialBoardProductService.updateById(today);
     }
 
 

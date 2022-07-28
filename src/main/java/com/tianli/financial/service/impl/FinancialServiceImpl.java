@@ -157,6 +157,7 @@ public class FinancialServiceImpl implements FinancialService {
         incomeByRecordIdVO.setAccrueIncomeFee(Optional.ofNullable(incomeAccrue.getIncomeAmount()).orElse(BigDecimal.ZERO));
         incomeByRecordIdVO.setYesterdayIncomeFee(yesterdayIncomeFee);
         incomeByRecordIdVO.setRecordStatus(record.getStatus());
+        incomeByRecordIdVO.setAutoRenewal(record.isAutoRenewal());
 
         return incomeByRecordIdVO;
     }

@@ -56,5 +56,9 @@ public class IncomeByRecordIdVO {
 
     private RecordStatus recordStatus;
 
+    /**
+     * 自动续费
+     */
+    private boolean autoRenewal;
 
 }

@@ -26,5 +26,5 @@ public interface FinancialIncomeAccrueMapper extends BaseMapper<FinancialIncomeA
     BigDecimal summaryIncomeByQuery(@Param("query") FinancialProductIncomeQuery query);
 
     @Select("SELECT SUM(income_amount) FROM financial_income_accrue WHERE update_time <= #{endTime}")
-    BigDecimal getAmountSum(@Param("entTime") LocalDateTime entTime);
+    BigDecimal getAmountSum(@Param("endTime") LocalDateTime endTime);
 }

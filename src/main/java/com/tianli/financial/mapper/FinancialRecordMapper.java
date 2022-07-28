@@ -30,12 +30,12 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
     /**
      * 用户还持用产品的数量
      */
-    @Select("SELECT COUNT(1) FROM financial_record WHERE product_type = #{productType} AND status = 'PROCESS')")
+    @Select("SELECT COUNT(1) FROM financial_record WHERE product_type = #{productType} AND status = 'PROCESS' ")
     BigInteger countProcess(@Param("productType") ProductType productType);
 
     /**
      * 还持有产品的用户数量
      */
-    @Select("SELECT count(DISTINCT uid) FROM financial_record AND status = 'PROCESS'")
+    @Select("SELECT count(DISTINCT uid) FROM financial_record WHERE status = 'PROCESS'")
     BigInteger countUid();
 }

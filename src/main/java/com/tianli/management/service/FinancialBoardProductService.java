@@ -11,6 +11,7 @@ import com.tianli.management.mapper.FinancialBoardProductMapper;
 import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.vo.FinancialProductBoardSummaryVO;
 import com.tianli.management.vo.FinancialProductBoardVO;
+import com.tianli.tool.time.TimeTool;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,24 +68,30 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
                 .between(FinancialBoardProduct::getCreateTime, query.getStartTime(), query.getEndTime());
 
         var financialProductBoards = Optional.ofNullable(financialProductBoardMapper.selectList(boardQuery))
-                .orElse(new ArrayList<>())
-                .stream().map(managementConverter::toVO).collect(Collectors.toList());
+                .orElse(new ArrayList<>());
 
-        BigDecimal purchaseAmount = financialProductBoards.stream().map(FinancialProductBoardVO::getPurchaseAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal redeemAmount = financialProductBoards.stream().map(FinancialProductBoardVO::getRedeemAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal settleAmount = financialProductBoards.stream().map(FinancialProductBoardVO::getSettleAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal transferAmount = financialProductBoards.stream().map(FinancialProductBoardVO::getTransferAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigInteger holdUserCount = financialProductBoards.stream().map(FinancialProductBoardVO::getHoldUserCount).reduce(BigInteger.ZERO, BigInteger::add);
-        BigDecimal income = financialProductBoards.stream().map(FinancialProductBoardVO::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigInteger fixedProductCount = financialProductBoards.stream().map(FinancialProductBoardVO::getFixedProductCount).reduce(BigInteger.ZERO, BigInteger::add);
-        BigInteger currentProductCount = financialProductBoards.stream().map(FinancialProductBoardVO::getCurrentProductCount).reduce(BigInteger.ZERO, BigInteger::add);
+        BigDecimal purchaseAmount = financialProductBoards.stream().map(FinancialBoardProduct::getPurchaseAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal redeemAmount = financialProductBoards.stream().map(FinancialBoardProduct::getRedeemAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal settleAmount = financialProductBoards.stream().map(FinancialBoardProduct::getSettleAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal transferAmount = financialProductBoards.stream().map(FinancialBoardProduct::getTransferAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigInteger holdUserCount = financialProductBoards.stream().map(FinancialBoardProduct::getHoldUserCount).reduce(BigInteger.ZERO, BigInteger::add);
+        BigDecimal income = financialProductBoards.stream().map(FinancialBoardProduct::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigInteger fixedProductCount = financialProductBoards.stream().map(FinancialBoardProduct::getFixedProductCount).reduce(BigInteger.ZERO, BigInteger::add);
+        BigInteger currentProductCount = financialProductBoards.stream().map(FinancialBoardProduct::getCurrentProductCount).reduce(BigInteger.ZERO, BigInteger::add);
+
+        LocalDateTime dateTime = TimeTool.minDay(LocalDateTime.now());
+        boardQuery = new LambdaQueryWrapper<FinancialBoardProduct>()
+                .between(FinancialBoardProduct::getCreateTime,dateTime.plusDays(-14) , dateTime);
+
+        var financialProductBoard14 = Optional.ofNullable(financialProductBoardMapper.selectList(boardQuery))
+                .orElse(new ArrayList<>()).stream().map(managementConverter :: toVO).collect(Collectors.toList());
 
         return FinancialProductBoardSummaryVO.builder()
                 .transferAmount(transferAmount)
                 .purchaseAmount(purchaseAmount)
                 .redeemAmount(redeemAmount)
                 .settleAmount(settleAmount)
-                .data(financialProductBoards)
+                .data(financialProductBoard14)
                 .holdUserCount(holdUserCount)
                 .income(income)
                 .fixedProductCount(fixedProductCount)

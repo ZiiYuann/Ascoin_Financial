@@ -5,16 +5,19 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.management.converter.ManagementConverter;
+import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.mapper.FinancialBoardWalletMapper;
 import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.vo.FinancialWalletBoardSummaryVO;
 import com.tianli.management.vo.FinancialWalletBoardVO;
+import com.tianli.tool.time.TimeTool;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +51,15 @@ public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalle
         BigDecimal totalServiceAmount = financialWalletBoardVOs.stream().map(FinancialWalletBoardVO::getTotalServiceAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal usdtServiceAmount = financialWalletBoardVOs.stream().map(FinancialWalletBoardVO::getUsdtServiceAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        LocalDateTime dateTime = TimeTool.minDay(LocalDateTime.now());
+        walletBoardQuery = new LambdaQueryWrapper<FinancialBoardWallet>()
+                .between(FinancialBoardWallet::getCreateTime,dateTime.plusDays(-14) , dateTime);
+
+        var financialWalletBoardVOs14 =
+                Optional.ofNullable(financialWalletBoardMapper.selectList(walletBoardQuery)).orElse(new ArrayList<>())
+                .stream().map(managementConverter :: toVO).collect(Collectors.toList());
+
+
         return FinancialWalletBoardSummaryVO.builder()
                 .rechargeAmount(rechargeAmount)
                 .withdrawAmount(withdrawAmount)
@@ -55,7 +67,7 @@ public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalle
                 .totalActiveWalletCount(BigInteger.valueOf(totalActiveWalletCount))
                 .totalServiceAmount(totalServiceAmount)
                 .usdtServiceAmount(usdtServiceAmount)
-                .data(financialWalletBoardVOs)
+                .data(financialWalletBoardVOs14)
                 .build();
     }
 

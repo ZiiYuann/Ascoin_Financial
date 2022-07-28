@@ -75,6 +75,7 @@ public class FinancialBoardProduct {
     public static FinancialBoardProduct getDefault(){
         return FinancialBoardProduct.builder()
                 .id(CommonFunction.generalId())
+                .income(BigDecimal.ZERO)
                 .purchaseAmount(BigDecimal.ZERO)
                 .redeemAmount(BigDecimal.ZERO)
                 .settleAmount(BigDecimal.ZERO)
