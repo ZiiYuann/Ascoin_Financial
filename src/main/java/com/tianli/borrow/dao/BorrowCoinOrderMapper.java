@@ -2,6 +2,7 @@ package com.tianli.borrow.dao;
 
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.tianli.borrow.query.BorrowOrderQuery;
 import com.tianli.borrow.vo.BorrowOrderStatisticsChartVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -45,4 +46,7 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
             "WHERE borrow_time >= #{startTime} and status = #{status} \n" +
             "GROUP BY DATE_FORMAT(borrow_time,'%Y-%m-%d')")
     List<BorrowOrderStatisticsChartVO> selectTotalChartByTime(@Param("status") Integer status ,@Param("startTime")Date startTime);
+
+
+    BigDecimal selectCumulativeInterestByQuery(BorrowOrderQuery query);
 }

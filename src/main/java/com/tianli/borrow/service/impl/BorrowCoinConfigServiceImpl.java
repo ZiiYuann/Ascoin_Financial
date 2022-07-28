@@ -42,19 +42,11 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
     @Override
     public void saveConfig(BorrowOrderConfigBO bo) {
         BorrowCoinConfig coinConfig = this.getByCoin(bo.getCoin());
-        if(Objects.isNull(coinConfig)){
-            BorrowCoinConfig borrowCoinConfig = borrowCoinConfigConverter.toDO(bo);
-            borrowCoinConfig.setCreateTime(new Date());
-            borrowCoinConfig.setInitialPledgeRate(BorrowPledgeRate.INITIAL_PLEDGE_RATE);
-            borrowCoinConfig.setWarnPledgeRate(BorrowPledgeRate.WARN_PLEDGE_RATE);
-            borrowCoinConfig.setLiquidationPledgeRate(BorrowPledgeRate.LIQUIDATION_PLEDGE_RATE);
-            borrowCoinConfigMapper.insert(borrowCoinConfig);
-        }else {
-            coinConfig.setAnnualInterestRate(bo.getAnnualInterestRate());
-            coinConfig.setMaximumBorrow(bo.getMaximumBorrow());
-            coinConfig.setMinimumBorrow(bo.getMinimumBorrow());
-            borrowCoinConfigMapper.updateById(coinConfig);
-        }
+        if(Objects.isNull(coinConfig))ErrorCodeEnum.CURRENCY_COIN_ERROR.throwException();
+        coinConfig.setAnnualInterestRate(bo.getAnnualInterestRate());
+        coinConfig.setMaximumBorrow(bo.getMaximumBorrow());
+        coinConfig.setMinimumBorrow(bo.getMinimumBorrow());
+        borrowCoinConfigMapper.updateById(coinConfig);
     }
 
     @Override

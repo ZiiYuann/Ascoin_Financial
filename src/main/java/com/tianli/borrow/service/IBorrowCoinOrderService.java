@@ -35,6 +35,8 @@ public interface IBorrowCoinOrderService extends IService<BorrowCoinOrder> {
 
     IPage<BorrowCoinOrderVO> pageList(PageQuery<BorrowCoinOrder> pageQuery, BorrowOrderQuery query);
 
+    AmountVO cumulativeInterestAmount(BorrowOrderQuery query);
+
     BorrowApplePageVO applyPage(CurrencyCoin coin);
 
     void borrowCoin(BorrowOrderBO bo);
@@ -68,5 +70,4 @@ public interface IBorrowCoinOrderService extends IService<BorrowCoinOrder> {
     BorrowOrderStatisticsVO statistics(BorrowStatisticsChartDay chartDay,Date startTime, Date endTime);
 
     List<BorrowOrderStatisticsChartVO> statisticsChart(BorrowStatisticsType statisticsType);
-
 }

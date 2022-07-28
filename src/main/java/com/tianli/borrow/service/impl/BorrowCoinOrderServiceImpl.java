@@ -171,6 +171,12 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     }
 
     @Override
+    public AmountVO cumulativeInterestAmount(BorrowOrderQuery query) {
+        BigDecimal cumulativeInterest = borrowCoinOrderMapper.selectCumulativeInterestByQuery(query);
+        return new AmountVO(cumulativeInterest);
+    }
+
+    @Override
     public BorrowApplePageVO applyPage(CurrencyCoin coin) {
         Long uid = requestInitService.uid();
 
