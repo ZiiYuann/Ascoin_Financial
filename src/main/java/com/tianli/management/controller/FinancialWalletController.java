@@ -8,7 +8,9 @@ import com.tianli.chain.service.WalletImputationLogAppendixService;
 import com.tianli.chain.service.WalletImputationLogService;
 import com.tianli.chain.service.WalletImputationService;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.service.ChargeService;
+import com.tianli.charge.service.OrderReviewService;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
@@ -20,6 +22,7 @@ import com.tianli.sso.permission.Privilege;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 
 /**
  * @author lzy
@@ -41,6 +44,8 @@ public class FinancialWalletController {
     private WalletImputationLogAppendixService walletImputationLogAppendixService;
     @Resource
     private AccountBalanceService accountBalanceService;
+    @Resource
+    private OrderReviewService orderReviewService;
 
     /**
      * 云钱包数据board
@@ -56,7 +61,7 @@ public class FinancialWalletController {
     @AdminPrivilege(and = Privilege.理财管理)
     public Result rechargeOrder(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
         query.setChargeType(ChargeType.recharge);
-        return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(),query));
+        return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(), query));
     }
 
     @GetMapping("/order/recharge/data")
@@ -71,7 +76,21 @@ public class FinancialWalletController {
     @AdminPrivilege(and = Privilege.理财管理)
     public Result withdrawOrder(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
         query.setChargeType(ChargeType.withdraw);
-        return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(),query));
+        return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(), query));
+    }
+
+    @GetMapping("/order/withdraw/review/{orderNo}")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result orderReview(@PathVariable String orderNo) {
+        return Result.success().setData(orderReviewService.getVOByOrderNo(orderNo));
+    }
+
+
+    @PostMapping("/order/withdraw/review")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result orderReview(@RequestBody @Valid OrderReviewQuery query) {
+        orderReviewService.review(query);
+        return Result.success();
     }
 
     @GetMapping("/order/withdraw/data")
@@ -97,7 +116,7 @@ public class FinancialWalletController {
     @GetMapping("/imputations")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result imputations(PageQuery<WalletImputation> page, WalletImputationQuery query) {
-        return Result.success(walletImputationService.walletImputationVOPage(page.page(),query));
+        return Result.success(walletImputationService.walletImputationVOPage(page.page(), query));
     }
 
     /**
@@ -106,7 +125,7 @@ public class FinancialWalletController {
     @PostMapping("/imputation")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result imputation(@RequestBody WalletImputationManualQuery query) {
-       walletImputationService.imputationOperation(query);
+        walletImputationService.imputationOperation(query);
         return Result.success();
     }
 
@@ -116,7 +135,7 @@ public class FinancialWalletController {
     @GetMapping("/imputationLogs")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result imputationLogs(PageQuery<WalletImputationLog> page, WalletImputationLogQuery query) {
-        return Result.success(walletImputationLogService.walletImputationLogVOPage(page.page(),query));
+        return Result.success(walletImputationLogService.walletImputationLogVOPage(page.page(), query));
     }
 
     /**
@@ -125,6 +144,6 @@ public class FinancialWalletController {
     @GetMapping("/imputation/appendix")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result imputationLogs(PageQuery<WalletImputationLogAppendix> page, String txid) {
-        return Result.success(walletImputationLogAppendixService.pageByTxid(page.page(),txid));
+        return Result.success(walletImputationLogAppendixService.pageByTxid(page.page(), txid));
     }
 }

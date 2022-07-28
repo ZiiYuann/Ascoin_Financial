@@ -3,6 +3,7 @@ package com.tianli.financial.vo;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.PurchaseTerm;
+import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.enums.RiskType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -52,6 +53,8 @@ public class IncomeByRecordIdVO {
      * 昨日收益
      */
     private BigDecimal yesterdayIncomeFee;
+
+    private RecordStatus recordStatus;
 
 
 }

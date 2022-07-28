@@ -24,6 +24,7 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -131,6 +132,10 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
                 .orElse(BigDecimal.ZERO);
     }
 
+    public Order getOrderNo(String orderNo) {
+        LambdaQueryWrapper<Order> query = new LambdaQueryWrapper<Order>().eq(Order::getOrderNo, orderNo);
+        return orderMapper.selectOne(query);
+    }
 
     @Resource
     private OrderMapper orderMapper;

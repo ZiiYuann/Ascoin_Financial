@@ -11,6 +11,7 @@ import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.query.RecordRenewalQuery;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.service.FinancialService;
@@ -18,12 +19,10 @@ import com.tianli.financial.vo.ExpectIncomeVO;
 import com.tianli.financial.vo.FinancialProductVO;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.sso.init.RequestInitService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
@@ -139,6 +138,15 @@ public class FinancialController {
     public Result incomeByRecordId(@PathVariable Long recordId) {
         Long uid = requestInitService.uid();
         return Result.instance().setData(financialService.incomeByRecordId(uid,recordId));
+    }
+
+    /**
+     * 持有产品续费配置
+     */
+    @PostMapping("/record/renewal")
+    public Result recordRenewal(@RequestBody @Valid RecordRenewalQuery query) {
+        financialRecordService.recordRenewal(query);
+        return Result.instance();
     }
 
     /**

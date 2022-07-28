@@ -13,6 +13,7 @@ import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.mapper.FinancialRecordMapper;
+import com.tianli.financial.query.RecordRenewalQuery;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,9 +42,9 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      * 赎回金额
      */
     @Transactional
-    public void redeem(Long recordId,BigDecimal redeemAmount){
-        if(financialRecordMapper.reduce(recordId,redeemAmount,LocalDateTime.now()) < 0){
-            log.error("赎回异常，recordId:{},amount:{}",recordId,redeemAmount);
+    public void redeem(Long recordId, BigDecimal redeemAmount) {
+        if (financialRecordMapper.reduce(recordId, redeemAmount, LocalDateTime.now()) < 0) {
+            log.error("赎回异常，recordId:{},amount:{}", recordId, redeemAmount);
             throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
         }
     }
@@ -51,59 +52,59 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     /**
      * 默认通过id查询需要带上uid
      */
-    public FinancialRecord selectById(Long recordId,Long uid){
-        if(Objects.isNull(recordId) || Objects.isNull(uid)){
+    public FinancialRecord selectById(Long recordId, Long uid) {
+        if (Objects.isNull(recordId) || Objects.isNull(uid)) {
             ErrorCodeEnum.CURRENCY_NOT_SUPPORT.throwException();
         }
 
         LambdaQueryWrapper<FinancialRecord> query = new LambdaQueryWrapper<FinancialRecord>()
                 .eq(FinancialRecord::getId, recordId).eq(FinancialRecord::getUid, uid);
 
-     return Optional.ofNullable(financialRecordMapper.selectOne(query)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR :: generalException);
+        return Optional.ofNullable(financialRecordMapper.selectOne(query)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
     }
 
-    public List<FinancialRecord> selectByProductId(Long productId){
-        if(Objects.isNull(productId)){
+    public List<FinancialRecord> selectByProductId(Long productId) {
+        if (Objects.isNull(productId)) {
             ErrorCodeEnum.CURRENCY_NOT_SUPPORT.throwException();
         }
 
         LambdaQueryWrapper<FinancialRecord> query = new LambdaQueryWrapper<FinancialRecord>()
                 .eq(FinancialRecord::getProductId, productId);
 
-     return Optional.ofNullable(financialRecordMapper.selectList(query)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR :: generalException);
+        return Optional.ofNullable(financialRecordMapper.selectList(query)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
     }
 
     /**
      * 获取不同产品已经使用的总额度
      */
-    public Map<Long,BigDecimal> getUseQuota(List<Long> productIds){
-        return getUseQuota(productIds,null);
+    public Map<Long, BigDecimal> getUseQuota(List<Long> productIds) {
+        return getUseQuota(productIds, null);
     }
 
-    public Map<Long,BigDecimal> getUseQuota(List<Long> productIds,Long uid){
-        if(CollectionUtils.isEmpty(productIds)){
+    public Map<Long, BigDecimal> getUseQuota(List<Long> productIds, Long uid) {
+        if (CollectionUtils.isEmpty(productIds)) {
             return new HashMap<>();
         }
 
         var query =
                 new LambdaQueryWrapper<FinancialRecord>().in(FinancialRecord::getProductId, productIds);
 
-        if(Objects.nonNull(uid)){
-            query = query.eq(FinancialRecord :: getUid,uid);
+        if (Objects.nonNull(uid)) {
+            query = query.eq(FinancialRecord::getUid, uid);
         }
 
         var financialRecords = financialRecordMapper.selectList(query);
         return financialRecords.stream()
                 // 按照 productId 分组
-                .collect(Collectors.groupingBy(FinancialRecord :: getProductId))
+                .collect(Collectors.groupingBy(FinancialRecord::getProductId))
                 .entrySet().stream()
                 // 将每组的金额相加
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         entry -> {
                             List<FinancialRecord> value = entry.getValue();
-                            return value.stream().map(FinancialRecord :: getHoldAmount)
-                                    .reduce(BigDecimal.ZERO,BigDecimal::add);
+                            return value.stream().map(FinancialRecord::getHoldAmount)
+                                    .reduce(BigDecimal.ZERO, BigDecimal::add);
                         }
                 ));
     }
@@ -111,7 +112,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     /**
      * 生成记录
      */
-    public FinancialRecord generateFinancialRecord(Long uid,FinancialProduct product,BigDecimal amount){
+    public FinancialRecord generateFinancialRecord(Long uid, FinancialProduct product, BigDecimal amount) {
         LocalDateTime startIncomeTime = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(1);
         LocalDateTime startDate = requestInitService.now().plusDays(1L);
         FinancialRecord record = FinancialRecord.builder()
@@ -132,7 +133,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
                 .logo(product.getLogo())
                 .build();
         int i = financialRecordMapper.insert(record);
-        if(i <= 0){
+        if (i <= 0) {
             ErrorCodeEnum.SYSTEM_ERROR.throwException();
         }
         return record;
@@ -140,23 +141,25 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
 
     /**
      * 根据产品类型、状态获取本金总额
-     * @param uid uid
-     * @param type 产品类型
+     *
+     * @param uid    uid
+     * @param type   产品类型
      * @param status 产品状态
      */
-    public BigDecimal getPurchaseAmount(Long uid, ProductType type, RecordStatus status){
-        var financialPurchaseRecords = this.selectList(uid,type,status);
+    public BigDecimal getPurchaseAmount(Long uid, ProductType type, RecordStatus status) {
+        var financialPurchaseRecords = this.selectList(uid, type, status);
         return financialPurchaseRecords.stream().map(FinancialRecord::getHoldAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     /**
      * 根据产品类型、状态获取列表
-     * @param uid uid
-     * @param type 产品类型
+     *
+     * @param uid    uid
+     * @param type   产品类型
      * @param status 产品状态
      */
-    public List<FinancialRecord> selectList(Long uid, ProductType type, RecordStatus status){
+    public List<FinancialRecord> selectList(Long uid, ProductType type, RecordStatus status) {
         var query = new LambdaQueryWrapper<FinancialRecord>()
                 .eq(FinancialRecord::getUid, uid)
                 .eq(FinancialRecord::getStatus, status);
@@ -170,11 +173,12 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
 
     /**
      * 根据产品类型、状态获取列表
-     * @param uid uid
-     * @param type 产品类型
+     *
+     * @param uid    uid
+     * @param type   产品类型
      * @param status 产品状态
      */
-    public IPage<FinancialRecord> selectListPage(IPage<FinancialRecord> page,Long uid, ProductType type, RecordStatus status){
+    public IPage<FinancialRecord> selectListPage(IPage<FinancialRecord> page, Long uid, ProductType type, RecordStatus status) {
         var query = new LambdaQueryWrapper<FinancialRecord>()
                 .eq(FinancialRecord::getUid, uid)
                 .eq(FinancialRecord::getStatus, status);
@@ -183,21 +187,21 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
             query = query.eq(FinancialRecord::getProductType, type);
 
         }
-        return financialRecordMapper.selectPage(page,query);
+        return financialRecordMapper.selectPage(page, query);
     }
 
     /**
      * 获取不同用户不同产品的汇总金额
      */
-    public Map<Long,BigDecimal> getSummaryAmount(List<Long> uids,ProductType productType,RecordStatus recordStatus){
+    public Map<Long, BigDecimal> getSummaryAmount(List<Long> uids, ProductType productType, RecordStatus recordStatus) {
         var recordQuery = new LambdaQueryWrapper<FinancialRecord>()
-                .in(FinancialRecord :: getUid,uids);
+                .in(FinancialRecord::getUid, uids);
 
-        if(Objects.nonNull(productType)){
-            recordQuery= recordQuery.eq(FinancialRecord :: getProductType,productType);
+        if (Objects.nonNull(productType)) {
+            recordQuery = recordQuery.eq(FinancialRecord::getProductType, productType);
         }
-        if(Objects.nonNull(recordStatus)){
-            recordQuery= recordQuery.eq(FinancialRecord :: getStatus,recordStatus);
+        if (Objects.nonNull(recordStatus)) {
+            recordQuery = recordQuery.eq(FinancialRecord::getStatus, recordStatus);
         }
 
 
@@ -207,35 +211,53 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
 
         return recordMapByUid.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
-                entry -> entry.getValue().stream().map(record ->{
+                entry -> entry.getValue().stream().map(record -> {
                     BigDecimal holdAmount = record.getHoldAmount();
                     BigDecimal rate = dollarRateMap.getOrDefault(record.getCoin(), BigDecimal.ZERO);
                     return holdAmount.multiply(rate);
-                }).reduce(BigDecimal.ZERO,BigDecimal::add)
+                }).reduce(BigDecimal.ZERO, BigDecimal::add)
         ));
     }
 
 
     /**
-     *  获取需要计算利息的分页记录信息
+     * 获取需要计算利息的分页记录信息
      */
-    public IPage<FinancialRecord> needCalIncomeRecord(IPage<FinancialRecord> page){
+    public IPage<FinancialRecord> needCalIncomeRecord(IPage<FinancialRecord> page) {
         LambdaQueryWrapper<FinancialRecord> queryWrapper =
                 new LambdaQueryWrapper<FinancialRecord>().eq(FinancialRecord::getStatus, RecordStatus.PROCESS);
-        return financialRecordMapper.selectPage(page,queryWrapper);
+        return financialRecordMapper.selectPage(page, queryWrapper);
     }
 
     /**
      * 正持有的产品数量
      */
-    public BigInteger countProcess(ProductType productType){
+    public BigInteger countProcess(ProductType productType) {
         return Optional.ofNullable(financialRecordMapper.countProcess(productType)).orElse(BigInteger.ZERO);
     }
 
     /**
      * 正持有的产品的用户数量
      */
-    public BigInteger countUid(){
+    public BigInteger countUid() {
         return Optional.ofNullable(financialRecordMapper.countUid()).orElse(BigInteger.ZERO);
+    }
+
+    /**
+     * 配置是否自动续费
+     */
+    @Transactional
+    public void recordRenewal(RecordRenewalQuery query) {
+        Long uid = requestInitService.uid();
+        FinancialRecord record = this.selectById(query.getRecordId(), uid);
+
+        if (!RecordStatus.PROCESS.equals(record.getStatus())) {
+            log.info("当前产品状态不为持有,recordId:{}", query.getRecordId());
+            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException("当前产品状态不为持有");
+        }
+
+        record.setUpdateTime(LocalDateTime.now());
+        record.setAutoRenewal(query.isAutoRenewal());
+        financialRecordMapper.updateById(record);
     }
 }

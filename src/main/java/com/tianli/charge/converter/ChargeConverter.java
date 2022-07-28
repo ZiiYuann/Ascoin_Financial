@@ -1,6 +1,7 @@
 package com.tianli.charge.converter;
 
 import com.tianli.charge.entity.Order;
+import com.tianli.charge.entity.OrderReview;
 import com.tianli.charge.entity.OrderSettleInfo;
 import com.tianli.charge.vo.*;
 import com.tianli.financial.entity.FinancialRecord;
@@ -18,4 +19,6 @@ public interface ChargeConverter {
     OrderRedeemDetailsVO toOrderRedeemDetailsVO(FinancialRecord financialRecord);
 
     OrderBaseVO toOrderBaseVO(FinancialRecord financialRecord);
+
+    OrderReviewVO toOrderReviewVO(OrderReview orderReview);
 }
