@@ -346,30 +346,25 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
     @Override
     public IPage<BorrowRepayRecordVO> repayRecord(PageQuery<BorrowRepayRecord> pageQuery, BorrowRepayQuery query) {
-        LambdaQueryWrapper<BorrowRepayRecord> queryWrapper = new QueryWrapper<BorrowRepayRecord>().lambda();
-
-        if(Objects.nonNull(query.getOrderId())){
-            queryWrapper.eq(BorrowRepayRecord::getOrderId,query.getOrderId());
-        }
-
-        if(Objects.nonNull(query.getType())){
-            queryWrapper.eq(BorrowRepayRecord::getType,query.getType());
-        }
-
-        if(Objects.nonNull(query.getStatus())){
-            queryWrapper.eq(BorrowRepayRecord::getStatus,query.getStatus());
-        }
-
-        if(Objects.nonNull(query.getStartTime())){
-            queryWrapper.ge(BorrowRepayRecord::getRepayTime,query.getStartTime());
-        }
-
-        if(Objects.nonNull(query.getEndTime())){
-            queryWrapper.le(BorrowRepayRecord::getRepayTime,query.getEndTime());
-        }
+        LambdaQueryWrapper<BorrowRepayRecord> queryWrapper = getBorrowRepayRecordLambdaQueryWrapper(query);
 
         queryWrapper.orderByDesc(BorrowRepayRecord::getRepayTime);
         return borrowRepayRecordMapper.selectPage(pageQuery.page(),queryWrapper).convert(borrowConverter::toRepayVO);
+    }
+
+
+    @Override
+    public AmountVO repayAmount(BorrowRepayQuery query) {
+        LambdaQueryWrapper<BorrowRepayRecord> queryWrapper = getBorrowRepayRecordLambdaQueryWrapper(query);
+        return null;
+    }
+
+    @Override
+    public BorrowLiquidationRecordVO liquidationRecord(Long orderId) {
+        BorrowCoinOrder borrowCoinOrder = borrowCoinOrderMapper.selectById(orderId);
+        if(Objects.isNull(borrowCoinOrder))ErrorCodeEnum.BORROW_ORDER_NO_EXIST.throwException();
+        if(!borrowCoinOrder.getStatus().equals(BorrowOrderStatus.FORCED_LIQUIDATION)) return new BorrowLiquidationRecordVO();
+        return BorrowLiquidationRecordVO.builder().status("已平仓").time(borrowCoinOrder.getSettlementTime()).build();
     }
 
     @Override
@@ -764,4 +759,30 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
 
     }
+
+    private LambdaQueryWrapper<BorrowRepayRecord> getBorrowRepayRecordLambdaQueryWrapper(BorrowRepayQuery query) {
+        LambdaQueryWrapper<BorrowRepayRecord> queryWrapper = new QueryWrapper<BorrowRepayRecord>().lambda();
+
+        if(Objects.nonNull(query.getOrderId())){
+            queryWrapper.eq(BorrowRepayRecord::getOrderId, query.getOrderId());
+        }
+
+        if(Objects.nonNull(query.getType())){
+            queryWrapper.eq(BorrowRepayRecord::getType, query.getType());
+        }
+
+        if(Objects.nonNull(query.getStatus())){
+            queryWrapper.eq(BorrowRepayRecord::getStatus, query.getStatus());
+        }
+
+        if(Objects.nonNull(query.getStartTime())){
+            queryWrapper.ge(BorrowRepayRecord::getRepayTime, query.getStartTime());
+        }
+
+        if(Objects.nonNull(query.getEndTime())){
+            queryWrapper.le(BorrowRepayRecord::getRepayTime, query.getEndTime());
+        }
+        return queryWrapper;
+    }
+
 }

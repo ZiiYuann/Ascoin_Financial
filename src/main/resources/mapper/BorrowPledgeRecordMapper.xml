@@ -4,7 +4,7 @@
 
     <select id="selectAmountSumByTime" resultType="decimal">
         SELECT
-            SUM(amount)
+            ifnull(SUM(amount),0.0)
         FROM borrow_pledge_record
         <where>
             <if test="startTime != null">

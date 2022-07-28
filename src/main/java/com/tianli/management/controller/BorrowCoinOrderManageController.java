@@ -85,6 +85,23 @@ public class BorrowCoinOrderManageController {
         return Result.success(borrowRepayRecordVOS);
     }
 
+    @GetMapping("/order/repay/amount")
+    public Result repayAmount( @Valid BorrowRepayQuery query){
+        AmountVO amountVO = borrowCoinOrderService.repayAmount(query);
+        return Result.success(amountVO);
+    }
+
+    /**
+     * 平仓记录
+     * @param orderId
+     * @return
+     */
+    @GetMapping("/order/liquidation/record/{orderId}")
+    public Result liquidationRecord(@PathVariable Long orderId){
+        BorrowLiquidationRecordVO borrowLiquidationRecordVO = borrowCoinOrderService.liquidationRecord(orderId);
+        return Result.success(borrowLiquidationRecordVO);
+    }
+
     /**
      * 借贷数据统计
      * @param startTime
