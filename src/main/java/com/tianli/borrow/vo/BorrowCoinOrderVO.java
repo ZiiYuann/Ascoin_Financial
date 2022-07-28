@@ -1,5 +1,6 @@
 package com.tianli.borrow.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.tianli.common.annotation.BigDecimalFormat;
@@ -91,6 +92,7 @@ public class BorrowCoinOrderVO {
     /**
      * 借出时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime borrowTime;
 
     /**
@@ -108,6 +110,7 @@ public class BorrowCoinOrderVO {
     /**
      * 结算时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime settlementTime;
 
 }

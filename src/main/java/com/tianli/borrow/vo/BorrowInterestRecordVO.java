@@ -1,5 +1,6 @@
 package com.tianli.borrow.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -51,6 +52,7 @@ public class BorrowInterestRecordVO{
     /**
      * 计息时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime interestAccrualTime;
 
 

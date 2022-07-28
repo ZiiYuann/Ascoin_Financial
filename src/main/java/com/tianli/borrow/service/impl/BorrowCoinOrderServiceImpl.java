@@ -164,6 +164,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         if(Objects.nonNull(query.getEndTime())){
             queryWrapper.le(BorrowCoinOrder::getBorrowTime,query.getEndTime());
         }
+        queryWrapper.orderByDesc(BorrowCoinOrder::getBorrowTime);
 
         return borrowCoinOrderMapper.selectPage(pageQuery.page(),queryWrapper).convert(borrowConverter::toVO);
     }
@@ -315,6 +316,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         if(Objects.nonNull(query.getEndTime())){
             queryWrapper.le(BorrowPledgeRecord::getPledgeTime,query.getEndTime());
         }
+
+        queryWrapper.orderByDesc(BorrowPledgeRecord::getPledgeTime);
         return borrowPledgeRecordMapper.selectPage(pageQuery.page(), queryWrapper).convert(borrowConverter::toPledgeVO);
     }
 
@@ -336,6 +339,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             queryWrapper.le(BorrowInterestRecord::getInterestAccrualTime,query.getEndTime());
         }
 
+        queryWrapper.orderByDesc(BorrowInterestRecord::getInterestAccrualTime);
         return borrowInterestRecordMapper.selectPage(pageQuery.page(),queryWrapper).convert(borrowConverter::toInterestVO);
     }
 
@@ -362,6 +366,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         if(Objects.nonNull(query.getEndTime())){
             queryWrapper.le(BorrowRepayRecord::getRepayTime,query.getEndTime());
         }
+
+        queryWrapper.orderByDesc(BorrowRepayRecord::getRepayTime);
         return borrowRepayRecordMapper.selectPage(pageQuery.page(),queryWrapper).convert(borrowConverter::toRepayVO);
     }
 

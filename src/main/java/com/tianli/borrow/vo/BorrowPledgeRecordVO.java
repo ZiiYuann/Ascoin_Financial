@@ -1,5 +1,6 @@
 package com.tianli.borrow.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -46,12 +47,8 @@ public class BorrowPledgeRecordVO{
     /**
      * 调整时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime pledgeTime;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
 
 
 }

@@ -1,5 +1,6 @@
 package com.tianli.borrow.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ public class BorrowRecordVO {
 
         private String record;
 
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
         private LocalDateTime time;
 
     }
