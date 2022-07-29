@@ -272,10 +272,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         order.setCompleteTime(now);
         orderService.save(order);
 
-        // 扣除持有金额
-        financialRecordService.redeem(recordId, query.getRedeemAmount());
         // 解冻余额
-        accountBalanceService.unfreeze(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount(), order.getOrderNo(), CurrencyLogDes.赎回.name());
+        accountBalanceService.increase(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount(), order.getOrderNo(), CurrencyLogDes.赎回.name());
 
         return order.getOrderNo();
     }

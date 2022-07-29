@@ -95,6 +95,10 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         accountBalanceOperationLogService.save(accountBalance,type,coin,networkType ,AccountOperationType.reduce, amount, sn, des);
     }
 
+    @Transactional
+    public void withdraw(long uid, ChargeType type, CurrencyCoin coin, BigDecimal amount, String sn, String des){
+        withdraw(uid,type,coin,null,amount,sn,des);
+    }
     /**
      * 扣除可用金额
      *

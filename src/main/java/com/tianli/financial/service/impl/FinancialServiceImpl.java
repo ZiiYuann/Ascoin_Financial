@@ -82,8 +82,8 @@ public class FinancialServiceImpl implements FinancialService {
                 .createTime(LocalDateTime.now())
                 .build();
         orderService.save(order);
-        // 冻结余额
-        accountBalanceService.freeze(uid, ChargeType.purchase, product.getCoin(), amount, order.getOrderNo(), CurrencyLogDes.申购.name());
+        // 减少余额
+        accountBalanceService.withdraw(uid, ChargeType.purchase, product.getCoin(), amount, order.getOrderNo(), CurrencyLogDes.申购.name());
         // 确认完毕后生成申购记录
         FinancialRecord financialRecord = financialRecordService.generateFinancialRecord(uid, product, amount);
         // 修改订单状态

@@ -166,6 +166,7 @@ public class FinancialIncomeTask {
         financialRecord.setEndTime(now);
         financialRecordService.updateById(financialRecord);
 
+
         // todo 自动续期操作
     }
 
