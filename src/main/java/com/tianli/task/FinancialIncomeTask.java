@@ -115,12 +115,12 @@ public class FinancialIncomeTask {
             LocalDateTime now = LocalDateTime.now();
 
             // 如果是定期产品且当前时间为到期前一天则计算利息
-            if(ProductType.current.equals(type) && endTime.compareTo(todayZero) > 0 && todayZero.plusDays(1).compareTo(endTime) > 0){
+            if(ProductType.fixed.equals(type) && endTime.compareTo(todayZero) > 0 && todayZero.plusDays(1).compareTo(endTime) > 0){
                 incomeOperation(financialRecord, now);
                 settleOperation(financialRecord, now);
             }
 
-            if(ProductType.fixed.equals(type)){
+            if(ProductType.current.equals(type)){
                 incomeOperation(financialRecord, now);
             }
 

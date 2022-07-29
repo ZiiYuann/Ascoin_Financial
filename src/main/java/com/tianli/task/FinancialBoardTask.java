@@ -66,8 +66,8 @@ public class FinancialBoardTask {
         BigDecimal settleAmount = orderService.amountSumByCompleteTime(ChargeType.settle,yesterdayBegin,todayBegin);
         BigDecimal transferAmount = orderService.amountSumByCompleteTime(ChargeType.transfer,yesterdayBegin,todayBegin);
         BigDecimal income = Optional.ofNullable(financialIncomeAccrueService.getAmountSum(todayBegin)).orElse(BigDecimal.ZERO);
-        BigInteger currentProductCount = financialRecordService.countProcess(ProductType.current);
         BigInteger fixedProductCount = financialRecordService.countProcess(ProductType.fixed);
+        BigInteger currentProductCount = financialRecordService.countProcess(ProductType.current);
         BigInteger totalProductCount = currentProductCount.add(fixedProductCount);
         BigInteger holdUserCount =  financialRecordService.countUid();
 

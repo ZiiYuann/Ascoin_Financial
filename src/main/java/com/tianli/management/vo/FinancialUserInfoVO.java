@@ -37,12 +37,12 @@ public class FinancialUserInfoVO {
     private BigDecimal moneyAmount;
 
     /**
-     * 定期宝数额
+     * 活期宝数额
      */
     private BigDecimal currentAmount;
 
     /**
-     * 活期宝数额
+     * 定期宝数额
      */
     private BigDecimal fixedAmount;
 

@@ -123,7 +123,7 @@ public class FinancialController {
     }
 
     /**
-     * 我的收益
+     * 活期/定期持有总额展示
      */
     @GetMapping("/income")
     public Result income() {

@@ -51,12 +51,12 @@ public class FinancialBoardProduct {
     private BigDecimal income;
 
     /**
-     * 定期产品持有
+     * 活期产品持有
      */
     private BigInteger currentProductCount;
 
     /**
-     * 活期产品持有
+     * 定期产品持有
      */
     private BigInteger fixedProductCount;
 
