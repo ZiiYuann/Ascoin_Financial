@@ -6,13 +6,14 @@ import com.tianli.borrow.bo.BorrowPledgeCoinConfigBO;
 import com.tianli.borrow.entity.BorrowCoinConfig;
 import com.tianli.borrow.entity.BorrowPledgeCoinConfig;
 import com.tianli.borrow.vo.BorrowApplePageVO;
+import com.tianli.borrow.vo.BorrowCoinConfigVO;
 import com.tianli.borrow.vo.BorrowPledgeCoinConfigVO;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface BorrowCoinConfigConverter {
 
-    BorrowApplePageVO toVO(BorrowCoinConfig borrowCoinConfig);
+    BorrowCoinConfigVO toVO(BorrowCoinConfig borrowCoinConfig);
 
     BorrowCoinConfig toDO(BorrowOrderConfigBO bo);
 

@@ -187,17 +187,18 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     @Override
     public BorrowApplePageVO applyPage(CurrencyCoin coin) {
         Long uid = requestInitService.uid();
-
         BorrowCoinConfig coinConfig = borrowCoinConfigService.getByCoin(coin);
-        BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(coin);
-
+        BorrowPledgeCoinConfig pledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(coin);
         if(Objects.isNull(coinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
         BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid,coin);
-        BorrowApplePageVO borrowApplePageVO = borrowCoinConfigConverter.toVO(coinConfig);
-        borrowApplePageVO.setAvailableAmount(availableAmount);
-        borrowApplePageVO.setInitialPledgeRate(borrowPledgeCoinConfig.getInitialPledgeRate());
-        borrowApplePageVO.setInitialPledgeRate(borrowPledgeCoinConfig.getInitialPledgeRate());
-        return borrowApplePageVO;
+        return BorrowApplePageVO.builder()
+                .availableAmount(availableAmount)
+                .maximumBorrow(coinConfig.getMinimumBorrow())
+                .minimumBorrow(coinConfig.getMinimumBorrow())
+                .annualInterestRate(coinConfig.getAnnualInterestRate())
+                .initialPledgeRate(pledgeCoinConfig.getInitialPledgeRate())
+                .liquidationPledgeRate(pledgeCoinConfig.getLiquidationPledgeRate())
+                .build();
     }
 
     @Override

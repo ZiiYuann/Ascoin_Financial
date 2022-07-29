@@ -21,11 +21,6 @@ public class BorrowApplePageVO {
     private static final long serialVersionUID=1L;
 
     /**
-     * id
-     */
-    private Long id;
-
-    /**
      * 币种
      */
     private String coin;
