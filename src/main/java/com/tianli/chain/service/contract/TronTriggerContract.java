@@ -133,7 +133,7 @@ public class TronTriggerContract extends ContractService {
     }
 
     public SECP256K1.KeyPair getKeyPair() {
-        String hexPrivateKey = configService.get(ConfigConstants.TRON_PRIVATE_KEY);
+        String hexPrivateKey = configService.getAndDecrypt(ConfigConstants.TRON_PRIVATE_KEY);
         return SECP256K1.KeyPair.create(SECP256K1.PrivateKey.create(Bytes32.fromHexString(hexPrivateKey)));
     }
 

@@ -56,7 +56,7 @@ public class EthTriggerContract extends ContractService {
         String contractAddress = configService.get(ConfigConstants.ETH_TRIGGER_ADDRESS);
         String address = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
         long nonce = ethBlockChainActuator.getNonce(address);
-        String password = configService.get(ConfigConstants.MAIN_WALLET_PASSWORD);
+        String password = configService.getAndDecrypt(ConfigConstants.MAIN_WALLET_PASSWORD);
         if(toAddress == null || toAddress.isEmpty()) toAddress = address;
         Result result = null;
         try {
@@ -98,7 +98,7 @@ public class EthTriggerContract extends ContractService {
     public Result transfer(String to, BigInteger val, CurrencyCoin coin) {
         String address = configService.get(ConfigConstants.ETH_MAIN_WALLET_ADDRESS);
         long nonce = ethBlockChainActuator.getNonce(address);
-        String password = configService.get(ConfigConstants.MAIN_WALLET_PASSWORD);
+        String password = configService.getAndDecrypt(ConfigConstants.MAIN_WALLET_PASSWORD);
         Result result = null;
         try {
             //后续如果需要其他的币种转账  修改这个合约地址即可
