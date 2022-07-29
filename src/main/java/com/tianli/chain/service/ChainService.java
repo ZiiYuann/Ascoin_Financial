@@ -2,6 +2,7 @@ package com.tianli.chain.service;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.dto.CallbackPathDTO;
 import com.tianli.chain.dto.PushConditionReq;
@@ -54,6 +55,14 @@ public class ChainService {
         TxConditionReq txConditionReq = TxConditionReq.builder().contractAddress(currencyAdaptType.getContractAddress())
                 .to(to)
                 .chain(networkType.getChainType()).build();
+
+        switch (networkType){
+            case trc20: txConditionReq.setFrom(configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS)); break;
+            case bep20: txConditionReq.setFrom(configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS)); break;
+            case erc20: txConditionReq.setFrom(configService.get(ConfigConstants.ETH_MAIN_WALLET_ADDRESS)); break;
+            default: break;
+        }
+
         String urlPrefix = configService.get(ConfigConstants.SYSTEM_URL_PATH_PREFIX);
         httpPush(List.of(txConditionReq),urlPrefix + callBackPath.getPath());
     }
@@ -63,9 +72,9 @@ public class ChainService {
         List<TxConditionReq> txConditionReqs = new ArrayList<>();
         String urlPrefix = configService.get(ConfigConstants.SYSTEM_URL_PATH_PREFIX);
         String url = urlPrefix + urlPath.getPath();
-
         if(StringUtils.isNotBlank(bsc)){
-            TxConditionReq bscTxConditionReqUsdt = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdt_bep20.getContractAddress()).to(bsc)
+            TxConditionReq bscTxConditionReqUsdt = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdt_bep20.getContractAddress())
+                    .to(bsc)
                     .chain(ChainType.BSC).build();
             TxConditionReq bscTxConditionReqUsdc = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdc_bep20.getContractAddress()).to(bsc)
                     .chain(ChainType.BSC).build();
@@ -142,6 +151,7 @@ public class ChainService {
 
     @Resource
     private ConfigService configService;
-
+    @Resource
+    private AddressService addressService;
 
 }
