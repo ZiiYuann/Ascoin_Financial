@@ -6,7 +6,6 @@ import com.tianli.borrow.contant.BorrowOrderStatus;
 import com.tianli.borrow.bo.AdjustPledgeBO;
 import com.tianli.borrow.bo.BorrowOrderBO;
 import com.tianli.borrow.bo.BorrowOrderRepayBO;
-import com.tianli.borrow.contant.BorrowPledgeType;
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.tianli.borrow.entity.BorrowInterestRecord;
 import com.tianli.borrow.entity.BorrowPledgeRecord;

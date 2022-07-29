@@ -39,7 +39,7 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
     @Override
     public void saveConfig(BorrowPledgeCoinConfigBO bo) {
         BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowCoinConfigConverter.toPledgeDO(bo);
-        if(Objects.nonNull(getByCoin(bo.getCoin()))) ErrorCodeEnum.COIN_EXIST_ERROR.throwException();
+        if(Objects.nonNull(getByCoin(bo.getCoin()))) ErrorCodeEnum.BORROW_CONFIG_EXIST.throwException();
         borrowPledgeCoinConfig.setCreateTime(LocalDateTime.now());
         borrowPledgeCoinConfigMapper.insert(borrowPledgeCoinConfig);
     }
@@ -47,7 +47,10 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
     @Override
     public void updateConfig(BorrowPledgeCoinConfigBO bo) {
         BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowCoinConfigConverter.toPledgeDO(bo);
-        if(Objects.isNull(borrowPledgeCoinConfigMapper.selectById(bo.getId()))) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
+        BorrowPledgeCoinConfig configByCoin = borrowCoinConfigConverter.toPledgeDO(bo);
+        BorrowPledgeCoinConfig configById = borrowPledgeCoinConfigMapper.selectById(bo.getId());
+        if(Objects.isNull(configById)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
+        if(Objects.nonNull(configByCoin) && !configByCoin.getCoin().equals(configById.getCoin()))ErrorCodeEnum.BORROW_CONFIG_EXIST.throwException();
         borrowPledgeCoinConfigMapper.updateById(borrowPledgeCoinConfig);
     }
 

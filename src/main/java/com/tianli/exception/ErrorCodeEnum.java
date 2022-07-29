@@ -84,17 +84,16 @@ public enum ErrorCodeEnum {
     CANCEL_FAIL(3401, "撤销失败"),
 
     /*** －－－－－－业务错误码-借币相关－－－－－－*/
-    BORROW_CONFIG_NO_EXIST(3500,"借币配置为空"),
-    BORROW_GT_AVAILABLE_ERROR(3501,"借币数量大于可用数量"),
-    BORROW_RANGE_ERROR(3502,"借币数量小于最小数量或大于最大数量"),
-    BORROW_ORDER_NO_EXIST(3503,"借币订单不存在"),
-    REPAY_GT_CAPITAL(3504,"还款金额大于需要还款金额"),
-    ADJUST_GT_AVAILABLE(3505,"调整金额大于可用金额"),
-    PLEDGE_RATE_RANGE_ERROR(3506,"质押率范围错误"),
-    CURRENCY_COIN_ERROR(3507,"币别错误"),
-    PLEDGE_LT_LIQUIDATION(3508,"质押率小于平仓率"),
-    COIN_EXIST_ERROR(3509,"币种已存在"),
-    ADJUST_GT_AVAILABLE_REDUCE(3505,"调整金额大于可减少金额"),;
+    BORROW_CONFIG_NO_EXIST(3500,"币种配置为空"),
+    BORROW_CONFIG_EXIST(3501,"币种配置已存在"),
+    BORROW_GT_AVAILABLE_ERROR(3502,"借币数量大于可用数量"),
+    BORROW_RANGE_ERROR(3503,"借币数量小于最小数量或大于最大数量"),
+    BORROW_ORDER_NO_EXIST(3504,"借币订单不存在"),
+    REPAY_GT_CAPITAL(3505,"还款金额大于需要还款金额"),
+    ADJUST_GT_AVAILABLE(3506,"调整金额大于可用金额"),
+    PLEDGE_RATE_RANGE_ERROR(3507,"质押率范围错误"),
+    CURRENCY_COIN_ERROR(3508,"币别错误"),
+    PLEDGE_LT_LIQUIDATION(3509,"质押率小于平仓率"),
     ;
     private int errorNo;
 
