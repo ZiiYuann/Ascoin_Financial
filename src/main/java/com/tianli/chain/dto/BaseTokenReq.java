@@ -3,6 +3,7 @@ package com.tianli.chain.dto;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -24,7 +25,7 @@ public class BaseTokenReq {
 
     private String block;
 
-    private BigDecimal value;
+    private BigInteger value;
 
     private String contractAddress;
 

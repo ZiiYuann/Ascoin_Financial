@@ -54,7 +54,8 @@ public class ChainService {
         TxConditionReq txConditionReq = TxConditionReq.builder().contractAddress(currencyAdaptType.getContractAddress())
                 .to(to)
                 .chain(networkType.getChainType()).build();
-        httpPush(List.of(txConditionReq),callBackPath.getPath());
+        String urlPrefix = configService.get(ConfigConstants.SYSTEM_URL_PATH_PREFIX);
+        httpPush(List.of(txConditionReq),urlPrefix + callBackPath.getPath());
     }
 
     public void pushCondition(String tron,String bsc,String eth,CallbackPathDTO urlPath) {

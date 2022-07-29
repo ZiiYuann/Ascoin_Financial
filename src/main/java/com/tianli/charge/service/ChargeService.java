@@ -80,7 +80,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(req.getContractAddress());
             Address address = getAddress(currencyAdaptType.getNetwork(), req.getTo());
             Long uid = address.getUid();
-            BigDecimal finalAmount = currencyAdaptType.alignment(req.getValue());
+            BigDecimal finalAmount = BigDecimal.valueOf(currencyAdaptType.alignment(req.getValue()));
 
             if (orderService.getOrderChargeByTxid(req.getHash()) != null) {
                 log.error("txid {} 已经存在充值订单", req.getHash());
@@ -108,14 +108,12 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         for (TRONTokenReq req : tronTokenReqs) {
             CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(req.getContractAddress());
-            Address address = getAddress(currencyAdaptType.getNetwork(), req.getTo());
-            Long uid = address.getUid();
-            BigDecimal finalAmount = currencyAdaptType.alignment(req.getValue());
+            OrderChargeInfo orderChargeInfo = orderChargeInfoService.getByTxid(req.getHash());
+            Long uid = orderChargeInfo.getUid();
             Order order = orderService.getOrderByHash(req.getHash());
-
             // 操作余额信息
             accountBalanceService.reduce(uid, ChargeType.withdraw, currencyAdaptType.getCurrencyCoin()
-                    , currencyAdaptType.getNetwork(), finalAmount,order.getOrderNo() , "提现成功扣除");
+                    , currencyAdaptType.getNetwork(), orderChargeInfo.getFee(),order.getOrderNo() , "提现成功扣除");
             order.setStatus(ChargeStatus.chain_success);
             order.setCompleteTime(LocalDateTime.now());
             orderService.saveOrUpdate(order);
@@ -159,11 +157,12 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         OrderChargeInfo orderChargeInfo = OrderChargeInfo.builder()
                 .id(CommonFunction.generalId())
                 .txid(null)
+                .uid(uid)
                 .coin(currencyAdaptType.getCurrencyCoin())
                 .network(currencyAdaptType.getNetwork())
                 .fee(withdrawAmount) // 用户提币金额
                 .serviceFee(serviceAmount) // 手续费金额
-                .realFee(realWithdrawAmount) // 真的需要转账的金额
+                .realFee(currencyAdaptType.restore(realWithdrawAmount)) // 真的需要转账的金额
                 .minerFee(BigDecimal.ZERO)
                 .fromAddress(fromAddress) // 系统热钱包
                 .toAddress(query.getTo()) // 用户提现地址
@@ -201,7 +200,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         if (!ChargeType.withdraw.equals(order.getType())) {
             throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException("仅有提现订单能操作");
         }
-        if (!ChargeStatus.chaining.equals(order.getStatus())) {
+        if (!ChargeStatus.created.equals(order.getStatus())) {
             throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException("当前提现订单状态异常");
         }
         Long relatedId = order.getRelatedId();
@@ -226,6 +225,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             result = contractService.transfer(orderChargeInfo.getToAddress(), amount, order.getCoin());
         } catch (Exception e) {
             log.info("上链失败");
+            e.printStackTrace();
             ErrorCodeEnum.throwException("上链失败");
         }
         if (Objects.isNull(result) || Objects.isNull(result.getData())){
@@ -391,11 +391,12 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      * 理财充值记录添加
      */
     @Transactional
-    public String insertRechargeOrder(Long uid, TRONTokenReq query, CurrencyAdaptType currencyAdaptType, BigDecimal amount, BigDecimal realAmount) {
+    public String insertRechargeOrder(Long uid, TRONTokenReq query, CurrencyAdaptType currencyAdaptType, BigDecimal amount, BigInteger realAmount) {
         // 链信息
         OrderChargeInfo orderChargeInfo = OrderChargeInfo.builder()
                 .id(CommonFunction.generalId())
                 .txid(query.getHash())
+                .uid(uid)
                 .coin(currencyAdaptType.getCurrencyCoin())
                 .network(currencyAdaptType.getNetwork())
                 // 格式化后的费用

@@ -31,4 +31,24 @@ class ChargeControllerTest {
 
         client.execute(httpPost);
     }
+
+    @Test
+    void withdrawCallback() throws IOException {
+
+        long l = TimeTool.toTimestamp(LocalDateTime.now());
+        String sign = Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp",l+"");
+
+
+        HttpClient client = HttpClientBuilder.create().build();
+        // BSC链
+        HttpPost httpPost = new HttpPost("http://127.0.0.1:8080/api/charge/withdraw/TRON");
+        httpPost.setHeader("Content-Type", "text/plain");
+        httpPost.setHeader("Sign", sign);
+        httpPost.setHeader("timestamp", l+ "");
+        httpPost.setEntity(new StringEntity("{\"token\": [{\"id\": 1739673149627121337, \"to\": \"TD4FCCpMEEDNX41Lo8xf6SqUomqaAPHJEe\", \"from\": \"TKTisiaH4CMTAWAddRmwTJLdaoHKHHTeRj\", \"hash\": \"82cbe1a3c9ebd477163676f720dcba8c4b86602667657b675863481fabae6b27\", \"block\": 42835440, \"value\": 9000000, \"netFee\": 345000, \"status\": 1, \"netUsage\": 0, \"energyFee\": 8296680, \"createTime\": {\"date\": {\"day\": 29, \"year\": 2022, \"month\": 7}, \"time\": {\"hour\": 15, \"nano\": 0, \"minute\": 59, \"second\": 51}}, \"energyUsage\": 0, \"contractAddress\": \"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t\", \"energyUsageTotal\": 29631, \"originEnergyUsage\": 0}], \"standardCurrency\": []}"));
+
+        client.execute(httpPost);
+    }
+
+
 }

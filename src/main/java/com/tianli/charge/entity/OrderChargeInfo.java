@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 /**
@@ -28,6 +29,8 @@ public class OrderChargeInfo{
      */
     private Long id;
 
+    private Long uid;
+
     /**
      * 格式化之后的费用
      */
@@ -41,7 +44,7 @@ public class OrderChargeInfo{
     /**
      * 真实的费用
      */
-    private BigDecimal realFee;
+    private BigInteger realFee;
 
     /**
      *

@@ -66,17 +66,19 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
                 .createTime(now).build();
         orderReviewMapper.insert(orderReview);
 
+        order.setReviewerId(orderReview.getId());
+
         // 审核通过需要上链
         if (query.isPass()) {
             chargeService.withdrawChain(order);
+            order.setStatus(ChargeStatus.chaining);
         }
         // 审核不通过需要解冻金额
         if (!query.isPass()) {
+            order.setStatus(ChargeStatus.review_fail);
             accountBalanceService.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), orderNo, "提现申请未通过");
         }
 
-        order.setStatus(status);
-        order.setReviewerId(orderReview.getId());
         orderService.saveOrUpdate(order);
     }
 

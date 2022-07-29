@@ -97,7 +97,7 @@ public class TronTriggerContract extends ContractService {
     @Override
     public Result transfer(String to, BigInteger val, CurrencyCoin coin) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
-        String contractAddress = CurrencyAdaptType.get(coin, NetworkType.erc20).getContractAddress();
+        String contractAddress = CurrencyAdaptType.get(coin, NetworkType.trc20).getContractAddress();
         String data = org.tron.tronj.abi.FunctionEncoder.encode(
                 new org.tron.tronj.abi.datatypes.Function("transfer",
                         List.of(new org.tron.tronj.abi.datatypes.Address(to), new org.tron.tronj.abi.datatypes.generated.Uint256(val)),
@@ -133,7 +133,7 @@ public class TronTriggerContract extends ContractService {
     }
 
     public SECP256K1.KeyPair getKeyPair() {
-        String hexPrivateKey = configService.getAndDecrypt(ConfigConstants.TRON_PRIVATE_KEY);
+        String hexPrivateKey = configService.get(ConfigConstants.TRON_PRIVATE_KEY);
         return SECP256K1.KeyPair.create(SECP256K1.PrivateKey.create(Bytes32.fromHexString(hexPrivateKey)));
     }
 

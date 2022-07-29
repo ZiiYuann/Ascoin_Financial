@@ -67,7 +67,7 @@ public class BscTriggerContract extends ContractService{
         String contractAddress = configService.get(ConfigConstants.BSC_TRIGGER_ADDRESS);
         String address = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
         long nonce = bscBlockChainActuator.getNonce(address);
-        String password = configService.getAndDecrypt(ConfigConstants.MAIN_WALLET_PASSWORD);
+        String password = configService.get(ConfigConstants.MAIN_WALLET_PASSWORD);
         if(toAddress == null || toAddress.isEmpty()) toAddress = address;
         Result result = null;
         try {
@@ -91,7 +91,7 @@ public class BscTriggerContract extends ContractService{
     @Override
     public Result transfer(String to, BigInteger val, CurrencyCoin coin) {
         String address = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
-        String password = configService.getAndDecrypt(ConfigConstants.MAIN_WALLET_PASSWORD);
+        String password = configService.get(ConfigConstants.MAIN_WALLET_PASSWORD);
         long nonce = bscBlockChainActuator.getNonce(address);
         Result result = null;
         try {
