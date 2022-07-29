@@ -418,23 +418,49 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         if(Objects.isNull(borrowCoinOrder))return null;
         BigDecimal waitRepayInterest = borrowCoinOrder.getWaitRepayInterest();
         BigDecimal waitRepayCapital = borrowCoinOrder.getWaitRepayCapital();
+        BigDecimal pledgeAmount = borrowCoinOrder.getPledgeAmount();
         BigDecimal waitRepay = waitRepayInterest.add(waitRepayCapital);
         Long uid = requestInitService.uid();
         AccountBalance accountBalance = accountBalanceService.get(uid, coin);
-        BigDecimal totalRepayAmount = borrowCoinOrder.getWaitRepayCapital().add(borrowCoinOrder.getWaitRepayInterest());
+        BorrowPledgeCoinConfig pledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(coin);
+        BigDecimal initialPledgeRate = pledgeCoinConfig.getInitialPledgeRate();
+
+        BigDecimal totalRepayAmount = waitRepay;
         BigDecimal repayInterest;
         BigDecimal repayCapital;
-        if(repayAmount.compareTo(waitRepayInterest) <= 0 ){
-            repayInterest = repayAmount;
-            repayCapital = BigDecimal.ZERO;
-        }else {
-            repayInterest = borrowCoinOrder.getWaitRepayInterest();
-            repayCapital = repayAmount.subtract(repayInterest);
-        }
+        BigDecimal pledgeRate;
+        BigDecimal releasePledgeAmount = BigDecimal.ZERO;
 
+        if(repayAmount.compareTo(waitRepay) > 0)ErrorCodeEnum.REPAY_GT_CAPITAL.throwException();
+
+        if(repayAmount.compareTo(waitRepay) == 0){
+            repayInterest = waitRepayInterest;
+            repayCapital = waitRepayCapital;
+            releasePledgeAmount = pledgeAmount;
+            pledgeRate = BigDecimal.ZERO;
+        }else {
+            if (repayAmount.compareTo(waitRepayInterest) <= 0) {
+                repayInterest = repayAmount;
+                repayCapital = BigDecimal.ZERO;
+            } else {
+                repayInterest = borrowCoinOrder.getWaitRepayInterest();
+                repayCapital = repayAmount.subtract(repayInterest);
+            }
+            waitRepay = waitRepay.subtract(repayAmount);
+            pledgeRate = waitRepay.divide(pledgeAmount, 8, RoundingMode.UP);
+            if (pledgeRate.compareTo(initialPledgeRate) < 0) {
+                pledgeRate = initialPledgeRate;
+                releasePledgeAmount = pledgeAmount.subtract(waitRepay.divide(pledgeRate, 8, RoundingMode.UP));
+            }
+        }
         return BorrowRepayPageVO.builder()
                 .totalRepayAmount(totalRepayAmount)
-                .availableBalance(accountBalance.getRemain()).build();
+                .availableBalance(accountBalance.getRemain())
+                .repayCapital(repayCapital)
+                .repayInterest(repayInterest)
+                .pledgeRate(pledgeRate)
+                .releasePledgeAmount(releasePledgeAmount)
+                .build();
     }
 
     @Override
@@ -490,6 +516,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
         //修改借币订单
         if(repayAmount.compareTo(totalAmount) == 0){
+            //全部还款
             //释放锁定数量
             reducePledgeAmount(orderId,borrowCoinOrder.getPledgeAmount());
             //借币质押记录
@@ -510,6 +537,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             repayRecord.setStatus(BorrowRepayStatus.SUCCESSFUL_REPAYMENT);
             repayRecord.setReleasePledgeAmount(borrowCoinOrder.getPledgeAmount());
         }else {
+            //部分还款
             BorrowPledgeCoinConfig pledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(currencyCoin);
             BigDecimal initialPledgeRate = pledgeCoinConfig.getInitialPledgeRate();
             BigDecimal pledgeAmount = borrowCoinOrder.getPledgeAmount();
@@ -530,7 +558,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             repayRecord.setStatus(BorrowRepayStatus.REPAYMENT);
             //计算质押率
             BigDecimal totalWaitBorrowAmount = waitRepayCapital.add(waitRepayInterest);
-            BigDecimal pledgeRate = totalWaitBorrowAmount.divide(pledgeAmount,4,RoundingMode.UP);
+            BigDecimal pledgeRate = totalWaitBorrowAmount.divide(pledgeAmount,8,RoundingMode.UP);
             if(pledgeRate.compareTo(initialPledgeRate) < 0){
                 //释放质押物
                 pledgeRate = initialPledgeRate;

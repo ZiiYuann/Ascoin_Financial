@@ -88,7 +88,7 @@ public enum ErrorCodeEnum {
     BORROW_GT_AVAILABLE_ERROR(3501,"借币数量大于可用数量"),
     BORROW_RANGE_ERROR(3502,"借币数量小于最小数量或大于最大数量"),
     BORROW_ORDER_NO_EXIST(3503,"借币订单不存在"),
-    REPAY_GT_CAPITAL(3504,"还款金额大于本金"),
+    REPAY_GT_CAPITAL(3504,"还款金额大于需要还款金额"),
     ADJUST_GT_AVAILABLE(3505,"调整金额大于可用金额"),
     PLEDGE_RATE_RANGE_ERROR(3506,"质押率范围错误"),
     CURRENCY_COIN_ERROR(3507,"币别错误"),

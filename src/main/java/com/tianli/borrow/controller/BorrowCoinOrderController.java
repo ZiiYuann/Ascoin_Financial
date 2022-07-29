@@ -158,7 +158,7 @@ public class BorrowCoinOrderController {
      */
     @GetMapping("/order/repay/page")
     public Result repayPage(@RequestParam Long orderId,
-                            @RequestParam BigDecimal repayAmount,
+                            @RequestParam(defaultValue = "0.0") BigDecimal repayAmount,
                             @RequestParam CurrencyCoin coin){
         BorrowRepayPageVO borrowRepayPageVO = borrowCoinOrderService.repayPage(orderId,repayAmount, coin);
         return Result.success(borrowRepayPageVO);
