@@ -16,6 +16,4 @@ import org.apache.ibatis.annotations.Update;
 @Mapper
 public interface BorrowPledgeCoinConfigMapper extends BaseMapper<BorrowPledgeCoinConfig> {
 
-    @Update("update borrow_pledge_coin_config set  is_del = 1 where id = #{id}")
-    void loginDel(Long id);
 }

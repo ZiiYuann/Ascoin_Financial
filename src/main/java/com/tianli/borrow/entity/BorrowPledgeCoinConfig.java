@@ -51,15 +51,4 @@ public class BorrowPledgeCoinConfig extends Model<BorrowPledgeCoinConfig> {
      */
     private LocalDateTime createTime;
 
-    /**
-     * 删除标识
-     */
-    private Integer isDel;
-
-
-    @Override
-    protected Serializable pkVal() {
-        return null;
-    }
-
 }

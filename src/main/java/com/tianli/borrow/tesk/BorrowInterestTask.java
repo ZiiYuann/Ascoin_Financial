@@ -56,9 +56,6 @@ public class BorrowInterestTask {
         BoundValueOperations<String, Object> operation = redisTemplate.boundValueOps(redisKey);
         operation.setIfAbsent(0, 1, TimeUnit.HOURS);
 
-        BorrowCoinConfig coinConfig = borrowCoinConfigMapper.selectOne(new QueryWrapper<BorrowCoinConfig>().lambda()
-                .eq(BorrowCoinConfig::getCoin, CurrencyCoin.usdt.getName()));
-        BigDecimal annualInterestRate = coinConfig.getAnnualInterestRate();
         log.info("========执行计算利息定时任务========");
         while (true){
             Long page = operation.increment();
@@ -74,12 +71,12 @@ public class BorrowInterestTask {
             if(CollUtil.isEmpty(records)){
                 break;
             }
-            records.forEach(borrowCoinOrder -> calculateInterest(borrowCoinOrder,annualInterestRate,now));
+            records.forEach(borrowCoinOrder -> calculateInterest(borrowCoinOrder,now));
         }
     }
 
     @Transactional
-    public void calculateInterest(BorrowCoinOrder borrowCoinOrder, BigDecimal annualInterestRate, LocalDateTime now){
+    public void calculateInterest(BorrowCoinOrder borrowCoinOrder, LocalDateTime now){
         BigDecimal waitRepayCapital = borrowCoinOrder.getWaitRepayCapital();
         BigDecimal waitRepayInterest = borrowCoinOrder.getWaitRepayInterest();
         BigDecimal cumulativeInterest = borrowCoinOrder.getCumulativeInterest();
@@ -87,7 +84,8 @@ public class BorrowInterestTask {
         BigDecimal totalWaitRepayAmount = waitRepayCapital.add(waitRepayInterest);
         BigDecimal pledgeAmount = borrowCoinOrder.getPledgeAmount();
         //计算每小时利息
-        BigDecimal interest = (totalWaitRepayAmount.multiply(annualInterestRate))
+        BigDecimal interestRate = borrowCoinConfigMapper.getAnnualInterestRateByCoin(borrowCoinOrder.getBorrowCoin());
+        BigDecimal interest = (totalWaitRepayAmount.multiply(interestRate))
                 .divide(new BigDecimal(365 * 24), 8, RoundingMode.UP);
         waitRepayInterest = waitRepayInterest.add(interest);
         //计算质押率

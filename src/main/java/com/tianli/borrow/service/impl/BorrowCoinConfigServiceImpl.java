@@ -66,7 +66,7 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
         Arrays.asList(ids).forEach(id ->{
             BorrowCoinConfig borrowCoinConfig = borrowCoinConfigMapper.selectById(id);
             if(Objects.isNull(borrowCoinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
-            borrowCoinConfigMapper.loginDel(id);
+            borrowCoinConfigMapper.selectById(id);
         });
     }
 
@@ -75,11 +75,9 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
 
         LambdaQueryWrapper<BorrowCoinConfig> queryWrapper = new QueryWrapper<BorrowCoinConfig>().lambda();
 
-        queryWrapper.eq(BorrowCoinConfig::getIsDel,0);
         if(!Objects.isNull(coin)){
             queryWrapper.like(BorrowCoinConfig::getCoin,coin.getName());
         }
-
         return borrowCoinConfigMapper.selectPage(pageQuery.page(),queryWrapper).convert(borrowCoinConfigConverter::toVO);
     }
 
@@ -87,7 +85,6 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
     public BorrowCoinConfig getByCoin(CurrencyCoin coin) {
         return borrowCoinConfigMapper.selectOne(new QueryWrapper<BorrowCoinConfig>().lambda()
                 .eq(BorrowCoinConfig::getCoin,coin.getName())
-                .eq(BorrowCoinConfig::getIsDel,0)
         );
     }
 }

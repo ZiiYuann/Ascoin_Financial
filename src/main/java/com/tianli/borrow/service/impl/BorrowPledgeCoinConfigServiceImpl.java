@@ -61,25 +61,22 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
         Arrays.asList(ids).forEach(id ->{
             BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowPledgeCoinConfigMapper.selectById(id);
             if(Objects.isNull(borrowPledgeCoinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
-            borrowPledgeCoinConfigMapper.loginDel(id);
+            borrowPledgeCoinConfigMapper.deleteById(id);
         });
     }
 
     @Override
     public IPage<BorrowPledgeCoinConfigVO> pageList(PageQuery<BorrowPledgeCoinConfig> pageQuery, CurrencyCoin coin) {
         LambdaQueryWrapper<BorrowPledgeCoinConfig> queryWrapper = new QueryWrapper<BorrowPledgeCoinConfig>().lambda();
-
         if(Objects.nonNull(coin)){
             queryWrapper.eq(BorrowPledgeCoinConfig::getCoin,coin.getName());
         }
-        queryWrapper.eq(BorrowPledgeCoinConfig::getIsDel,0);
         return borrowPledgeCoinConfigMapper.selectPage(pageQuery.page(),queryWrapper).convert(borrowCoinConfigConverter::toPledgeVO);
     }
 
     @Override
     public BorrowPledgeCoinConfig getByCoin(CurrencyCoin coin) {
         return borrowPledgeCoinConfigMapper.selectOne(new QueryWrapper<BorrowPledgeCoinConfig>().lambda()
-                .eq(BorrowPledgeCoinConfig::getCoin,coin.getName())
-                .eq(BorrowPledgeCoinConfig::getIsDel,0));
+                .eq(BorrowPledgeCoinConfig::getCoin,coin.getName()));
     }
 }

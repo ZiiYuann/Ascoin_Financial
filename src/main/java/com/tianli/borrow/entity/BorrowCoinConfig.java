@@ -50,9 +50,4 @@ public class BorrowCoinConfig extends Model<BorrowCoinConfig> {
      */
     private Date createTime;
 
-    /**
-     * 删除标记
-     */
-    private Integer isDel;
-
 }

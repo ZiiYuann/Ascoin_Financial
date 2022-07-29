@@ -3,7 +3,10 @@ package com.tianli.borrow.dao;
 import com.tianli.borrow.entity.BorrowCoinConfig;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+
+import java.math.BigDecimal;
 
 /**
  * <p>
@@ -15,7 +18,8 @@ import org.apache.ibatis.annotations.Update;
  */
 @Mapper
 public interface BorrowCoinConfigMapper extends BaseMapper<BorrowCoinConfig> {
-    @Update("update borrow_coin_config set is_del = 1 where id = #{id}")
-    void loginDel(Long id);
+
+    @Select("select annual_interest_rate from borrow_coin_config where coin = #{coin}")
+    BigDecimal getAnnualInterestRateByCoin(String coin);
 
 }
