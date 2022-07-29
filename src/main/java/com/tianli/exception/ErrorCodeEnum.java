@@ -93,7 +93,8 @@ public enum ErrorCodeEnum {
     PLEDGE_RATE_RANGE_ERROR(3506,"质押率范围错误"),
     CURRENCY_COIN_ERROR(3507,"币别错误"),
     PLEDGE_LT_LIQUIDATION(3508,"质押率小于平仓率"),
-    COIN_EXIST_ERROR(3509,"币种已存在");
+    COIN_EXIST_ERROR(3509,"币种已存在"),
+    ADJUST_GT_AVAILABLE_REDUCE(3505,"调整金额大于可减少金额"),;
     ;
     private int errorNo;
 

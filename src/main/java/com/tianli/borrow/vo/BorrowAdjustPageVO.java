@@ -7,7 +7,6 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-@Builder
 public class BorrowAdjustPageVO {
 
     /**
@@ -25,5 +24,9 @@ public class BorrowAdjustPageVO {
      */
     @BigDecimalFormat("#.##%")
     private BigDecimal pledgeRate;
+
+
+    @BigDecimalFormat("#.##%")
+    private BigDecimal adjustPledgeRate;
 
 }

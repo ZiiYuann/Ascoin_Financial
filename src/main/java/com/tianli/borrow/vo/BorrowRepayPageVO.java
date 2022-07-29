@@ -41,4 +41,9 @@ public class BorrowRepayPageVO {
      */
     private BigDecimal releasePledgeAmount;
 
+
+    private String coin;
+
+    private String logo;
+
 }

@@ -6,6 +6,7 @@ import com.tianli.borrow.contant.BorrowOrderStatus;
 import com.tianli.borrow.bo.AdjustPledgeBO;
 import com.tianli.borrow.bo.BorrowOrderBO;
 import com.tianli.borrow.bo.BorrowOrderRepayBO;
+import com.tianli.borrow.contant.BorrowPledgeType;
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.tianli.borrow.entity.BorrowInterestRecord;
 import com.tianli.borrow.entity.BorrowPledgeRecord;
@@ -180,9 +181,12 @@ public class BorrowCoinOrderController {
      * @param coin
      * @return
      */
-    @GetMapping("order/adjust/page")
-    public Result adjustPage(@RequestParam Long orderId, @RequestParam CurrencyCoin coin){
-        BorrowAdjustPageVO borrowAdjustPageVO = borrowCoinOrderService.adjustPage(orderId, coin);
+    @GetMapping("/order/adjust/page")
+    public Result adjustPage(@RequestParam Long orderId,
+                             @RequestParam(defaultValue = "2") Integer pledgeType,
+                             @RequestParam(defaultValue = "0") BigDecimal adjustAmount,
+                             @RequestParam CurrencyCoin coin){
+        BorrowAdjustPageVO borrowAdjustPageVO = borrowCoinOrderService.adjustPage(orderId,pledgeType,adjustAmount, coin);
         return Result.success(borrowAdjustPageVO);
     }
 

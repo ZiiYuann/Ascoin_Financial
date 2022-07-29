@@ -62,7 +62,7 @@ public interface IBorrowCoinOrderService extends IService<BorrowCoinOrder> {
 
     void orderRepay(BorrowOrderRepayBO bo);
 
-    BorrowAdjustPageVO adjustPage(Long orderId,CurrencyCoin coin);
+    BorrowAdjustPageVO adjustPage(Long orderId,Integer pledgeType,BigDecimal adjustAmount,CurrencyCoin coin);
 
     void adjustPledge(AdjustPledgeBO bo);
 

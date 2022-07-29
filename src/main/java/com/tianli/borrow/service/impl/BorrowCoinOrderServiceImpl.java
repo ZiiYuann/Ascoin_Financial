@@ -463,6 +463,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .repayInterest(repayInterest)
                 .pledgeRate(pledgeRate)
                 .releasePledgeAmount(releasePledgeAmount)
+                .coin(borrowCoinOrder.getBorrowCoin())
+                .logo(borrowCoinOrder.getLogo())
                 .build();
     }
 
@@ -592,20 +594,33 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     }
 
     @Override
-    public BorrowAdjustPageVO adjustPage(Long orderId,CurrencyCoin coin) {
+    public BorrowAdjustPageVO adjustPage(Long orderId,Integer pledgeType,BigDecimal adjustAmount,CurrencyCoin coin) {
         Long uid = requestInitService.uid();
-        BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid, coin);
         BorrowCoinOrder borrowCoinOrder = borrowCoinOrderMapper.selectById(orderId);
         if(Objects.isNull(borrowCoinOrder))ErrorCodeEnum.BORROW_ORDER_NO_EXIST.throwException();
-        BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(CurrencyCoin.getCurrencyCoinEnum(borrowCoinOrder.getPledgeCoin()));
-        BigDecimal initialPledgeRate = borrowPledgeCoinConfig.getInitialPledgeRate();
-        BigDecimal waitRepay = borrowCoinOrder.getWaitRepayCapital().add(borrowCoinOrder.getWaitRepayInterest());
-        BigDecimal pledge = borrowCoinOrder.getPledgeAmount().subtract(waitRepay.divide(BigDecimal.valueOf(0.65), 8, RoundingMode.UP));
-        return BorrowAdjustPageVO.builder()
-                .availableAmount(availableAmount)
-                .ableReduceAmount(pledge)
-                .pledgeRate(borrowCoinOrder.getPledgeRate())
-                .build();
+        BigDecimal waitRepayCapital = borrowCoinOrder.getWaitRepayCapital();
+        BigDecimal waitRepayInterest = borrowCoinOrder.getWaitRepayInterest();
+        BigDecimal pledgeAmount = borrowCoinOrder.getPledgeAmount();
+        BigDecimal waitRepay = waitRepayCapital.add(waitRepayInterest);
+        BorrowAdjustPageVO  borrowAdjustPageVO = new BorrowAdjustPageVO();
+        borrowAdjustPageVO.setPledgeRate(borrowCoinOrder.getPledgeRate());
+        if(pledgeType.equals(BorrowPledgeType.INCREASE)){
+            BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid, coin);
+            if(adjustAmount.compareTo(availableAmount)>0)ErrorCodeEnum.ADJUST_GT_AVAILABLE.throwException();
+            borrowAdjustPageVO.setAvailableAmount(availableAmount);
+            borrowAdjustPageVO.setAdjustPledgeRate(waitRepay.divide((pledgeAmount.add(adjustAmount)),8,RoundingMode.UP));
+        }else {
+            BigDecimal pledgeRateAmount = waitRepay.divide(BigDecimal.valueOf(0.65), 8, RoundingMode.UP);
+            BigDecimal ableReduceAmount = borrowCoinOrder.getPledgeAmount().subtract(pledgeRateAmount);
+            if(ableReduceAmount.compareTo(BigDecimal.ZERO) <= 0){
+                borrowAdjustPageVO.setAbleReduceAmount(BigDecimal.ZERO);
+                borrowAdjustPageVO.setAdjustPledgeRate(borrowCoinOrder.getPledgeRate());
+            }else {
+                borrowAdjustPageVO.setAbleReduceAmount(ableReduceAmount);
+                borrowAdjustPageVO.setAdjustPledgeRate(waitRepay.divide((pledgeAmount.subtract(adjustAmount)), 8, RoundingMode.UP));
+            }
+        }
+        return borrowAdjustPageVO;
     }
 
     @Override
@@ -624,6 +639,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BigDecimal waitRepayCapital = borrowCoinOrder.getWaitRepayCapital();
         BigDecimal waitRepayInterest = borrowCoinOrder.getWaitRepayInterest();
         BigDecimal totalWaitRepay = waitRepayCapital.add(waitRepayInterest);
+
+
 
         //质押记录
         BorrowPledgeRecord pledgeRecord = BorrowPledgeRecord.builder()
