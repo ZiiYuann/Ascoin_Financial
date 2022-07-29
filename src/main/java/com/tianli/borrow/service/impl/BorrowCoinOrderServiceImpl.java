@@ -69,9 +69,6 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     @Resource
     private BorrowOrderConverter borrowConverter;
 
-    @Resource
-    private BorrowCoinConfigConverter borrowCoinConfigConverter;
-
     @Autowired
     private RequestInitService requestInitService;
 
@@ -491,7 +488,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .uid(uid)
                 .orderNo(AccountChangeType.normal.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
                 .completeTime(now)
-                .amount(repayAmount.negate())
+                .amount(repayAmount)
                 .status(ChargeStatus.chain_success)
                 .type(ChargeType.repay)
                 .coin(currencyCoin)

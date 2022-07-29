@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.borrow.bo.BorrowOrderConfigBO;
 import com.tianli.borrow.contant.BorrowPledgeRate;
 import com.tianli.borrow.convert.BorrowCoinConfigConverter;
+import com.tianli.borrow.dao.BorrowCoinOrderMapper;
 import com.tianli.borrow.entity.BorrowCoinConfig;
 import com.tianli.borrow.dao.BorrowCoinConfigMapper;
 import com.tianli.borrow.service.IBorrowCoinConfigService;
@@ -40,6 +41,9 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
     @Autowired
     private BorrowCoinConfigMapper borrowCoinConfigMapper;
 
+    @Autowired
+    private BorrowCoinOrderMapper borrowCoinOrderMapper;
+
     @Override
     public void saveConfig(BorrowOrderConfigBO bo) {
         bo.convertToRate();
@@ -66,6 +70,8 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
         Arrays.asList(ids).forEach(id ->{
             BorrowCoinConfig borrowCoinConfig = borrowCoinConfigMapper.selectById(id);
             if(Objects.isNull(borrowCoinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
+            Integer count = borrowCoinOrderMapper.selectCountByBorrowCoin(borrowCoinConfig.getCoin());
+            if(count > 0) ErrorCodeEnum.BORROW_CONFIG_USED.throwException();
             borrowCoinConfigMapper.selectById(id);
         });
     }

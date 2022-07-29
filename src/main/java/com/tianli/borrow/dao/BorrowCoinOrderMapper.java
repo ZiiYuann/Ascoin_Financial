@@ -49,4 +49,10 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
 
 
     BigDecimal selectCumulativeInterestByQuery(BorrowOrderQuery query);
+
+    @Select("select count(*) from borrow_coin_order where borrow_coin = #{coin}")
+    Integer selectCountByBorrowCoin(@Param("coin") String coin);
+
+    @Select("select count(*) from borrow_coin_order where pledge_coin = #{coin}")
+    Integer selectCountByPledgeCoin(@Param("coin") String coin);
 }

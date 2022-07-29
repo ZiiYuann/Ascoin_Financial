@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.borrow.bo.BorrowPledgeCoinConfigBO;
 import com.tianli.borrow.convert.BorrowCoinConfigConverter;
+import com.tianli.borrow.dao.BorrowCoinOrderMapper;
 import com.tianli.borrow.entity.BorrowCoinConfig;
 import com.tianli.borrow.entity.BorrowPledgeCoinConfig;
 import com.tianli.borrow.dao.BorrowPledgeCoinConfigMapper;
@@ -36,6 +37,8 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
     private BorrowCoinConfigConverter borrowCoinConfigConverter;
     @Autowired
     private BorrowPledgeCoinConfigMapper borrowPledgeCoinConfigMapper;
+    @Autowired
+    private BorrowCoinOrderMapper borrowCoinOrderMapper;
     @Override
     public void saveConfig(BorrowPledgeCoinConfigBO bo) {
         bo.convertToRate();
@@ -61,6 +64,8 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
         Arrays.asList(ids).forEach(id ->{
             BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowPledgeCoinConfigMapper.selectById(id);
             if(Objects.isNull(borrowPledgeCoinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
+            Integer count = borrowCoinOrderMapper.selectCountByPledgeCoin(borrowPledgeCoinConfig.getCoin());
+            if(count > 0) ErrorCodeEnum.BORROW_CONFIG_USED.throwException();
             borrowPledgeCoinConfigMapper.deleteById(id);
         });
     }
