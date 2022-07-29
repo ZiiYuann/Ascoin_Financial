@@ -31,7 +31,7 @@ public class BorrowCoinMainPageVO {
     @BigDecimalFormat
     private BigDecimal borrowQuota;
     //已借额度比率
-    @BigDecimalFormat
+    @BigDecimalFormat("#.##%")
     private BigDecimal borrowRate;
     //订单
     private List<BorrowOrder> borrowOrders;
@@ -54,7 +54,7 @@ public class BorrowCoinMainPageVO {
         @BigDecimalFormat
         private BigDecimal cumulativeInterest;
         //质押率
-        @BigDecimalFormat
+        @BigDecimalFormat("#.##%")
         private BigDecimal pledgeRate;
 
     }

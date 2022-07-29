@@ -43,19 +43,19 @@ public class BorrowApplePageVO {
     /**
      * 年利率
      */
-    @BigDecimalFormat
+    @BigDecimalFormat("#.##%")
     private BigDecimal annualInterestRate;
 
     /**
      * 初始质押率
      */
-    @BigDecimalFormat
+    @BigDecimalFormat("#.##%")
     private BigDecimal initialPledgeRate;
 
     /**
      * 强制平仓质押率
      */
-    @BigDecimalFormat
+    @BigDecimalFormat("#.##%")
     private BigDecimal liquidationPledgeRate;
 
     /**

@@ -1,5 +1,6 @@
 package com.tianli.borrow.vo;
 
+import com.tianli.common.annotation.BigDecimalFormat;
 import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 
@@ -31,16 +32,19 @@ public class BorrowPledgeCoinConfigVO {
     /**
      * 初始质押率
      */
+    @BigDecimalFormat("#.##%")
     private BigDecimal initialPledgeRate;
 
     /**
      * 警告质押率
      */
+    @BigDecimalFormat("#.##%")
     private BigDecimal warnPledgeRate;
 
     /**
      * 强平质押率
      */
+    @BigDecimalFormat("#.##%")
     private BigDecimal liquidationPledgeRate;
 
 }

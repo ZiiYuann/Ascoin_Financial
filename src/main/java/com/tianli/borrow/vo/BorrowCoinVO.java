@@ -1,5 +1,6 @@
 package com.tianli.borrow.vo;
 
+import com.tianli.common.annotation.BigDecimalFormat;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ public class BorrowCoinVO {
     //质押金额
     private BigDecimal depositQuota;
     //已借额度比率
+    @BigDecimalFormat("#.##%")
     private Double borrowRate;
     //订单
     private List<BorrowOrder> borrowOrders;
@@ -34,6 +36,7 @@ public class BorrowCoinVO {
         //利息
         private BigDecimal interest;
         //质押率
+        @BigDecimalFormat("#.##%")
         private BigDecimal pledgeRate;
 
     }

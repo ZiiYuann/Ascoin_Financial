@@ -1,5 +1,6 @@
 package com.tianli.borrow.vo;
 
+import com.tianli.common.annotation.BigDecimalFormat;
 import lombok.Builder;
 import lombok.Data;
 
@@ -22,6 +23,7 @@ public class BorrowAdjustPageVO {
     /**
      * 当前质押率
      */
+    @BigDecimalFormat("#.##%")
     private BigDecimal pledgeRate;
 
 }
