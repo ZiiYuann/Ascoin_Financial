@@ -1,11 +1,10 @@
 package com.tianli.charge.entity;
 
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.ChargeStatus;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -57,6 +56,11 @@ public class Order {
      * 真实等金额 提币 = amount - serviceAmount，充值 = amount - serviceAmount
      */
     private BigDecimal amount;
+
+    /**
+     * 手续费
+     */
+    private BigDecimal serviceAmount = BigDecimal.ZERO;
 
     /**
      * 订单创建时间

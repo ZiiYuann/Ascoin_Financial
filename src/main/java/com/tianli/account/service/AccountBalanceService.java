@@ -152,7 +152,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * 获取用户余额数据并且初始化
      */
     public AccountBalance getAndInit(long uid, CurrencyAdaptType token) {
-       return get(uid,token.getCurrencyCoin());
+       return getAndInit(uid,token.getCurrencyCoin());
     }
 
     public AccountBalance getAndInit(long uid, CurrencyCoin currencyCoin) {
@@ -227,7 +227,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         List<AccountBalance> accountBalances = Optional.ofNullable(this.list(uid)).orElse(new ArrayList<>());
 
         Map<CurrencyCoin, BigDecimal> currencyDollarRateMap = accountBalances.stream()
-                .map(AccountBalance::getCoin).distinct()
+                .map(AccountBalance::getCoin)
+                .distinct()
                 .collect(Collectors.toMap(o -> o, currencyService::getDollarRate));
 
         List<AccountBalanceVO> accountBalanceVOS = new ArrayList<>(accountBalances.size());
@@ -248,14 +249,6 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
                     accountBalanceVOS.add(accountBalanceVO);
                 });
         return accountBalanceVOS;
-    }
-
-    public AccountBalance get(Long uid, CurrencyCoin currencyCoin){
-        return accountBalanceMapper.get(uid,currencyCoin);
-    }
-
-    public AccountBalance get(Long uid,CurrencyAdaptType currencyAdaptType){
-        return accountBalanceMapper.get(uid,currencyAdaptType.getCurrencyCoin());
     }
 
     public AccountBalanceVO getVO(Long uid, CurrencyCoin currencyCoin){

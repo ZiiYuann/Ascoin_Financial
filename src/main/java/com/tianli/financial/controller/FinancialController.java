@@ -74,7 +74,7 @@ public class FinancialController {
 
         var useQuota = financialRecordService.getUseQuota(List.of(product.getId()));
         var personUseQuota = financialRecordService.getUseQuota(List.of(product.getId()),uid);
-        var accountBalance = accountBalanceService.get(uid, product.getCoin());
+        var accountBalance = accountBalanceService.getAndInit(uid, product.getCoin());
 
         LocalDateTime now = LocalDateTime.now();
         productVO.setUseQuota(useQuota.getOrDefault(productVO.getId(),BigDecimal.ZERO));

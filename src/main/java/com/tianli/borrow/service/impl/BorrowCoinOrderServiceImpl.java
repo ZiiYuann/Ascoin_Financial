@@ -424,7 +424,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BigDecimal pledgeAmount = borrowCoinOrder.getPledgeAmount();
         BigDecimal waitRepay = waitRepayInterest.add(waitRepayCapital);
         Long uid = requestInitService.uid();
-        AccountBalance accountBalance = accountBalanceService.get(uid, coin);
+        AccountBalance accountBalance = accountBalanceService.getAndInit(uid, coin);
         BorrowPledgeCoinConfig pledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(coin);
         BigDecimal initialPledgeRate = pledgeCoinConfig.getInitialPledgeRate();
 
@@ -474,7 +474,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         CurrencyCoin currencyCoin = bo.getCurrencyCoin();
 
         //数据校验
-        AccountBalance accountBalance = accountBalanceService.get(uid, currencyCoin);
+        AccountBalance accountBalance = accountBalanceService.getAndInit(uid, currencyCoin);
         if(accountBalance.getRemain().compareTo(repayAmount) <= 0)ErrorCodeEnum.INSUFFICIENT_BALANCE.throwException();
         BorrowCoinOrder borrowCoinOrder = borrowCoinOrderMapper.selectById(orderId);
         if(Objects.isNull(borrowCoinOrder))ErrorCodeEnum.BORROW_ORDER_NO_EXIST.throwException();

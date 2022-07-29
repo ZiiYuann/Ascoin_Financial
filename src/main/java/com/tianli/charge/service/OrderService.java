@@ -10,6 +10,7 @@ import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderChargeInfoMapper;
 import com.tianli.charge.mapper.OrderMapper;
+import com.tianli.charge.query.ServiceAmountQuery;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -20,11 +21,9 @@ import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -132,8 +131,13 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
         return Optional.ofNullable(orderMapper.orderAmountSum(query)).orElse(BigDecimal.ZERO);
     }
 
-    public BigDecimal orderAmountSumByCompleteTime(ChargeType chargeType, LocalDateTime startTime, LocalDateTime endTime) {
-        return Optional.ofNullable(orderMapper.orderAmountSumByCompleteTime(chargeType,startTime,endTime))
+    public BigDecimal amountSumByCompleteTime(ChargeType chargeType, LocalDateTime startTime, LocalDateTime endTime) {
+        return Optional.ofNullable(orderMapper.amountSumByCompleteTime(chargeType,startTime,endTime))
+                .orElse(BigDecimal.ZERO);
+    }
+
+    public BigDecimal serviceAmountSumByCompleteTime(ServiceAmountQuery serviceAmountQuery) {
+        return Optional.ofNullable(orderMapper.serviceAmountSumByCompleteTime(serviceAmountQuery))
                 .orElse(BigDecimal.ZERO);
     }
 

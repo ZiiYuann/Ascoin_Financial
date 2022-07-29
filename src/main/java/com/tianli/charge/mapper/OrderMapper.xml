@@ -24,7 +24,7 @@
             AND o.uid = #{query.uid}
         </if>
         <if test="query.orderNo != null">
-            AND o.order_no  like  concat('%',#{query.orderNo},'%')
+            AND o.order_no like concat('%',#{query.orderNo},'%')
         </if>
         <if test="query.status != null">
             AND o.status = #{query.status}
@@ -37,7 +37,7 @@
         </if>
         <if test="query.name != null">
             AND ( record.product_name like concat('%',#{query.name},'%')
-                  OR record.product_name_en like concat('%',#{query.name},'%'))
+            OR record.product_name_en like concat('%',#{query.name},'%'))
         </if>
         <if test="query.coin != null">
             AND record.coin = #{query.coin}
@@ -56,10 +56,19 @@
         ORDER BY o.create_time desc
     </select>
     <select id="selectOrderSettleInfoVOPage" resultType="com.tianli.charge.vo.OrderSettleRecordVO">
-        SELECT o.uid,o.type as charge_type,
-               record.id as record_id, income.income_amount, o.amount as settle_amount,
-               record.logo,record.purchase_time ,record.start_income_time,record.redeem_time,
-               record.coin,record.product_name,record.product_term,record.product_name_en
+        SELECT o.uid,
+               o.type    as charge_type,
+               record.id as record_id,
+               income.income_amount,
+               o.amount  as settle_amount,
+               record.logo,
+               record.purchase_time,
+               record.start_income_time,
+               record.redeem_time,
+               record.coin,
+               record.product_name,
+               record.product_term,
+               record.product_name_en
         FROM `order` o
                  INNER JOIN financial_record record on record.id = o.related_id and record.uid = o.uid
                  INNER JOIN financial_income_accrue income ON income.uid = o.uid and income.record_id = record.id
@@ -75,7 +84,7 @@
         FROM `order` o
         INNER JOIN order_charge_info charge on charge.id = o.related_id
         WHERE 1 = 1
-        <include refid="FinancialChargeQuery" />
+        <include refid="FinancialChargeQuery"/>
 
     </select>
     <select id="orderAmountSum" resultType="java.math.BigDecimal">
@@ -84,7 +93,18 @@
         FROM `order` o
         INNER JOIN order_charge_info charge on charge.id = o.related_id
         WHERE 1 = 1
-        <include refid="FinancialChargeQuery" />
+        <include refid="FinancialChargeQuery"/>
+    </select>
+    <select id="serviceAmountSumByCompleteTime" resultType="java.math.BigDecimal">
+        SELECT SUM(service_amount) FROM `order`
+        WHERE type=#{query.chargeType}
+
+        <if test="query.coin != null">
+            AND coin = #{query.coin}
+        </if>
+        <if test="query.startTime != null and query.endTime">
+            AND complete_time BETWEEN #{query.startTime} AND #{query.endTime}
+        </if>
     </select>
 
     <sql id="FinancialChargeQuery">

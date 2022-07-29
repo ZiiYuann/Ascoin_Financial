@@ -2,6 +2,7 @@ package com.tianli.task;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import com.tianli.address.AddressService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.financial.enums.ProductType;
@@ -12,7 +13,6 @@ import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.service.FinancialBoardProductService;
 import com.tianli.management.service.FinancialBoardWalletService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -42,6 +42,8 @@ public class FinancialBoardTask {
     private FinancialIncomeAccrueService financialIncomeAccrueService;
     @Resource
     private FinancialRecordService financialRecordService;
+    @Resource
+    private AddressService addressService;
 
     private static final ScheduledThreadPoolExecutor CURRENCY_INTEREST_TASK_SCHEDULE_EXECUTOR = new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
             r -> {
@@ -59,10 +61,10 @@ public class FinancialBoardTask {
 
         FinancialBoardProduct today = financialBoardProductService.getToday();
 
-        BigDecimal purchaseAmount = orderService.orderAmountSumByCompleteTime(ChargeType.purchase,yesterdayBegin,todayBegin);
-        BigDecimal redeemAmount = orderService.orderAmountSumByCompleteTime(ChargeType.redeem,yesterdayBegin,todayBegin);
-        BigDecimal settleAmount = orderService.orderAmountSumByCompleteTime(ChargeType.settle,yesterdayBegin,todayBegin);
-        BigDecimal transferAmount = orderService.orderAmountSumByCompleteTime(ChargeType.transfer,yesterdayBegin,todayBegin);
+        BigDecimal purchaseAmount = orderService.amountSumByCompleteTime(ChargeType.purchase,yesterdayBegin,todayBegin);
+        BigDecimal redeemAmount = orderService.amountSumByCompleteTime(ChargeType.redeem,yesterdayBegin,todayBegin);
+        BigDecimal settleAmount = orderService.amountSumByCompleteTime(ChargeType.settle,yesterdayBegin,todayBegin);
+        BigDecimal transferAmount = orderService.amountSumByCompleteTime(ChargeType.transfer,yesterdayBegin,todayBegin);
         BigDecimal income = Optional.ofNullable(financialIncomeAccrueService.getAmountSum(todayBegin)).orElse(BigDecimal.ZERO);
         BigInteger currentProductCount = financialRecordService.countProcess(ProductType.current);
         BigInteger fixedProductCount = financialRecordService.countProcess(ProductType.fixed);
@@ -81,10 +83,9 @@ public class FinancialBoardTask {
         financialBoardProductService.updateById(today);
 
         FinancialBoardWallet financialBoardWallet = financialBoardWalletService.getToday();
-        BigDecimal rechargeAmount = orderService.orderAmountSumByCompleteTime(ChargeType.recharge,yesterdayBegin,todayBegin);
-        BigDecimal withdrawAmount = orderService.orderAmountSumByCompleteTime(ChargeType.withdraw,yesterdayBegin,todayBegin);;
-
-
+        BigDecimal rechargeAmount = orderService.amountSumByCompleteTime(ChargeType.recharge,yesterdayBegin,todayBegin);
+        BigDecimal withdrawAmount = orderService.amountSumByCompleteTime(ChargeType.withdraw,yesterdayBegin,todayBegin);;
+        BigInteger activeWalletCount = addressService.activeCount(yesterdayBegin,todayBegin);
 
     }
 

@@ -176,6 +176,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         Order order = new Order();
         order.setUid(uid);
         order.setAmount(realWithdrawAmount);
+        order.setServiceAmount(serviceAmount);
         order.setOrderNo(AccountChangeType.withdraw.getPrefix() + CommonFunction.generalSn(id));
         order.setStatus(ChargeStatus.created);
         order.setType(ChargeType.withdraw);

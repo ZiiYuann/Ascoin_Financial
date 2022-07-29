@@ -19,7 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -110,5 +112,12 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
 
     public Address getByBsc(String toAddress) {
         return baseMapper.getByBsc(toAddress);
+    }
+
+    public BigInteger activeCount(LocalDateTime startTime ,LocalDateTime endTime){
+        LambdaQueryWrapper<Address> queryWrapper =
+                new LambdaQueryWrapper<Address>().between(Address::getCreateTime, startTime, endTime);
+        Integer integer = baseMapper.selectCount(queryWrapper);
+        return BigInteger.valueOf(integer);
     }
 }
