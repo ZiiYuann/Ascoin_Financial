@@ -38,6 +38,7 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
     private BorrowPledgeCoinConfigMapper borrowPledgeCoinConfigMapper;
     @Override
     public void saveConfig(BorrowPledgeCoinConfigBO bo) {
+        bo.convertToRate();
         BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowCoinConfigConverter.toPledgeDO(bo);
         if(Objects.nonNull(getByCoin(bo.getCoin()))) ErrorCodeEnum.BORROW_CONFIG_EXIST.throwException();
         borrowPledgeCoinConfig.setCreateTime(LocalDateTime.now());
@@ -46,6 +47,7 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
 
     @Override
     public void updateConfig(BorrowPledgeCoinConfigBO bo) {
+        bo.convertToRate();
         BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowCoinConfigConverter.toPledgeDO(bo);
         BorrowPledgeCoinConfig configByCoin = borrowCoinConfigConverter.toPledgeDO(bo);
         BorrowPledgeCoinConfig configById = borrowPledgeCoinConfigMapper.selectById(bo.getId());

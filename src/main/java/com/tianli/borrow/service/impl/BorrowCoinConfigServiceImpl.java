@@ -41,14 +41,17 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
 
     @Override
     public void saveConfig(BorrowOrderConfigBO bo) {
+        bo.convertToRate();
         BorrowCoinConfig coinConfig = this.getByCoin(bo.getCoin());
         BorrowCoinConfig borrowCoinConfig = borrowCoinConfigConverter.toDO(bo);
         if(Objects.nonNull(coinConfig))ErrorCodeEnum.BORROW_CONFIG_EXIST.throwException();
+        borrowCoinConfig.setCreateTime(new Date());
         borrowCoinConfigMapper.insert(borrowCoinConfig);
     }
 
     @Override
     public void updateConfig(BorrowOrderConfigBO bo) {
+        bo.convertToRate();
         BorrowCoinConfig borrowCoinConfig = borrowCoinConfigMapper.selectById(bo.getId());
         BorrowCoinConfig coinConfig = this.getByCoin(bo.getCoin());
         if(Objects.isNull(borrowCoinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();

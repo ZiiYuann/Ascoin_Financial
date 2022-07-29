@@ -4,6 +4,8 @@ import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Objects;
 
 @Data
 public class BorrowOrderConfigBO {
@@ -28,4 +30,9 @@ public class BorrowOrderConfigBO {
      * 年利率
      */
     private BigDecimal annualInterestRate;
+
+
+    public void convertToRate(){
+        if(Objects.nonNull(annualInterestRate)) this.setAnnualInterestRate(annualInterestRate.divide(BigDecimal.valueOf(100) ,8, RoundingMode.UP));
+    }
 }
