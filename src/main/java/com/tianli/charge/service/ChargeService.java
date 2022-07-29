@@ -138,7 +138,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         String fixedAmount = configService.get(currencyAdaptType.name() + "_withdraw_current_amount");
 
         // 提现数额
-        BigDecimal withdrawAmount = currencyAdaptType.alignment(BigDecimal.valueOf(query.getAmount()));
+        BigDecimal withdrawAmount = BigDecimal.valueOf(query.getAmount());
         if (BigDecimal.valueOf(query.getAmount()).compareTo(new BigDecimal(withdrawMinAmount)) < 0)
             ErrorCodeEnum.throwException("提现数额过小");
 
