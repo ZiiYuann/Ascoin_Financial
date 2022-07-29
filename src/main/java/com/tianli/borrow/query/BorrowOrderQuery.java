@@ -5,7 +5,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Set;
 
 @Data
@@ -16,6 +15,8 @@ public class BorrowOrderQuery {
     private String queryUid;
 
     private String queryOrderId;
+
+    private Integer pledgeStatus;
 
     private BigDecimal minPledgeRate;
 

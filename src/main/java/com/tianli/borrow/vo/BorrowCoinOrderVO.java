@@ -39,6 +39,11 @@ public class BorrowCoinOrderVO {
     private String borrowCoin;
 
     /**
+     * 币别图标
+     */
+    private String logo;
+
+    /**
      * 借出本金
      */
     private BigDecimal borrowCapital;

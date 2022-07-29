@@ -42,6 +42,8 @@ public class BorrowCoinMainPageVO {
         private Long id;
         //币别
         private String borrowCoin;
+        //图标
+        private String logo;
         //借出数量
         @BigDecimalFormat
         private BigDecimal borrowCapital;

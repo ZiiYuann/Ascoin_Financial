@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -156,8 +157,10 @@ public class BorrowCoinOrderController {
      * @return
      */
     @GetMapping("/order/repay/page")
-    public Result repayPage(@RequestParam Long orderId,@RequestParam CurrencyCoin coin){
-        BorrowRepayPageVO borrowRepayPageVO = borrowCoinOrderService.repayPage(orderId, coin);
+    public Result repayPage(@RequestParam Long orderId,
+                            @RequestParam BigDecimal repayAmount,
+                            @RequestParam CurrencyCoin coin){
+        BorrowRepayPageVO borrowRepayPageVO = borrowCoinOrderService.repayPage(orderId,repayAmount, coin);
         return Result.success(borrowRepayPageVO);
     }
 

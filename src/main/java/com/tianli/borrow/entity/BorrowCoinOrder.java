@@ -40,6 +40,11 @@ public class BorrowCoinOrder extends Model<BorrowCoinOrder> {
     private String borrowCoin;
 
     /**
+     * 币种图标
+     */
+    private String logo;
+
+    /**
      * 借出本金
      */
     private BigDecimal borrowCapital;
