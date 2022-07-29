@@ -3,7 +3,6 @@ package com.tianli.borrow.dao;
 import com.tianli.borrow.entity.BorrowPledgeCoinConfig;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Update;
 
 /**
  * <p>

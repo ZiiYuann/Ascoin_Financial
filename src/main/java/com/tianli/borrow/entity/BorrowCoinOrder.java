@@ -3,6 +3,7 @@ package com.tianli.borrow.entity;
 import java.math.BigDecimal;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
 import lombok.Builder;
@@ -114,4 +115,17 @@ public class BorrowCoinOrder extends Model<BorrowCoinOrder> {
      */
     private LocalDateTime createTime;
 
+    public BigDecimal calculateWaitRepay(){
+        return waitRepayCapital.add(waitRepayInterest);
+    }
+
+    public BigDecimal calculatePledgeRate(){
+        BigDecimal waitRepay = calculateWaitRepay();
+        return waitRepay.divide(pledgeAmount,8, RoundingMode.UP);
+    }
+
+    public BigDecimal calculatePledgeAmount(){
+        BigDecimal waitRepay = calculateWaitRepay();
+        return waitRepay.divide(pledgeRate,8,RoundingMode.UP);
+    }
 }

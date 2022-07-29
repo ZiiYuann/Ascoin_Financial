@@ -7,11 +7,9 @@ import com.tianli.borrow.contant.BorrowOrderStatus;
 import com.tianli.borrow.dao.BorrowCoinConfigMapper;
 import com.tianli.borrow.dao.BorrowCoinOrderMapper;
 import com.tianli.borrow.dao.BorrowInterestRecordMapper;
-import com.tianli.borrow.entity.BorrowCoinConfig;
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.tianli.borrow.entity.BorrowInterestRecord;
 import com.tianli.common.RedisLockConstants;
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -96,7 +94,6 @@ public class BorrowInterestTask {
         borrowCoinOrder.setWaitRepayInterest(waitRepayInterest);
         borrowCoinOrder.setCumulativeInterest(cumulativeInterest);
         borrowCoinOrder.setPledgeRate(pledgeRate);
-        borrowCoinOrder.setRepayAmount(totalWaitRepayAmount);
         borrowCoinOrderMapper.updateById(borrowCoinOrder);
 
         //添加利息记录

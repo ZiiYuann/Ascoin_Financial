@@ -230,7 +230,6 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .logo(currencyCoin.getLogoPath())
                 .borrowCapital(borrowAmount)
                 .waitRepayCapital(borrowAmount)
-                .repayAmount(borrowAmount)
                 .pledgeCoin(currencyCoin.getName())
                 .pledgeAmount(pledgeAmount)
                 .pledgeRate(initialPledgeRate)
@@ -524,7 +523,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             //借币质押记录
             pledgeRecord.setAmount(borrowCoinOrder.getPledgeAmount());
             borrowPledgeRecordMapper.insert(pledgeRecord);
-            borrowCoinOrder.setRepayAmount(repayAmount);
+            borrowCoinOrder.setRepayAmount(borrowCoinOrder.getRepayAmount().add(repayAmount));
             borrowCoinOrder.setWaitRepayCapital(BigDecimal.ZERO);
             borrowCoinOrder.setWaitRepayInterest(BigDecimal.ZERO);
             borrowCoinOrder.setPledgeAmount(BigDecimal.ZERO);
@@ -573,12 +572,12 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 pledgeRecord.setAmount(reducePledgeAmount);
                 borrowPledgeRecordMapper.insert(pledgeRecord);
                 //修改借币订单
-                borrowCoinOrder.setRepayAmount(repayAmount);
+                borrowCoinOrder.setRepayAmount(borrowCoinOrder.getRepayAmount().add(repayAmount));
                 borrowCoinOrder.setWaitRepayCapital(waitRepayCapital);
                 borrowCoinOrder.setWaitRepayInterest(waitRepayInterest);
                 borrowCoinOrder.setPledgeAmount(currPledgeAmount);
             }else {
-                borrowCoinOrder.setRepayAmount(repayAmount);
+                borrowCoinOrder.setRepayAmount(borrowCoinOrder.getRepayAmount().add(repayAmount));
                 borrowCoinOrder.setWaitRepayCapital(waitRepayCapital);
                 borrowCoinOrder.setWaitRepayInterest(waitRepayInterest);
                 borrowCoinOrder.setPledgeAmount(pledgeRate);
