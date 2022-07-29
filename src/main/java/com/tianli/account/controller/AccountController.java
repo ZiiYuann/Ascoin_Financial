@@ -88,12 +88,12 @@ public class AccountController {
     /**
      * 手续费
      */
-    @GetMapping("/service/rate")
+    @GetMapping("/service/amount")
     public Result serviceRate(CurrencyCoin coin, NetworkType networkType) {
         CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(coin, networkType);
-        String rate = configService.get(currencyAdaptType.name() + "_withdraw_rate");
+        String amount = configService.get(currencyAdaptType.name() + "_withdraw_current_amount");
         HashMap<String, String> rateMap = new HashMap<>();
-        rateMap.put("serviceRate",BigDecimal.valueOf(Double.parseDouble(rate)).toString());
+        rateMap.put("serviceAmount",BigDecimal.valueOf(Double.parseDouble(amount)).toString());
         return Result.success().setData(rateMap);
     }
 

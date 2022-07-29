@@ -88,11 +88,11 @@ public class OrderChargeInfoVO {
     private String typeNameEn;
 
     public String getTypeName() {
-        return type.getNameEn();
+        return type.getNameZn();
     }
 
     public String getTypeNameEn() {
-        return type.getNameZn();
+        return type.getNameEn();
     }
 
     public String getChargeGroup(){
