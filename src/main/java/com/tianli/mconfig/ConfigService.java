@@ -33,7 +33,7 @@ public class ConfigService extends ServiceImpl<ConfigMapper, Config> {
 
     public String get(String name) {
         String config = configService._get(name);
-        if (StringUtils.isEmpty(config)) ErrorCodeEnum.NOT_OPEN.throwException();
+        if (StringUtils.isEmpty(config)) ErrorCodeEnum.throwException(112,name);
         return config;
     }
 

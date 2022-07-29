@@ -91,9 +91,21 @@ public class AccountController {
     @GetMapping("/service/amount")
     public Result serviceRate(CurrencyCoin coin, NetworkType networkType) {
         CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(coin, networkType);
-        String amount = configService.get(currencyAdaptType.name() + "_withdraw_current_amount");
+        String amount = configService.get(currencyAdaptType.name() + "_withdraw_fixed_amount");
         HashMap<String, String> rateMap = new HashMap<>();
         rateMap.put("serviceAmount",BigDecimal.valueOf(Double.parseDouble(amount)).toString());
+        return Result.success().setData(rateMap);
+    }
+
+    /**
+     * 最低提币
+     */
+    @GetMapping("/withdraw/limit")
+    public Result withdrawLimit(CurrencyCoin coin, NetworkType networkType) {
+        CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(coin, networkType);
+        String amount = configService.get(currencyAdaptType.name() + "withdraw_min_amount");
+        HashMap<String, String> rateMap = new HashMap<>();
+        rateMap.put("withdrawLimitAmount",BigDecimal.valueOf(Double.parseDouble(amount)).toString());
         return Result.success().setData(rateMap);
     }
 
