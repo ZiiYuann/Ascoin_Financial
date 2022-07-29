@@ -189,12 +189,15 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         Long uid = requestInitService.uid();
 
         BorrowCoinConfig coinConfig = borrowCoinConfigService.getByCoin(coin);
+        BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(coin);
 
         if(Objects.isNull(coinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
 
         BorrowApplePageVO borrowCoinConfigVO = borrowCoinConfigConverter.toVO(coinConfig);
         BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid,coin);
         borrowCoinConfigVO.setAvailableAmount(availableAmount);
+        borrowCoinConfigVO.setInitialPledgeRate(borrowPledgeCoinConfig.getInitialPledgeRate());
+        borrowCoinConfigVO.setInitialPledgeRate(borrowPledgeCoinConfig.getInitialPledgeRate());
         return borrowCoinConfigVO;
     }
 
@@ -594,11 +597,15 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid, coin);
         BorrowCoinOrder borrowCoinOrder = borrowCoinOrderMapper.selectById(orderId);
         if(Objects.isNull(borrowCoinOrder))ErrorCodeEnum.BORROW_ORDER_NO_EXIST.throwException();
+        BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(CurrencyCoin.getCurrencyCoinEnum(borrowCoinOrder.getPledgeCoin()));
+        BigDecimal initialPledgeRate = borrowPledgeCoinConfig.getInitialPledgeRate();
         BigDecimal waitRepay = borrowCoinOrder.getWaitRepayCapital().add(borrowCoinOrder.getWaitRepayInterest());
         BigDecimal pledge = borrowCoinOrder.getPledgeAmount().subtract(waitRepay.divide(BigDecimal.valueOf(0.65), 8, RoundingMode.UP));
         return BorrowAdjustPageVO.builder()
                 .availableAmount(availableAmount)
-                .ableReduceAmount(pledge).build();
+                .ableReduceAmount(pledge)
+                .pledgeRate(borrowCoinOrder.getPledgeRate())
+                .build();
     }
 
     @Override

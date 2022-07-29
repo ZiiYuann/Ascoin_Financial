@@ -19,4 +19,9 @@ public class BorrowAdjustPageVO {
      */
     private BigDecimal ableReduceAmount;
 
+    /**
+     * 当前质押率
+     */
+    private BigDecimal pledgeRate;
+
 }
