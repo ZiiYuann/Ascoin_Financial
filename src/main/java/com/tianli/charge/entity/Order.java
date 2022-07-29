@@ -53,7 +53,7 @@ public class Order {
     private CurrencyCoin coin;
 
     /**
-     * 真实等金额 提币 = amount - serviceAmount，充值 = amount - serviceAmount
+     * 提币金额 （这里不是真是到账金额   真实到账 = 提币金额 - 手续费 = amount - serviceAmount ）
      */
     private BigDecimal amount;
 

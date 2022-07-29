@@ -42,7 +42,7 @@ public class OrderChargeInfo{
     private BigDecimal serviceFee;
 
     /**
-     * 真实的费用
+     * 真正转账的费用，且没有进行过格式化（提币的时候 为 提现金额 - 手续费）
      */
     private BigInteger realFee;
 

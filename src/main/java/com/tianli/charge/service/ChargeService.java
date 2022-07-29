@@ -174,7 +174,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         long id = CommonFunction.generalId();
         Order order = new Order();
         order.setUid(uid);
-        order.setAmount(realWithdrawAmount);
+        order.setAmount(BigDecimal.valueOf(query.getAmount()));
         order.setServiceAmount(serviceAmount);
         order.setOrderNo(AccountChangeType.withdraw.getPrefix() + CommonFunction.generalSn(id));
         order.setStatus(ChargeStatus.created);
@@ -212,7 +212,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         ContractService contractService = baseContractService.getOne(orderChargeInfo.getNetwork());
         CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(orderChargeInfo.getCoin(), orderChargeInfo.getNetwork());
-        BigInteger amount = currencyAdaptType.restore(order.getAmount());
+        BigInteger amount = currencyAdaptType.restore(order.getAmount().subtract(order.getServiceAmount()));
         Result result = null;
 
         /* 注册监听回调接口
