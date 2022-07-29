@@ -29,9 +29,6 @@ public enum ChargeType {
     repay("Repay","还币"),;
 
 
-
-
-
     ChargeType(String nameEn,String nameZn){
         this.nameZn = nameZn;
         this.nameEn = nameEn;
