@@ -102,6 +102,7 @@ public class FinancialServiceImpl implements FinancialService {
         // 修改订单状态
         order.setStatus(ChargeStatus.chain_success);
         order.setRelatedId(financialRecord.getId());
+        order.setCompleteTime(LocalDateTime.now());
         orderService.saveOrUpdate(order);
 
         FinancialPurchaseResultVO financialPurchaseResultVO = financialConverter.toFinancialPurchaseResultVO(financialRecord);
