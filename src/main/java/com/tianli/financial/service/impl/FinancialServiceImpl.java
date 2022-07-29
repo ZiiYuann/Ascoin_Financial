@@ -56,18 +56,31 @@ public class FinancialServiceImpl implements FinancialService {
     @Transactional
     public FinancialPurchaseResultVO purchase(PurchaseQuery purchaseQuery) {
         // 如果产品处于要下线的情况，不允许购买
-        boolean exists = redisService.exists(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + purchaseQuery.getProductId());
+        Long productId = purchaseQuery.getProductId();
+        boolean exists = redisService.exists(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + productId);
         if (exists) {
             ErrorCodeEnum.PRODUCT_CAN_NOT_BUY.throwException();
         }
 
         Long uid = requestInitService.uid();
 
-        FinancialProduct product = financialProductService.getById(purchaseQuery.getProductId());
+        FinancialProduct product = financialProductService.getById(productId);
         validProduct(product, purchaseQuery.getAmount());
 
         BigDecimal amount = purchaseQuery.getAmount();
         validRemainAmount(uid, purchaseQuery.getCoin(), amount);
+
+
+        BigDecimal totalUse = financialRecordService.getUseQuota(List.of(productId)).getOrDefault(productId, BigDecimal.ZERO);
+        BigDecimal personUse = financialRecordService.getUseQuota(List.of(productId), uid).getOrDefault(productId, BigDecimal.ZERO);
+
+        if(purchaseQuery.getAmount().add(personUse).compareTo(product.getPersonQuota()) > 0){
+            ErrorCodeEnum.throwException("用户申购金额超过个人限额");
+        }
+
+        if(purchaseQuery.getAmount().add(totalUse).compareTo(product.getTotalQuota()) > 0){
+            ErrorCodeEnum.throwException("用户申购金额超过总限购额");
+        }
 
 
         // 生成一笔订单记录(进行中)
