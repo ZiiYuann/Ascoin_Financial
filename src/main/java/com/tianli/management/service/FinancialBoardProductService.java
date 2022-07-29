@@ -10,7 +10,6 @@ import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.mapper.FinancialBoardProductMapper;
 import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.vo.FinancialProductBoardSummaryVO;
-import com.tianli.management.vo.FinancialProductBoardVO;
 import com.tianli.tool.time.TimeTool;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -21,7 +20,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
@@ -42,8 +40,8 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
      * 获取当日的数据
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public FinancialBoardProduct getToday(){
-        redisLock.waitLock(RedisLockConstants.FINANCIAL_PRODUCT_BOARD_GET,1000);
+    public FinancialBoardProduct getToday() {
+        redisLock.waitLock(RedisLockConstants.FINANCIAL_PRODUCT_BOARD_GET, 1000);
         LocalDate todayBegin =
                 DateUtil.beginOfDay(new Date()).toSqlDate().toLocalDate();
 
@@ -51,15 +49,23 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
                 new LambdaQueryWrapper<FinancialBoardProduct>().eq(FinancialBoardProduct::getCreateTime, todayBegin);
 
         FinancialBoardProduct financialBoardProduct = financialProductBoardMapper.selectOne(query);
-        if(Objects.isNull(financialBoardProduct)){
-            redisLock.lock(RedisLockConstants.FINANCIAL_PRODUCT_BOARD_GET,5L, TimeUnit.SECONDS);
-            FinancialBoardProduct boardProduct = FinancialBoardProduct.getDefault();
-            boardProduct.setCreateTime(todayBegin);
-            financialProductBoardMapper.insert(boardProduct);
+
+        try {
+            if (Objects.isNull(financialBoardProduct)) {
+                redisLock.lock(RedisLockConstants.FINANCIAL_PRODUCT_BOARD_GET, 5L, TimeUnit.SECONDS);
+                FinancialBoardProduct boardProduct = FinancialBoardProduct.getDefault();
+                boardProduct.setCreateTime(todayBegin);
+                financialProductBoardMapper.insert(boardProduct);
+                redisLock.unlock(RedisLockConstants.FINANCIAL_PRODUCT_BOARD_GET);
+                return boardProduct;
+            }
+            return financialBoardProduct;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        } finally {
             redisLock.unlock(RedisLockConstants.FINANCIAL_PRODUCT_BOARD_GET);
-            return boardProduct;
         }
-        return financialBoardProduct;
     }
 
     public FinancialProductBoardSummaryVO productBoard(FinancialBoardQuery query) {
@@ -81,10 +87,10 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
 
         LocalDateTime dateTime = TimeTool.minDay(LocalDateTime.now());
         boardQuery = new LambdaQueryWrapper<FinancialBoardProduct>()
-                .between(FinancialBoardProduct::getCreateTime,dateTime.plusDays(-14) , dateTime);
+                .between(FinancialBoardProduct::getCreateTime, dateTime.plusDays(-14), dateTime);
 
         var financialProductBoard14 = Optional.ofNullable(financialProductBoardMapper.selectList(boardQuery))
-                .orElse(new ArrayList<>()).stream().map(managementConverter :: toVO).collect(Collectors.toList());
+                .orElse(new ArrayList<>()).stream().map(managementConverter::toVO).collect(Collectors.toList());
 
         return FinancialProductBoardSummaryVO.builder()
                 .transferAmount(transferAmount)

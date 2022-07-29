@@ -8,7 +8,9 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.service.FinancialIncomeAccrueService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.management.entity.FinancialBoardProduct;
+import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.service.FinancialBoardProductService;
+import com.tianli.management.service.FinancialBoardWalletService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -34,6 +36,8 @@ public class FinancialBoardTask {
     private OrderService orderService;
     @Resource
     private FinancialBoardProductService financialBoardProductService;
+    @Resource
+    private FinancialBoardWalletService financialBoardWalletService;
     @Resource
     private FinancialIncomeAccrueService financialIncomeAccrueService;
     @Resource
@@ -75,6 +79,13 @@ public class FinancialBoardTask {
         today.setTotalProductCount(totalProductCount);
         today.setHoldUserCount(holdUserCount);
         financialBoardProductService.updateById(today);
+
+        FinancialBoardWallet financialBoardWallet = financialBoardWalletService.getToday();
+        BigDecimal rechargeAmount = orderService.orderAmountSumByCompleteTime(ChargeType.recharge,yesterdayBegin,todayBegin);
+        BigDecimal withdrawAmount = orderService.orderAmountSumByCompleteTime(ChargeType.withdraw,yesterdayBegin,todayBegin);;
+
+
+
     }
 
 

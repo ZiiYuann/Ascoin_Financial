@@ -1,5 +1,6 @@
 package com.tianli.management.entity;
 
+import com.tianli.common.CommonFunction;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -46,4 +47,14 @@ public class FinancialBoardWallet {
      */
     private BigDecimal usdtServiceAmount;
 
+    public static FinancialBoardWallet getDefault() {
+        FinancialBoardWallet financialBoardWallet = new FinancialBoardWallet();
+        financialBoardWallet.setId(CommonFunction.generalId());
+        financialBoardWallet.setRechargeAmount(BigDecimal.ZERO);
+        financialBoardWallet.setWithdrawAmount(BigDecimal.ZERO);
+        financialBoardWallet.setActiveWalletCount(BigInteger.ZERO);
+        financialBoardWallet.setTotalServiceAmount(BigDecimal.ZERO);
+        financialBoardWallet.setUsdtServiceAmount(BigDecimal.ZERO);
+        return financialBoardWallet;
+    }
 }

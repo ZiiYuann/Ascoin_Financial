@@ -161,13 +161,6 @@ public class RequestInitService {
             }
         }
 
-        if(Objects.isNull(ossUser)){
-            // todo测试用
-            ossUser = new SignUserInfo();
-            ossUser.setUid(0L);
-            requestInit.setUid(0L);
-        }
-
         // 特殊处理用户信息 如果uid为null，钱包模式为助记词
         // 会出现一个问题
         if (Objects.nonNull(ossUser) && Objects.isNull(ossUser.getUid()) && ossUser.getSignType().equals(SignWalletType.MNEMONIC)){
