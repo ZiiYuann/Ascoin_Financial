@@ -67,6 +67,11 @@ public class OrderChargeInfoVO {
     private BigDecimal amount;
 
     /**
+     * 真正的金额
+     */
+    private BigDecimal realAmount;
+
+    /**
      * 币别
      */
     private CurrencyCoin coin;
