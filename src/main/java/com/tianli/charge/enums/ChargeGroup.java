@@ -1,5 +1,6 @@
 package com.tianli.charge.enums;
 
+import com.tianli.exception.ErrorCodeEnum;
 import lombok.Getter;
 
 import java.util.List;
@@ -18,6 +19,15 @@ public enum ChargeGroup {
     ChargeGroup(List<ChargeType> chargeTypes){
         this.name = name();
         this.chargeTypes = chargeTypes;
+    }
+
+    public static ChargeGroup getInstance(ChargeType chargeType){
+        for (ChargeGroup chargeGroup : ChargeGroup.values()){
+            if(chargeGroup.chargeTypes.contains(chargeType)){
+                return chargeGroup;
+            }
+        }
+        throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
     }
 
     @Getter

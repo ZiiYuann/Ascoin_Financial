@@ -1,5 +1,6 @@
 package com.tianli.charge.vo;
 
+import com.tianli.charge.enums.ChargeGroup;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -92,5 +93,9 @@ public class OrderChargeInfoVO {
 
     public String getTypeNameEn() {
         return type.getNameZn();
+    }
+
+    public String getChargeGroup(){
+        return ChargeGroup.getInstance(this.type).getName();
     }
 }
