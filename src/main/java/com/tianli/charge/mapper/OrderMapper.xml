@@ -21,7 +21,7 @@
         WHERE 1=1
 
         <if test="query.uid != null">
-            AND o.uid = #{query.uid}
+            AND o.uid like concat('%',#{query.uid},'%')
         </if>
         <if test="query.orderNo != null">
             AND o.order_no like concat('%',#{query.orderNo},'%')
@@ -109,7 +109,7 @@
 
     <sql id="FinancialChargeQuery">
         <if test="query.uid != null">
-            AND o.uid = #{query.uid}
+            AND o.uid like concat('%',#{query.uid},'%')
         </if>
         <if test="query.txid != null">
             AND charge.txid like concat('%',#{query.txid},'%')
@@ -125,6 +125,9 @@
         </if>
         <if test="query.networkType != null">
             AND charge.network = #{query.networkType}
+        </if>
+        <if test="query.startTime != null and query.endTime">
+            AND o.create_time BETWEEN #{query.startTime} AND #{query.endTime}
         </if>
 
     </sql>

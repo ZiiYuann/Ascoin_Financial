@@ -6,7 +6,7 @@
     <sql id="FinancialProductIncomeQuery" >
 
         <if test="query.uid != null and query.uid != '' ">
-            AND record.uid = #{query.uid}
+            AND record.uid like concat('%',#{query.uid},'%')
         </if>
         <if test="query.productName != null and query.productName != ''">
             AND (record.product_name like concat('%',#{query.productName},'%')  or record.product_name_en like concat('%',#{query.productName},'%')  )
