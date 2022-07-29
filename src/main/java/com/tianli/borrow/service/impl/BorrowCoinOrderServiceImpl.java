@@ -192,13 +192,12 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(coin);
 
         if(Objects.isNull(coinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
-
-        BorrowApplePageVO borrowCoinConfigVO = borrowCoinConfigConverter.toVO(coinConfig);
         BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid,coin);
-        borrowCoinConfigVO.setAvailableAmount(availableAmount);
-        borrowCoinConfigVO.setInitialPledgeRate(borrowPledgeCoinConfig.getInitialPledgeRate());
-        borrowCoinConfigVO.setInitialPledgeRate(borrowPledgeCoinConfig.getInitialPledgeRate());
-        return borrowCoinConfigVO;
+        BorrowApplePageVO borrowApplePageVO = borrowCoinConfigConverter.toVO(coinConfig);
+        borrowApplePageVO.setAvailableAmount(availableAmount);
+        borrowApplePageVO.setInitialPledgeRate(borrowPledgeCoinConfig.getInitialPledgeRate());
+        borrowApplePageVO.setInitialPledgeRate(borrowPledgeCoinConfig.getInitialPledgeRate());
+        return borrowApplePageVO;
     }
 
     @Override

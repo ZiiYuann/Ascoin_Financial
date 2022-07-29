@@ -1,6 +1,7 @@
 package com.tianli.borrow.vo;
 
 import com.tianli.common.annotation.BigDecimalFormat;
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -14,6 +15,7 @@ import java.math.BigDecimal;
  * @since 2022-07-21
  */
 @Data
+@Builder
 public class BorrowApplePageVO {
 
     private static final long serialVersionUID=1L;

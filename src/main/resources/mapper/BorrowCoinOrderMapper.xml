@@ -54,7 +54,10 @@
                 and borrow_time &lt;= #{endTime}
             </if>
             <if test="status">
-                and status = #{status}
+                and status in
+                <foreach collection="status" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
             </if>
         </where>
     </select>
