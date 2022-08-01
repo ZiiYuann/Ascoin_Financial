@@ -10,6 +10,7 @@ import com.tianli.borrow.dao.BorrowInterestRecordMapper;
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.tianli.borrow.entity.BorrowInterestRecord;
 import com.tianli.common.RedisLockConstants;
+import com.tianli.common.lock.RedisLock;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -41,8 +42,11 @@ public class BorrowInterestTask {
     @Autowired
     private BorrowInterestRecordMapper borrowInterestRecordMapper;
 
-    @Resource
+    @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
+    @Autowired
+    private RedisLock redisLock;
 
     //3.添加定时任务
     @Scheduled(cron = "0 0 * * * ?")
@@ -69,7 +73,17 @@ public class BorrowInterestTask {
             if(CollUtil.isEmpty(records)){
                 break;
             }
-            records.forEach(borrowCoinOrder -> calculateInterest(borrowCoinOrder,now));
+            for(BorrowCoinOrder borrowCoinOrder : records){
+                Long orderId = borrowCoinOrder.getId();
+                String lockKey = RedisLockConstants.BORROW_INCOME_TASK_LOCK + orderId;
+                //分布式锁
+                redisLock._lock(lockKey, 1L, TimeUnit.MINUTES);
+                try {
+                    calculateInterest(borrowCoinOrder, now);
+                }  finally {
+                    redisLock.unlock(lockKey);
+                }
+            }
         }
     }
 
@@ -105,8 +119,8 @@ public class BorrowInterestTask {
                 .waitRepayCapital(borrowCoinOrder.getWaitRepayCapital())
                 .waitRepayInterest(borrowCoinOrder.getWaitRepayInterest())
                 .interestAccrual(interest)
+                .annualInterestRate(interestRate)
                 .build();
         borrowInterestRecordMapper.insert(interestRecord);
-
     }
 }

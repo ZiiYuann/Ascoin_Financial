@@ -1,5 +1,6 @@
 package com.tianli.common.lock;
 
+import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.ErrorCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +36,10 @@ public class RedisLock {
         }
         log.error("redis等待锁释放超时,key:{}",key);
         ErrorCodeEnum.SYSTEM_ERROR.throwException();
+    }
+
+    public void isLock(String key){
+        if(Boolean.TRUE.equals(stringRedisTemplate.hasKey(key))) ErrorCodeEnum.SYSTEM_BUSY.throwException();
     }
 
     public void lock(String key, Long expireTime, TimeUnit timeUnit) {

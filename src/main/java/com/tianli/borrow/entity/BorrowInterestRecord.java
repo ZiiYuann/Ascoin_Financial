@@ -56,6 +56,11 @@ public class BorrowInterestRecord extends Model<BorrowInterestRecord> {
     private BigDecimal interestAccrual;
 
     /**
+     * 年利率
+     */
+    private BigDecimal annualInterestRate;
+
+    /**
      * 计息时间
      */
     private LocalDateTime interestAccrualTime;

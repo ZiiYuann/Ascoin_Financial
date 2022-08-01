@@ -17,7 +17,9 @@ import com.tianli.borrow.query.BorrowRepayQuery;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
+import com.tianli.common.RedisLockConstants;
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.common.lock.RedisLock;
 import com.tianli.exception.Result;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,7 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -45,6 +48,9 @@ public class BorrowCoinOrderController {
 
     @Autowired
     private IBorrowCoinOrderService borrowCoinOrderService;
+
+    @Autowired
+    private RedisLock redisLock;
 
     /**
      * 借币主页面
@@ -90,7 +96,10 @@ public class BorrowCoinOrderController {
      * @return
      */
     @PostMapping("/order")
-    public Result coin(@RequestBody @Valid BorrowOrderBO bo){
+    public Result order(@RequestBody @Valid BorrowOrderBO bo){
+        Long uid = requestInitService.uid();
+        //5秒不能重复提交
+        redisLock.lock("BorrowCoinOrderController:order:"+uid,5L,TimeUnit.SECONDS);
         borrowCoinOrderService.borrowCoin(bo);
         return Result.success();
     }
@@ -171,6 +180,11 @@ public class BorrowCoinOrderController {
      */
     @PostMapping("/order/repay")
     public Result orderRepay(@RequestBody @Valid BorrowOrderRepayBO bo){
+        Long uid = requestInitService.uid();
+        //计算利息时不能还款
+        redisLock.isLock(RedisLockConstants.BORROW_INCOME_TASK_LOCK+bo.getOrderId());
+        //5秒不能重复提交
+        redisLock.lock(RedisLockConstants.BORROW_ORDER_CHANGE_LOCK+uid,5L,TimeUnit.SECONDS);
         borrowCoinOrderService.orderRepay(bo);
         return Result.success();
     }
@@ -196,6 +210,11 @@ public class BorrowCoinOrderController {
      */
     @PostMapping("/order/adjust/pledge")
     public Result adjustPledge(@RequestBody @Valid AdjustPledgeBO bo){
+        Long uid = requestInitService.uid();
+        //计算利息时不能调整质押率
+        redisLock.isLock(RedisLockConstants.BORROW_INCOME_TASK_LOCK+bo.getOrderId());
+        //5秒不能重复提交
+        redisLock.lock(RedisLockConstants.BORROW_ORDER_CHANGE_LOCK+uid,5L,TimeUnit.SECONDS);
         borrowCoinOrderService.adjustPledge(bo);
         return Result.success();
     }
