@@ -195,7 +195,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid,coin);
         return BorrowApplePageVO.builder()
                 .availableAmount(availableAmount)
-                .maximumBorrow(coinConfig.getMinimumBorrow())
+                .maximumBorrow(coinConfig.getMaximumBorrow())
                 .minimumBorrow(coinConfig.getMinimumBorrow())
                 .annualInterestRate(coinConfig.getAnnualInterestRate())
                 .initialPledgeRate(pledgeCoinConfig.getInitialPledgeRate())
