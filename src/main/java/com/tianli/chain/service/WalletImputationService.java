@@ -4,6 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.address.mapper.Address;
 import com.tianli.chain.converter.ChainConverter;
 import com.tianli.chain.dto.TRONTokenReq;
 import com.tianli.chain.entity.WalletImputation;
@@ -62,7 +63,8 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
      * 通过订单插入或修改归集信息
      */
     @Transactional
-    public void insert(Long uid, CurrencyAdaptType currencyAdaptType, TRONTokenReq tronTokenReq, BigDecimal finalAmount) {
+    public void insert(Long uid, Address address, CurrencyAdaptType currencyAdaptType
+            , TRONTokenReq tronTokenReq, BigDecimal finalAmount) {
         LocalDateTime now = LocalDateTime.now();
         LambdaQueryWrapper<WalletImputation> query = new LambdaQueryWrapper<WalletImputation>().eq(WalletImputation::getUid, uid)
                 .eq(WalletImputation::getNetwork, currencyAdaptType.getNetwork())
@@ -100,6 +102,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                 .uid(uid)
                 .network(currencyAdaptType.getNetwork())
                 .coin(currencyAdaptType.getCurrencyCoin())
+                .addressId(address.getId())
                 .address(tronTokenReq.getTo())
                 .status(ImputationStatus.wait)
                 .amount(finalAmount)
@@ -148,8 +151,8 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         var network = walletImputations.stream().map(WalletImputation::getNetwork).findAny().orElseThrow();
 
         List<String> addresses = walletImputations.stream().map(WalletImputation::getAddress).collect(Collectors.toList());
-        List<Long> uids = walletImputations.stream().map(WalletImputation::getUid).collect(Collectors.toList());
-        String hash = baseContractService.getOne(network).recycle(null, uids, addresses);
+        List<Long> addressIds = walletImputations.stream().map(WalletImputation::getAddressId).collect(Collectors.toList());
+        String hash = baseContractService.getOne(network).recycle(null, addressIds, addresses);
         // 事务问题如何解决？
         BigDecimal amount = walletImputations.stream().map(WalletImputation::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         WalletImputationLog walletImputationLog = WalletImputationLog.builder()
@@ -172,7 +175,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         WALLET_IMPUTATION_SCHEDULE_EXECUTOR.schedule(() -> {
             WalletImputationService bean = ApplicationContextTool.getBean(WalletImputationService.class);
-            if(Objects.nonNull(bean)){
+            if (Objects.nonNull(bean)) {
                 bean.updateWalletImputationStatus(walletImputations, network, hash, walletImputationLog);
             }
         }, 20, TimeUnit.MINUTES);

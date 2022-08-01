@@ -82,13 +82,13 @@ public class TronTriggerContract extends ContractService {
         return triggerSmartContract(ownerAddress, contractAddress, data, 40000000L);
     }
 
-    public String recycle(String toAddress, List<Long> uids, List<String> trc20AddressList) {
+    public String recycle(String toAddress, List<Long> addressId, List<String> trc20AddressList) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
         String contractAddress = configService.getOrDefault(ConfigConstants.TRON_TRIGGER_ADDRESS, "TEuLfwtYM83r4TjkewRWFFFS1inHzdpsP2");
         if(toAddress == null || toAddress.isEmpty()) toAddress = ownerAddress;
         String data = FunctionEncoder.encode(
                 new Function("recycle", List.of(new Address(toAddress),
-                        new DynamicArray(Uint256.class, uids.stream().map(e -> new Uint256(new BigInteger(e + ""))).collect(Collectors.toList())),
+                        new DynamicArray(Uint256.class, addressId.stream().map(e -> new Uint256(new BigInteger(e + ""))).collect(Collectors.toList())),
                         new DynamicArray(Address.class, trc20AddressList.stream().map(Address::new).collect(Collectors.toList())))
                         , new ArrayList<>()));
         return triggerSmartContract(ownerAddress, contractAddress, data, 1000000000L);

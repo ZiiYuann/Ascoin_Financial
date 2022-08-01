@@ -25,11 +25,11 @@ public abstract class ContractService {
     /**
      * 归集接口
      * @param toAddress 归集地址 如果为null，修改为主钱包地址
-     * @param uids Address表中的id
+     * @param addressId Address表中的id
      * @param addresses 归集地址列表
      * @return 返回交易hash
      */
-    public abstract String recycle(String toAddress, List<Long> uids, List<String> addresses);
+    public abstract String recycle(String toAddress, List<Long> addressId, List<String> addresses);
 
     /**
      * 转账

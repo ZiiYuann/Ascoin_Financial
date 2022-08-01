@@ -63,7 +63,7 @@ public class BscTriggerContract extends ContractService{
 
 
 
-    public String recycle(String toAddress, List<Long> uids, List<String> bep20AddressList) {
+    public String recycle(String toAddress, List<Long> addressId, List<String> bep20AddressList) {
         String contractAddress = configService.get(ConfigConstants.BSC_TRIGGER_ADDRESS);
         String address = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
         long nonce = bscBlockChainActuator.getNonce(address);
@@ -75,7 +75,7 @@ public class BscTriggerContract extends ContractService{
                     contractAddress,
                     FunctionEncoder.encode(
                             new Function("recycle", List.of(new Address(toAddress),
-                                    new DynamicArray(Uint256.class, uids.stream().map(e -> new Uint256(new BigInteger(e + ""))).collect(Collectors.toList())),
+                                    new DynamicArray(Uint256.class, addressId.stream().map(e -> new Uint256(new BigInteger(e + ""))).collect(Collectors.toList())),
                                     new DynamicArray(Address.class, bep20AddressList.stream().map(Address::new).collect(Collectors.toList())))
                                     , new ArrayList<>())
                     ),

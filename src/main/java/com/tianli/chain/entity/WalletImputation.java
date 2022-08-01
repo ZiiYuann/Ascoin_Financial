@@ -24,6 +24,8 @@ public class WalletImputation {
 
     private Long uid;
 
+    private Long addressId;
+
     private String address;
 
     private BigDecimal amount;

@@ -92,7 +92,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             accountBalanceService.increase(uid, ChargeType.recharge, currencyAdaptType.getCurrencyCoin()
                     , currencyAdaptType.getNetwork(), finalAmount, orderNo, CurrencyLogDes.充值.name());
             // 操作归集信息
-            walletImputationService.insert(uid, currencyAdaptType, req, finalAmount);
+            walletImputationService.insert(uid, address, currencyAdaptType, req, finalAmount);
         }
     }
 
