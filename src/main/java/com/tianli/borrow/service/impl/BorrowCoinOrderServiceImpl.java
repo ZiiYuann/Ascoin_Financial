@@ -26,6 +26,7 @@ import com.tianli.borrow.query.BorrowRepayQuery;
 import com.tianli.borrow.service.IBorrowCoinConfigService;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.borrow.service.IBorrowOrderNumDailyService;
 import com.tianli.borrow.service.IBorrowPledgeCoinConfigService;
 import com.tianli.borrow.vo.*;
 import com.tianli.charge.entity.Order;
@@ -100,6 +101,9 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
     @Autowired
     private IBorrowPledgeCoinConfigService  borrowPledgeCoinConfigService;
+
+    @Autowired
+    private IBorrowOrderNumDailyService borrowOrderNumDailyService;
 
     @Override
     public BorrowCoinMainPageVO mainPage() {
@@ -268,6 +272,9 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .pledgeTime(LocalDateTime.now())
                 .createTime(LocalDateTime.now()).build();
         borrowPledgeRecordMapper.insert(pledgeRecord);
+
+        //统计每日计息订单
+        borrowOrderNumDailyService.statisticalOrderNum();
 
     }
 
@@ -538,6 +545,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             repayRecord.setRepayInterest(waitRepayInterest);
             repayRecord.setStatus(BorrowRepayStatus.SUCCESSFUL_REPAYMENT);
             repayRecord.setReleasePledgeAmount(borrowCoinOrder.getPledgeAmount());
+            //统计每日计息订单
+            borrowOrderNumDailyService.statisticalOrderNum();
         }else {
             //部分还款
             BorrowPledgeCoinConfig pledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(currencyCoin);
@@ -692,8 +701,10 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         borrowCoinOrder.setStatus(BorrowOrderStatus.FORCED_LIQUIDATION);
         borrowCoinOrder.setSettlementTime(LocalDateTime.now());
         borrowCoinOrderMapper.updateById(borrowCoinOrder);
-        //释放锁定
-        releasePledgeAmount(orderId);
+        //卖出理财产品
+        sellFinancialAmount(orderId);
+        //统计每日计息订单
+        borrowOrderNumDailyService.statisticalOrderNum();
     }
 
     @Override
@@ -715,7 +726,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BigDecimal borrowAmount = borrowCoinOrderMapper.selectBorrowCapitalSumByBorrowTime(startTime, endTime);
         BigDecimal pledgeAmount = borrowPledgeRecordMapper.selectAmountSumByTime(startTime, endTime);
         BigDecimal interestAmount = borrowInterestRecordMapper.selectInterestSumByQuery(BorrowInterestRecordQuery.builder().startTime(startTime).endTime(endTime).build());
-        Integer orderNum = borrowCoinOrderMapper.selectCountByBorrowTime(BorrowOrderStatus.INTEREST_ACCRUAL,startTime, endTime);
+        Integer orderNum = borrowOrderNumDailyService.getCount(startTime,endTime);
         return BorrowOrderStatisticsVO.builder()
                 .borrowAmount(borrowAmount)
                 .pledgeAmount(pledgeAmount)
@@ -750,10 +761,9 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 break;
             }
             default:
-                borrowOrderStatisticsChartVOS = borrowCoinOrderMapper.selectTotalChartByTime(BorrowOrderStatus.INTEREST_ACCRUAL,beginOfDay);
+                borrowOrderStatisticsChartVOS = borrowOrderNumDailyService.selectTotalChart(beginOfDay);
         }
         borrowOrderStatisticsChartVOS.forEach(item -> borrowOrderStatisticsChartVOMap.put(item.getTime(),item));
-
         return CollUtil.list(false,borrowOrderStatisticsChartVOMap.values()) ;
     }
 
@@ -785,13 +795,13 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                     financialRecord.setPledgeAmount(holdAmount);
                 }
                 financialRecordMapper.updateById(financialRecord);
-                FinancialPledgeRecord pledgeInfo = FinancialPledgeRecord.builder()
+                FinancialPledgeRecord financialPledgeRecord = FinancialPledgeRecord.builder()
                         .uid(uid)
                         .financialId(financialRecord.getId())
                         .borrowOrderId(orderId)
                         .pledgeAmount(currPledgeAmount)
                         .createTime(new Date()).build();
-                financialPledgeInfoMapper.insert(pledgeInfo);
+                financialPledgeInfoMapper.insert(financialPledgeRecord);
             }
         }
     }
@@ -802,38 +812,45 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
      * @param amount
      */
     private void reducePledgeAmount(Long orderId, BigDecimal amount){
-        List<FinancialPledgeRecord> financialPledgeInfos = financialPledgeInfoMapper.selectList(
+        List<FinancialPledgeRecord> financialPledgeRecords = financialPledgeInfoMapper.selectList(
                 new QueryWrapper<FinancialPledgeRecord>().lambda()
                         .eq(FinancialPledgeRecord::getBorrowOrderId,orderId)
                         .orderByDesc(FinancialPledgeRecord::getCreateTime));
-        for (FinancialPledgeRecord info: financialPledgeInfos) {
-            FinancialRecord financialRecord = financialRecordMapper.selectById(info.getFinancialId());
-            BigDecimal pledgeAmount = info.getPledgeAmount();
+        for (FinancialPledgeRecord financialPledgeRecord: financialPledgeRecords) {
+            FinancialRecord financialRecord = financialRecordMapper.selectById(financialPledgeRecord.getFinancialId());
+            BigDecimal pledgeAmount = financialPledgeRecord.getPledgeAmount();
             if(pledgeAmount.compareTo(amount) >= 0){
-                info.setPledgeAmount(pledgeAmount.subtract(amount));
-                if(info.getPledgeAmount().compareTo(BigDecimal.ZERO) == 0){
+                financialPledgeRecord.setPledgeAmount(pledgeAmount.subtract(amount));
+                if(financialPledgeRecord.getPledgeAmount().compareTo(BigDecimal.ZERO) == 0){
                     financialPledgeInfoMapper.deleteById(amount);
                 }else {
-                    financialPledgeInfoMapper.updateById(info);
+                    financialPledgeInfoMapper.updateById(financialPledgeRecord);
                 }
                 financialRecordMapper.updateById(financialRecord.setPledgeAmount(financialRecord.getPledgeAmount().subtract(amount)));
                 break;
             }else {
-                financialPledgeInfoMapper.deleteById(info.getId());
+                financialPledgeInfoMapper.deleteById(financialPledgeRecord.getId());
                 financialRecordMapper.updateById(financialRecord.setPledgeAmount(financialRecord.getPledgeAmount().subtract(amount.subtract(pledgeAmount))));
             }
         }
     }
 
-    private void releasePledgeAmount(Long orderId){
-        List<FinancialPledgeRecord> financialPledgeInfos = financialPledgeInfoMapper.selectList(
+    /**
+     * 卖出理财产品份额
+     * @param orderId
+     */
+    private void sellFinancialAmount(Long orderId){
+        List<FinancialPledgeRecord> financialPledgeRecords = financialPledgeInfoMapper.selectList(
                 new QueryWrapper<FinancialPledgeRecord>().lambda()
                     .eq(FinancialPledgeRecord::getBorrowOrderId,orderId).orderByDesc(FinancialPledgeRecord::getCreateTime));
-        financialPledgeInfos.forEach(financialPledgeInfo -> {
-            FinancialRecord financialRecord = financialRecordMapper.selectById(financialPledgeInfo.getFinancialId());
-            financialRecord.setPledgeAmount(financialRecord.getPledgeAmount().subtract(financialPledgeInfo.getPledgeAmount()));
+        financialPledgeRecords.forEach(financialPledgeRecord -> {
+            FinancialRecord financialRecord = financialRecordMapper.selectById(financialPledgeRecord.getFinancialId());
+            BigDecimal pledgeAmount = financialRecord.getPledgeAmount().subtract(financialPledgeRecord.getPledgeAmount());
+            BigDecimal holdAmount = financialRecord.getHoldAmount().subtract(financialPledgeRecord.getPledgeAmount());
+            financialRecord.setPledgeAmount(pledgeAmount);
+            financialRecord.setHoldAmount(holdAmount);
             financialRecordMapper.updateById(financialRecord);
-            financialPledgeInfoMapper.deleteById(financialPledgeInfo.getId());
+            financialPledgeInfoMapper.deleteById(financialPledgeRecord.getId());
         });
 
 

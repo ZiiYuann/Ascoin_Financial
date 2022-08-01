@@ -177,6 +177,11 @@ public class TimeTool {
         return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 
+    public static LocalDate dateToLocalDate(Date date) {
+        if (Objects.isNull(date))return null;
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    }
+
     public static void sleep(long time, TimeUnit timeUnit) {
         try {
             timeUnit.sleep(time);

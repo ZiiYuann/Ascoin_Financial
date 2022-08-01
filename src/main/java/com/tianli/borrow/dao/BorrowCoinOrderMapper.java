@@ -55,4 +55,7 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
 
     @Select("select count(*) from borrow_coin_order where pledge_coin = #{coin}")
     Integer selectCountByPledgeCoin(@Param("coin") String coin);
+
+    @Select("select count(*) from borrow_coin_order where status = #{status}")
+    Integer selectCountByStatus(@Param("status") Integer status);
 }
