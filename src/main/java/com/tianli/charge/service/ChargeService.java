@@ -133,7 +133,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         // 手续费率
         String rate = configService.get(currencyAdaptType.name() + "_withdraw_rate");
         // 固定手续费数额
-        String fixedAmount = configService.get(currencyAdaptType.name() + "_withdraw_fix_amount");
+        String fixedAmount = configService.get(currencyAdaptType.name() + "_withdraw_fixed_amount");
 
         // 提现数额
         BigDecimal withdrawAmount = BigDecimal.valueOf(query.getAmount());
