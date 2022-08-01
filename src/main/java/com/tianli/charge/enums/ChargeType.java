@@ -1,6 +1,10 @@
 package com.tianli.charge.enums;
 
+import com.tianli.charge.vo.OrderStatusPullVO;
 import lombok.Getter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author  wangqiyun
@@ -37,4 +41,32 @@ public enum ChargeType {
     private final String nameZn;
     @Getter
     private final String nameEn;
+
+
+    public static List<OrderStatusPullVO> orderStatusPull(ChargeType chargeType){
+        List<OrderStatusPullVO> result = new ArrayList<>();
+        // todo 国际化
+        switch (chargeType){
+            case purchase:
+            case redeem:
+            case transfer:
+            case settle:
+                result.add(new OrderStatusPullVO(ChargeStatus.chain_success,"成功"));
+                result.add(new OrderStatusPullVO(ChargeStatus.chain_fail,"失败"));
+                result.add(new OrderStatusPullVO(ChargeStatus.chaining,"进行中"));
+                break;
+            case withdraw:
+                result.add(new OrderStatusPullVO(ChargeStatus.chain_success,"提币成功"));
+                result.add(new OrderStatusPullVO(ChargeStatus.chain_fail,"提币失败"));
+                result.add(new OrderStatusPullVO(ChargeStatus.chaining,"提币中"));
+                result.add(new OrderStatusPullVO(ChargeStatus.created,"待审核"));
+                break;
+            case recharge:
+                result.add(new OrderStatusPullVO(ChargeStatus.chain_success,"充值成功"));
+                result.add(new OrderStatusPullVO(ChargeStatus.chain_fail,"充值失败"));
+                break;
+            default: break;
+        }
+        return result;
+    }
 }

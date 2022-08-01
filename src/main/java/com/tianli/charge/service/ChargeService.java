@@ -275,6 +275,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         // 解冻余额
         accountBalanceService.increase(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount(), order.getOrderNo(), CurrencyLogDes.赎回.name());
 
+        // 减少产品持有
+        financialRecordService.redeem(record.getId(),query.getRedeemAmount());
+
         return order.getOrderNo();
     }
 

@@ -170,4 +170,12 @@ public class ChargeController {
         return Result.instance().setData(chargeService.orderDetails(uid, orderNo));
     }
 
+    /**
+     * 下拉列表，订单状态
+     */
+    @GetMapping("/pull/order/status")
+    public Result orderStatus(ChargeType chargeType) {
+        return Result.instance().setData(ChargeType.orderStatusPull(chargeType));
+    }
+
 }

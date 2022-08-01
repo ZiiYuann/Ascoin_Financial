@@ -8,5 +8,7 @@ public enum ImputationStatus {
     // 待归集
     wait,
     // 归集成功
-    success
+    success,
+    // 归集失败
+    fail
 }
