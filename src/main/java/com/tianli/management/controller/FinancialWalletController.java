@@ -101,7 +101,7 @@ public class FinancialWalletController {
     @GetMapping("/order/withdraw/data")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result withdrawOrderData(FinancialChargeQuery query) {
-        query.setChargeType(ChargeType.recharge);
+        query.setChargeType(ChargeType.withdraw);
         return Result.success()
                 .setData(FinancialSummaryDataVO.builder().withdrawAmount(chargeService.orderAmountSum(query)).build());
     }
