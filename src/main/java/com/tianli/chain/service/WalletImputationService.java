@@ -19,6 +19,7 @@ import com.tianli.chain.vo.WalletImputationVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.query.WalletImputationManualQuery;
 import com.tianli.management.query.WalletImputationQuery;
 import com.tianli.mconfig.ConfigService;
@@ -146,6 +147,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         if (coinCount > 1 || networkCount > 1) {
             log.info("不允许多个网络或者多个币别同时进行归集，ids:{}", imputationIds);
+            ErrorCodeEnum.throwException("不允许多个网络或者多个币别同时进行归集");
         }
         var coin = walletImputations.stream().map(WalletImputation::getCoin).findAny().orElseThrow();
         var network = walletImputations.stream().map(WalletImputation::getNetwork).findAny().orElseThrow();
@@ -161,7 +163,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                 .txid(hash)
                 .coin(coin)
                 .network(network)
-                .status(ImputationStatus.processing)
+                .status(ImputationStatus.success)
                 .createTime(LocalDateTime.now()).build();
         walletImputationLogService.save(walletImputationLog);
 
@@ -176,17 +178,12 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         walletImputationLogAppendixService.saveBatch(logAppendices);
 
         var walletImputationsUpdate = walletImputations.stream().map(walletImputation -> {
-            walletImputation.setStatus(ImputationStatus.processing);
+            walletImputation.setStatus(ImputationStatus.success);
             return walletImputation;
         }).collect(Collectors.toList());
         this.updateBatchById(walletImputationsUpdate);
 
-        WALLET_IMPUTATION_SCHEDULE_EXECUTOR.schedule(() -> {
-            WalletImputationService bean = ApplicationContextTool.getBean(WalletImputationService.class);
-            if (Objects.nonNull(bean)) {
-                bean.updateWalletImputationStatus(walletImputations, network, hash, walletImputationLog);
-            }
-        }, 20, TimeUnit.MINUTES);
+
     }
 
     /**
