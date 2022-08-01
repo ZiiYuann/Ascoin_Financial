@@ -152,13 +152,15 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         List<String> addresses = walletImputations.stream().map(WalletImputation::getAddress).collect(Collectors.toList());
         List<Long> addressIds = walletImputations.stream().map(WalletImputation::getAddressId).collect(Collectors.toList());
-        String hash = baseContractService.getOne(network).recycle(null, addressIds, addresses);
+        String hash = baseContractService.getOne(network).recycle(null, CurrencyAdaptType.get(coin,network),addressIds, addresses);
         // 事务问题如何解决？
         BigDecimal amount = walletImputations.stream().map(WalletImputation::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         WalletImputationLog walletImputationLog = WalletImputationLog.builder()
                 .id(CommonFunction.generalId())
                 .amount(amount)
+                .txid(hash)
                 .coin(coin)
+                .network(network)
                 .status(ImputationStatus.processing)
                 .createTime(LocalDateTime.now()).build();
         walletImputationLogService.save(walletImputationLog);
@@ -172,6 +174,12 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
             return appendix;
         }).collect(Collectors.toList());
         walletImputationLogAppendixService.saveBatch(logAppendices);
+
+        var walletImputationsUpdate = walletImputations.stream().map(walletImputation -> {
+            walletImputation.setStatus(ImputationStatus.processing);
+            return walletImputation;
+        }).collect(Collectors.toList());
+        this.updateBatchById(walletImputationsUpdate);
 
         WALLET_IMPUTATION_SCHEDULE_EXECUTOR.schedule(() -> {
             WalletImputationService bean = ApplicationContextTool.getBean(WalletImputationService.class);

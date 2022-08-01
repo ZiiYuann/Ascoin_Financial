@@ -1,6 +1,7 @@
 package com.tianli.chain.service.contract;
 
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.Result;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +30,7 @@ public abstract class ContractService {
      * @param addresses 归集地址列表
      * @return 返回交易hash
      */
-    public abstract String recycle(String toAddress, List<Long> addressId, List<String> addresses);
+    public abstract String recycle(String toAddress, CurrencyAdaptType currencyAdaptType, List<Long> addressId, List<String> addresses);
 
     /**
      * 转账

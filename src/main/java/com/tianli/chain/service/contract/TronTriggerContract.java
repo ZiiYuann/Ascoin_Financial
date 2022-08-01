@@ -1,13 +1,12 @@
 package com.tianli.chain.service.contract;
 
 import com.google.protobuf.ByteString;
+import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.common.blockchain.EthBlockChainActuator;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.blockchain.SignTransactionResult;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.common.ConfigConstants;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.time.TimeTool;
@@ -82,14 +81,14 @@ public class TronTriggerContract extends ContractService {
         return triggerSmartContract(ownerAddress, contractAddress, data, 40000000L);
     }
 
-    public String recycle(String toAddress, List<Long> addressId, List<String> trc20AddressList) {
+    public String recycle(String toAddress,CurrencyAdaptType currencyAdaptType, List<Long> addressId, List<String> trc20AddressList) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
         String contractAddress = configService.getOrDefault(ConfigConstants.TRON_TRIGGER_ADDRESS, "TEuLfwtYM83r4TjkewRWFFFS1inHzdpsP2");
         if(toAddress == null || toAddress.isEmpty()) toAddress = ownerAddress;
         String data = FunctionEncoder.encode(
                 new Function("recycle", List.of(new Address(toAddress),
                         new DynamicArray(Uint256.class, addressId.stream().map(e -> new Uint256(new BigInteger(e + ""))).collect(Collectors.toList())),
-                        new DynamicArray(Address.class, trc20AddressList.stream().map(Address::new).collect(Collectors.toList())))
+                        new DynamicArray(Address.class, List.of(currencyAdaptType.getContractAddress()).stream().map(Address::new).collect(Collectors.toList())))
                         , new ArrayList<>()));
         return triggerSmartContract(ownerAddress, contractAddress, data, 1000000000L);
     }
@@ -272,6 +271,5 @@ public class TronTriggerContract extends ContractService {
     private ConfigService configService;
     @Resource
     private WalletGrpc.WalletBlockingStub blockingStub;
-    @Resource
-    private EthBlockChainActuator ethBlockChainActuator;
+
 }

@@ -63,7 +63,7 @@ public class BscTriggerContract extends ContractService{
 
 
 
-    public String recycle(String toAddress, List<Long> addressId, List<String> bep20AddressList) {
+    public String recycle(String toAddress,CurrencyAdaptType currencyAdaptType, List<Long> addressId, List<String> bep20AddressList) {
         String contractAddress = configService.get(ConfigConstants.BSC_TRIGGER_ADDRESS);
         String address = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
         long nonce = bscBlockChainActuator.getNonce(address);

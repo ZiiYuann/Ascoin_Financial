@@ -52,7 +52,7 @@ public class EthTriggerContract extends ContractService {
         return address.getValue();
     }
 
-    public String recycle(String toAddress, List<Long> addressId, List<String> erc20AddressList) {
+    public String recycle(String toAddress,CurrencyAdaptType currencyAdaptType, List<Long> addressId, List<String> erc20AddressList) {
         String contractAddress = configService.get(ConfigConstants.ETH_TRIGGER_ADDRESS);
         String address = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
         long nonce = ethBlockChainActuator.getNonce(address);
