@@ -291,13 +291,14 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     }
 
     public List<AccountBalanceSimpleVO> getTotalSummaryData(){
-        // todo
-        AccountBalanceSimpleVO accountBalanceSimpleVO = new AccountBalanceSimpleVO();
-        accountBalanceSimpleVO.setBalanceAmount(BigDecimal.ONE);
-        accountBalanceSimpleVO.setBalanceDollarAmount(BigDecimal.ONE);
-        accountBalanceSimpleVO.setCoin(CurrencyCoin.usdt);
-        accountBalanceSimpleVO.setDollarRate(BigDecimal.ONE);
-        return List.of(accountBalanceSimpleVO);
+        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
+        List<AccountBalanceSimpleVO> accountBalanceSimpleVOS = baseMapper.listAccountBalanceSimpleVO();
+        accountBalanceSimpleVOS.stream().forEach( accountBalanceSimpleVO -> {
+            BigDecimal rate = dollarRateMap.get(accountBalanceSimpleVO.getCoin());
+            accountBalanceSimpleVO.setDollarRate(rate);
+            accountBalanceSimpleVO.setBalanceDollarAmount(accountBalanceSimpleVO.getBalanceAmount().multiply(rate));
+        });
+        return accountBalanceSimpleVOS;
     }
 
 

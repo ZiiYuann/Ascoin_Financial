@@ -2,6 +2,7 @@ package com.tianli.account.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tianli.account.entity.AccountBalance;
+import com.tianli.account.vo.AccountBalanceSimpleVO;
 import com.tianli.common.blockchain.CurrencyCoin;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -46,4 +47,6 @@ public interface AccountBalanceMapper extends BaseMapper<AccountBalance> {
     @Update("UPDATE `account_balance` SET `freeze`=`freeze`- #{amount},`remain`=`remain`+#{amount} WHERE `uid`=#{id} and coin=#{coin} AND `freeze`>=#{amount} ")
     long unfreeze(@Param("id") long id, @Param("amount") BigDecimal amount,@Param("coin") CurrencyCoin coin);
 
+    @Select("select sum(balance) as balanceAmount ,coin from account_balance GROUP BY coin")
+    List<AccountBalanceSimpleVO> listAccountBalanceSimpleVO();
 }
