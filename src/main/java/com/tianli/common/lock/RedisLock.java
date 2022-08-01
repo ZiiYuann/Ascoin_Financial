@@ -19,6 +19,13 @@ public class RedisLock {
     private StringRedisTemplate stringRedisTemplate;
 
     public void waitLock(String key,long timeoutMillis){
+        if(!this.quietWaitLock(key,timeoutMillis)){
+            log.error("redis等待锁释放超时,key:{}",key);
+            ErrorCodeEnum.SYSTEM_ERROR.throwException();
+        }
+    }
+
+    public boolean quietWaitLock(String key,long timeoutMillis){
         int time = 0;
         while(time < timeoutMillis){
             Boolean hasKey = stringRedisTemplate.hasKey(key);
@@ -32,10 +39,9 @@ public class RedisLock {
                 time = time + 100;
                 continue;
             }
-            return;
+            return true;
         }
-        log.error("redis等待锁释放超时,key:{}",key);
-        ErrorCodeEnum.SYSTEM_ERROR.throwException();
+        return false;
     }
 
     public void isLock(String key){

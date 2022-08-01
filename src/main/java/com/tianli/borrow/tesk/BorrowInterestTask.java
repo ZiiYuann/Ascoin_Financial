@@ -20,7 +20,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
@@ -75,9 +74,12 @@ public class BorrowInterestTask {
             }
             for(BorrowCoinOrder borrowCoinOrder : records){
                 Long orderId = borrowCoinOrder.getId();
+                Long uid = borrowCoinOrder.getUid();
                 String lockKey = RedisLockConstants.BORROW_INCOME_TASK_LOCK + orderId;
                 //分布式锁
                 redisLock._lock(lockKey, 1L, TimeUnit.MINUTES);
+                //订单未修改完成,等待3秒
+                redisLock.quietWaitLock(RedisLockConstants.BORROW_ORDER_CHANGE_LOCK+uid,3000L);
                 try {
                     calculateInterest(borrowCoinOrder, now);
                 }  finally {

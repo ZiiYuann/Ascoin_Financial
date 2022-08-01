@@ -20,4 +20,6 @@ public class RedisLockConstants {
     public static String BORROW_INCOME_TASK_LOCK = "BorrowInterestTask#interestTasks:lock:";
 
     public static String BORROW_ORDER_CHANGE_LOCK = "BorrowOrder#change:lock:";
+
+    public static String BORROW_ORDER_CREATE_LOCK = "BorrowOrder#create:lock:";
 }

@@ -98,8 +98,8 @@ public class BorrowCoinOrderController {
     @PostMapping("/order")
     public Result order(@RequestBody @Valid BorrowOrderBO bo){
         Long uid = requestInitService.uid();
-        //5秒不能重复提交
-        redisLock.lock("BorrowCoinOrderController:order:"+uid,5L,TimeUnit.SECONDS);
+        //防止重复提交
+        redisLock.lock(RedisLockConstants.BORROW_ORDER_CREATE_LOCK+uid,5L,TimeUnit.SECONDS);
         borrowCoinOrderService.borrowCoin(bo);
         return Result.success();
     }
@@ -181,9 +181,9 @@ public class BorrowCoinOrderController {
     @PostMapping("/order/repay")
     public Result orderRepay(@RequestBody @Valid BorrowOrderRepayBO bo){
         Long uid = requestInitService.uid();
-        //计算利息时不能还款
+        //计算利息锁
         redisLock.isLock(RedisLockConstants.BORROW_INCOME_TASK_LOCK+bo.getOrderId());
-        //5秒不能重复提交
+        //防重复提交锁
         redisLock.lock(RedisLockConstants.BORROW_ORDER_CHANGE_LOCK+uid,5L,TimeUnit.SECONDS);
         borrowCoinOrderService.orderRepay(bo);
         return Result.success();
@@ -211,9 +211,9 @@ public class BorrowCoinOrderController {
     @PostMapping("/order/adjust/pledge")
     public Result adjustPledge(@RequestBody @Valid AdjustPledgeBO bo){
         Long uid = requestInitService.uid();
-        //计算利息时不能调整质押率
+        //计算利息锁
         redisLock.isLock(RedisLockConstants.BORROW_INCOME_TASK_LOCK+bo.getOrderId());
-        //5秒不能重复提交
+        //防重复提交锁
         redisLock.lock(RedisLockConstants.BORROW_ORDER_CHANGE_LOCK+uid,5L,TimeUnit.SECONDS);
         borrowCoinOrderService.adjustPledge(bo);
         return Result.success();
