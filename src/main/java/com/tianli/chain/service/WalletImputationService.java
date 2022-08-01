@@ -125,9 +125,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         if (Objects.nonNull(query.getCoin())) {
             queryWrapper = queryWrapper.eq(WalletImputation::getCoin, query.getCoin());
         }
-        if (Objects.nonNull(query.getUid())) {
-            queryWrapper = queryWrapper.eq(WalletImputation::getNetwork, query.getNetwork());
-        }
+
         if (Objects.nonNull(query.getNetwork())) {
             queryWrapper = queryWrapper.eq(WalletImputation::getNetwork, query.getNetwork());
         }
