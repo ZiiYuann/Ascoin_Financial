@@ -120,7 +120,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         LambdaQueryWrapper<WalletImputation> queryWrapper = new LambdaQueryWrapper<>();
 
         if (Objects.nonNull(query.getUid())) {
-            queryWrapper = queryWrapper.eq(WalletImputation::getUid, query.getUid());
+            queryWrapper = queryWrapper.like(WalletImputation::getUid, query.getUid());
         }
         if (Objects.nonNull(query.getCoin())) {
             queryWrapper = queryWrapper.eq(WalletImputation::getCoin, query.getCoin());
