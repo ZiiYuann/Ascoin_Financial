@@ -80,7 +80,7 @@
         SELECT
         o.uid,
         o.order_no,o.type,o.status,o.create_time,o.complete_time,charge.txid,charge.from_address,charge.to_address,
-        charge.fee as amount,charge.coin,charge.network as networkType
+        charge.fee as amount,charge.coin,charge.network as networkType,o.service_amount
         FROM `order` o
         INNER JOIN order_charge_info charge on charge.id = o.related_id
         WHERE 1 = 1

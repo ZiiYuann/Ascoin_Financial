@@ -61,7 +61,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         LocalDateTime now = LocalDateTime.now();
         OrderReview orderReview = OrderReview.builder().id(CommonFunction.generalId())
                 .remarks(query.getRemarks())
-                .rid(requestInitService.uid())
+                .rid(1000000000L)
                 .status(status)
                 .createTime(now).build();
         orderReviewMapper.insert(orderReview);

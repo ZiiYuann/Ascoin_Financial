@@ -23,6 +23,7 @@ import com.tianli.financial.service.FinancialRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,7 +77,9 @@ public class FinancialIncomeTask {
      * 计算利息
      */
 //    @Scheduled(cron = "0 0 0 1/1 * ? ")
+    @Scheduled(cron = "0 0/2 * * * ?")
     public void calIncome() {
+        log.info("========执行计算每日利息定时任务========");
         asyncService.async(() -> {
             LocalDateTime now = LocalDateTime.now();
             String day = String.format("%s_%s", now.getMonthValue(), now.getDayOfMonth());
@@ -186,6 +189,7 @@ public class FinancialIncomeTask {
         long id = CommonFunction.generalId();
         Order order = Order.builder()
                 .id(id)
+                .uid(financialRecord.getUid())
                 .orderNo(AccountChangeType.income.getPrefix() + CommonFunction.generalSn(id))
                 .type(ChargeType.income)
                 .status(ChargeStatus.chain_success)
