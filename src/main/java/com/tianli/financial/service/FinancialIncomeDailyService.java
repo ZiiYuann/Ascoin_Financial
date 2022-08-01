@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.IdGenerator;
 import com.tianli.currency.service.CurrencyService;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.dto.FinancialIncomeDailyDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.enums.ProductType;
@@ -66,7 +67,7 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
         FinancialIncomeDaily incomeDaily = financialIncomeDailyMapper.selectOne(queryWrapper);
         if(Objects.nonNull(incomeDaily)){
             log.error("recordId:{},已经计算过当日利息，请排查问题",recordId);
-            return;
+            ErrorCodeEnum.SYSTEM_ERROR.throwException();
         }
         FinancialIncomeDaily incomeDailyInsert = FinancialIncomeDaily.builder()
                 .id(IdGenerator.financialIncomeDailyId())

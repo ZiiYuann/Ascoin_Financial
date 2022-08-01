@@ -2,6 +2,7 @@ package com.tianli.task;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.tianli.account.enums.AccountChangeType;
@@ -72,6 +73,36 @@ public class FinancialIncomeTask {
                 return thread;
             }
     );
+
+//    @Scheduled(cron = "0 0/1 * * * ?")
+    public void calIncomeTest() {
+        log.info("========执行计算每日利息定时任务========");
+        asyncService.async(() -> {
+            LocalDateTime now = LocalDateTime.now();
+            String day = String.format("%s_%s", now.getMonthValue(), now.getDayOfMonth());
+            String redisKey = RedisLockConstants.FINANCIAL_INCOME_TASK + day;
+            BoundValueOperations<String, Object> operation = redisTemplate.boundValueOps(redisKey);
+            operation.setIfAbsent(0, 1, TimeUnit.HOURS);
+            while (true) {
+                Long page = operation.increment();
+                List<FinancialRecord> records;
+                if (page == null) {
+                    records = new ArrayList<>();
+                }else {
+                    LambdaQueryWrapper<FinancialRecord> eq = new LambdaQueryWrapper<FinancialRecord>().eq(FinancialRecord::getUid, 1739656452879941634L);
+                    records = financialRecordService.list(eq);
+                }
+
+                if ((records.size()) <= 0) {
+                    break;
+                }
+                for (FinancialRecord c : records) {
+                    FinancialIncomeTask task = SpringUtil.getBean(FinancialIncomeTask.class);
+                    task.interestStat(c);
+                }
+            }
+        });
+    }
 
     /**
      * 计算利息

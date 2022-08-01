@@ -7,11 +7,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.IdGenerator;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.mapper.FinancialIncomeAccrueMapper;
 import com.tianli.management.query.FinancialProductIncomeQuery;
+import com.tianli.tool.time.TimeTool;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -27,6 +30,7 @@ import java.util.stream.Collectors;
  * @apiNote
  * @since 2022-07-13
  **/
+@Slf4j
 @Service
 public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAccrueMapper, FinancialIncomeAccrue> {
 
@@ -60,21 +64,26 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
                 .eq(FinancialIncomeAccrue::getUid, uid)
                 .eq(FinancialIncomeAccrue::getRecordId, recordId);
         FinancialIncomeAccrue financialIncomeAccrue = financialIncomeAccrueMapper.selectOne(queryWrapper);
+        LocalDateTime incomeTime = TimeTool.minDay(LocalDateTime.now()).plusDays(-1);
+
+        if(Objects.nonNull(financialIncomeAccrue) && incomeTime.compareTo(financialIncomeAccrue.getUpdateTime()) == 0){
+            log.error("recordId:{},已经计算过当日汇总利息，请排查问题",recordId);
+            ErrorCodeEnum.SYSTEM_ERROR.throwException();
+        }
         if(Objects.isNull(financialIncomeAccrue)){
-            var incomeAccrueInsert = FinancialIncomeAccrue.builder().id(IdGenerator.financialIncomeAccrueId())
+            financialIncomeAccrue = FinancialIncomeAccrue.builder().id(IdGenerator.financialIncomeAccrueId())
                     .coin(coin).uid(uid).recordId(recordId)
-                    .incomeAmount(amount)
+                    .incomeAmount(BigDecimal.ZERO)
                     .createTime(LocalDateTime.now())
-                    .updateTime(LocalDateTime.now())
                     .build();
-            financialIncomeAccrueMapper.insert(incomeAccrueInsert);
-            return;
+            financialIncomeAccrueMapper.insert(financialIncomeAccrue);
         }
 
         BigDecimal incomeAmountOld = financialIncomeAccrue.getIncomeAmount();
         BigDecimal incomeAmountNew = incomeAmountOld.add(amount);
         financialIncomeAccrue.setIncomeAmount(incomeAmountNew);
-        financialIncomeAccrue.setUpdateTime(LocalDateTime.now());
+        // incomeTime 为前一日整点
+        financialIncomeAccrue.setUpdateTime(incomeTime);
         financialIncomeAccrueMapper.updateById(financialIncomeAccrue);
     }
 
