@@ -177,7 +177,7 @@ public class FinancialIncomeTask {
         BigDecimal income = financialRecord.getHoldAmount()
                 .multiply(financialRecord.getRate()) // 乘年化利率
                 .multiply(BigDecimal.valueOf(financialRecord.getProductTerm().getDay())) // 乘计息周期，活期默认为1
-                .divide(BigDecimal.valueOf(365),8, RoundingMode.HALF_DOWN);
+                .divide(BigDecimal.valueOf(36500),8, RoundingMode.HALF_DOWN);
         Long uid = financialRecord.getUid();
         // 记录利息汇总
         financialIncomeAccrueService.insertIncomeAccrue(uid, financialRecord.getId()

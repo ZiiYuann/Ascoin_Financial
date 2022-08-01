@@ -95,7 +95,7 @@ public class FinancialController {
         FinancialProduct product = financialProductService.getById(productId);
         ExpectIncomeVO expectIncomeVO = new ExpectIncomeVO();
         expectIncomeVO.setExpectIncome(product.getRate().multiply(amount)
-                .divide(BigDecimal.valueOf(365), RoundingMode.HALF_DOWN).multiply(BigDecimal.valueOf(product.getTerm().getDay())));
+                .divide(BigDecimal.valueOf(36500), RoundingMode.HALF_DOWN).multiply(BigDecimal.valueOf(product.getTerm().getDay())));
         return Result.instance().setData(expectIncomeVO);
     }
 
