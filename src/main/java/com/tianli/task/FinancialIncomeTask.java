@@ -76,8 +76,8 @@ public class FinancialIncomeTask {
     /**
      * 计算利息
      */
-//    @Scheduled(cron = "0 0 0 1/1 * ? ")
-    @Scheduled(cron = "0 0/2 * * * ?")
+    @Scheduled(cron = "0 0 0 1/1 * ? ")
+//    @Scheduled(cron = "0 0/2 * * * ?")
     public void calIncome() {
         log.info("========执行计算每日利息定时任务========");
         asyncService.async(() -> {
