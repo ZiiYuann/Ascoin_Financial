@@ -96,7 +96,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     private BorrowRepayRecordMapper borrowRepayRecordMapper;
 
     @Autowired
-    private FinancialPledgeInfoMapper financialPledgeInfoMapper;
+    private FinancialPledgeRecordMapper financialPledgeInfoMapper;
 
     @Autowired
     private IBorrowPledgeCoinConfigService  borrowPledgeCoinConfigService;
@@ -785,7 +785,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                     financialRecord.setPledgeAmount(holdAmount);
                 }
                 financialRecordMapper.updateById(financialRecord);
-                FinancialPledgeInfo pledgeInfo = FinancialPledgeInfo.builder()
+                FinancialPledgeRecord pledgeInfo = FinancialPledgeRecord.builder()
                         .uid(uid)
                         .financialId(financialRecord.getId())
                         .borrowOrderId(orderId)
@@ -802,11 +802,11 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
      * @param amount
      */
     private void reducePledgeAmount(Long orderId, BigDecimal amount){
-        List<FinancialPledgeInfo> financialPledgeInfos = financialPledgeInfoMapper.selectList(
-                new QueryWrapper<FinancialPledgeInfo>().lambda()
-                        .eq(FinancialPledgeInfo::getBorrowOrderId,orderId)
-                        .orderByDesc(FinancialPledgeInfo::getCreateTime));
-        for (FinancialPledgeInfo info: financialPledgeInfos) {
+        List<FinancialPledgeRecord> financialPledgeInfos = financialPledgeInfoMapper.selectList(
+                new QueryWrapper<FinancialPledgeRecord>().lambda()
+                        .eq(FinancialPledgeRecord::getBorrowOrderId,orderId)
+                        .orderByDesc(FinancialPledgeRecord::getCreateTime));
+        for (FinancialPledgeRecord info: financialPledgeInfos) {
             FinancialRecord financialRecord = financialRecordMapper.selectById(info.getFinancialId());
             BigDecimal pledgeAmount = info.getPledgeAmount();
             if(pledgeAmount.compareTo(amount) >= 0){
@@ -826,9 +826,9 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     }
 
     private void releasePledgeAmount(Long orderId){
-        List<FinancialPledgeInfo> financialPledgeInfos = financialPledgeInfoMapper.selectList(
-                new QueryWrapper<FinancialPledgeInfo>().lambda()
-                    .eq(FinancialPledgeInfo::getBorrowOrderId,orderId).orderByDesc(FinancialPledgeInfo::getCreateTime));
+        List<FinancialPledgeRecord> financialPledgeInfos = financialPledgeInfoMapper.selectList(
+                new QueryWrapper<FinancialPledgeRecord>().lambda()
+                    .eq(FinancialPledgeRecord::getBorrowOrderId,orderId).orderByDesc(FinancialPledgeRecord::getCreateTime));
         financialPledgeInfos.forEach(financialPledgeInfo -> {
             FinancialRecord financialRecord = financialRecordMapper.selectById(financialPledgeInfo.getFinancialId());
             financialRecord.setPledgeAmount(financialRecord.getPledgeAmount().subtract(financialPledgeInfo.getPledgeAmount()));

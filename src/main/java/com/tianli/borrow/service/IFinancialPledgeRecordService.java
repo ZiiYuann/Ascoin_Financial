@@ -1,6 +1,6 @@
 package com.tianli.borrow.service;
 
-import com.tianli.borrow.entity.FinancialPledgeInfo;
+import com.tianli.borrow.entity.FinancialPledgeRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -11,6 +11,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @author xianeng
  * @since 2022-07-25
  */
-public interface IFinancialPledgeInfoService extends IService<FinancialPledgeInfo> {
+public interface IFinancialPledgeRecordService extends IService<FinancialPledgeRecord> {
 
 }

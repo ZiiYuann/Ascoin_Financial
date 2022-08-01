@@ -3,8 +3,6 @@ package com.tianli.borrow.entity;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.io.Serializable;
 import java.util.Date;
 
 import lombok.Builder;
@@ -22,7 +20,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @Builder
 @EqualsAndHashCode(callSuper = false)
-public class FinancialPledgeInfo extends Model<FinancialPledgeInfo> {
+public class FinancialPledgeRecord extends Model<FinancialPledgeRecord> {
 
     private static final long serialVersionUID=1L;
 
