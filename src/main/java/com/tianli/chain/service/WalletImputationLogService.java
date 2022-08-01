@@ -45,6 +45,9 @@ public class WalletImputationLogService extends ServiceImpl<WalletImputationLogM
         if(Objects.nonNull(query.getStartTime()) && Objects.nonNull(query.getEndTime())) {
             queryWrapper = queryWrapper.between(WalletImputationLog :: getCreateTime,query.getStartTime(),query.getEndTime());
         }
+        if(Objects.nonNull(query.getStatus())) {
+            queryWrapper = queryWrapper.eq(WalletImputationLog :: getStatus,query.getStatus());
+        }
 
         return walletImputationLogMapper.selectPage(page, queryWrapper).convert(chainConverter::toWalletImputationLogVO);
     }
