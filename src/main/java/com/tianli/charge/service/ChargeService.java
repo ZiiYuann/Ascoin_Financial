@@ -88,6 +88,10 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             }
             // 生成订单数据
             String orderNo = insertRechargeOrder(uid, req, currencyAdaptType, finalAmount, req.getValue());
+
+            if(req.getStatus() != 1){  // 代表充值失败
+                return;
+            }
             // 操作余额信息
             accountBalanceService.increase(uid, ChargeType.recharge, currencyAdaptType.getCurrencyCoin()
                     , currencyAdaptType.getNetwork(), finalAmount, orderNo, CurrencyLogDes.充值.name());
@@ -111,10 +115,17 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             OrderChargeInfo orderChargeInfo = orderChargeInfoService.getByTxid(req.getHash());
             Long uid = orderChargeInfo.getUid();
             Order order = orderService.getOrderByHash(req.getHash());
-            // 操作余额信息
-            accountBalanceService.reduce(uid, ChargeType.withdraw, currencyAdaptType.getCurrencyCoin()
-                    , currencyAdaptType.getNetwork(), orderChargeInfo.getFee(),order.getOrderNo() , "提现成功扣除");
-            order.setStatus(ChargeStatus.chain_success);
+
+            if(req.getStatus() == 1){
+                // 操作余额信息
+                accountBalanceService.reduce(uid, ChargeType.withdraw, currencyAdaptType.getCurrencyCoin()
+                        , currencyAdaptType.getNetwork(), orderChargeInfo.getFee(),order.getOrderNo() , "提现成功扣除");
+                order.setStatus(ChargeStatus.chain_success);
+            }
+
+            if(req.getStatus() != 1){
+                order.setStatus(ChargeStatus.chain_fail);
+            }
             order.setCompleteTime(LocalDateTime.now());
             orderService.saveOrUpdate(order);
         }
@@ -393,7 +404,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      * 理财充值记录添加
      */
     @Transactional
-    public String insertRechargeOrder(Long uid, TRONTokenReq query, CurrencyAdaptType currencyAdaptType, BigDecimal amount, BigInteger realAmount) {
+    public String insertRechargeOrder(Long uid, TRONTokenReq query, CurrencyAdaptType currencyAdaptType
+            , BigDecimal amount, BigInteger realAmount) {
         // 链信息
         OrderChargeInfo orderChargeInfo = OrderChargeInfo.builder()
                 .id(CommonFunction.generalId())
@@ -412,14 +424,14 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .toAddress(query.getTo()).build();
         orderService.insert(orderChargeInfo);
 
-        // 订单信息
         LocalDateTime now = LocalDateTime.now();
+        // 订单信息
         Order order = Order.builder()
                 .uid(uid)
                 .orderNo(AccountChangeType.recharge.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
                 .completeTime(now)
                 .amount(amount)
-                .status(ChargeStatus.chain_success)
+                .status(query.getStatus() == 1 ? ChargeStatus.chain_success : ChargeStatus.chain_fail)
                 .type(ChargeType.recharge)
                 .coin(currencyAdaptType.getCurrencyCoin())
                 .createTime(now)

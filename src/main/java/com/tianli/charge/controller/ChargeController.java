@@ -71,7 +71,7 @@ public class ChargeController {
     }
 
     /**
-     * 充值回调
+     * 提现回调
      */
     @RequestMapping(value = {"/withdraw/{chain}","/withdraw"} , produces = "text/plain")
     public String withdrawCallback(@PathVariable(required = false) ChainType chain,

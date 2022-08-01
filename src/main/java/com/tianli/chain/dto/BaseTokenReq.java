@@ -31,6 +31,8 @@ public class BaseTokenReq {
 
     private CreateTimeReq createTime;
 
+    private int status;
+
     public LocalDateTime getCreateTime() {
         int day = createTime.getDate().getDay();
         int month = createTime.getDate().getMonth();
