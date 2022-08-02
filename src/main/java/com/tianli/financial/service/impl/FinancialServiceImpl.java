@@ -102,7 +102,7 @@ public class FinancialServiceImpl implements FinancialService {
         // 减少余额
         accountBalanceService.withdraw(uid, ChargeType.purchase, product.getCoin(), amount, order.getOrderNo(), CurrencyLogDes.申购.name());
         // 确认完毕后生成申购记录
-        FinancialRecord financialRecord = financialRecordService.generateFinancialRecord(uid, product, amount);
+        FinancialRecord financialRecord = financialRecordService.generateFinancialRecord(uid, product, amount,purchaseQuery.isAutoCurrent());
         // 修改订单状态
         order.setStatus(ChargeStatus.chain_success);
         order.setRelatedId(financialRecord.getId());

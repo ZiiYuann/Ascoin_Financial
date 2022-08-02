@@ -112,7 +112,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     /**
      * 生成记录
      */
-    public FinancialRecord generateFinancialRecord(Long uid, FinancialProduct product, BigDecimal amount) {
+    public FinancialRecord generateFinancialRecord(Long uid, FinancialProduct product, BigDecimal amount,boolean autoRenewal) {
         LocalDateTime startIncomeTime = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(1);
         FinancialRecord record = FinancialRecord.builder()
                 .id(CommonFunction.generalId())
@@ -130,6 +130,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
                 .productName(product.getName())
                 .productNameEn(product.getNameEn())
                 .logo(product.getLogo())
+                .autoRenewal(autoRenewal)
                 .build();
         int i = financialRecordMapper.insert(record);
         if (i <= 0) {

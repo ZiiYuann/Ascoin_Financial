@@ -109,7 +109,7 @@ public class FinancialController {
     }
 
     /**
-     * 收益明细列表
+     * 【持有详情】下方收益明细列表
      */
     @GetMapping("/incomes")
     public Result incomes(PageQuery<FinancialIncomeAccrueDTO> page,ProductType productType) {
@@ -132,7 +132,7 @@ public class FinancialController {
     }
 
     /**
-     * 具体收益的信息
+     * 【持有详情】上方汇总信息
      */
     @GetMapping("/income/{recordId}")
     public Result incomeByRecordId(@PathVariable Long recordId) {

@@ -209,7 +209,7 @@ public class FinancialIncomeTask {
         // 取第一个有效的产品
         FinancialProduct product = products.get(0);
         FinancialRecord financialRecordNew = financialRecordService.generateFinancialRecord(financialRecord.getUid()
-                , product, financialRecord.getHoldAmount());
+                , product, financialRecord.getHoldAmount(),false);
         financialRecordService.save(financialRecordNew);
 
     }

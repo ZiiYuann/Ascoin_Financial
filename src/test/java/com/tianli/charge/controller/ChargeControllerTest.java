@@ -42,8 +42,7 @@ class ChargeControllerTest {
         httpPost.setHeader("Content-Type", "text/plain");
         httpPost.setHeader("Sign", sign);
         httpPost.setHeader("timestamp", l + "");
-        httpPost.setEntity(new StringEntity("{\"token\": [{\"id\": 1739673149627121337, \"to\": \"TD4FCCpMEEDNX41Lo8xf6SqUomqaAPHJEe\", \"from\": \"TKTisiaH4CMTAWAddRmwTJLdaoHKHHTeRj\", \"hash\": \"82cbe1a3c9ebd477163676f720dcba8c4b86602667657b675863481fabae6b27\", \"block\": 42835440, \"value\": 9000000, \"netFee\": 345000, \"status\": 1, \"netUsage\": 0, \"energyFee\": 8296680, \"createTime\": {\"date\": {\"day\": 29, \"year\": 2022, \"month\": 7}, \"time\": {\"hour\": 15, \"nano\": 0, \"minute\": 59, \"second\": 51}}, \"energyUsage\": 0, \"contractAddress\": \"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t\", \"energyUsageTotal\": 29631, \"originEnergyUsage\": 0}], \"standardCurrency\": []}"));
-
+        httpPost.setEntity(new StringEntity("{\"token\":[{\"id\":1740027775524498000,\"to\":\"TD4FCCpMEEDNX41Lo8xf6SqUomqaAPHJEe\",\"from\":\"TKTisiaH4CMTAWAddRmwTJLdaoHKHHTeRj\",\"hash\":\"c7ca172b8816aab174d4ace7b9c6065e0ded71bb2fa996d6cc0f23d9c1981b6e\",\"status\":1,\"block\":42948067,\"value\":1000000,\"createTime\":{\"date\":{\"day\":26,\"year\":2022,\"month\":7},\"time\":{\"hour\":13,\"nano\":0,\"minute\":52,\"second\":18}},\"contractAddress\":\"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t\"}],\"standardCurrency\":[]}"));
         client.execute(httpPost);
     }
 

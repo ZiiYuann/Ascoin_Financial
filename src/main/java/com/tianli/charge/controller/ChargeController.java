@@ -1,7 +1,9 @@
 package com.tianli.charge.controller;
 
 import cn.hutool.core.map.MapUtil;
+import com.tianli.chain.entity.ChainCallbackLog;
 import com.tianli.chain.enums.ChainType;
+import com.tianli.chain.service.ChainCallbackLogService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.query.RedeemQuery;
 import com.tianli.charge.query.WithdrawQuery;
@@ -44,55 +46,80 @@ public class ChargeController {
     private RequestInitService requestInitService;
     @Resource
     private FinancialService financialService;
+    @Resource
+    private ChainCallbackLogService chainCallbackLogService;
 
     /**
      * 充值回调
      */
-    @RequestMapping(value = {"/recharge/{chain}","/recharge"} , produces = "text/plain")
+    @RequestMapping(value = {"/recharge/{chain}", "/recharge"}, produces = "text/plain")
     public String rechargeCallback(@PathVariable(required = false) ChainType chain,
-                                   @RequestBody(required = false) String str ,
+                                   @RequestBody(required = false) String str,
                                    @RequestHeader("Sign") String sign,
                                    @RequestHeader("timestamp") String timestamp) {
         if (chain == null) { //等于ping
             return "success";
         }
 
-        if (Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp", timestamp).equals(sign)) {
-            long l = LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8"));
-            if ((Long.parseLong(timestamp) + 10) >= l) {
-                log.info("验签成功， {},充值信息为：{}", sign,str);
-                chargeService.rechargeCallback(str);
-                return "success";
-            } else {
-                throw ErrorCodeEnum.SIGN_ERROR.generalException();
-            }
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp", timestamp).equals(sign)) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
-           throw ErrorCodeEnum.SIGN_ERROR.generalException();
+
+        long l = LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8"));
+        if ((Long.parseLong(timestamp) + 10) < l) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
+        }
+        log.info("验签成功， {},充值信息为：{}", sign, str);
+
+        ChainCallbackLog chainCallbackLog = chainCallbackLogService.insert(ChargeType.recharge, chain, str);
+        try {
+            chargeService.rechargeCallback(str);
+            chainCallbackLog.setStatus("success");
+        } catch (Exception e) {
+            chainCallbackLog.setStatus("fail");
+            throw e;
+        } finally {
+            chainCallbackLogService.updateById(chainCallbackLog);
+        }
+        return "success";
     }
 
     /**
      * 提现回调
      */
-    @RequestMapping(value = {"/withdraw/{chain}","/withdraw"} , produces = "text/plain")
+    @RequestMapping(value = {"/withdraw/{chain}", "/withdraw"}, produces = "text/plain")
     public String withdrawCallback(@PathVariable(required = false) ChainType chain,
-                                   @RequestBody(required = false) String str ,
+                                   @RequestBody(required = false) String str,
                                    @RequestHeader("Sign") String sign,
                                    @RequestHeader("timestamp") String timestamp) {
         if (chain == null) { //等于ping
             return "success";
         }
 
-        if (Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp", timestamp).equals(sign)) {
-            long l = LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8"));
-            if ((Long.parseLong(timestamp) + 10) >= l) {
-                log.info("验签成功， {},充值信息为：{}", sign,str);
-                chargeService.withdrawCallback(str);
-                return "success";
-            } else {
-                throw ErrorCodeEnum.SIGN_ERROR.generalException();
-            }
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp", timestamp).equals(sign)) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
+
         }
-           throw ErrorCodeEnum.SIGN_ERROR.generalException();
+
+
+        long l = LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8"));
+        if ((Long.parseLong(timestamp) + 10) < l) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
+        }
+        log.info("验签成功， {},充值信息为：{}", sign, str);
+
+        ChainCallbackLog chainCallbackLog = chainCallbackLogService.insert(ChargeType.withdraw, chain, str);
+        try {
+            chargeService.withdrawCallback(str);
+            chainCallbackLog.setStatus("success");
+        } catch (Exception e) {
+            chainCallbackLog.setStatus("fail");
+            throw e;
+        } finally {
+            chainCallbackLogService.updateById(chainCallbackLog);
+        }
+        return "success";
+
     }
 
     /**
@@ -101,7 +128,7 @@ public class ChargeController {
     @PostMapping("/withdraw/apply")
     public Result withdraw(@RequestBody @Valid WithdrawQuery withdrawDTO) {
         Long uid = requestInitService.uid();
-        chargeService.withdrawApply(uid,withdrawDTO);
+        chargeService.withdrawApply(uid, withdrawDTO);
         return Result.instance();
     }
 
@@ -109,11 +136,11 @@ public class ChargeController {
      * 赎回
      */
     @PostMapping("/redeem")
-    public Result redeem(@RequestBody @Valid RedeemQuery query){
+    public Result redeem(@RequestBody @Valid RedeemQuery query) {
         Long uid = requestInitService.uid();
-        String orderNo = chargeService.redeem(uid,query);
+        String orderNo = chargeService.redeem(uid, query);
         HashMap<Object, Object> result = MapUtil.newHashMap();
-        result.put("orderNo",orderNo);
+        result.put("orderNo", orderNo);
         return Result.instance().setData(result);
     }
 
@@ -121,7 +148,7 @@ public class ChargeController {
      * 申购理财产品（余额）
      */
     @PostMapping("/purchase/balance")
-    public Result balancePurchase(@RequestBody @Valid PurchaseQuery purchaseQuery){
+    public Result balancePurchase(@RequestBody @Valid PurchaseQuery purchaseQuery) {
         return Result.instance().setData(financialService.purchase(purchaseQuery));
     }
 
@@ -140,7 +167,7 @@ public class ChargeController {
     @GetMapping("/settles")
     public Result settles(PageQuery<OrderSettleRecordVO> page, ProductType productType) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(chargeService.settleOrderPage(page.page(),uid,productType));
+        return Result.instance().setData(chargeService.settleOrderPage(page.page(), uid, productType));
     }
 
     /**
@@ -148,17 +175,17 @@ public class ChargeController {
      */
     @GetMapping("/orders")
     public Result order(PageQuery<OrderFinancialVO> pageQuery, ProductType productType, ChargeType chargeType) {
-        if(Objects.nonNull(chargeType) && !ChargeType.purchase.equals(chargeType) && !ChargeType.redeem.equals(chargeType)
-                && !ChargeType.transfer.equals(chargeType)){
+        if (Objects.nonNull(chargeType) && !ChargeType.purchase.equals(chargeType) && !ChargeType.redeem.equals(chargeType)
+                && !ChargeType.transfer.equals(chargeType)) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
 
-        FinancialOrdersQuery query  = new FinancialOrdersQuery();
+        FinancialOrdersQuery query = new FinancialOrdersQuery();
         query.setProductType(productType);
         query.setChargeType(chargeType);
         query.setUid(requestInitService.uid());
-        query.setDefaultChargeType(List.of(ChargeType.purchase,ChargeType.redeem,ChargeType.transfer));
-        return Result.instance().setData(financialService.orderPage(pageQuery.page(),query));
+        query.setDefaultChargeType(List.of(ChargeType.purchase, ChargeType.redeem, ChargeType.transfer));
+        return Result.instance().setData(financialService.orderPage(pageQuery.page(), query));
     }
 
     /**
