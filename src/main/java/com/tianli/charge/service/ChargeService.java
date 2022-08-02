@@ -89,9 +89,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             // 生成订单数据
             String orderNo = insertRechargeOrder(uid, req, currencyAdaptType, finalAmount, req.getValue());
 
-            if(req.getStatus() != 1){  // 代表充值失败
-                return;
-            }
             // 操作余额信息
             accountBalanceService.increase(uid, ChargeType.recharge, currencyAdaptType.getCurrencyCoin()
                     , currencyAdaptType.getNetwork(), finalAmount, orderNo, CurrencyLogDes.充值.name());
@@ -116,18 +113,11 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             Long uid = orderChargeInfo.getUid();
             Order order = orderService.getOrderByHash(req.getHash());
 
-            if(req.getStatus() == 1){
-                // 操作余额信息
-                accountBalanceService.reduce(uid, ChargeType.withdraw, currencyAdaptType.getCurrencyCoin()
-                        , currencyAdaptType.getNetwork(), orderChargeInfo.getFee(),order.getOrderNo() , "提现成功扣除");
-                order.setStatus(ChargeStatus.chain_success);
-            }
+            // 操作余额信息
+            accountBalanceService.reduce(uid, ChargeType.withdraw, currencyAdaptType.getCurrencyCoin()
+                    , currencyAdaptType.getNetwork(), orderChargeInfo.getFee(), order.getOrderNo(), "提现成功扣除");
+            order.setStatus(ChargeStatus.chain_success);
 
-            if(req.getStatus() != 1){
-                accountBalanceService.unfreeze(uid, ChargeType.withdraw, currencyAdaptType.getCurrencyCoin()
-                        , currencyAdaptType.getNetwork(), orderChargeInfo.getFee(),order.getOrderNo() , "提现失败解冻");
-                order.setStatus(ChargeStatus.chain_fail);
-            }
             order.setCompleteTime(LocalDateTime.now());
             orderService.saveOrUpdate(order);
         }
@@ -231,8 +221,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         /* 注册监听回调接口
          * {@link com.tianli.charge.controller.ChargeController#withdrawCallback(ChainType, String, String, String)}
          */
-        chainService.pushCondition(orderChargeInfo.getNetwork(),orderChargeInfo.getCoin()
-                ,new CallbackPathDTO("/api/charge/withdraw"),orderChargeInfo.getToAddress());
+        chainService.pushCondition(orderChargeInfo.getNetwork(), orderChargeInfo.getCoin()
+                , new CallbackPathDTO("/api/charge/withdraw"), orderChargeInfo.getToAddress());
 
         try {
             result = contractService.transfer(orderChargeInfo.getToAddress(), amount, order.getCoin());
@@ -241,7 +231,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             e.printStackTrace();
             ErrorCodeEnum.throwException("上链失败");
         }
-        if (Objects.isNull(result) || Objects.isNull(result.getData())){
+        if (Objects.isNull(result) || Objects.isNull(result.getData())) {
             ErrorCodeEnum.throwException("上链失败");
         }
 
@@ -255,7 +245,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     public String redeem(Long uid, RedeemQuery query) {
         // todo 计算利息的时候不允许进行赎回操
         Long recordId = query.getRecordId();
-        FinancialRecord record = financialRecordService.selectById(recordId,uid);
+        FinancialRecord record = financialRecordService.selectById(recordId, uid);
 
         if (RecordStatus.SUCCESS.equals(record.getStatus())) {
             log.info("recordId:{},已经处于完成状态，请校验是否有误", recordId);
@@ -287,11 +277,11 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         accountBalanceService.increase(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount(), order.getOrderNo(), CurrencyLogDes.赎回.name());
 
         // 减少产品持有
-        financialRecordService.redeem(record.getId(),query.getRedeemAmount());
+        financialRecordService.redeem(record.getId(), query.getRedeemAmount());
 
         // 更新记录状态
-        FinancialRecord recordLatest = financialRecordService.selectById(recordId,uid);
-        if(recordLatest.getHoldAmount().compareTo(BigDecimal.ZERO) == 0){
+        FinancialRecord recordLatest = financialRecordService.selectById(recordId, uid);
+        if (recordLatest.getHoldAmount().compareTo(BigDecimal.ZERO) == 0) {
             recordLatest.setStatus(RecordStatus.SUCCESS);
             recordLatest.setUpdateTime(LocalDateTime.now());
         }
@@ -458,7 +448,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .eq(Order::getUid, uid)
                 .eq(Order::getCoin, currencyCoin)
                 .orderByDesc(Order::getCreateTime)
-                .eq(Order::getStatus,ChargeStatus.chain_success);
+                .eq(Order::getStatus, ChargeStatus.chain_success);
         if (Objects.nonNull(chargeGroup)) {
             wrapper = wrapper.in(Order::getType, chargeGroup.getChargeTypes());
         }

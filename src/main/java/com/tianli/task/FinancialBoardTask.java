@@ -24,6 +24,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,9 +52,9 @@ public class FinancialBoardTask {
     @Resource
     private AddressService addressService;
 
-//    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0/1 * * * ?")
     public void taskTest(){
-        boardTask(LocalDateTime.now().plusDays(-1));
+        boardTask(DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(0));
     }
 
     @Scheduled(cron = "0 0 0 1/1 * ? ")
@@ -79,11 +80,12 @@ public class FinancialBoardTask {
 
     @Transactional
     public void boardTask(LocalDateTime todayBegin) {
-        log.info("========执行计算管理端数据展板定时任务========");
         todayBegin = Optional.ofNullable(todayBegin).orElse(DateUtil.beginOfDay(new DateTime()).toLocalDateTime());
         LocalDateTime yesterdayBegin = todayBegin.plusDays(-1);
+        log.info("========执行计算管理端数据展板定时任务{}========",todayBegin);
 
-        FinancialBoardProduct today = financialBoardProductService.getToday();
+
+        FinancialBoardProduct today = financialBoardProductService.getByDate(yesterdayBegin.toLocalDate());
 
         BigDecimal purchaseAmount = orderService.amountSumByCompleteTime(ChargeType.purchase,yesterdayBegin, todayBegin);
         BigDecimal redeemAmount = orderService.amountSumByCompleteTime(ChargeType.redeem,yesterdayBegin, todayBegin);
@@ -107,7 +109,7 @@ public class FinancialBoardTask {
         financialBoardProductService.updateById(today);
 
 //        ========================== 云钱包数据看板 ==========================
-        FinancialBoardWallet financialBoardWallet = financialBoardWalletService.getToday();
+        FinancialBoardWallet financialBoardWallet = financialBoardWalletService.getByDate(yesterdayBegin.toLocalDate());
         ServiceAmountQuery serviceAmountQuery = new ServiceAmountQuery();
         serviceAmountQuery.setStartTime(yesterdayBegin);
         serviceAmountQuery.setEndTime(todayBegin);

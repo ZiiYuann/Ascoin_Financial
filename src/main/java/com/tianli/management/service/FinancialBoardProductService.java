@@ -1,6 +1,5 @@
 package com.tianli.management.service;
 
-import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.RedisLockConstants;
@@ -21,7 +20,6 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -40,10 +38,8 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
      * 获取当日的数据
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public FinancialBoardProduct getToday() {
+    public FinancialBoardProduct getByDate(LocalDate todayBegin) {
         redisLock.waitLock(RedisLockConstants.FINANCIAL_PRODUCT_BOARD_GET, 1000);
-        LocalDate todayBegin =
-                DateUtil.beginOfDay(new Date()).toSqlDate().toLocalDate();
 
         LambdaQueryWrapper<FinancialBoardProduct> query =
                 new LambdaQueryWrapper<FinancialBoardProduct>().eq(FinancialBoardProduct::getCreateTime, todayBegin);

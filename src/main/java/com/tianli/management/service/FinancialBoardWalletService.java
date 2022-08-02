@@ -1,6 +1,5 @@
 package com.tianli.management.service;
 
-import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.AddressService;
@@ -79,10 +78,8 @@ public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalle
      * 获取当日的数据
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public FinancialBoardWallet getToday() {
+    public FinancialBoardWallet getByDate(LocalDate todayBegin) {
         redisLock.waitLock(RedisLockConstants.FINANCIAL_WALLET_BOARD_GET, 1000);
-        LocalDate todayBegin =
-                DateUtil.beginOfDay(new Date()).toSqlDate().toLocalDate();
 
         LambdaQueryWrapper<FinancialBoardWallet> query =
                 new LambdaQueryWrapper<FinancialBoardWallet>().eq(FinancialBoardWallet::getCreateTime, todayBegin);

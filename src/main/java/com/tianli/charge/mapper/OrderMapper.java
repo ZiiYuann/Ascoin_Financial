@@ -39,7 +39,7 @@ public interface OrderMapper extends BaseMapper<Order> {
 
     BigDecimal orderAmountSum(@Param("query") FinancialChargeQuery query);
 
-    @Select("SELECT SUM(amount) FROM `order` WHERE type=#{chargeType} AND complete_time BETWEEN #{startTime} and #{endTime} ")
+    @Select("SELECT SUM(amount) FROM `order` WHERE type=#{chargeType} AND complete_time BETWEEN #{startTime} and #{endTime} and status ='chain_success'")
     BigDecimal amountSumByCompleteTime(@Param("chargeType") ChargeType chargeType,
                                        @Param("startTime") LocalDateTime startTime,
                                        @Param("endTime") LocalDateTime endTime);

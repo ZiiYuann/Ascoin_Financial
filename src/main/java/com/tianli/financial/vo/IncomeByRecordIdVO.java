@@ -61,4 +61,6 @@ public class IncomeByRecordIdVO {
      */
     private boolean autoRenewal;
 
+    private Long productId;
+
 }

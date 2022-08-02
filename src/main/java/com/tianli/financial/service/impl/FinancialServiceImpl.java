@@ -158,7 +158,6 @@ public class FinancialServiceImpl implements FinancialService {
         FinancialRecord record = financialRecordService.selectById(recordId, uid);
         IncomeByRecordIdVO incomeByRecordIdVO = financialConverter.toIncomeByRecordIdVO(record);
 
-
         LambdaQueryWrapper<FinancialIncomeDaily> incomeDailyQuery = new LambdaQueryWrapper<FinancialIncomeDaily>().eq(FinancialIncomeDaily::getUid, uid)
                 .eq(FinancialIncomeDaily::getRecordId, recordId)
                 .eq(FinancialIncomeDaily::getFinishTime, DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(-1));
@@ -175,6 +174,7 @@ public class FinancialServiceImpl implements FinancialService {
         incomeByRecordIdVO.setYesterdayIncomeFee(yesterdayIncomeFee);
         incomeByRecordIdVO.setRecordStatus(record.getStatus());
         incomeByRecordIdVO.setAutoRenewal(record.isAutoRenewal());
+        incomeByRecordIdVO.setProductId(record.getProductId());
 
         return incomeByRecordIdVO;
     }
