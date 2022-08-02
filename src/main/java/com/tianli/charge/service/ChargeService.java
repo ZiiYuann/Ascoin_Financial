@@ -255,9 +255,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     public String redeem(Long uid, RedeemQuery query) {
         // todo 计算利息的时候不允许进行赎回操
         Long recordId = query.getRecordId();
-        FinancialRecord record = Optional.ofNullable(financialRecordService.getOne(new LambdaQueryWrapper<FinancialRecord>()
-                        .eq(FinancialRecord::getUid, uid).eq(FinancialRecord::getId, recordId)))
-                .orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
+        FinancialRecord record = financialRecordService.selectById(recordId,uid);
 
         if (RecordStatus.SUCCESS.equals(record.getStatus())) {
             log.info("recordId:{},已经处于完成状态，请校验是否有误", recordId);
@@ -290,6 +288,14 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         // 减少产品持有
         financialRecordService.redeem(record.getId(),query.getRedeemAmount());
+
+        // 更新记录状态
+        FinancialRecord recordLatest = financialRecordService.selectById(recordId,uid);
+        if(recordLatest.getHoldAmount().compareTo(BigDecimal.ZERO) == 0){
+            recordLatest.setStatus(RecordStatus.SUCCESS);
+            recordLatest.setUpdateTime(LocalDateTime.now());
+        }
+        financialRecordService.updateById(recordLatest);
 
         return order.getOrderNo();
     }
