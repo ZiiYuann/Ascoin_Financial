@@ -1,7 +1,10 @@
 package com.tianli.management.service;
 
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.borrow.vo.BorrowOrderStatisticsChartVO;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.management.converter.ManagementConverter;
@@ -9,6 +12,7 @@ import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.mapper.FinancialBoardProductMapper;
 import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.vo.FinancialProductBoardSummaryVO;
+import com.tianli.management.vo.FinancialProductBoardVO;
 import com.tianli.tool.time.TimeTool;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -19,9 +23,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -84,16 +87,31 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
         LocalDateTime dateTime = TimeTool.minDay(LocalDateTime.now());
         boardQuery = new LambdaQueryWrapper<FinancialBoardProduct>()
                 .between(FinancialBoardProduct::getCreateTime, dateTime.plusDays(-14), dateTime);
+        List<FinancialBoardProduct> financialBoardProducts = financialProductBoardMapper.selectList(boardQuery);
 
-        var financialProductBoard14 = Optional.ofNullable(financialProductBoardMapper.selectList(boardQuery))
-                .orElse(new ArrayList<>()).stream().map(managementConverter::toVO).collect(Collectors.toList());
+        int offsetDay = -14;
+        //获取14天前零点时间
+        //构建十四天的数据
+        Map<String, FinancialProductBoardVO> financialProductBoardVOMap = new LinkedHashMap<>();
+        for (int i = offsetDay; i < 0; i++) {
+            DateTime time = DateUtil.offsetDay(new Date(), i);
+            String dateTimeStr = DateUtil.format(time, "yyyy-MM-dd");
+            financialProductBoardVOMap.put(dateTimeStr, FinancialProductBoardVO.getDefault(time.toLocalDateTime().toLocalDate()));
+        }
+
+        Optional.ofNullable(financialBoardProducts)
+                .orElse(new ArrayList<>()).stream().forEach(financialBoardProduct -> {
+                    FinancialProductBoardVO financialProductBoardVO = managementConverter.toVO(financialBoardProduct);
+                    String dateTimeStr = financialProductBoardVO.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    financialProductBoardVOMap.put(dateTimeStr, financialProductBoardVO);
+                });
 
         return FinancialProductBoardSummaryVO.builder()
                 .transferAmount(transferAmount)
                 .purchaseAmount(purchaseAmount)
                 .redeemAmount(redeemAmount)
                 .settleAmount(settleAmount)
-                .data(financialProductBoard14)
+                .data(financialProductBoardVOMap.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList()))
                 .holdUserCount(holdUserCount)
                 .income(income)
                 .fixedProductCount(fixedProductCount)

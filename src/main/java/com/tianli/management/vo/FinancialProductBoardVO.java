@@ -1,5 +1,6 @@
 package com.tianli.management.vo;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
  * @since 2022-07-20
  **/
 @Data
+@Builder
 public class FinancialProductBoardVO {
 
     // 申购
@@ -21,7 +23,7 @@ public class FinancialProductBoardVO {
     // 结算
     private BigDecimal settleAmount;
     //转存
-    private BigDecimal  transferAmount;
+    private BigDecimal transferAmount;
 
     private LocalDate createTime;
 
@@ -54,4 +56,20 @@ public class FinancialProductBoardVO {
      * 累计单日收益
      */
     private BigDecimal incomeDaily;
+
+
+    public static FinancialProductBoardVO getDefault(LocalDate createTime) {
+        return FinancialProductBoardVO.builder()
+                .createTime(createTime)
+                .purchaseAmount(BigDecimal.ZERO)
+                .redeemAmount(BigDecimal.ZERO)
+                .settleAmount(BigDecimal.ZERO)
+                .transferAmount(BigDecimal.ZERO)
+                .income(BigDecimal.ZERO)
+                .currentProductCount(BigInteger.ZERO)
+                .fixedProductCount(BigInteger.ZERO)
+                .totalProductCount(BigInteger.ZERO)
+                .holdUserCount(BigInteger.ZERO)
+                .incomeDaily(BigDecimal.ZERO).build();
+    }
 }

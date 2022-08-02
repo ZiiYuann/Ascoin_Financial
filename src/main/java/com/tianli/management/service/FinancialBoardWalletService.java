@@ -1,5 +1,7 @@
 package com.tianli.management.service;
 
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.AddressService;
@@ -10,6 +12,7 @@ import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.mapper.FinancialBoardWalletMapper;
 import com.tianli.management.query.FinancialBoardQuery;
+import com.tianli.management.vo.FinancialProductBoardVO;
 import com.tianli.management.vo.FinancialWalletBoardSummaryVO;
 import com.tianli.management.vo.FinancialWalletBoardVO;
 import com.tianli.tool.time.TimeTool;
@@ -22,6 +25,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -58,10 +62,23 @@ public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalle
         walletBoardQuery = new LambdaQueryWrapper<FinancialBoardWallet>()
                 .between(FinancialBoardWallet::getCreateTime, dateTime.plusDays(-14), dateTime);
 
-        var financialWalletBoardVOs14 =
-                Optional.ofNullable(financialWalletBoardMapper.selectList(walletBoardQuery)).orElse(new ArrayList<>())
-                        .stream().map(managementConverter::toVO).collect(Collectors.toList());
 
+        int offsetDay = -14;
+        //获取14天前零点时间
+        //构建十四天的数据
+        Map<String, FinancialWalletBoardVO> financialWalletBoardVOMap = new LinkedHashMap<>();
+        for (int i = offsetDay; i < 0; i++) {
+            DateTime time = DateUtil.offsetDay(new Date(), i);
+            String dateTimeStr = DateUtil.format(time, "yyyy-MM-dd");
+            financialWalletBoardVOMap.put(dateTimeStr, FinancialWalletBoardVO.getDefault(time.toLocalDateTime().toLocalDate()));
+        }
+
+        Optional.ofNullable(financialWalletBoardMapper.selectList(walletBoardQuery)).orElse(new ArrayList<>())
+                .stream().forEach(financialBoardWallet -> {
+                    FinancialWalletBoardVO financialWalletBoardVO = managementConverter.toVO(financialBoardWallet);
+                    String dateTimeStr = financialWalletBoardVO.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    financialWalletBoardVOMap.put(dateTimeStr, financialWalletBoardVO);
+                });
 
         return FinancialWalletBoardSummaryVO.builder()
                 .rechargeAmount(rechargeAmount)
@@ -70,7 +87,7 @@ public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalle
                 .totalActiveWalletCount(BigInteger.valueOf(totalActiveWalletCount))
                 .totalServiceAmount(totalServiceAmount)
                 .usdtServiceAmount(usdtServiceAmount)
-                .data(financialWalletBoardVOs14)
+                .data(financialWalletBoardVOMap.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList()))
                 .build();
     }
 

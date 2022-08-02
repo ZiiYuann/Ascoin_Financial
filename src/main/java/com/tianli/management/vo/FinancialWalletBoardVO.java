@@ -1,5 +1,6 @@
 package com.tianli.management.vo;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
  * @since 2022-07-20
  **/
 @Data
+@Builder
 public class FinancialWalletBoardVO {
 
     /**
@@ -40,4 +42,14 @@ public class FinancialWalletBoardVO {
     private BigDecimal usdtServiceAmount;
 
     private LocalDate createTime;
+
+    public static FinancialWalletBoardVO getDefault(LocalDate createTime) {
+        return FinancialWalletBoardVO.builder()
+                .rechargeAmount(BigDecimal.ZERO)
+                .withdrawAmount(BigDecimal.ZERO)
+                .activeWalletCount(BigInteger.ZERO)
+                .totalServiceAmount(BigDecimal.ZERO)
+                .usdtServiceAmount(BigDecimal.ZERO)
+                .createTime(createTime).build();
+    }
 }
