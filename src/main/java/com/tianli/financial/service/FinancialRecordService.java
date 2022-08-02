@@ -114,7 +114,6 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      */
     public FinancialRecord generateFinancialRecord(Long uid, FinancialProduct product, BigDecimal amount) {
         LocalDateTime startIncomeTime = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(1);
-        LocalDateTime startDate = requestInitService.now().plusDays(1L);
         FinancialRecord record = FinancialRecord.builder()
                 .id(CommonFunction.generalId())
                 .productId(product.getId())
@@ -124,7 +123,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
                 .purchaseTime(requestInitService.now())
                 .productTerm(product.getTerm())
                 .startIncomeTime(startIncomeTime)
-                .endTime(startDate.plusDays(product.getTerm().getDay()))
+                .endTime(startIncomeTime.plusDays(product.getTerm().getDay()))
                 .rate(product.getRate())
                 .coin(product.getCoin())
                 .status(RecordStatus.PROCESS)

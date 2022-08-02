@@ -124,6 +124,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             }
 
             if(req.getStatus() != 1){
+                accountBalanceService.unfreeze(uid, ChargeType.withdraw, currencyAdaptType.getCurrencyCoin()
+                        , currencyAdaptType.getNetwork(), orderChargeInfo.getFee(),order.getOrderNo() , "提现失败解冻");
                 order.setStatus(ChargeStatus.chain_fail);
             }
             order.setCompleteTime(LocalDateTime.now());
@@ -283,7 +285,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         order.setCompleteTime(now);
         orderService.save(order);
 
-        // 解冻余额
+        // 增加
         accountBalanceService.increase(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount(), order.getOrderNo(), CurrencyLogDes.赎回.name());
 
         // 减少产品持有

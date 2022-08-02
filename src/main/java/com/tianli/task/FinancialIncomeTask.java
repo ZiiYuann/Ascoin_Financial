@@ -15,18 +15,27 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.async.AsyncService;
 import com.tianli.currency.log.CurrencyLogDes;
+import com.tianli.exception.ErrCodeException;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialIncomeAccrue;
+import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
+import com.tianli.financial.enums.BusinessType;
+import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.service.FinancialIncomeAccrueService;
 import com.tianli.financial.service.FinancialIncomeDailyService;
+import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -61,6 +70,8 @@ public class FinancialIncomeTask {
     private RedisTemplate<String, Object> redisTemplate;
     @Resource
     private AsyncService asyncService;
+    @Resource
+    private FinancialProductService financialProductService;
 
     private static final AtomicInteger threadId = new AtomicInteger(1);
 
@@ -75,34 +86,34 @@ public class FinancialIncomeTask {
     );
 
 //    @Scheduled(cron = "0 0/1 * * * ?")
-    public void calIncomeTest() {
-        log.info("========执行计算每日利息定时任务========");
-        asyncService.async(() -> {
-            LocalDateTime now = LocalDateTime.now();
-            String day = String.format("%s_%s", now.getMonthValue(), now.getDayOfMonth());
-            String redisKey = RedisLockConstants.FINANCIAL_INCOME_TASK + day;
-            BoundValueOperations<String, Object> operation = redisTemplate.boundValueOps(redisKey);
-            operation.setIfAbsent(0, 1, TimeUnit.HOURS);
-            while (true) {
-                Long page = operation.increment();
-                List<FinancialRecord> records;
-                if (page == null) {
-                    records = new ArrayList<>();
-                }else {
-                    LambdaQueryWrapper<FinancialRecord> eq = new LambdaQueryWrapper<FinancialRecord>().eq(FinancialRecord::getUid, 1739656452879941634L);
-                    records = financialRecordService.list(eq);
-                }
-
-                if ((records.size()) <= 0) {
-                    break;
-                }
-                for (FinancialRecord c : records) {
-                    FinancialIncomeTask task = SpringUtil.getBean(FinancialIncomeTask.class);
-                    task.interestStat(c);
-                }
-            }
-        });
-    }
+//    public void calIncomeTest() {
+//        log.info("========执行计算每日利息定时任务========");
+//        asyncService.async(() -> {
+//            LocalDateTime now = LocalDateTime.now();
+//            String day = String.format("%s_%s", now.getMonthValue(), now.getDayOfMonth());
+//            String redisKey = RedisLockConstants.FINANCIAL_INCOME_TASK + day;
+//            BoundValueOperations<String, Object> operation = redisTemplate.boundValueOps(redisKey);
+//            operation.setIfAbsent(0, 1, TimeUnit.HOURS);
+//            while (true) {
+//                Long page = operation.increment();
+//                List<FinancialRecord> records;
+//                if (page == null) {
+//                    records = new ArrayList<>();
+//                } else {
+//                    LambdaQueryWrapper<FinancialRecord> eq = new LambdaQueryWrapper<FinancialRecord>().eq(FinancialRecord::getUid, 1739656452879941634L);
+//                    records = financialRecordService.list(eq);
+//                }
+//
+//                if ((records.size()) <= 0) {
+//                    break;
+//                }
+//                for (FinancialRecord c : records) {
+//                    FinancialIncomeTask task = SpringUtil.getBean(FinancialIncomeTask.class);
+//                    task.interestStat(c);
+//                }
+//            }
+//        });
+//    }
 
     /**
      * 计算利息
@@ -122,7 +133,7 @@ public class FinancialIncomeTask {
                 List<FinancialRecord> records;
                 if (page == null) {
                     records = new ArrayList<>();
-                }else {
+                } else {
                     records = financialRecordService.needCalIncomeRecord(new Page<>(page, 20)).getRecords();
                 }
 
@@ -140,26 +151,33 @@ public class FinancialIncomeTask {
     /**
      * 统计每日利息
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void interestStat(FinancialRecord financialRecord) {
         try {
             ProductType type = financialRecord.getProductType();
-            LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
             LocalDateTime endTime = financialRecord.getEndTime();
             LocalDateTime now = LocalDateTime.now();
+            LocalDateTime grantIncomeTime = financialRecord.getStartIncomeTime().plusDays(1);
+            LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
+
 
             // 如果是定期产品且当前时间为到期前一天则计算利息
-            if(ProductType.fixed.equals(type) && endTime.compareTo(todayZero) > 0 && todayZero.plusDays(1).compareTo(endTime) > 0){
+            if (ProductType.fixed.equals(type) && endTime.compareTo(todayZero) == 0 ) {
                 incomeOperation(financialRecord, now);
                 settleOperation(financialRecord, now);
+                renewalOperation(financialRecord, now);
             }
 
-            if(ProductType.current.equals(type)){
+            // 如果是活期产品需要当前时间 >= 收益发放时间
+            if (ProductType.current.equals(type) && todayZero.compareTo(grantIncomeTime) >= 0) {
                 incomeOperation(financialRecord, now);
             }
 
 
         } catch (Exception e) {
+            if(e instanceof ErrCodeException){
+                return;
+            }
             String toJson = gson.toJson(financialRecord);
             log.warn("统计每日利息异常: record:{}", toJson, e);
             CURRENCY_INTEREST_TASK_SCHEDULE_EXECUTOR.schedule(() -> {
@@ -178,6 +196,40 @@ public class FinancialIncomeTask {
         }
     }
 
+    /**
+     * 自动续费操作
+     */
+    private void renewalOperation(FinancialRecord financialRecord, LocalDateTime now) {
+        if (!financialRecord.isAutoRenewal()) {
+            return;
+        }
+
+        var query = new LambdaQueryWrapper<FinancialProduct>()
+                .eq(FinancialProduct::getCoin, financialRecord.getCoin())
+                .eq(FinancialProduct::getStatus, ProductStatus.open)
+                .eq(FinancialProduct::isDeleted, false)
+                .eq(FinancialProduct::getBusinessType, BusinessType.normal)
+                .eq(FinancialProduct::getType, ProductType.current)
+                .orderByDesc(FinancialProduct :: getCreateTime);
+
+
+        List<FinancialProduct> products = financialProductService.list(query);
+        if (CollectionUtils.isEmpty(products)){
+            log.error("当前币别下不存在有效的活期产品用于自动续费");
+            ErrorCodeEnum.SYSTEM_ERROR.throwException();
+        }
+
+        // 取第一个有效的产品
+        FinancialProduct product = products.get(0);
+        FinancialRecord financialRecordNew = financialRecordService.generateFinancialRecord(financialRecord.getUid()
+                , product, financialRecord.getHoldAmount());
+        financialRecordService.save(financialRecordNew);
+
+    }
+
+    /**
+     * 结算操作
+     */
     private void settleOperation(FinancialRecord financialRecord, LocalDateTime now) {
         FinancialIncomeAccrue financialIncomeAccrue =
                 financialIncomeAccrueService.selectByRecordId(financialRecord.getUid(), financialRecord.getId());
@@ -196,23 +248,32 @@ public class FinancialIncomeTask {
                 .build();
         orderService.save(order);
 
-        // 更新结算时间
+        // 更新申购记录信息
         financialRecord.setEndTime(now);
+        financialRecord.setStatus(RecordStatus.SUCCESS);
         financialRecordService.updateById(financialRecord);
 
+        // 不是自动续费结算增加金额
+        if(!financialRecord.isAutoRenewal()){
+            // 增加
+            accountBalanceService.increase(financialRecord.getUid(), ChargeType.settle, financialRecord.getCoin()
+                    , financialRecord.getHoldAmount(), order.getOrderNo(), CurrencyLogDes.结算.name());
+        }
 
-        // todo 自动续期操作
     }
 
+    /**
+     * 收益操作
+     */
     private void incomeOperation(FinancialRecord financialRecord, LocalDateTime now) {
         BigDecimal income = financialRecord.getHoldAmount()
                 .multiply(financialRecord.getRate()) // 乘年化利率
                 .multiply(BigDecimal.valueOf(financialRecord.getProductTerm().getDay())) // 乘计息周期，活期默认为1
-                .divide(BigDecimal.valueOf(36500),8, RoundingMode.HALF_DOWN);
+                .divide(BigDecimal.valueOf(36500), 8, RoundingMode.HALF_DOWN);
         Long uid = financialRecord.getUid();
         // 记录利息汇总
         financialIncomeAccrueService.insertIncomeAccrue(uid, financialRecord.getId()
-                , financialRecord.getCoin(),income);
+                , financialRecord.getCoin(), income);
         // 记录昨日利息
         financialIncomeDailyService.insertIncomeDaily(uid, financialRecord.getId()
                 , income);
@@ -232,8 +293,8 @@ public class FinancialIncomeTask {
         orderService.save(order);
 
         // 操作余额
-        accountBalanceService.increase(uid,ChargeType.income, financialRecord.getCoin()
-                ,income,order.getOrderNo(),CurrencyLogDes.收益.name());
+        accountBalanceService.increase(uid, ChargeType.income, financialRecord.getCoin()
+                , income, order.getOrderNo(), CurrencyLogDes.收益.name());
     }
 
 }
