@@ -16,17 +16,22 @@ public class BorrowRepayPageVO {
     private BigDecimal availableBalance;
 
     /**
-     * 待还余额
+     * 待还总额
+     */
+    private BigDecimal waitRepayAmount;
+
+    /**
+     * 本次还款余额
      */
     private BigDecimal totalRepayAmount;
 
     /**
-     * 本金还款
+     * 本次本金还款
      */
     private BigDecimal repayCapital;
 
     /**
-     * 利息还款
+     * 本次利息还款
      */
     private BigDecimal repayInterest;
 
