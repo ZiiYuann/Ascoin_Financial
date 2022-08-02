@@ -74,11 +74,14 @@ public class FinancialServiceImpl implements FinancialService {
         BigDecimal totalUse = financialRecordService.getUseQuota(List.of(productId)).getOrDefault(productId, BigDecimal.ZERO);
         BigDecimal personUse = financialRecordService.getUseQuota(List.of(productId), uid).getOrDefault(productId, BigDecimal.ZERO);
 
-        if(purchaseQuery.getAmount().add(personUse).compareTo(product.getPersonQuota()) > 0){
+
+        if(product.getPersonQuota() != null &&  product.getPersonQuota().compareTo(BigDecimal.ZERO) >0 &&
+                purchaseQuery.getAmount().add(personUse).compareTo(product.getPersonQuota()) > 0){
             ErrorCodeEnum.throwException("用户申购金额超过个人限额");
         }
 
-        if(purchaseQuery.getAmount().add(totalUse).compareTo(product.getTotalQuota()) > 0){
+        if(product.getTotalQuota() != null &&  product.getTotalQuota().compareTo(BigDecimal.ZERO) >0 &&
+                purchaseQuery.getAmount().add(totalUse).compareTo(product.getTotalQuota()) > 0){
             ErrorCodeEnum.throwException("用户申购金额超过总限购额");
         }
 
