@@ -1,5 +1,6 @@
 package com.tianli.borrow.vo;
 
+import com.tianli.common.annotation.BigDecimalFormat;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -28,5 +29,6 @@ public class BorrowCoinConfigVO {
     /**
      * 年利率
      */
+    @BigDecimalFormat("#.##%")
     private BigDecimal annualInterestRate;
 }
