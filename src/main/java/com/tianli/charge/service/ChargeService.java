@@ -366,7 +366,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 orderRechargeDetailsVo.setPurchaseTime(record.getPurchaseTime());
                 orderRechargeDetailsVo.setExpectIncome(record.getHoldAmount().multiply(record.getRate())
                         .multiply(BigDecimal.valueOf(record.getProductTerm().getDay()))
-                        .divide(BigDecimal.valueOf(356), 8, RoundingMode.HALF_DOWN));
+                        .divide(BigDecimal.valueOf(36500), 8, RoundingMode.HALF_DOWN));
                 return orderRechargeDetailsVo;
             case redeem:
                 var orderRedeemDetailsVO = chargeConverter.toOrderRedeemDetailsVO(record);
