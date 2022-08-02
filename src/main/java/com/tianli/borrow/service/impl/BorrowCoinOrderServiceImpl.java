@@ -751,7 +751,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         DateTime beginOfDay = DateUtil.beginOfDay(DateUtil.offsetDay(new Date(), offsetDay));
         //构建十四天的数据
         Map<String,BorrowOrderStatisticsChartVO> borrowOrderStatisticsChartVOMap = new LinkedHashMap<>();
-        for(int i = offsetDay;i<=0;i++){
+        for(int i = offsetDay; i < 0; i++){
             String dateTime = DateUtil.format(DateUtil.offsetDay(new Date(), i), "yyyy-MM-dd");
             borrowOrderStatisticsChartVOMap.put(dateTime,new BorrowOrderStatisticsChartVO(dateTime,BigDecimal.ZERO));
         }
