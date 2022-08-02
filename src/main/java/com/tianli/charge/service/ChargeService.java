@@ -429,7 +429,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .orderNo(AccountChangeType.recharge.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
                 .completeTime(now)
                 .amount(amount)
-                .status(query.getStatus() == 1 ? ChargeStatus.chain_success : ChargeStatus.chain_fail)
+                .status(ChargeStatus.chain_success)
                 .type(ChargeType.recharge)
                 .coin(currencyAdaptType.getCurrencyCoin())
                 .createTime(now)
