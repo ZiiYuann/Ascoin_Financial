@@ -23,7 +23,7 @@ public class BorrowApplePageVO {
     /**
      * 币种
      */
-    private String coin;
+    private String borrowCoin;
 
     /**
      * logo
