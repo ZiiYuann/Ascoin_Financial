@@ -39,6 +39,7 @@ import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialRecord;
+import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.mapper.FinancialRecordMapper;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.time.TimeTool;
@@ -109,9 +110,9 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     public BorrowCoinMainPageVO mainPage() {
         Long uid = requestInitService.uid();
 
-        BigDecimal totalHoldAmount = financialRecordMapper.selectTotalHoldAmount();
+        BigDecimal totalHoldAmount = financialRecordMapper.selectTotalHoldAmount(ProductType.current);
         BigDecimal totalBorrowAmount = borrowCoinOrderMapper.selectTotalBorrowAmount();
-        BigDecimal holdAmount = financialRecordMapper.selectHoldAmountByUid(uid);
+        BigDecimal holdAmount = financialRecordMapper.selectHoldAmountByUid(uid,ProductType.current);
         BigDecimal borrowAmount = borrowCoinOrderMapper.selectBorrowAmountByUid(uid);
         BigDecimal pledgeAmount = borrowCoinOrderMapper.selectPledgeAmountByUid(uid);
 
@@ -193,7 +194,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BorrowPledgeCoinConfig pledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(coin);
         if(Objects.isNull(coinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
         if(Objects.isNull(pledgeCoinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
-        BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid,coin);
+        BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid,coin,ProductType.current);
         return BorrowApplePageVO.builder()
                 .coin(coin.getName())
                 .logo(coin.getLogoPath())
@@ -224,7 +225,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
         //校验数量
         BigDecimal initialPledgeRate = pledgeCoinConfig.getInitialPledgeRate();
-        BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid,currencyCoin);
+        BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid,currencyCoin, ProductType.current);
         if(borrowAmount.compareTo(availableAmount.multiply(initialPledgeRate)) > 0)ErrorCodeEnum.BORROW_GT_AVAILABLE_ERROR.throwException();
 
         //质押数量
@@ -614,7 +615,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         borrowAdjustPageVO.setPledgeRate(borrowCoinOrder.getPledgeRate());
         if(pledgeType.equals(BorrowPledgeType.INCREASE)){
             //增加质押
-            BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid, coin);
+            BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid, coin, ProductType.current);
             if(adjustAmount.compareTo(availableAmount)>0)ErrorCodeEnum.ADJUST_GT_AVAILABLE.throwException();
             borrowAdjustPageVO.setAvailableAmount(availableAmount);
             borrowAdjustPageVO.setAdjustPledgeRate(waitRepay.divide((pledgeAmount.add(adjustAmount)),8,RoundingMode.UP));
@@ -660,7 +661,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .createTime(LocalDateTime.now()).build();
 
         if(pledgeType.equals(BorrowPledgeType.INCREASE)){
-            BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid,currencyCoin);
+            BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid,currencyCoin, ProductType.current);
             if(adjustAmount.compareTo(availableAmount) > 0)ErrorCodeEnum.ADJUST_GT_AVAILABLE.throwException();
 
             pledgeAmount = pledgeAmount.add(adjustAmount);
@@ -783,6 +784,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         List<FinancialRecord> financialRecords = financialRecordMapper.selectList(new QueryWrapper<FinancialRecord>().lambda()
                 .eq(FinancialRecord::getUid, uid)
                 .eq(FinancialRecord::getCoin,coin)
+                .eq(FinancialRecord::getProductType,ProductType.current)
                 .orderByAsc(FinancialRecord::getPurchaseTime));
         for(FinancialRecord financialRecord : financialRecords){
             BigDecimal holdAmount = financialRecord.getHoldAmount();

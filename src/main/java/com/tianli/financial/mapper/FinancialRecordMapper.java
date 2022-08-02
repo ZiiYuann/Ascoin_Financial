@@ -7,7 +7,6 @@ import com.tianli.financial.enums.ProductType;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -18,14 +17,14 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
 
     int reduce(@Param("recordId") Long recordId, @Param("amount") BigDecimal amount,@Param("now") LocalDateTime now);
 
-    @Select("SELECT ifnull(SUM(hold_amount),0.0) FROM financial_record")
-    BigDecimal selectTotalHoldAmount();
+    @Select("SELECT ifnull(SUM(hold_amount),0.0) FROM financial_record where product_type = #{productType}")
+    BigDecimal selectTotalHoldAmount(@Param("productType") ProductType productType);
 
-    @Select("SELECT ifnull(SUM(hold_amount),0.0) FROM financial_record where uid = #{uid}")
-    BigDecimal selectHoldAmountByUid(Long uid);
+    @Select("SELECT ifnull(SUM(hold_amount),0.0) FROM financial_record where uid = #{uid} and  product_type = #{productType}")
+    BigDecimal selectHoldAmountByUid(@Param("uid") Long uid,@Param("productType") ProductType productType);
 
-    @Select("SELECT ifnull(SUM(hold_amount - pledge_amount),0.0) FROM financial_record where uid = #{uid} and coin = #{coin}")
-    BigDecimal selectAvailableAmountByUid(Long uid, CurrencyCoin coin);
+    @Select("SELECT ifnull(SUM(hold_amount - pledge_amount),0.0) FROM financial_record where uid = #{uid} and coin = #{coin} and  product_type = #{productType}")
+    BigDecimal selectAvailableAmountByUid(@Param("uid")Long uid,@Param("coin") CurrencyCoin coin, @Param("productType") ProductType productType);
 
     /**
      * 用户还持用产品的数量
