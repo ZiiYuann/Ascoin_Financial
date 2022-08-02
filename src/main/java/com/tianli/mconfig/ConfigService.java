@@ -5,6 +5,7 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.mapper.Config;
 import com.tianli.mconfig.mapper.ConfigMapper;
 import com.tianli.tool.DataSecurityTool;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.List;
  * @Author wangqiyun
  * @Date 2019-11-13 17:37
  */
+@Slf4j
 @Service
 public class ConfigService extends ServiceImpl<ConfigMapper, Config> {
 
@@ -33,7 +35,11 @@ public class ConfigService extends ServiceImpl<ConfigMapper, Config> {
 
     public String get(String name) {
         String config = configService._get(name);
-        if (StringUtils.isEmpty(config)) ErrorCodeEnum.throwException(112,name);
+        if (StringUtils.isEmpty(config)) {
+            log.error("未找到配置【{}】",name);
+            ErrorCodeEnum.NOT_OPEN.throwException();
+        }
+
         return config;
     }
 
