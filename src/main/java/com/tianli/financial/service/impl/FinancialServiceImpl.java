@@ -93,6 +93,7 @@ public class FinancialServiceImpl implements FinancialService {
                 .type(ChargeType.purchase)
                 .status(ChargeStatus.created)
                 .createTime(LocalDateTime.now())
+                .completeTime(LocalDateTime.now())
                 .build();
         orderService.save(order);
         // 减少余额

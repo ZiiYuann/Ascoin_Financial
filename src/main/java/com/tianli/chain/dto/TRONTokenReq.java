@@ -1,5 +1,9 @@
 package com.tianli.chain.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigInteger;
 
 /**
@@ -7,10 +11,12 @@ import java.math.BigInteger;
  * @apiNote
  * @since 2022-07-22
  **/
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TRONTokenReq extends BaseTokenReq{
 
-
-    private byte status;
+    private int status;
 
     /**
      * 本次合约因Bandwidth不足消耗的TRX

@@ -16,19 +16,16 @@ class ChargeControllerTest {
 
     @Test
     void rechargeCallback() throws IOException {
-
         long l = TimeTool.toTimestamp(LocalDateTime.now());
-        String sign = Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp",l+"");
-
+        String sign = Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp", l + "");
 
         HttpClient client = HttpClientBuilder.create().build();
         // BSC链
         HttpPost httpPost = new HttpPost("http://127.0.0.1:8080/api/charge/recharge/BSC");
         httpPost.setHeader("Content-Type", "text/plain");
         httpPost.setHeader("Sign", sign);
-        httpPost.setHeader("timestamp", l+ "");
-        httpPost.setEntity(new StringEntity("{\"token\": [{\"id\": 1739393333552857549, \"to\": \"0x0203fad8e9bf8f4c4c98adff6b5d29d68cdd7454\", \"from\": \"0xe208d2fb37df02061b78848b83f02b4ad33540e4\", \"hash\": \"0xe61e173839f83bceea54e0f465b8c204662cd28e1b87bdb5a25ae94fbf422fbc\", \"block\": 19879916, \"value\": 1000000000000000, \"createTime\": {\"date\": {\"day\": 26, \"year\": 2022, \"month\": 7}, \"time\": {\"hour\": 13, \"nano\": 0, \"minute\": 52, \"second\": 18}}, \"contractAddress\": \"0x55d398326f99059ff775485246999027b3197955\"}], \"standardCurrency\": []}\n"));
-
+        httpPost.setHeader("timestamp", l + "");
+        httpPost.setEntity(new StringEntity("{\"token\":[{\"id\":1740014641146449200,\"to\":\"TFjwm9QE6z9LTRAsVqXqwAH1wz1VLML1ox\",\"from\":\"TXULK321L5UPNkdujs6xvnHsgiFVcPMBXL\",\"hash\":\"623748f785e17935b044cd8c6a7e3827cdbe4d1f0f65d5a3ac5b462967fdea07\",\"block\":42943892,\"value\":2000000,\"status\":1,\"createTime\":{\"date\":{\"day\":26,\"year\":2022,\"month\":7},\"time\":{\"hour\":13,\"nano\":0,\"minute\":52,\"second\":18}},\"contractAddress\":\"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t\"}],\"standardCurrency\":[]}"));
         client.execute(httpPost);
     }
 
@@ -36,7 +33,7 @@ class ChargeControllerTest {
     void withdrawCallback() throws IOException {
 
         long l = TimeTool.toTimestamp(LocalDateTime.now());
-        String sign = Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp",l+"");
+        String sign = Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp", l + "");
 
 
         HttpClient client = HttpClientBuilder.create().build();
@@ -44,7 +41,7 @@ class ChargeControllerTest {
         HttpPost httpPost = new HttpPost("http://127.0.0.1:8080/api/charge/withdraw/TRON");
         httpPost.setHeader("Content-Type", "text/plain");
         httpPost.setHeader("Sign", sign);
-        httpPost.setHeader("timestamp", l+ "");
+        httpPost.setHeader("timestamp", l + "");
         httpPost.setEntity(new StringEntity("{\"token\": [{\"id\": 1739673149627121337, \"to\": \"TD4FCCpMEEDNX41Lo8xf6SqUomqaAPHJEe\", \"from\": \"TKTisiaH4CMTAWAddRmwTJLdaoHKHHTeRj\", \"hash\": \"82cbe1a3c9ebd477163676f720dcba8c4b86602667657b675863481fabae6b27\", \"block\": 42835440, \"value\": 9000000, \"netFee\": 345000, \"status\": 1, \"netUsage\": 0, \"energyFee\": 8296680, \"createTime\": {\"date\": {\"day\": 29, \"year\": 2022, \"month\": 7}, \"time\": {\"hour\": 15, \"nano\": 0, \"minute\": 59, \"second\": 51}}, \"energyUsage\": 0, \"contractAddress\": \"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t\", \"energyUsageTotal\": 29631, \"originEnergyUsage\": 0}], \"standardCurrency\": []}"));
 
         client.execute(httpPost);

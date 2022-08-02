@@ -1,5 +1,6 @@
 package com.tianli.chain.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -30,8 +31,6 @@ public class BaseTokenReq {
     private String contractAddress;
 
     private CreateTimeReq createTime;
-
-    private int status;
 
     public LocalDateTime getCreateTime() {
         int day = createTime.getDate().getDay();
