@@ -451,7 +451,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)
                 .eq(Order::getCoin, currencyCoin)
-                .orderByDesc(Order::getCreateTime);
+                .orderByDesc(Order::getCreateTime)
+                .eq(Order::getStatus,ChargeStatus.chain_success);
         if (Objects.nonNull(chargeGroup)) {
             wrapper = wrapper.in(Order::getType, chargeGroup.getChargeTypes());
         }
