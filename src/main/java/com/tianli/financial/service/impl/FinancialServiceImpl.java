@@ -309,6 +309,7 @@ public class FinancialServiceImpl implements FinancialService {
         return addresses.convert(address -> {
             Long uid1 = address.getUid();
             return FinancialUserInfoVO.builder()
+                    .uid(uid1)
                     .fixedAmount(fixedAmount.getOrDefault(uid1, BigDecimal.ZERO))
                     .balanceAmount(summaryBalanceAmount.getOrDefault(uid1, BigDecimal.ZERO))
                     .rechargeAmount(rechargeOrderAmount.getOrDefault(uid1, BigDecimal.ZERO))
