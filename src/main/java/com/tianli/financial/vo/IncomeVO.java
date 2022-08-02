@@ -18,25 +18,25 @@ public class IncomeVO {
     /**
      * 持有币
      */
-    @BigDecimalFormat("0.00")
+    @BigDecimalFormat("0.00######")
     private BigDecimal holdFee;
 
     /**
      * 累计收益
      */
-    @BigDecimalFormat("0.00")
+    @BigDecimalFormat("0.00######")
     private BigDecimal accrueIncomeFee;
 
     /**
      * 昨日收益
      */
-    @BigDecimalFormat("0.00")
+    @BigDecimalFormat("0.00######")
     private BigDecimal yesterdayIncomeFee;
 
     /**
      * 待计息金额
      */
-    @BigDecimalFormat("0.00")
+    @BigDecimalFormat("0.00######")
     private BigDecimal interestBearingAmount;
 
     /**
