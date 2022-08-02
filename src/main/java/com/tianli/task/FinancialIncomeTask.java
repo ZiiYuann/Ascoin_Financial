@@ -44,9 +44,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -73,17 +71,7 @@ public class FinancialIncomeTask {
     @Resource
     private FinancialProductService financialProductService;
 
-    private static final AtomicInteger threadId = new AtomicInteger(1);
-
     private static final ConcurrentHashMap<String, AtomicInteger> FAIL_COUNT_CACHE = new ConcurrentHashMap<>();
-
-    private static final ScheduledThreadPoolExecutor CURRENCY_INTEREST_TASK_SCHEDULE_EXECUTOR = new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
-            r -> {
-                Thread thread = new Thread(r);
-                thread.setName("FinancialIncomeTask#calIncome-" + threadId.getAndIncrement());
-                return thread;
-            }
-    );
 
 //    @Scheduled(cron = "0 0/1 * * * ?")
 //    public void calIncomeTest() {
@@ -165,7 +153,7 @@ public class FinancialIncomeTask {
             if (ProductType.fixed.equals(type) && endTime.compareTo(todayZero) == 0 ) {
                 incomeOperation(financialRecord, now);
                 settleOperation(financialRecord, now);
-                renewalOperation(financialRecord, now);
+                renewalOperation(financialRecord);
             }
 
             // 如果是活期产品需要当前时间 >= 收益发放时间
@@ -179,27 +167,26 @@ public class FinancialIncomeTask {
                 return;
             }
             String toJson = gson.toJson(financialRecord);
-            log.warn("统计每日利息异常: record:{}", toJson, e);
-            CURRENCY_INTEREST_TASK_SCHEDULE_EXECUTOR.schedule(() -> {
-                AtomicInteger atomicInteger = FAIL_COUNT_CACHE.get(String.valueOf(financialRecord.getId()));
-                if (Objects.isNull(atomicInteger)) {
-                    atomicInteger = new AtomicInteger(3);
-                    FAIL_COUNT_CACHE.put(String.valueOf(financialRecord.getId()), atomicInteger);
-                }
+            RetryScheduledExecutor.DEFAULT_EXECUTOR.schedule(() -> {
+                String recordId = String.valueOf(financialRecord.getId());
+                AtomicInteger atomicInteger = FAIL_COUNT_CACHE.getOrDefault(recordId,new AtomicInteger(3));
+                FAIL_COUNT_CACHE.put(String.valueOf(financialRecord.getId()), atomicInteger);
+
                 int andDecrement = atomicInteger.getAndDecrement();
                 if (andDecrement > 0) {
                     interestStat(financialRecord);
                 } else {
                     log.error("统计每日利息失败: record:{}", toJson);
+                    FAIL_COUNT_CACHE.remove(recordId);
                 }
-            }, 30, TimeUnit.MINUTES);
+            }, 30, TimeUnit.MINUTES,new RetryTaskInfo<>("incomeTask","定时计息",financialRecord));
         }
     }
 
     /**
      * 自动续费操作
      */
-    private void renewalOperation(FinancialRecord financialRecord, LocalDateTime now) {
+    private void renewalOperation(FinancialRecord financialRecord) {
         if (!financialRecord.isAutoRenewal()) {
             return;
         }

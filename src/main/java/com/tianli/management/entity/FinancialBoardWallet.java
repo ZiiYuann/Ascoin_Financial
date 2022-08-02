@@ -2,6 +2,7 @@ package com.tianli.management.entity;
 
 import com.tianli.common.CommonFunction;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -15,6 +16,7 @@ import java.time.LocalDate;
 @Data
 public class FinancialBoardWallet {
 
+    @Id
     private Long id;
 
     /**

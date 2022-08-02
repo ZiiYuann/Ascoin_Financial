@@ -2,6 +2,7 @@ package com.tianli.charge.query;
 
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.CurrencyCoin;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
  * @apiNote
  * @since 2022-07-29
  **/
+@Data
 public class ServiceAmountQuery {
 
     private LocalDateTime startTime;
