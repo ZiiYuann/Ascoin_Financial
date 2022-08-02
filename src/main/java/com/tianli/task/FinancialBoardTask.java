@@ -52,7 +52,7 @@ public class FinancialBoardTask {
     @Resource
     private AddressService addressService;
 
-    @Scheduled(cron = "0 0/1 * * * ?")
+//    @Scheduled(cron = "0 0/1 * * * ?")
     public void taskTest(){
         boardTask(DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(0));
     }
