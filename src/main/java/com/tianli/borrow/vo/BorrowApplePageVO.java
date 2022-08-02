@@ -26,6 +26,11 @@ public class BorrowApplePageVO {
     private String coin;
 
     /**
+     * logo
+     */
+    private String logo;
+
+    /**
      * 最小可借
      */
     @BigDecimalFormat

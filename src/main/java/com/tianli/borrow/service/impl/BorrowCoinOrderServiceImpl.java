@@ -195,6 +195,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         if(Objects.isNull(pledgeCoinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
         BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid,coin);
         return BorrowApplePageVO.builder()
+                .coin(coin.getName())
+                .logo(coin.getLogoPath())
                 .availableAmount(availableAmount)
                 .maximumBorrow(coinConfig.getMaximumBorrow())
                 .minimumBorrow(coinConfig.getMinimumBorrow())
