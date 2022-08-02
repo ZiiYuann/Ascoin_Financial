@@ -464,7 +464,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             }
         }
         return BorrowRepayPageVO.builder()
-                .waitRepayAmount(borrowCoinOrder.getRepayAmount())
+                .waitRepayAmount(borrowCoinOrder.calculateWaitRepay())
                 .totalRepayAmount(totalRepayAmount)
                 .availableBalance(accountBalance.getRemain())
                 .repayCapital(repayCapital)
