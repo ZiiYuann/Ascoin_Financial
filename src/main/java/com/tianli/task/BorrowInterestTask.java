@@ -1,4 +1,4 @@
-package com.tianli.borrow.tesk;
+package com.tianli.task;
 
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -47,7 +47,7 @@ public class BorrowInterestTask {
     @Autowired
     private RedisLock redisLock;
 
-    //3.添加定时任务
+    //3.添加定时任务（每小时执行一次）
     @Scheduled(cron = "0 0 * * * ?")
     public void interestTasks() {
 

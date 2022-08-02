@@ -488,6 +488,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         //校验订单
         BorrowCoinOrder borrowCoinOrder = borrowCoinOrderMapper.selectById(orderId);
         if(Objects.isNull(borrowCoinOrder))ErrorCodeEnum.BORROW_ORDER_NO_EXIST.throwException();
+        if(!borrowCoinOrder.getStatus().equals(BorrowOrderStatus.INTEREST_ACCRUAL))ErrorCodeEnum.BORROW_ORDER_STATUS_ERROR.throwException();
         //校验还款币别
         if(!borrowCoinOrder.getBorrowCoin().equals(currencyCoin.getName()))ErrorCodeEnum.CURRENCY_COIN_ERROR.throwException();
         BigDecimal waitRepayCapital = borrowCoinOrder.getWaitRepayCapital();
@@ -644,6 +645,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         //校验订单
         BorrowCoinOrder borrowCoinOrder = borrowCoinOrderMapper.selectById(orderId);
         if(Objects.isNull(borrowCoinOrder))ErrorCodeEnum.BORROW_ORDER_NO_EXIST.throwException();
+        if(!borrowCoinOrder.getStatus().equals(BorrowOrderStatus.INTEREST_ACCRUAL))ErrorCodeEnum.BORROW_ORDER_STATUS_ERROR.throwException();
         //校验币种
         if(!borrowCoinOrder.getBorrowCoin().equals(currencyCoin.getName()))ErrorCodeEnum.CURRENCY_COIN_ERROR.throwException();
 
@@ -699,6 +701,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         //校验订单
         BorrowCoinOrder borrowCoinOrder = borrowCoinOrderMapper.selectById(orderId);
         if(Objects.isNull(borrowCoinOrder))ErrorCodeEnum.BORROW_ORDER_NO_EXIST.throwException();
+        if(!borrowCoinOrder.getStatus().equals(BorrowOrderStatus.INTEREST_ACCRUAL))ErrorCodeEnum.BORROW_ORDER_STATUS_ERROR.throwException();
         CurrencyCoin currencyCoin = CurrencyCoin.getCurrencyCoinEnum(borrowCoinOrder.getPledgeCoin());
         BorrowPledgeCoinConfig pledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(currencyCoin);
         //校验质押率
