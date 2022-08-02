@@ -1,5 +1,6 @@
 package com.tianli.financial.vo;
 
+import com.tianli.common.annotation.BigDecimalFormat;
 import com.tianli.financial.enums.ProductType;
 import lombok.Data;
 
@@ -17,21 +18,25 @@ public class IncomeVO {
     /**
      * 持有币
      */
+    @BigDecimalFormat("#.##%")
     private BigDecimal holdFee;
 
     /**
      * 累计收益
      */
+    @BigDecimalFormat("#.##%")
     private BigDecimal accrueIncomeFee;
 
     /**
      * 昨日收益
      */
+    @BigDecimalFormat("#.##%")
     private BigDecimal yesterdayIncomeFee;
 
     /**
      * 待计息金额
      */
+    @BigDecimalFormat("#.##%")
     private BigDecimal interestBearingAmount;
 
     /**
