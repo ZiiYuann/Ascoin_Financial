@@ -113,6 +113,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BigDecimal totalHoldAmount = financialRecordMapper.selectTotalHoldAmount(ProductType.current);
         BigDecimal totalBorrowAmount = borrowCoinOrderMapper.selectTotalBorrowAmount();
         BigDecimal holdAmount = financialRecordMapper.selectHoldAmountByUid(uid,ProductType.current);
+        BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid, CurrencyCoin.usdt, ProductType.current);
+        //待还本金
         BigDecimal borrowAmount = borrowCoinOrderMapper.selectBorrowAmountByUid(uid);
         BigDecimal pledgeAmount = borrowCoinOrderMapper.selectPledgeAmountByUid(uid);
 
@@ -121,10 +123,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .eq(BorrowCoinOrder::getStatus, BorrowOrderStatus.INTEREST_ACCRUAL))
                 .stream().map(borrowConverter::toMainVO).collect(Collectors.toList());
 
-        //借款额度
-        BigDecimal borrowQuota = holdAmount.multiply(BorrowPledgeRate.INITIAL_PLEDGE_RATE);
-
-        BigDecimal borrowRate = borrowQuota.compareTo(BigDecimal.ZERO) > 0 ? borrowAmount.divide(borrowQuota, 8, RoundingMode.HALF_UP):BigDecimal.ZERO;
+        BigDecimal borrowRate = holdAmount.compareTo(BigDecimal.ZERO) > 0 ? borrowAmount.divide(holdAmount, 8, RoundingMode.HALF_UP):BigDecimal.ZERO;
 
         return BorrowCoinMainPageVO.builder()
                 .totalDepositAmount(totalHoldAmount)
@@ -132,7 +131,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .depositAmount(holdAmount)
                 .borrowAmount(borrowAmount)
                 .pledgeAmount(pledgeAmount)
-                .borrowQuota(borrowQuota)
+                .borrowQuota(availableAmount)
                 .borrowOrders(borrowCoinOrders)
                 .borrowRate(borrowRate).build();
     }
@@ -258,7 +257,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .orderNo(AccountChangeType.borrow.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
                 .amount(borrowAmount)
                 .type(ChargeType.borrow)
-                .status(ChargeStatus.created)
+                .status(ChargeStatus.chain_success)
                 .createTime(LocalDateTime.now())
                 .build();
         orderService.save(order);
