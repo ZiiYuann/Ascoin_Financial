@@ -25,6 +25,7 @@ import com.tianli.management.query.WalletImputationQuery;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.TXUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -155,6 +156,11 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         List<Long> addressIds = walletImputations.stream().map(WalletImputation::getAddressId).collect(Collectors.toList());
         String hash = baseContractService.getOne(network).recycle(null, CurrencyAdaptType.get(coin,network),addressIds, addresses);
         // 事务问题如何解决？
+
+        if(StringUtils.isBlank(hash)){
+            ErrorCodeEnum.throwException("上链失败");
+        }
+
         BigDecimal amount = walletImputations.stream().map(WalletImputation::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         WalletImputationLog walletImputationLog = WalletImputationLog.builder()
                 .id(CommonFunction.generalId())
@@ -181,7 +187,6 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
             return walletImputation;
         }).collect(Collectors.toList());
         this.updateBatchById(walletImputationsUpdate);
-
 
     }
 
