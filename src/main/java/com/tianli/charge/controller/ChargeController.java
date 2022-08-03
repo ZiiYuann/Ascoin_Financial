@@ -183,7 +183,7 @@ public class ChargeController {
         FinancialOrdersQuery query = new FinancialOrdersQuery();
         query.setProductType(productType);
         query.setChargeType(chargeType);
-        query.setUid(requestInitService.uid());
+        query.setUid(requestInitService.uid() + "");
         query.setDefaultChargeType(List.of(ChargeType.purchase, ChargeType.redeem, ChargeType.transfer));
         return Result.instance().setData(financialService.orderPage(pageQuery.page(), query));
     }

@@ -24,7 +24,7 @@ public class FinancialOrdersQuery {
 
     private String name;
     private String orderNo;
-    private Long uid;
+    private String uid;
     private ProductType productType;
     private CurrencyCoin coin;
     private ChargeStatus status;

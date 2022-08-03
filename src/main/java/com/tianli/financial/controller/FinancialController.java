@@ -116,7 +116,7 @@ public class FinancialController {
         Long uid = requestInitService.uid();
 
         FinancialProductIncomeQuery query = new FinancialProductIncomeQuery();
-        query.setUid(uid);
+        query.setUid(uid + "");
         query.setProductType(productType);
 
         return Result.instance().setData(financialService.incomeRecord(page.page(),query));

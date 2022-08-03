@@ -21,7 +21,7 @@ public class FinancialChargeQuery {
 
     private CurrencyCoin coin;
 
-    private Long uid;
+    private String uid;
 
     private NetworkType networkType;
 

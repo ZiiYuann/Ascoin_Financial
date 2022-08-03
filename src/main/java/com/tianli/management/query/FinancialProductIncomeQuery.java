@@ -21,7 +21,7 @@ public class FinancialProductIncomeQuery {
 
     private String productName;
 
-    private Long uid;
+    private String uid;
 
     private ProductType productType;
 

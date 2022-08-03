@@ -15,7 +15,7 @@ public class WalletImputationQuery {
 
     private CurrencyCoin coin;
 
-    private Long uid;
+    private String uid;
 
     private NetworkType network;
 
