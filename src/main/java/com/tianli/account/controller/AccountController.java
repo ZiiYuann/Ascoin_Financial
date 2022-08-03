@@ -53,7 +53,7 @@ public class AccountController {
     }
 
     /**
-     * 查看钱包地址
+     * 钱包激活状态
      */
     @GetMapping("/status")
     public Result status() {
@@ -65,7 +65,7 @@ public class AccountController {
     }
 
     /**
-     * 查看钱包地址
+     * 用户钱包地址
      */
     @GetMapping("/address")
     public Result address() {
@@ -78,7 +78,7 @@ public class AccountController {
     }
 
     /**
-     * 查看系统钱包地址
+     * 主钱包地址
      */
     @GetMapping("/address/config")
     public Result addressConfig() {
@@ -110,7 +110,7 @@ public class AccountController {
     }
 
     /**
-     * 查询用户云钱包余额汇总
+     * 【云钱包】总资产 + 账户列表
      */
     @GetMapping("/balance/summary")
     public Result accountBalance() {
@@ -119,7 +119,7 @@ public class AccountController {
     }
 
     /**
-     * 查询用户云钱包列表信息
+     * 【云钱包】 账户列表
      */
     @GetMapping("/balances")
     public Result balances() {
@@ -128,7 +128,7 @@ public class AccountController {
     }
 
     /**
-     * 查询单个币种余额
+     * 【云钱包】币别详情账户余额
      */
     @GetMapping("/balance/{coin}")
     public Result accountBalance(@PathVariable CurrencyCoin coin) {
@@ -137,7 +137,7 @@ public class AccountController {
     }
 
     /**
-     * 获取余额详情信息
+     * 【云钱包】币别详情下方详情列表
      */
     @GetMapping("/balance/details")
     public Result accountBalanceDetails(PageQuery<Order> query, ChargeGroup chargeGroup, CurrencyCoin coin) {

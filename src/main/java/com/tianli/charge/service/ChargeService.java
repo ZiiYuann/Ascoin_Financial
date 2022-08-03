@@ -448,7 +448,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .eq(Order::getUid, uid)
                 .eq(Order::getCoin, currencyCoin)
                 .orderByDesc(Order::getCreateTime)
-                .eq(Order::getStatus, ChargeStatus.chain_success);
+                .eq(false,Order ::getStatus,ChargeStatus.chain_fail);
         if (Objects.nonNull(chargeGroup)) {
             wrapper = wrapper.in(Order::getType, chargeGroup.getChargeTypes());
         }
