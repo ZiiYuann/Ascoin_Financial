@@ -448,7 +448,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         if(repayAmount.compareTo(waitRepay) == 0){
             repayInterest = waitRepayInterest;
             repayCapital = waitRepayCapital;
-            releasePledgeAmount = pledgeAmount;
+            releasePledgeAmount = borrowCoinOrder.getPledgeAmount();
             pledgeRate = BigDecimal.ZERO;
         }else {
             if (repayAmount.compareTo(waitRepayInterest) <= 0) {
