@@ -56,5 +56,4 @@ secret:
 # 1cb2398368a615bfe5a9685dece946eeb1bec2e7b9f1b76a88c5f893404dc18b91f3eff072e460a3ee8aa2e1d00051050abbadfa42d5c3592a65d9391bfbee29
 mybatis:
   mapper-locations: classpath:***/*/*.xml
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
