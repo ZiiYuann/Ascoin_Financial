@@ -27,9 +27,7 @@ public class BorrowCoinMainPageVO {
     //质押金额
     @BigDecimalFormat
     private BigDecimal pledgeAmount;
-
-    private BigDecimal availableAmount;
-    //借款额度
+    //可借额度
     @BigDecimalFormat
     private BigDecimal borrowQuota;
     //已借额度比率

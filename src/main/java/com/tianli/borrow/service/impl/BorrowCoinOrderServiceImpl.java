@@ -113,8 +113,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BigDecimal totalHoldAmount = financialRecordMapper.selectTotalHoldAmount(ProductType.current);
         BigDecimal totalBorrowAmount = borrowCoinOrderMapper.selectTotalBorrowAmount();
         BigDecimal holdAmount = financialRecordMapper.selectHoldAmountByUid(uid,ProductType.current);
-        BigDecimal availableAmount = financialRecordMapper.selectAvailableAmountByUid(uid, CurrencyCoin.usdt, ProductType.current);
-        //待还本金
+        BigDecimal borrowQuota = financialRecordMapper.selectAvailableAmountByUid(uid, CurrencyCoin.usdt, ProductType.current);
         BigDecimal borrowAmount = borrowCoinOrderMapper.selectBorrowAmountByUid(uid);
         BigDecimal pledgeAmount = borrowCoinOrderMapper.selectPledgeAmountByUid(uid);
 
@@ -123,15 +122,19 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .eq(BorrowCoinOrder::getStatus, BorrowOrderStatus.INTEREST_ACCRUAL))
                 .stream().map(borrowConverter::toMainVO).collect(Collectors.toList());
 
-        BigDecimal borrowRate = holdAmount.compareTo(BigDecimal.ZERO) > 0 ? borrowAmount.divide(holdAmount, 8, RoundingMode.HALF_UP):BigDecimal.ZERO;
+        //借款额度
+        BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(CurrencyCoin.usdt);
 
+        BigDecimal borrowRate = holdAmount.compareTo(BigDecimal.ZERO) > 0 ?
+                borrowAmount.divide(holdAmount.multiply(borrowPledgeCoinConfig.getInitialPledgeRate()), 8, RoundingMode.HALF_UP)
+                :BigDecimal.ZERO;
         return BorrowCoinMainPageVO.builder()
                 .totalDepositAmount(totalHoldAmount)
                 .totalBorrowAmount(totalBorrowAmount)
                 .depositAmount(holdAmount)
+                .borrowQuota(borrowQuota)
                 .borrowAmount(borrowAmount)
                 .pledgeAmount(pledgeAmount)
-                .borrowQuota(availableAmount)
                 .borrowOrders(borrowCoinOrders)
                 .borrowRate(borrowRate).build();
     }
