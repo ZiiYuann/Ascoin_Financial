@@ -181,7 +181,8 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     public IPage<FinancialRecord> selectListPage(IPage<FinancialRecord> page, Long uid, ProductType type, RecordStatus status) {
         var query = new LambdaQueryWrapper<FinancialRecord>()
                 .eq(FinancialRecord::getUid, uid)
-                .eq(FinancialRecord::getStatus, status);
+                .eq(FinancialRecord::getStatus, status)
+                .orderByDesc(FinancialRecord :: getHoldAmount);
 
         if (Objects.nonNull(type)) {
             query = query.eq(FinancialRecord::getProductType, type);
