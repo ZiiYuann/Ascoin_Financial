@@ -287,12 +287,12 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IPage<FinancialUserInfoVO> user(Long uid, IPage<Address> page) {
+    public IPage<FinancialUserInfoVO> user(String uid, IPage<Address> page) {
 
         LambdaQueryWrapper<Address> queryWrapper = new LambdaQueryWrapper<>();
 
         if (Objects.nonNull(uid)) {
-            queryWrapper = queryWrapper.eq(Address::getUid, uid);
+            queryWrapper = queryWrapper.like(Address::getUid, uid);
         }
 
         var addresses = addressService.page(page, queryWrapper);
@@ -323,7 +323,7 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public FinancialSummaryDataVO userData(Long uid) {
+    public FinancialSummaryDataVO userData(String uid) {
         IPage<Address> page = new Page<>(1, Integer.MAX_VALUE);
         var userInfos = user(uid, page).getRecords();
 
@@ -335,8 +335,8 @@ public class FinancialServiceImpl implements FinancialService {
         for (FinancialUserInfoVO financialUserInfoVO : userInfos) {
             rechargeAmount = rechargeAmount.add(financialUserInfoVO.getRechargeAmount());
             withdrawAmount = withdrawAmount.add(financialUserInfoVO.getWithdrawAmount());
-            moneyAmount = rechargeAmount.add(financialUserInfoVO.getMoneyAmount());
-            incomeAmount = rechargeAmount.add(financialUserInfoVO.getProfitAndLossAmount());
+            moneyAmount = moneyAmount.add(financialUserInfoVO.getMoneyAmount());
+            incomeAmount = incomeAmount.add(financialUserInfoVO.getProfitAndLossAmount());
         }
         return FinancialSummaryDataVO.builder()
                 .rechargeAmount(rechargeAmount)

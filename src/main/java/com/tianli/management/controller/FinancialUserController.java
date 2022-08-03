@@ -21,15 +21,21 @@ import javax.annotation.Resource;
 @RequestMapping("/management/financial/user")
 public class FinancialUserController {
 
+    /**
+     * 理财用户管理 列表数据
+     */
     @GetMapping("/list")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result user(PageQuery<Address> page, Long uid) {
+    public Result user(PageQuery<Address> page, String uid) {
         return Result.success().setData(financialService.user(uid,page.page()));
     }
 
+    /**
+     * 理财用户管理 上方累计数据
+     */
     @GetMapping("/data")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result data(Long uid) {
+    public Result data(String uid) {
         return Result.success().setData(financialService.userData(uid));
     }
 
