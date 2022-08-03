@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -38,7 +37,7 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
     @Resource
     private RedisLock redisLock;
     @Resource
-    private BaseContractService baseContractService;
+    private ContractAdapter baseContractService;
     @Resource
     private ConfigService configService;
     @Resource

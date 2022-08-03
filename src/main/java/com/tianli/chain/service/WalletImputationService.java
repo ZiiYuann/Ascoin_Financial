@@ -14,7 +14,7 @@ import com.tianli.chain.entity.WalletImputationTemporary;
 import com.tianli.chain.enums.ImputationStatus;
 import com.tianli.chain.mapper.WalletImputationMapper;
 import com.tianli.chain.mapper.WalletImputationTemporaryMapper;
-import com.tianli.chain.service.contract.BaseContractService;
+import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.vo.WalletImputationVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.blockchain.NetworkType;
@@ -23,7 +23,6 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.query.WalletImputationManualQuery;
 import com.tianli.management.query.WalletImputationQuery;
 import com.tianli.mconfig.ConfigService;
-import com.tianli.tool.ApplicationContextTool;
 import com.tianli.tool.TXUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,7 +34,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -49,16 +47,13 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     @Resource
     private WalletImputationTemporaryMapper walletImputationTemporaryMapper;
     @Resource
-    private BaseContractService baseContractService;
+    private ContractAdapter baseContractService;
     @Resource
     private WalletImputationLogService walletImputationLogService;
     @Resource
     private WalletImputationLogAppendixService walletImputationLogAppendixService;
     @Resource
     private ConfigService configService;
-
-    private static final ScheduledThreadPoolExecutor WALLET_IMPUTATION_SCHEDULE_EXECUTOR =
-            new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors());
 
     /**
      * 通过订单插入或修改归集信息

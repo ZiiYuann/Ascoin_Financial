@@ -30,13 +30,17 @@ import org.tron.tronj.abi.datatypes.Uint;
 import org.tron.tronj.abi.datatypes.generated.Uint256;
 import org.tron.tronj.crypto.SECP256K1;
 import org.tron.tronj.crypto.tuweniTypes.Bytes32;
+import org.tron.tronj.utils.Base58Check;
+import org.tron.tronj.utils.Numeric;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -44,7 +48,7 @@ import java.util.stream.Collectors;
  * @Date 2022-01-06 2:27 下午
  */
 @Component
-public class TronTriggerContract extends ContractService {
+public class TronTriggerContract extends AbstractContractOperation {
 
     @Override
     public String computeAddress(long uid) {
@@ -81,10 +85,10 @@ public class TronTriggerContract extends ContractService {
         return triggerSmartContract(ownerAddress, contractAddress, data, 40000000L);
     }
 
-    public String recycle(String toAddress,CurrencyAdaptType currencyAdaptType, List<Long> addressId, List<String> trc20AddressList) {
+    public String recycle(String toAddress, CurrencyAdaptType currencyAdaptType, List<Long> addressId, List<String> trc20AddressList) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
         String contractAddress = configService.getOrDefault(ConfigConstants.TRON_TRIGGER_ADDRESS, "TEuLfwtYM83r4TjkewRWFFFS1inHzdpsP2");
-        if(toAddress == null || toAddress.isEmpty()) toAddress = ownerAddress;
+        if (toAddress == null || toAddress.isEmpty()) toAddress = ownerAddress;
         String data = FunctionEncoder.encode(
                 new Function("recycle", List.of(new Address(toAddress),
                         new DynamicArray(Uint256.class, addressId.stream().map(e -> new Uint256(new BigInteger(e + ""))).collect(Collectors.toList())),
@@ -113,7 +117,7 @@ public class TronTriggerContract extends ContractService {
 
         Protocol.Transaction signedTxn;
         String txid;
-        if(feeLimit > 0L) {
+        if (feeLimit > 0L) {
             Protocol.Transaction transaction = txnExt.getTransaction();
             Protocol.Transaction txn = transaction.toBuilder()
                     .setRawData(transaction.getRawData().toBuilder().setFeeLimit(feeLimit).build()).build();
@@ -127,7 +131,7 @@ public class TronTriggerContract extends ContractService {
         System.out.println("时间: " + TimeTool.getDateTimeDisplayString(LocalDateTime.now()) + ", " + " < HASH: " + txid + " >");
         GrpcAPI.Return ret = blockingStub.broadcastTransaction(signedTxn);
         System.out.println("======== Result ========\n" + ret.toString());
-        if(!ret.getResult()) ErrorCodeEnum.throwException(ret.toString());
+        if (!ret.getResult()) ErrorCodeEnum.throwException(ret.toString());
         return txid;
     }
 
@@ -144,7 +148,7 @@ public class TronTriggerContract extends ContractService {
     public SignTransactionResult signTransaction(Protocol.Transaction txn, SECP256K1.KeyPair kp) {
         SHA256.Digest digest = new SHA256.Digest();
         digest.update(txn.getRawData().toByteArray());
-        byte[] txid= digest.digest();
+        byte[] txid = digest.digest();
         SECP256K1.Signature sig = SECP256K1.sign(Bytes32.wrap(txid), kp);
         Protocol.Transaction transaction = txn.toBuilder().addSignature(ByteString.copyFrom(sig.encodedBytes().toArray())).build();
         return SignTransactionResult.builder().txn(transaction).txid(Hex.toHexString(txid)).build();
@@ -160,7 +164,7 @@ public class TronTriggerContract extends ContractService {
 
     public static byte[] address2Bytes(String address) {
         byte[] bytes = Base58Utils.decodeFromBase58Check(address);
-        if(bytes == null) ErrorCodeEnum.ADDRESS_ERROR.throwException();
+        if (bytes == null) ErrorCodeEnum.ADDRESS_ERROR.throwException();
         return bytes;
     }
 
@@ -264,6 +268,12 @@ public class TronTriggerContract extends ContractService {
         GrpcAPI.Return ret2 = blockingStub.broadcastTransaction(transaction);
         if (!ret2.getResult()) return null;
         return ByteArray.toHexString(Sha256Sm3Hash.hash(transaction.getRawData().toByteArray()));
+    }
+
+    @Override
+    public boolean isValidAddress(String address) {
+        byte[] bytes = Base58Utils.decode58Check(address);
+        return Base58Utils.addressValid(bytes);
     }
 
 

@@ -1,9 +1,8 @@
 package com.tianli.financial.vo;
 
-import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.ChargeStatus;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.PurchaseTerm;
 import lombok.AllArgsConstructor;

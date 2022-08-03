@@ -1,9 +1,9 @@
-package com.tianli.common.blockchain;
+package com.tianli.chain.dto;
 
 import lombok.Data;
 
 @Data
-public class EthgasAPIResponse {
+public class EthGasAPIResponse {
     private Double fast;
     private Double fastest;
     private Double safeLow;

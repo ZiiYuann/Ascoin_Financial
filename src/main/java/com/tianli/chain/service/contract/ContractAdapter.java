@@ -12,7 +12,7 @@ import javax.annotation.Resource;
  * @since 2022-07-26
  **/
 @Service
-public class BaseContractService{
+public class ContractAdapter {
 
     @Resource
     private BscTriggerContract bscTriggerContract;
@@ -21,7 +21,7 @@ public class BaseContractService{
     @Resource
     private TronTriggerContract tronTriggerContract;
 
-    public ContractService getOne(NetworkType networkType) {
+    public ContractOperation getOne(NetworkType networkType) {
         switch (networkType) {
             case trc20:
                 return tronTriggerContract;

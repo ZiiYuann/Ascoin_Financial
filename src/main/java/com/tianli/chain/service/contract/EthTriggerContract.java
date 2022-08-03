@@ -1,35 +1,42 @@
 package com.tianli.chain.service.contract;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.tianli.chain.dto.EthGasAPIResponse;
 import com.tianli.common.ConfigConstants;
+import com.tianli.common.HttpUtils;
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.common.blockchain.EthBlockChainActuator;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
+import com.tianli.tool.judge.JsonObjectTool;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
+import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.web3j.abi.DefaultFunctionEncoder;
-import org.web3j.abi.FunctionEncoder;
-import org.web3j.abi.FunctionReturnDecoder;
-import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.*;
-import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.JsonRpc2_0Web3j;
-import org.web3j.protocol.core.methods.request.Transaction;
-import org.web3j.protocol.core.methods.response.EthCall;
 
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
-public class EthTriggerContract extends ContractService {
+public class EthTriggerContract extends Web3jContractOperation {
+
+    @Resource
+    private ConfigService configService;
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
+    @Resource
+    private JsonRpc2_0Web3j ethWeb3j;
 
     @Override
     public String computeAddress(long uid) throws IOException {
@@ -43,83 +50,84 @@ public class EthTriggerContract extends ContractService {
 
     public String computeAddress(String walletAddress, BigInteger uid) throws IOException {
         String contractAddress = configService.get(ConfigConstants.ETH_TRIGGER_ADDRESS);
-        EthCall send = ethWeb3j.ethCall(Transaction.createEthCallTransaction(null, contractAddress,
-                new DefaultFunctionEncoder().encodeFunction(
-                        new Function("computeAddress", List.of(new Address(walletAddress), new Uint(uid)),
-                                List.of())
-                )), DefaultBlockParameterName.LATEST).send();
-        Address address = new Address(send.getValue());
-        return address.getValue();
+        return super.computeAddress(walletAddress,uid,contractAddress);
     }
 
-    public String recycle(String toAddress,CurrencyAdaptType currencyAdaptType, List<Long> addressId, List<String> erc20AddressList) {
-        String contractAddress = configService.get(ConfigConstants.ETH_TRIGGER_ADDRESS);
-        String address = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
-        long nonce = ethBlockChainActuator.getNonce(address);
-        String password = configService.get(ConfigConstants.MAIN_WALLET_PASSWORD);
-        if(toAddress == null || toAddress.isEmpty()) toAddress = address;
-        Result result = null;
-        try {
-            result = ethBlockChainActuator.tokenSendRawTransaction(nonce,
-                    contractAddress,
-                    FunctionEncoder.encode(
-                            new Function("recycle", List.of(new Address(toAddress),
-                                    new DynamicArray(Uint256.class, addressId.stream().map(e -> new Uint256(new BigInteger(e + ""))).collect(Collectors.toList())),
-                                    new DynamicArray(Address.class, erc20AddressList.stream().map(Address::new).collect(Collectors.toList())))
-                                    , new ArrayList<>())
-                    ),
-                    ethBlockChainActuator.getPrice(),
-                    configService.getOrDefault(ConfigConstants.ETH_GAS_LIMIT_PLUS,"800000"),
-                    password, "归集: ");
-            return (String) result.getData();
-        } catch (Exception ignored) {
-            return null;
-        }
+    public String recycle(String toAddress, CurrencyAdaptType currencyAdaptType, List<Long> addressId, List<String> erc20AddressList) {
+        return super.recycle(toAddress,currencyAdaptType
+                , configService.getOrDefault(ConfigConstants.ETH_GAS_LIMIT_PLUS, "800000")
+                ,addressId,erc20AddressList);
     }
 
-    public BigInteger erc20Balance(String address, String contract) {
-        String balanceOf = null;
-        try {
-            balanceOf = ethWeb3j.ethCall(Transaction.createEthCallTransaction(null, contract, new DefaultFunctionEncoder().encodeFunction(
-                    new Function("balanceOf", List.of(new Address(address)),
-                            List.of(TypeReference.create(Uint.class)))
-            )), DefaultBlockParameterName.LATEST).send().getValue();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return BigInteger.ZERO;
-        }
-        List<Type> list = FunctionReturnDecoder.decode(balanceOf,
-                List.of(TypeReference.create((Class) Uint256.class))
-        );
-        balanceOf = list.get(0).getValue().toString();
-        return new BigInteger(balanceOf);
-    }
     @Override
     public Result transfer(String to, BigInteger val, CurrencyCoin coin) {
-        String address = configService.get(ConfigConstants.ETH_MAIN_WALLET_ADDRESS);
-        long nonce = ethBlockChainActuator.getNonce(address);
-        String password = configService.get(ConfigConstants.MAIN_WALLET_PASSWORD);
-        Result result = null;
-        try {
-            //后续如果需要其他的币种转账  修改这个合约地址即可
-            String contractAddress = CurrencyAdaptType.get(coin, NetworkType.erc20).getContractAddress();
-            result = ethBlockChainActuator.tokenSendRawTransaction(nonce,
-                    contractAddress,
-                    org.web3j.abi.FunctionEncoder.encode(
-                            new org.web3j.abi.datatypes.Function("transfer", List.of(new org.web3j.abi.datatypes.Address(to), new org.web3j.abi.datatypes.Uint(val)), new ArrayList<>())
-                    ),
-                    ethBlockChainActuator.getPrice(),
-                    configService.getOrDefault(ConfigConstants.ETH_GAS_LIMIT,"200000"),
-                    password, String.format("转账%s",coin.getName()));
-        } catch (Exception ignored) {
-        }
-        return result;
+        String gasLimit = configService.getOrDefault(ConfigConstants.ETH_GAS_LIMIT, "200000");
+        CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(coin, NetworkType.erc20);
+        return super.tokenTransfer(to,val,currencyAdaptType,gasLimit);
     }
 
-    @Resource
-    private ConfigService configService;
-    @Resource
-    private JsonRpc2_0Web3j ethWeb3j;
-    @Resource
-    private EthBlockChainActuator ethBlockChainActuator;
+    @Override
+    protected JsonRpc2_0Web3j getWeb3j() {
+        return ethWeb3j;
+    }
+
+    @Override
+    public String getGas() {
+        EthGasAPIResponse response = ethGas();
+        if(Objects.isNull(response)){
+            return configService.getOrDefault(ConfigConstants.ETH_GAS_PRICE,"80");
+        }
+        Double fast = response.getFast();
+        if(Objects.isNull(fast)){
+            return configService.getOrDefault(ConfigConstants.ETH_GAS_PRICE,"80");
+        }
+        return String.valueOf(fast);
+    }
+
+    @Override
+    protected String getMainWalletAddress() {
+        return configService.get(ConfigConstants.ETH_MAIN_WALLET_ADDRESS);
+    }
+
+    @Override
+    protected String getMainWalletPassword() {
+        return configService.get(ConfigConstants.MAIN_WALLET_PASSWORD);
+    }
+
+    @Override
+    protected Long getChainId() {
+        return Long.parseLong(configService.getOrDefault(ConfigConstants.ETH_CHAIN_ID, "1"));
+    }
+
+    /**
+     * http调用ethScan获取gas
+     */
+    private EthGasAPIResponse ethGas() {
+        BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps("eth_gas");
+        EthGasAPIResponse response = (EthGasAPIResponse) ops.get();
+        if (response != null) return response;
+        String stringResult = null;
+        try {
+            HttpResponse httpResponse = HttpUtils.doGet("https://api.etherscan.io/api?module=gastracker&action=gasoracle", "", "", Map.of(), Map.of());
+            stringResult = EntityUtils.toString(httpResponse.getEntity());
+        } catch (Exception ignore) {
+            log.error("api.etherscan.io http掉用异常");
+        }
+        JsonObject jsonObject = new Gson().fromJson(stringResult, JsonObject.class);
+        Double safeGasPrice = JsonObjectTool.getAsDouble(jsonObject, "result.SafeGasPrice");
+        Double proposeGasPrice = JsonObjectTool.getAsDouble(jsonObject, "result.ProposeGasPrice");
+        Double fastGasPrice = JsonObjectTool.getAsDouble(jsonObject, "result.FastGasPrice");
+        if (safeGasPrice != null && proposeGasPrice != null && fastGasPrice != null) {
+            response = new EthGasAPIResponse();
+            response.setFastest(fastGasPrice);
+            response.setFast(proposeGasPrice);
+            response.setAverage(safeGasPrice);
+            response.setSafeLow(safeGasPrice);
+        }
+        if (response == null || response.getFast() == null) {
+            return null;
+        }
+        ops.set(response, 1L, TimeUnit.MINUTES);
+        return response;
+    }
 }

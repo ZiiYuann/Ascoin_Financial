@@ -13,8 +13,8 @@ import com.tianli.chain.dto.CallbackPathDTO;
 import com.tianli.chain.dto.TRONTokenReq;
 import com.tianli.chain.service.ChainService;
 import com.tianli.chain.service.WalletImputationService;
-import com.tianli.chain.service.contract.BaseContractService;
-import com.tianli.chain.service.contract.ContractService;
+import com.tianli.chain.service.contract.ContractAdapter;
+import com.tianli.chain.service.contract.ContractOperation;
 import com.tianli.charge.converter.ChargeConverter;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderChargeInfo;
@@ -213,7 +213,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                     "当前订单：[%s]已经在：[%s] 网络存在交易hash：[%s]", order.getOrderNo(), orderChargeInfo.getNetwork(), orderChargeInfo.getTxid()));
         }
 
-        ContractService contractService = baseContractService.getOne(orderChargeInfo.getNetwork());
+        ContractOperation contractService = baseContractService.getOne(orderChargeInfo.getNetwork());
         CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(orderChargeInfo.getCoin(), orderChargeInfo.getNetwork());
         BigInteger amount = currencyAdaptType.restore(order.getAmount().subtract(order.getServiceAmount()));
         Result result = null;
@@ -501,7 +501,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     @Resource
     private WalletImputationService walletImputationService;
     @Resource
-    private BaseContractService baseContractService;
+    private ContractAdapter baseContractService;
     @Resource
     private ChainService chainService;
 

@@ -2,6 +2,7 @@ package com.tianli.common.blockchain;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.tianli.chain.dto.EthGasAPIResponse;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.Constants;
 import com.tianli.common.HttpUtils;
@@ -160,9 +161,9 @@ public class BscBlockChainActuator {
         return Result.success(send);
     }
 
-    public EthgasAPIResponse ethGas() {
+    public EthGasAPIResponse ethGas() {
         BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps("eth_gas");
-        EthgasAPIResponse ethgasAPIResponse = (EthgasAPIResponse) ops.get();
+        EthGasAPIResponse ethgasAPIResponse = (EthGasAPIResponse) ops.get();
         if (ethgasAPIResponse != null) return ethgasAPIResponse;
         String stringResult = null;
         try {
@@ -175,7 +176,7 @@ public class BscBlockChainActuator {
         Double proposeGasPrice = JsonObjectTool.getAsDouble(jsonObject, "result.ProposeGasPrice");
         Double fastGasPrice = JsonObjectTool.getAsDouble(jsonObject, "result.FastGasPrice");
         if (safeGasPrice != null && proposeGasPrice != null && fastGasPrice != null) {
-            ethgasAPIResponse = new EthgasAPIResponse();
+            ethgasAPIResponse = new EthGasAPIResponse();
             ethgasAPIResponse.setFastest(fastGasPrice * 10.0);
             ethgasAPIResponse.setFast(proposeGasPrice * 10.0);
             ethgasAPIResponse.setAverage(safeGasPrice * 10.0);

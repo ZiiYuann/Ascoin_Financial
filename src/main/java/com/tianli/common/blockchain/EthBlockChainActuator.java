@@ -2,10 +2,9 @@ package com.tianli.common.blockchain;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.tianli.chain.dto.EthGasAPIResponse;
 import com.tianli.common.ConfigConstants;
-import com.tianli.common.Constants;
 import com.tianli.common.HttpUtils;
-import com.tianli.common.lock.RedisLock;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
@@ -20,12 +19,12 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.web3j.abi.DefaultFunctionEncoder;
-import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.*;
-import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.abi.datatypes.generated.Uint8;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.Uint;
+import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.RawTransaction;
@@ -62,68 +61,6 @@ public class EthBlockChainActuator {
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
-    @Resource
-    private RedisLock redisLock;
-
-    /**
-     * 发起合约的调用
-     *
-     * @param contractName 合约名 -> config表中可以获取到其对应的合约地址
-     * @param methodName 合约方法名
-     * @param params 方法调用参数
-     * @return 返回Result, 0标识成功 其他为失败, msg为错误详情   data实际为EthCall
-     * @throws IOException 可能的异常
-     */
-    /**
-     * 代币的 合约调用方法
-     */
-    public Result tokenSendRawTransaction(long nonce, String curContractAddress, String chainParams, String password, String operation) {
-        String price = getPrice();
-        if(Objects.nonNull(price)){
-            price = "80";
-        }
-        return tokenSendRawTransaction(nonce, curContractAddress, chainParams, price, "300000", password, BigInteger.ZERO, operation);
-    }
-
-    public Result tokenSendRawTransaction(long nonce, String curContractAddress, String chainParams, String gas, String gasLimit, String password, String operation) {
-        return tokenSendRawTransaction(nonce, curContractAddress, chainParams, gas, gasLimit, password, BigInteger.ZERO, operation);
-    }
-
-    public Result tokenSendRawTransaction(long nonce, String curContractAddress, String chainParams, String gas, String gasLimit, String password, BigInteger value, String operation) {
-        log.info(String.format("gas: %s, limit: %s", gas, gasLimit));
-        String main_wallet_chain_id = configService.getOrDefault(ConfigConstants.ETH_CHAIN_ID, "1");
-        BigInteger privateKey = Bip44Utils.getPathPrivateKey(Collections.singletonList(password), "m/44'/60'/0'/0/0");
-        BigInteger gasPrice = new BigDecimal(gas).multiply(new BigDecimal("1000000000")).toBigInteger();
-        RawTransaction rawTransaction = RawTransaction.createTransaction(new BigInteger("" + nonce), gasPrice, new BigInteger(gasLimit), curContractAddress, value, chainParams);
-        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, Long.parseLong(main_wallet_chain_id), Credentials.create(ECKeyPair.create(privateKey)));
-        String signedTransactionData = Numeric.toHexString(signedMessage);
-        EthSendTransaction send = null;
-        try {
-            send = ethWeb3j.ethSendRawTransaction(signedTransactionData).send();
-        } catch (IOException e) {
-            log.error(String.format("上链操作[%s], 执行异常 !", operation), e);
-        }
-        if (Objects.isNull(send) || StringUtils.isBlank(send.getTransactionHash())) {
-            System.out.println("时间: " + TimeTool.getDateTimeDisplayString(LocalDateTime.now()) + ", 上链失败!!  SEND => " + new Gson().toJson(send));
-            return Result.fail(operation + "  上链失败");
-        }
-        System.out.println("时间: " + TimeTool.getDateTimeDisplayString(LocalDateTime.now()) + ", " + operation + " < HASH: " + send.getTransactionHash() + " >");
-        return Result.success(send.getTransactionHash());
-    }
-
-    /**
-     * 获取地址链上的最新的nance值
-     * @param address eth地址
-     */
-    public Long getNonce(String address) {
-        Long nance = null;
-        try {
-            EthGetTransactionCount send = ethWeb3j.ethGetTransactionCount(address, DefaultBlockParameterName.PENDING).send();
-            nance = send.getTransactionCount().longValue();
-        } catch (Exception ignored) {
-        }
-        return Objects.isNull(nance) ? null : nance;
-    }
 
     /**
      * 查询合约
@@ -150,7 +87,7 @@ public class EthBlockChainActuator {
     }
 
     public String getPrice(){
-        EthgasAPIResponse ethgasAPIResponse = ethGas();
+        EthGasAPIResponse ethgasAPIResponse = ethGas();
         if(Objects.isNull(ethgasAPIResponse)){
             return configService.getOrDefault(ConfigConstants.ETH_GAS_PRICE,"80");
         }
@@ -161,9 +98,9 @@ public class EthBlockChainActuator {
         return String.valueOf(fast);
     }
 
-    public EthgasAPIResponse ethGas() {
+    public EthGasAPIResponse ethGas() {
         BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps("eth_gas");
-        EthgasAPIResponse ethgasAPIResponse = (EthgasAPIResponse) ops.get();
+        EthGasAPIResponse ethgasAPIResponse = (EthGasAPIResponse) ops.get();
         if (ethgasAPIResponse != null) return ethgasAPIResponse;
         String stringResult = null;
         try {
@@ -176,7 +113,7 @@ public class EthBlockChainActuator {
         Double proposeGasPrice = JsonObjectTool.getAsDouble(jsonObject, "result.ProposeGasPrice");
         Double fastGasPrice = JsonObjectTool.getAsDouble(jsonObject, "result.FastGasPrice");
         if (safeGasPrice != null && proposeGasPrice != null && fastGasPrice != null) {
-            ethgasAPIResponse = new EthgasAPIResponse();
+            ethgasAPIResponse = new EthGasAPIResponse();
             ethgasAPIResponse.setFastest(fastGasPrice);
             ethgasAPIResponse.setFast(proposeGasPrice);
             ethgasAPIResponse.setAverage(safeGasPrice);
@@ -285,37 +222,6 @@ public class EthBlockChainActuator {
         );
         String name = verifyList(list);
         return name;
-    }
-
-    public int getDecimal(String address) throws IOException {
-        String value = getEthCallWithParam(ethWeb3j, address, "decimals", List.of()).getValue();
-        List<Type> list = FunctionReturnDecoder.decode(value,
-                List.of(TypeReference.create((Class) Uint8.class))
-        );
-        String decimals = verifyList(list);
-        return Integer.parseInt(decimals);
-    }
-
-    /**
-     * 转账
-     */
-    public String transfer(String toAddress, BigInteger amount, String erc20Address){
-        redisLock.lock(Constants.WALLET_REDIS_LOCK_KEY, 10L, TimeUnit.MINUTES);
-        String address = configService._get("transfer_wallet_address");
-        Long nonce = getNonce(address);
-        String params = FunctionEncoder.encode(
-                new Function("transfer", List.of(new Address(toAddress), new Uint256(amount)),
-                        List.of(TypeReference.create(Uint.class))));
-        String transfer_wallet_password = configService.get("transfer_wallet_password");
-        Result result = tokenSendRawTransaction(nonce, erc20Address, params, transfer_wallet_password, "转账");
-        if(Objects.isNull(result) || !StringUtils.equals(result.getCode(), "0") || Objects.isNull(result.getData())){
-            ErrorCodeEnum.throwException("执行上链失败");
-        }
-        String transactionHash = ((EthSendTransaction) (result.getData())).getTransactionHash();
-        if(StringUtils.isBlank(transactionHash)){
-            ErrorCodeEnum.throwException("执行上链失败: hash is empty !");
-        }
-        return transactionHash;
     }
 
     /**

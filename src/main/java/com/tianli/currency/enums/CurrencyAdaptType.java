@@ -18,9 +18,11 @@ public enum CurrencyAdaptType {
     // 18位
     usdt_bep20(CurrencyCoin.usdt, NetworkType.bep20,"0x55d398326f99059ff775485246999027b3197955"),
     usdc_bep20(CurrencyCoin.usdc, NetworkType.bep20,"0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"),
+    bnb(CurrencyCoin.bnb, NetworkType.bep20,"0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"),
     // 6位
     usdc_erc20(CurrencyCoin.usdc, NetworkType.erc20,"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
     usdt_erc20(CurrencyCoin.usdt, NetworkType.erc20,"0xdac17f958d2ee523a2206206994597c13d831ec7"),
+    eth(CurrencyCoin.eth,NetworkType.erc20,""),
     // 6位
     usdc_trc20(CurrencyCoin.usdc, NetworkType.trc20,"TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"),
     usdt_trc20(CurrencyCoin.usdt, NetworkType.trc20,"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t");
