@@ -1,5 +1,6 @@
 package com.tianli.account.vo;
 
+import com.tianli.common.annotation.BigDecimalFormat;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.AllArgsConstructor;
@@ -60,16 +61,19 @@ public class AccountBalanceVO {
     /**
      * 总余额 美元
      */
+    @BigDecimalFormat("0.00")
     private BigDecimal dollarBalance;
 
     /**
      * 冻结余额 美元
      */
+    @BigDecimalFormat("0.00")
     private BigDecimal dollarFreeze;
 
     /**
      * 剩余余额 美元
      */
+    @BigDecimalFormat("0.00")
     private BigDecimal dollarRemain;
 
     public static AccountBalanceVO getDefault(String coinName){

@@ -1,5 +1,6 @@
 package com.tianli.account.vo;
 
+import com.tianli.common.annotation.BigDecimalFormat;
 import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 
@@ -19,5 +20,6 @@ public class AccountBalanceSimpleVO {
 
     private BigDecimal balanceAmount;
 
+    @BigDecimalFormat("0.00")
     private BigDecimal balanceDollarAmount;
 }

@@ -2,6 +2,7 @@ package com.tianli.financial.vo;
 
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.common.annotation.BigDecimalFormat;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.PurchaseTerm;
@@ -59,6 +60,7 @@ public class OrderFinancialVO {
      */
     private BigDecimal amount;
 
+    @BigDecimalFormat("0.00")
     private BigDecimal dollarAmount;
 
     /**
