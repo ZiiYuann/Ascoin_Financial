@@ -15,7 +15,8 @@
         record.coin,
         record.product_term as term,
         record.rate,
-        record.logo
+        record.logo,
+        record.product_id
         FROM `order` o
         INNER JOIN financial_record record on record.id = o.related_id
         WHERE 1=1

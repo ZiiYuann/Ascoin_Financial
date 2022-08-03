@@ -77,6 +77,6 @@ public class OrderFinancialVO {
      */
     private BigDecimal expectIncome;
 
-
+    private Long productId;
 
 }
