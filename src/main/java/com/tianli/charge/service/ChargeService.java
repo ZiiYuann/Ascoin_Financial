@@ -130,6 +130,10 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     public void withdrawApply(Long uid, WithdrawQuery query) {
         CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(query.getCoin(), query.getNetwork());
 
+        boolean validAddress = contractAdapter.getOne(currencyAdaptType.getNetwork()).isValidAddress(query.getTo());
+        if(!validAddress){
+            ErrorCodeEnum.throwException("地址校验失败");
+        }
         // 计算手续费  实际手续费 = 提现数额 * 手续费率 + 固定手续费数额
         // 最小提现金额
         String withdrawMinAmount = configService.get(currencyAdaptType.name() + "_withdraw_min_amount");
@@ -213,7 +217,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                     "当前订单：[%s]已经在：[%s] 网络存在交易hash：[%s]", order.getOrderNo(), orderChargeInfo.getNetwork(), orderChargeInfo.getTxid()));
         }
 
-        ContractOperation contractService = baseContractService.getOne(orderChargeInfo.getNetwork());
+        ContractOperation contractService = contractAdapter.getOne(orderChargeInfo.getNetwork());
         CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(orderChargeInfo.getCoin(), orderChargeInfo.getNetwork());
         BigInteger amount = currencyAdaptType.restore(order.getAmount().subtract(order.getServiceAmount()));
         Result result = null;
@@ -501,7 +505,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     @Resource
     private WalletImputationService walletImputationService;
     @Resource
-    private ContractAdapter baseContractService;
+    private ContractAdapter contractAdapter;
     @Resource
     private ChainService chainService;
 
