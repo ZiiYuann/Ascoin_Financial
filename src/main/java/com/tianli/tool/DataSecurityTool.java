@@ -42,7 +42,7 @@ public class DataSecurityTool {
 //        return dataSecurityProperties.getPrivateKey();
 //    }
     public String privateKey() {
-        return "e0906baea99bf1cec33b54d9041b9b90da524da501a470be4e35de0b5adac4a0";
+        return privateKey;
     }
 
     public BigInteger bigIntegerPrivateKey() {
