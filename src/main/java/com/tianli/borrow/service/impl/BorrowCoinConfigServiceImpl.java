@@ -72,7 +72,7 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
             if(Objects.isNull(borrowCoinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
             Integer count = borrowCoinOrderMapper.selectCountByBorrowCoin(borrowCoinConfig.getCoin());
             if(count > 0) ErrorCodeEnum.BORROW_CONFIG_USED.throwException();
-            borrowCoinConfigMapper.selectById(id);
+            borrowCoinConfigMapper.deleteById(id);
         });
     }
 
