@@ -20,6 +20,6 @@ public interface FinancialIncomeDailyMapper extends BaseMapper<FinancialIncomeDa
 
     List<FinancialIncomeDailyDTO> listByUidAndType(@Param("uid") Long uid,
                                                    @Param("type") ProductType type,
-                                                   @Param("todayZero") LocalDateTime todayZero,
-                                                   @Param("yesterdayZero") LocalDateTime yesterdayZero);
+                                                   @Param("yesterdayZero") LocalDateTime yesterdayZero,
+                                                   @Param("todayZero") LocalDateTime todayZero);
 }

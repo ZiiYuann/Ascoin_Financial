@@ -165,8 +165,7 @@ public class FinancialServiceImpl implements FinancialService {
                 .stream().map(FinancialIncomeDaily::getIncomeAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         LambdaQueryWrapper<FinancialIncomeAccrue> incomeAccrueQuery = new LambdaQueryWrapper<FinancialIncomeAccrue>().eq(FinancialIncomeAccrue::getUid, uid)
-                .eq(FinancialIncomeAccrue::getRecordId, recordId)
-                .eq(FinancialIncomeAccrue::getCreateTime, DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(-1));
+                .eq(FinancialIncomeAccrue::getRecordId, recordId);
         FinancialIncomeAccrue incomeAccrue = Optional.ofNullable(financialIncomeAccrueService.getOne(incomeAccrueQuery))
                 .orElse(new FinancialIncomeAccrue());
 
