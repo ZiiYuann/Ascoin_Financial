@@ -1,6 +1,7 @@
 package com.tianli.chain.service.contract;
 
 import com.tianli.currency.enums.TokenAdapter;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import org.apache.commons.lang3.StringUtils;
 import org.tron.tronj.abi.FunctionEncoder;
@@ -25,11 +26,12 @@ public abstract class AbstractContractOperation implements ContractOperation {
 
     /**
      * 校验地址
+     *
      * @param address 类似以太坊地址
      * @return true or false
      */
     protected boolean validAddress(String address) {
-        if(StringUtils.isBlank(address) || !address.startsWith("0x")){
+        if (StringUtils.isBlank(address) || !address.startsWith("0x")) {
             return false;
         }
 
@@ -43,13 +45,13 @@ public abstract class AbstractContractOperation implements ContractOperation {
     }
 
     /**
-     * @param toAddress 归集地址
-     * @param ids Address表中的id
+     * @param toAddress              归集地址
+     * @param ids                    Address表中的id
      * @param tokenContractAddresses 币种合约地址列表 可以传入多个一次性归集 地址数*用户数<400 最好
      * @return data
      */
-    protected String buildRecycleData(String toAddress,List<Long> ids,List<String> tokenContractAddresses){
-        return  FunctionEncoder.encode(
+    protected String buildRecycleData(String toAddress, List<Long> ids, List<String> tokenContractAddresses) {
+        return FunctionEncoder.encode(
                 new Function("recycle", List.of(new Address(toAddress),
                         new DynamicArray<>(Uint256.class, ids.stream().map(e -> new Uint256(new BigInteger(e + ""))).collect(Collectors.toList())),
                         new DynamicArray<>(Address.class, tokenContractAddresses.stream().map(Address::new).collect(Collectors.toList())))
@@ -63,26 +65,40 @@ public abstract class AbstractContractOperation implements ContractOperation {
 
     @Override
     public String computeAddress(long uid) throws IOException {
-        throw new UnsupportedOperationException();
+        throw ErrorCodeEnum.NOT_OPEN.generalException();
     }
 
     @Override
     public String computeAddress(BigInteger uid) throws IOException {
-        throw new UnsupportedOperationException();
+        throw ErrorCodeEnum.NOT_OPEN.generalException();
     }
 
     @Override
     public String computeAddress(String walletAddress, BigInteger uid) throws IOException {
-        throw new UnsupportedOperationException();
+        throw ErrorCodeEnum.NOT_OPEN.generalException();
     }
 
     @Override
-    public String recycle(String toAddress, List<Long> addressIds,List<String> tokenContractAddresses) {
-        throw new UnsupportedOperationException();
+    public String recycle(String toAddress, List<Long> addressIds, List<String> tokenContractAddresses) {
+        throw ErrorCodeEnum.NOT_OPEN.generalException();
     }
 
     @Override
-    public Result tokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter) {
-        throw new UnsupportedOperationException();
+    public Result transfer(String to, BigInteger val, TokenAdapter tokenAdapter) {
+        if (TokenAdapter.mainToken(tokenAdapter)) {
+            return mainTokenTransfer(to, val, tokenAdapter);
+        } else {
+            return tokenTransfer(to, val, tokenAdapter);
+        }
     }
+
+    /**
+     * 代币转账
+     */
+    abstract Result tokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter);
+
+    /**
+     * 主币转账
+     */
+    abstract Result mainTokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter);
 }

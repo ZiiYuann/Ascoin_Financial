@@ -22,14 +22,14 @@ public enum TokenAdapter {
     // 6位
     usdc_erc20(CurrencyCoin.usdc, NetworkType.erc20,"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
     usdt_erc20(CurrencyCoin.usdt, NetworkType.erc20,"0xdac17f958d2ee523a2206206994597c13d831ec7"),
-    eth(CurrencyCoin.eth,NetworkType.erc20,""),
     // 6位
     usdc_trc20(CurrencyCoin.usdc, NetworkType.trc20,"TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"),
     usdt_trc20(CurrencyCoin.usdt, NetworkType.trc20,"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
 
 
     // 主币
-    bnb(CurrencyCoin.bnb,NetworkType.bep20,"0x55d398326f99059ff775485246999027b3197955");
+    bnb(CurrencyCoin.bnb,NetworkType.bep20,""),
+    eth(CurrencyCoin.eth,NetworkType.erc20,"");
 
 
     TokenAdapter(CurrencyCoin currencyCoin, NetworkType currencyNetworkType, String contractAddress) {
@@ -43,6 +43,13 @@ public enum TokenAdapter {
     private final NetworkType network;
     private final boolean fiat;
     private final String contractAddress;
+
+    public static boolean mainToken(TokenAdapter tokenAdapter){
+        if(TokenAdapter.bnb.equals(tokenAdapter) || TokenAdapter.eth.equals(tokenAdapter) ){
+            return true;
+        }
+        return false;
+    }
 
     public static TokenAdapter get(CurrencyCoin coin, NetworkType networkType){
         for (TokenAdapter type : TokenAdapter.values()){

@@ -96,6 +96,11 @@ public class TronTriggerContract extends AbstractContractOperation {
         return Result.success(triggerSmartContract(ownerAddress, contractAddress, data, 40000000L));
     }
 
+    @Override
+    Result mainTokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter) {
+        throw ErrorCodeEnum.NOT_OPEN.generalException();
+    }
+
     public String triggerSmartContract(String ownerAddress, String contractAddress, String data, long feeLimit) {
         SmartContractOuterClass.TriggerSmartContract trigger = SmartContractOuterClass.TriggerSmartContract.newBuilder()
                 .setOwnerAddress(address2ByteString(ownerAddress))
@@ -210,7 +215,6 @@ public class TronTriggerContract extends AbstractContractOperation {
             return new BigDecimal(account.getBalance());
         }
     }
-
 
     public String transferTrx(String to, long amount) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);

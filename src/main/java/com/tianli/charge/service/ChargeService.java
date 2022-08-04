@@ -229,7 +229,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 , new CallbackPathDTO("/api/charge/withdraw"), orderChargeInfo.getToAddress());
 
         try {
-            result = contractService.tokenTransfer(orderChargeInfo.getToAddress(), amount, tokenAdapter);
+            result = contractService.transfer(orderChargeInfo.getToAddress(), amount, tokenAdapter);
         } catch (Exception e) {
             log.info("上链失败");
             e.printStackTrace();

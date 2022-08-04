@@ -51,17 +51,22 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
     public Result tokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter) {
         Result result = null;
         try {
-            result = this.tokenSendRawTransaction(
+            result = this.sendRawTransactionWithDefaultParam(
+                    tokenAdapter.getContractAddress(),
                     FunctionEncoder.encode(
                             new Function("transfer", List.of(new Address(to), new Uint(val)), new ArrayList<>())
                     ),
-                    tokenAdapter.getContractAddress(),
+                    BigInteger.ZERO,
                     getTransferGasLimit(),
                     String.format("转账%s", tokenAdapter.getCurrencyCoin().getName()));
         } catch (Exception ignored) {
 
         }
         return result;
+    }
+
+    public Result mainTokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter) {
+       return sendRawTransactionWithDefaultParam(to,null,val, getTransferGasLimit(),"主笔转账："+ tokenAdapter.name());
     }
 
     /**
@@ -73,7 +78,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
 
         String data = super.buildRecycleData(toAddress, addressIds, tokenContractAddresses);
         try {
-            result = this.tokenSendRawTransaction(data, this.getRecycleTriggerAddress(), this.getRecycleGasLimit(), "归集: ");
+            result = this.sendRawTransactionWithDefaultParam(this.getRecycleTriggerAddress(),data, BigInteger.ZERO, this.getRecycleGasLimit(), "归集: ");
             return (String) result.getData();
         } catch (Exception ignored) {
             return null;
@@ -105,42 +110,49 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
         return Objects.isNull(nance) ? null : nance;
     }
 
+
     /**
-     * 代币转账
+     * 使用系统默认参数 sendRawTransaction
+     *
+     * @param to        代币转帐：代币合约地址   主币转账：to地址         归集：归集合约
+     * @param data      代币转帐：数据         主币转账：null         归集：归集合约
+     * @param value     代币转账：BigInteger.ZERO  主币转账：转账金额           归集：BigInteger.ZERO
+     * @param gasLimit  gas限制
+     * @param operation 操作信息
+     * @return 结果
      */
-    public Result tokenSendRawTransaction(String chainParams, String tokenContractAddress, String gasLimit, String operation) {
+    public Result sendRawTransactionWithDefaultParam(String to,String data ,BigInteger value, String gasLimit, String operation) {
         String password = this.getMainWalletPassword();
         String address = this.getMainWalletAddress();
         String gas = this.getGas();
         BigInteger nonce = BigInteger.valueOf(getNonce(address));
         Long chainId = this.getChainId();
-        return tokenSendRawTransaction(nonce, chainId, tokenContractAddress, chainParams, gas, gasLimit, password, operation);
+        return SendRawTransaction(nonce, chainId, to, data,value, gas, gasLimit, password, operation);
     }
 
-
     /**
-     * 代币转账
+     * 转账
      *
-     * @param nonce                随机数，防止双花攻击
-     * @param chainId              链id，防止双花攻击
-     * @param tokenContractAddress 代币合约地址
-     * @param chainParams          RawTransaction 中的 data 链参数【事件、地址、参数】
-     * @param gas                  单位：wei 1000000000wei = 1Gwei  矿工费 费用越大，区块链优先处理的速度越快 一次交易约消费 21000 Gwei ~= 0.000021eth
-     * @param gasLimit             最高的gas限制，如果交易超过了gasLimit则重置，但是已经消费的不会返回
-     * @param password             私钥
-     * @param operation            操作信息
+     * @param nonce     随机数，防止双花攻击
+     * @param chainId   链id，防止双花攻击
+     * @param to        代币转帐：代币合约地址       主币转账：to地址         归集：归集合约
+     * @param data      代币转帐：数据              主币转账：null           归集：归集数据
+     * @param value     代币转账：BigInteger.ZERO  主币转账：转账金额           归集：BigInteger.ZERO
+     * @param gas       单位：wei 1000000000wei = 1Gwei  矿工费 费用越大，区块链优先处理的速度越快 一次交易约消费 21000 Gwei ~= 0.000021eth
+     * @param gasLimit  最高的gas限制，如果交易超过了gasLimit则重置，但是已经消费的不会返回
+     * @param password  私钥
+     * @param operation 操作信息
      * @return 结果
      */
-    public Result tokenSendRawTransaction(BigInteger nonce, Long chainId, String tokenContractAddress, String chainParams, String gas
-            , String gasLimit, String password, String operation) {
+    public Result SendRawTransaction(BigInteger nonce, Long chainId, String to, String data, BigInteger value,
+                                     String gas, String gasLimit, String password, String operation) {
         log.info("gas:{}, limit: {}", gas, gasLimit);
 
         BigInteger gasPrice = new BigDecimal(gas).multiply(new BigDecimal("1000000000")).toBigInteger();
         BigInteger privateKey = Bip44Utils.getPathPrivateKey(Collections.singletonList(password), "m/44'/60'/0'/0/0");
 
-
         RawTransaction rawTransaction = RawTransaction.createTransaction(nonce, gasPrice, new BigInteger(gasLimit)
-                , tokenContractAddress, chainParams);
+                , to,value, data);
 
         byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, chainId, Credentials.create(ECKeyPair.create(privateKey)));
         String signedTransactionData = Numeric.toHexString(signedMessage);

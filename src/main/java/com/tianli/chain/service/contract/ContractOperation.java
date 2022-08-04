@@ -30,13 +30,13 @@ public interface ContractOperation {
     String recycle(String toAddress, List<Long> addressIds,List<String> tokens);
 
     /**
-     * 代币转账
+     * 转账
      * @param to 发送地址
      * @param val 转账数额
      * @param tokenAdapter 代币包装
      * @return 交易结果
      */
-    Result tokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter);
+    Result transfer(String to, BigInteger val, TokenAdapter tokenAdapter);
 
     /**
      * 校验地址是否有效
