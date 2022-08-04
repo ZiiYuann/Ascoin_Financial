@@ -508,6 +508,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             borrowCoinOrder.setPledgeAmount(BigDecimal.ZERO);
             borrowCoinOrder.setPledgeRate(BigDecimal.ZERO);
             borrowCoinOrder.setSettlementTime(LocalDateTime.now());
+            borrowCoinOrder.setStatus(BorrowOrderStatus.SUCCESSFUL_REPAYMENT);
             borrowCoinOrder.setBorrowDuration(DateUtil.between(TimeTool.toDate(borrowCoinOrder.getCreateTime()) ,TimeTool.toDate(borrowCoinOrder.getSettlementTime()),DateUnit.HOUR));
             borrowCoinOrderMapper.updateById(borrowCoinOrder);
             //还款记录
