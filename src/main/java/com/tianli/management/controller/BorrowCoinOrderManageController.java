@@ -15,6 +15,7 @@ import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
+import com.tianli.common.annotation.NoOperation;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.exception.Result;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,9 +42,8 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @PostMapping("/order/liquidation/{orderId}")
+    @NoOperation
     public Result liquidation(@PathVariable Long orderId){
-        //计算利息锁
-        redisLock.isLock(RedisLockConstants.BORROW_INCOME_TASK_LOCK+orderId);
         //防重复提交锁
         redisLock.lock(RedisLockConstants.BORROW_ORDER_CHANGE_LOCK+orderId,5L, TimeUnit.SECONDS);
         borrowCoinOrderService.forcedLiquidation(orderId);

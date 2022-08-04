@@ -17,14 +17,8 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
 
     int reduce(@Param("recordId") Long recordId, @Param("amount") BigDecimal amount,@Param("now") LocalDateTime now);
 
-    @Select("SELECT ifnull(SUM(hold_amount),0.0) FROM financial_record where product_type = #{productType}")
-    BigDecimal selectTotalHoldAmount(@Param("productType") ProductType productType);
-
-    @Select("SELECT ifnull(SUM(hold_amount),0.0) FROM financial_record where uid = #{uid} and  product_type = #{productType}")
-    BigDecimal selectHoldAmountByUid(@Param("uid") Long uid,@Param("productType") ProductType productType);
-
-    @Select("SELECT ifnull(SUM(hold_amount - pledge_amount),0.0) FROM financial_record where uid = #{uid} and coin = #{coin} and  product_type = #{productType}")
-    BigDecimal selectAvailableAmountByUid(@Param("uid")Long uid,@Param("coin") CurrencyCoin coin, @Param("productType") ProductType productType);
+    @Select("SELECT ifnull(SUM(hold_amount),0.0) FROM financial_record")
+    BigDecimal selectTotalHoldAmount();
 
     /**
      * 用户还持用产品的数量

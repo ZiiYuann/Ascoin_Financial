@@ -97,6 +97,7 @@ public enum ErrorCodeEnum {
     ADJUST_GT_AVAILABLE(3511,"调整金额大于可用金额"),
     PLEDGE_RATE_RANGE_ERROR(3512,"质押率范围错误"),
     PLEDGE_LT_LIQUIDATION(3513,"质押率小于平仓率"),
+    NO_OPERATION(3514,"整点计息，请稍后进行操作")
     ;
     private int errorNo;
 

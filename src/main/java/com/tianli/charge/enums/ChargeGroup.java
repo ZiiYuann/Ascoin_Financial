@@ -12,9 +12,9 @@ import java.util.List;
  **/
 public enum ChargeGroup {
     // 收入
-    receive(List.of(ChargeType.recharge,ChargeType.income,ChargeType.redeem,ChargeType.settle,ChargeType.borrow)),
+    receive(List.of(ChargeType.recharge,ChargeType.income,ChargeType.redeem,ChargeType.settle,ChargeType.borrow,ChargeType.release)),
     // 支出
-    pay(List.of(ChargeType.withdraw,ChargeType.purchase,ChargeType.repay,ChargeType.transfer));
+    pay(List.of(ChargeType.withdraw,ChargeType.purchase,ChargeType.transfer,ChargeType.repay,ChargeType.pledge));
 
     ChargeGroup(List<ChargeType> chargeTypes){
         this.name = name();

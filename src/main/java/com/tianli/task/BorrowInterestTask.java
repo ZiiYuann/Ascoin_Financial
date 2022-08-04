@@ -72,20 +72,7 @@ public class BorrowInterestTask {
             if(CollUtil.isEmpty(records)){
                 break;
             }
-            for(BorrowCoinOrder borrowCoinOrder : records){
-                Long orderId = borrowCoinOrder.getId();
-                Long uid = borrowCoinOrder.getUid();
-                String lockKey = RedisLockConstants.BORROW_INCOME_TASK_LOCK + orderId;
-                //分布式锁
-                redisLock._lock(lockKey, 1L, TimeUnit.MINUTES);
-                //订单未修改完成,等待3秒
-                redisLock.quietWaitLock(RedisLockConstants.BORROW_ORDER_CHANGE_LOCK+uid,3000L);
-                try {
-                    calculateInterest(borrowCoinOrder, now);
-                }  finally {
-                    redisLock.unlock(lockKey);
-                }
-            }
+            records.forEach(record -> calculateInterest(record,now));
         }
     }
 

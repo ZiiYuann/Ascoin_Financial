@@ -100,9 +100,4 @@ public class FinancialRecord {
      * 更新时间
      */
     private LocalDateTime updateTime;
-
-    /**
-     * 锁定金额
-     */
-    private BigDecimal pledgeAmount;
 }

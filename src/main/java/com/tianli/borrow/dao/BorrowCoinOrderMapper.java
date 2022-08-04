@@ -23,7 +23,7 @@ import java.util.List;
 @Mapper
 public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
 
-    @Select("SELECT ifnull(SUM(borrow_capital),0.0) FROM borrow_coin_order")
+    @Select("SELECT ifnull(SUM(wait_repay_capital),0.0) FROM borrow_coin_order")
     BigDecimal selectTotalBorrowAmount();
 
     @Select("SELECT ifnull(SUM(wait_repay_capital),0.0) FROM borrow_coin_order where uid = #{uid}")

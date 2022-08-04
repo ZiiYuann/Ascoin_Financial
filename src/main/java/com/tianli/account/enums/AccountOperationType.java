@@ -11,5 +11,9 @@ public enum AccountOperationType {
     unfreeze,  //解冻
     withdraw,  //提现
     decrease,  //非冻结扣除
+    pledge, //质押
+    borrow, //借款
+    repay, //还款
+    release //释放质押
 }
 

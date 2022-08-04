@@ -18,21 +18,12 @@ public class BorrowCoinMainPageVO {
     //借款市场总额
     @BigDecimalFormat
     private BigDecimal totalBorrowAmount;
-    //存款金额
-    @BigDecimalFormat
-    private BigDecimal depositAmount;
     //借款金额
     @BigDecimalFormat
     private BigDecimal borrowAmount;
     //质押金额
     @BigDecimalFormat
     private BigDecimal pledgeAmount;
-    //可借额度
-    @BigDecimalFormat
-    private BigDecimal borrowQuota;
-    //已借额度比率
-    @BigDecimalFormat("#.##%")
-    private BigDecimal borrowRate;
     //订单
     private List<BorrowOrder> borrowOrders;
     @Data

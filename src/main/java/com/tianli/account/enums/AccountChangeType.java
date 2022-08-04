@@ -9,19 +9,29 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Getter
 public enum AccountChangeType {
-    // 理财
+    //理财
     purchase("PU"),
+    //赎回
     redeem("RE"),
-    // 常规操作
+    //提现
     withdraw("WD"),
+    //常规操作
     normal("NO"),
+    //充值
     recharge("RE"),
-    // 借币
-    borrow("BO"),
-    // 收益
+    //收益
     income("IN"),
-    // 结算
-    settle("SE"),;
+    //结算
+    settle("SE"),
+    //借币质押
+    borrow_pledge("BF"),
+    //借币
+    borrow("BO"),
+    //还币释放冻结
+    release("RE"),
+    //还币
+    repay("RP")
+    ;
 
 
     AccountChangeType(String prefix){

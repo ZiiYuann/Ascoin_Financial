@@ -17,7 +17,9 @@ public enum CurrencyLogDes {
     //新币状态
     扣款,回款,奖励,
     申购,
+    质押,
     借币,
+    释放质押,
     还币
     ;
 }
