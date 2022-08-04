@@ -542,7 +542,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 pledgeRate = initialPledgeRate;
                 //初始质押率计算
                 BigDecimal currPledgeAmount = waitRepayAmount.divide(initialPledgeRate, 8, RoundingMode.UP);
-                releasePledgeAmount = currPledgeAmount.subtract(pledgeAmount);
+                releasePledgeAmount = pledgeAmount.subtract(currPledgeAmount);
                 //借币质押记录
                 pledgeRecord.setAmount(releasePledgeAmount);
                 borrowPledgeRecordMapper.insert(pledgeRecord);
