@@ -74,6 +74,12 @@ public class BorrowInterestTask {
 
     @Transactional
     public void calculateInterest(BorrowCoinOrder borrowCoinOrder, LocalDateTime now){
+        //判断是否已计息
+        Integer count = borrowInterestRecordMapper.selectCountByOrderIdAndTime(borrowCoinOrder.getId(), now);
+        if(count > 0){
+            return;
+        }
+
         BigDecimal waitRepayInterest = borrowCoinOrder.getWaitRepayInterest();
         BigDecimal cumulativeInterest = borrowCoinOrder.getCumulativeInterest();
         //总待还款
@@ -83,11 +89,12 @@ public class BorrowInterestTask {
         BigDecimal interestRate = borrowCoinConfigMapper.getAnnualInterestRateByCoin(borrowCoinOrder.getBorrowCoin());
         BigDecimal interest = (totalWaitRepayAmount.multiply(interestRate))
                 .divide(new BigDecimal(365 * 24), 8, RoundingMode.UP);
+        cumulativeInterest = cumulativeInterest.add(interest);
         waitRepayInterest = waitRepayInterest.add(interest);
         //计算质押率
         totalWaitRepayAmount = totalWaitRepayAmount.add(interest);
         BigDecimal pledgeRate = totalWaitRepayAmount.divide(pledgeAmount,8, RoundingMode.UP);
-        cumulativeInterest = cumulativeInterest.add(interest);
+
         //修改订单
         borrowCoinOrder.setWaitRepayInterest(waitRepayInterest);
         borrowCoinOrder.setCumulativeInterest(cumulativeInterest);

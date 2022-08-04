@@ -541,7 +541,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             if(pledgeRate.compareTo(initialPledgeRate) < 0){
                 //释放质押物
                 pledgeRate = initialPledgeRate;
-                BigDecimal currPledgeAmount = waitRepayAmount.divide(pledgeRate, 8, RoundingMode.UP);
+                //初始质押率计算
+                BigDecimal currPledgeAmount = waitRepayAmount.divide(initialPledgeRate, 8, RoundingMode.UP);
                 releasePledgeAmount = currPledgeAmount.subtract(pledgeAmount);
                 //借币质押记录
                 pledgeRecord.setAmount(releasePledgeAmount);
@@ -624,7 +625,6 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BorrowPledgeRecord pledgeRecord = BorrowPledgeRecord.builder()
                 .orderId(orderId)
                 .coin(currencyCoin.getName())
-                .amount(adjustAmount)
                 .pledgeTime(LocalDateTime.now())
                 .createTime(LocalDateTime.now()).build();
 
@@ -643,7 +643,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             borrowPledge(uid,orderId,currencyCoin,adjustAmount);
             //质押记录
             pledgeRecord.setType(BorrowPledgeType.INCREASE);
-
+            pledgeRecord.setAmount(adjustAmount);
         }else {
             if(adjustAmount.compareTo(pledgeAmount) > 0)ErrorCodeEnum.ADJUST_GT_AVAILABLE.throwException();
             pledgeAmount = pledgeAmount.subtract(adjustAmount);
@@ -657,6 +657,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             releasePledge(uid,orderId,currencyCoin,adjustAmount);
             //质押记录
             pledgeRecord.setType(BorrowPledgeType.REDUCE);
+            pledgeRecord.setAmount(adjustAmount.negate());
         }
         //保存质押记录
         borrowPledgeRecordMapper.insert(pledgeRecord);

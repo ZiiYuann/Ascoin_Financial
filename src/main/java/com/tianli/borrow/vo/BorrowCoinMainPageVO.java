@@ -38,13 +38,10 @@ public class BorrowCoinMainPageVO {
         //图标
         private String logo;
         //借出数量
-        @BigDecimalFormat
         private BigDecimal borrowCapital;
         //质押数量
-        @BigDecimalFormat
         private BigDecimal pledgeAmount;
         //利息
-        @BigDecimalFormat
         private BigDecimal cumulativeInterest;
         //质押率
         @BigDecimalFormat("#.##%")
