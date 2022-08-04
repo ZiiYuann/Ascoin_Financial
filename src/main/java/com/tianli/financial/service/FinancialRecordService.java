@@ -118,6 +118,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
                 .id(CommonFunction.generalId())
                 .productId(product.getId())
                 .riskType(product.getRiskType())
+                .businessType(product.getBusinessType())
                 .uid(uid).productType(product.getType())
                 .holdAmount(amount)
                 .purchaseTime(requestInitService.now())

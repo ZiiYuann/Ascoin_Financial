@@ -186,11 +186,8 @@ public class FinancialServiceImpl implements FinancialService {
             return financialRecords.convert(financialRecord -> new HoldProductVo());
         }
 
-        var productIds = financialRecords.getRecords().stream().map(FinancialRecord::getProductId).collect(Collectors.toList());
         var recordIds = financialRecords.getRecords().stream().map(FinancialRecord::getId).collect(Collectors.toList());
 
-        var productMap = financialProductService.listByIds(productIds).stream()
-                .collect(Collectors.toMap(FinancialProduct::getId, o -> o));
         var accrueIncomeMap = financialIncomeAccrueService.selectListByRecordId(recordIds).stream()
                 .collect(Collectors.toMap(FinancialIncomeAccrue::getRecordId, o -> o));
         var dailyIncomeMap = financialIncomeDailyService.selectListByRecordIds(uid, recordIds, requestInitService.yesterday()).stream()
@@ -198,18 +195,17 @@ public class FinancialServiceImpl implements FinancialService {
 
         return financialRecords.convert(financialRecord -> {
             var holdProductVo = new HoldProductVo();
-            var product = productMap.get(financialRecord.getProductId());
             var accrueIncomeLog = Optional.ofNullable(accrueIncomeMap.get(financialRecord.getId())).orElse(new FinancialIncomeAccrue());
             var dailyIncomeLog = Optional.ofNullable(dailyIncomeMap.get(financialRecord.getId())).orElse(new FinancialIncomeDaily());
 
             holdProductVo.setRecordId(financialRecord.getId());
             holdProductVo.setName(financialRecord.getProductName());
             holdProductVo.setNameEn(financialRecord.getProductNameEn());
-            holdProductVo.setRate(product.getRate());
-            holdProductVo.setProductType(product.getType());
-            holdProductVo.setRiskType(product.getRiskType());
+            holdProductVo.setRate(financialRecord.getRate());
+            holdProductVo.setProductType(financialRecord.getProductType());
+            holdProductVo.setRiskType(financialRecord.getRiskType());
             holdProductVo.setLogo(financialRecord.getLogo());
-            holdProductVo.setCoin(product.getCoin());
+            holdProductVo.setCoin(financialRecord.getCoin());
 
             IncomeVO incomeVO = new IncomeVO();
             incomeVO.setHoldFee(financialRecord.getHoldAmount());
