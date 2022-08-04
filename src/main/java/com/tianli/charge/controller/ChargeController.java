@@ -73,7 +73,7 @@ public class ChargeController {
 
         ChainCallbackLog chainCallbackLog = chainCallbackLogService.insert(ChargeType.recharge, chain, str);
         try {
-            chargeService.rechargeCallback(str);
+            chargeService.rechargeCallback(chain,str);
             chainCallbackLog.setStatus("success");
         } catch (Exception e) {
             chainCallbackLog.setStatus("fail");
@@ -110,7 +110,7 @@ public class ChargeController {
 
         ChainCallbackLog chainCallbackLog = chainCallbackLogService.insert(ChargeType.withdraw, chain, str);
         try {
-            chargeService.withdrawCallback(str);
+            chargeService.withdrawCallback(chain,str);
             chainCallbackLog.setStatus("success");
         } catch (Exception e) {
             chainCallbackLog.setStatus("fail");

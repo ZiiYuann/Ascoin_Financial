@@ -8,6 +8,8 @@ import lombok.Getter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 代币货币类型
@@ -44,13 +46,26 @@ public enum TokenAdapter {
     private final boolean fiat;
     private final String contractAddress;
 
-    public static boolean mainToken(TokenAdapter tokenAdapter){
-        if(TokenAdapter.bnb.equals(tokenAdapter) || TokenAdapter.eth.equals(tokenAdapter) ){
-            return true;
+    /**
+     * 如果是主币，调用归集合约传递参数为 new ArrayList
+     */
+    public List<String> getContractAddressList(){
+        if(mainToken(this)){
+            return new ArrayList<>();
         }
-        return false;
+        return List.of(this.contractAddress);
     }
 
+    /**
+     * 是否是主币
+     */
+    public static boolean mainToken(TokenAdapter tokenAdapter){
+        return TokenAdapter.bnb.equals(tokenAdapter) || TokenAdapter.eth.equals(tokenAdapter);
+    }
+
+    /**
+     * 根据网络和币别获取token包装
+     */
     public static TokenAdapter get(CurrencyCoin coin, NetworkType networkType){
         for (TokenAdapter type : TokenAdapter.values()){
             if(type.getCurrencyCoin().equals(coin) && type.getNetwork().equals(networkType)){
@@ -60,7 +75,10 @@ public enum TokenAdapter {
         throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
     }
 
-    public static TokenAdapter get(String contractAddress){
+    /**
+     * 根据合约获取代币，主币会抛出异常
+     */
+    public static TokenAdapter getToken(String contractAddress){
         for (TokenAdapter type : TokenAdapter.values()){
             if(type.getContractAddress().equals(contractAddress)){
                 return type;
@@ -69,6 +87,14 @@ public enum TokenAdapter {
         throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
     }
 
+    /**
+     * 根据合约获取主币，代币会抛出异常
+     */
+    public static TokenAdapter getMainToken(CurrencyCoin coin){
+        if(CurrencyCoin.bnb.equals(coin)) return bnb;
+        if(CurrencyCoin.eth.equals(coin)) return eth;
+        throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
+    }
 
     public double alignment(BigInteger amount) {
         if (amount == null) {

@@ -153,7 +153,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         TokenAdapter tokenAdapter = TokenAdapter.get(coin, network);
 
         List<Long> addressIds = walletImputations.stream().map(WalletImputation::getAddressId).collect(Collectors.toList());
-        String hash = baseContractService.getOne(network).recycle(null,addressIds,List.of(tokenAdapter.getContractAddress()));
+        String hash = baseContractService.getOne(network).recycle(null,addressIds,tokenAdapter.getContractAddressList());
         // 事务问题如何解决？
 
         if(StringUtils.isBlank(hash)){

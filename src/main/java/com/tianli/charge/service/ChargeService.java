@@ -11,6 +11,7 @@ import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.dto.CallbackPathDTO;
 import com.tianli.chain.dto.TRONTokenReq;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.ChainService;
 import com.tianli.chain.service.WalletImputationService;
 import com.tianli.chain.service.contract.ContractAdapter;
@@ -71,13 +72,20 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      * @param str 充值信息
      */
     @Transactional
-    public void rechargeCallback(String str) {
+    public void rechargeCallback(ChainType chainType, String str) {
         var jsonArray = JSONUtil.parseObj(str).getJSONArray("token");
+        var standardCurrencyArray = JSONUtil.parseObj(str).getJSONArray("standardCurrency");
 
-        List<TRONTokenReq> tronTokenReqs = JSONUtil.toList(jsonArray, TRONTokenReq.class);
+        List<TRONTokenReq> tokenReqs = JSONUtil.toList(jsonArray, TRONTokenReq.class);
+        List<TRONTokenReq> mainTokenReqs = JSONUtil.toList(standardCurrencyArray, TRONTokenReq.class);
+        rechargeOperation(tokenReqs,chainType,false);
+        rechargeOperation(mainTokenReqs,chainType,true);
 
+    }
+
+    private void rechargeOperation(List<TRONTokenReq> tronTokenReqs,ChainType chainType,boolean mainToken) {
         for (TRONTokenReq req : tronTokenReqs) {
-            TokenAdapter tokenAdapter = TokenAdapter.get(req.getContractAddress());
+            TokenAdapter tokenAdapter = mainToken ? chainType.getTokenAdapter() : TokenAdapter.getToken(req.getContractAddress());
             Address address = getAddress(tokenAdapter.getNetwork(), req.getTo());
             Long uid = address.getUid();
             BigDecimal finalAmount = BigDecimal.valueOf(tokenAdapter.alignment(req.getValue()));
@@ -103,12 +111,19 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      * @param str 提现信息
      */
     @Transactional
-    public void withdrawCallback(String str) {
+    public void withdrawCallback(ChainType chainType,String str) {
         var jsonArray = JSONUtil.parseObj(str).getJSONArray("token");
-        List<TRONTokenReq> tronTokenReqs = JSONUtil.toList(jsonArray, TRONTokenReq.class);
+        var standardCurrencyArray = JSONUtil.parseObj(str).getJSONArray("standardCurrency");
 
+        List<TRONTokenReq> tokenReqs = JSONUtil.toList(jsonArray, TRONTokenReq.class);
+        List<TRONTokenReq> mainTokenReqs = JSONUtil.toList(standardCurrencyArray, TRONTokenReq.class);
+        withdrawOperation(tokenReqs,chainType,false);
+        withdrawOperation(mainTokenReqs,chainType,true);
+    }
+
+    private void withdrawOperation(List<TRONTokenReq> tronTokenReqs,ChainType chainType,boolean mainToken) {
         for (TRONTokenReq req : tronTokenReqs) {
-            TokenAdapter tokenAdapter = TokenAdapter.get(req.getContractAddress());
+            TokenAdapter tokenAdapter = mainToken ? chainType.getTokenAdapter() : TokenAdapter.getToken(req.getContractAddress());
             OrderChargeInfo orderChargeInfo = orderChargeInfoService.getByTxid(req.getHash());
             Long uid = orderChargeInfo.getUid();
             Order order = orderService.getOrderByHash(req.getHash());
