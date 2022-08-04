@@ -488,6 +488,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .coin(currencyCoin.getName())
                 .repayAmount(repayAmount)
                 .type(BorrowRepayType.NORMAL_REPAYMENT)
+                .status(BorrowOrderStatus.SUCCESSFUL_REPAYMENT)
                 .repayTime(LocalDateTime.now())
                 .createTime(LocalDateTime.now()).build();
 
@@ -505,7 +506,6 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             borrowCoinOrder.setWaitRepayInterest(BigDecimal.ZERO);
             borrowCoinOrder.setPledgeAmount(BigDecimal.ZERO);
             borrowCoinOrder.setPledgeRate(BigDecimal.ZERO);
-            borrowCoinOrder.setStatus(BorrowOrderStatus.SUCCESSFUL_REPAYMENT);
             borrowCoinOrder.setSettlementTime(LocalDateTime.now());
             borrowCoinOrder.setBorrowDuration(DateUtil.between(TimeTool.toDate(borrowCoinOrder.getCreateTime()) ,TimeTool.toDate(borrowCoinOrder.getSettlementTime()),DateUnit.HOUR));
             borrowCoinOrderMapper.updateById(borrowCoinOrder);
@@ -534,7 +534,6 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 repayRecord.setRepayInterest(waitRepayInterest);
 
             }
-            repayRecord.setStatus(BorrowRepayStatus.REPAYMENT);
             //计算质押率
             BigDecimal waitRepayAmount = waitRepayCapital.add(waitRepayInterest);
             BigDecimal pledgeRate = waitRepayAmount.divide(pledgeAmount,8,RoundingMode.UP);
@@ -677,6 +676,10 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         //修改订单状态
         borrowCoinOrder.setStatus(BorrowOrderStatus.FORCED_LIQUIDATION);
         borrowCoinOrder.setSettlementTime(LocalDateTime.now());
+
+        borrowCoinOrder.setWaitRepayCapital(BigDecimal.ZERO);
+        borrowCoinOrder.setPledgeAmount(BigDecimal.ZERO);
+
         borrowCoinOrderMapper.updateById(borrowCoinOrder);
         //统计每日计息订单
         borrowOrderNumDailyService.statisticalOrderNum();
