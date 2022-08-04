@@ -225,7 +225,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         /* 注册监听回调接口
          * {@link com.tianli.charge.controller.ChargeController#withdrawCallback(ChainType, String, String, String)}
          */
-        chainService.pushCondition(orderChargeInfo.getNetwork(), orderChargeInfo.getCoin()
+        chainService.pushWithdrawCondition(orderChargeInfo.getNetwork(), orderChargeInfo.getCoin()
                 , new CallbackPathDTO("/api/charge/withdraw"), orderChargeInfo.getToAddress());
 
         try {

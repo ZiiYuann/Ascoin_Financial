@@ -9,6 +9,7 @@ import com.tianli.account.mapper.AccountBalanceMapper;
 import com.tianli.account.vo.AccountBalanceMainPageVO;
 import com.tianli.account.vo.AccountBalanceSimpleVO;
 import com.tianli.account.vo.AccountBalanceVO;
+import com.tianli.address.AddressService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.async.AsyncService;
@@ -169,6 +170,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
        return getAndInit(uid,token.getCurrencyCoin());
     }
 
+    @Transactional
     public AccountBalance getAndInit(long uid, CurrencyCoin currencyCoin) {
         validCurrencyToken(currencyCoin);
         AccountBalance accountBalanceBalance = accountBalanceMapper.get(uid, currencyCoin);
@@ -194,13 +196,13 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     }
 
     /**
-     * 校验币别是否有效 暂时只支持 usdt、usdc
+     * 校验币别是否有效 暂时只支持 usdt、usdc、bnb bsc主币、eth eth主币
      *
      * @param token 币别类型
-     * @since 2022.07.08
      */
     private void validCurrencyToken(CurrencyCoin token) {
-        if (Objects.equals(token, CurrencyCoin.usdt) || Objects.equals(token, CurrencyCoin.usdc)) {
+        if (Objects.equals(token, CurrencyCoin.usdt) || Objects.equals(token, CurrencyCoin.usdc)
+                || Objects.equals(token, CurrencyCoin.bnb) || Objects.equals(token, CurrencyCoin.eth)) {
             return;
         }
         ErrorCodeEnum.CURRENCY_NOT_SUPPORT.throwException();
@@ -322,5 +324,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     private AccountConverter accountConverter;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private AddressService addressService;
 
 }
