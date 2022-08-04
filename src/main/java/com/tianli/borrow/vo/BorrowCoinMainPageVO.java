@@ -24,6 +24,8 @@ public class BorrowCoinMainPageVO {
     //质押金额
     @BigDecimalFormat
     private BigDecimal pledgeAmount;
+    //是否有历史订单
+    private Boolean hasHistoryOrder;
     //订单
     private List<BorrowOrder> borrowOrders;
     @Data

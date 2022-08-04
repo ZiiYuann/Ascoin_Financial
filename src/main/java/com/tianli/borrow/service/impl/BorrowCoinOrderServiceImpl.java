@@ -114,6 +114,10 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         //质押数额
         BigDecimal pledgeAmount = borrowCoinOrderMapper.selectPledgeAmountByUid(uid);
 
+        Integer historyOrderCount = borrowCoinOrderMapper.selectCount(new QueryWrapper<BorrowCoinOrder>().lambda()
+                .eq(BorrowCoinOrder::getUid, uid)
+                .in(BorrowCoinOrder::getStatus, BorrowOrderStatus.SUCCESSFUL_REPAYMENT, BorrowOrderStatus.FORCED_LIQUIDATION));
+
         List<BorrowCoinMainPageVO.BorrowOrder> borrowCoinOrders = borrowCoinOrderMapper.selectList(new QueryWrapper<BorrowCoinOrder>().lambda()
                 .eq(BorrowCoinOrder::getUid, uid)
                 .eq(BorrowCoinOrder::getStatus, BorrowOrderStatus.INTEREST_ACCRUAL))
@@ -123,6 +127,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .totalBorrowAmount(totalBorrowAmount)
                 .borrowAmount(borrowAmount)
                 .pledgeAmount(pledgeAmount)
+                .hasHistoryOrder(historyOrderCount > 0)
                 .borrowOrders(borrowCoinOrders).build();
     }
 

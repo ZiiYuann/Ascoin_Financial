@@ -10,7 +10,6 @@ import com.tianli.borrow.dao.BorrowInterestRecordMapper;
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.tianli.borrow.entity.BorrowInterestRecord;
 import com.tianli.common.RedisLockConstants;
-import com.tianli.common.lock.RedisLock;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -44,9 +43,6 @@ public class BorrowInterestTask {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    @Autowired
-    private RedisLock redisLock;
-
     //3.添加定时任务（每小时执行一次）
     @Scheduled(cron = "0 0 * * * ?")
     public void interestTasks() {
@@ -55,7 +51,7 @@ public class BorrowInterestTask {
         String hour = String.format("%s_%s_%s", now.getMonthValue(), now.getDayOfMonth(),now.getHour());
         String redisKey = RedisLockConstants.BORROW_INCOME_TASK + hour;
         BoundValueOperations<String, Object> operation = redisTemplate.boundValueOps(redisKey);
-        operation.setIfAbsent(0, 1, TimeUnit.HOURS);
+        operation.setIfAbsent(0, 30, TimeUnit.MINUTES);
 
         log.info("========执行计算利息定时任务========");
         while (true){
@@ -78,11 +74,10 @@ public class BorrowInterestTask {
 
     @Transactional
     public void calculateInterest(BorrowCoinOrder borrowCoinOrder, LocalDateTime now){
-        BigDecimal waitRepayCapital = borrowCoinOrder.getWaitRepayCapital();
         BigDecimal waitRepayInterest = borrowCoinOrder.getWaitRepayInterest();
         BigDecimal cumulativeInterest = borrowCoinOrder.getCumulativeInterest();
         //总待还款
-        BigDecimal totalWaitRepayAmount = waitRepayCapital.add(waitRepayInterest);
+        BigDecimal totalWaitRepayAmount = borrowCoinOrder.calculateWaitRepay();
         BigDecimal pledgeAmount = borrowCoinOrder.getPledgeAmount();
         //计算每小时利息
         BigDecimal interestRate = borrowCoinConfigMapper.getAnnualInterestRateByCoin(borrowCoinOrder.getBorrowCoin());
