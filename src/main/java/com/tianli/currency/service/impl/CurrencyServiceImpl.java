@@ -1,12 +1,15 @@
 package com.tianli.currency.service.impl;
 
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.currency.DigitalCurrencyExchange;
+import com.tianli.currency.NationalCurrencyEnum;
 import com.tianli.currency.dto.DollarAmountDTO;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.EnumMap;
@@ -19,6 +22,9 @@ import java.util.Optional;
  **/
 @Service
 public class CurrencyServiceImpl implements CurrencyService {
+
+    @Resource
+    private DigitalCurrencyExchange digitalCurrencyExchange;
 
     @Override
     public DollarAmountDTO convertDollarAmount(TokenAdapter tokenAdapter, BigDecimal amount) {
@@ -36,7 +42,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     public BigDecimal getDollarRate(CurrencyCoin currencyCoin) {
         switch (currencyCoin){
             case usdc:
-            case usdt: return BigDecimal.ONE;
+            case usdt: return BigDecimal.valueOf(digitalCurrencyExchange.usdtPrice(NationalCurrencyEnum.USD));
+            case bnb : return BigDecimal.valueOf(digitalCurrencyExchange.usdtPrice(NationalCurrencyEnum.USD))
+                    .multiply(BigDecimal.valueOf(digitalCurrencyExchange.bnbUsdtPrice()));
             default: break;
         }
         throw ErrorCodeEnum.CURRENCY_NOT_SUPPORT.generalException();

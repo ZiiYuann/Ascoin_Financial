@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  * @Date 2020/3/12 17:11
  */
 @Component
-public class DigitalCurrencyExchangeComponent {
+public class DigitalCurrencyExchange {
 
     public double ethBtcPrice() {
         BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps("ethBtcPrice");
@@ -45,6 +45,19 @@ public class DigitalCurrencyExchangeComponent {
         Object o = ops.get();
         if (o != null) return Double.valueOf(o.toString());
         String stringResult = HttpHandler.execute(new HttpRequest().setUrl("https://api.huobi.pro/market/trade?symbol=ethusdt")).getStringResult();
+        JsonObject jsonObject = new Gson().fromJson(stringResult, JsonObject.class);
+        Double aDouble = JsonObjectTool.getAsDouble(jsonObject, "tick.data[0].price");
+        if (aDouble == null) ErrorCodeEnum.NETWORK_ERROR.throwException();
+        ops.set(aDouble, 1L, TimeUnit.MINUTES);
+        return aDouble;
+
+    }
+
+    public double bnbUsdtPrice() {
+        BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps("bnbUsdtPrice");
+        Object o = ops.get();
+        if (o != null) return Double.valueOf(o.toString());
+        String stringResult = HttpHandler.execute(new HttpRequest().setUrl("https://api.huobi.pro/market/trade?symbol=bnbusdt")).getStringResult();
         JsonObject jsonObject = new Gson().fromJson(stringResult, JsonObject.class);
         Double aDouble = JsonObjectTool.getAsDouble(jsonObject, "tick.data[0].price");
         if (aDouble == null) ErrorCodeEnum.NETWORK_ERROR.throwException();

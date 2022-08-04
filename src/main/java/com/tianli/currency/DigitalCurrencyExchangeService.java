@@ -38,6 +38,6 @@ public class DigitalCurrencyExchangeService {
     }
 
     @Resource
-    private DigitalCurrencyExchangeComponent digitalCurrencyExchangeComponent;
+    private DigitalCurrencyExchange digitalCurrencyExchangeComponent;
     private static final Map<TokenAdapter, Map<TokenAdapter, DoubleSupplier>> EXCHANGE_RATE_FUNCTION = new HashMap<>();
 }
