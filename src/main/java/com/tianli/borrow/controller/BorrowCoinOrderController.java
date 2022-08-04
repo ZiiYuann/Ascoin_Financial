@@ -209,7 +209,7 @@ public class BorrowCoinOrderController {
      * @return
      */
     @PostMapping("/order/adjust/pledge")
-    @NoOperation
+    //@NoOperation
     public Result adjustPledge(@RequestBody @Valid AdjustPledgeBO bo){
         Long uid = requestInitService.uid();
         //防重复提交锁
