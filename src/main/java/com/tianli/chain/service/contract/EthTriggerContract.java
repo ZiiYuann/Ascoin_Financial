@@ -5,10 +5,6 @@ import com.google.gson.JsonObject;
 import com.tianli.chain.dto.EthGasAPIResponse;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.HttpUtils;
-import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.common.blockchain.NetworkType;
-import com.tianli.currency.enums.CurrencyAdaptType;
-import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.judge.JsonObjectTool;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +18,6 @@ import org.web3j.protocol.core.JsonRpc2_0Web3j;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -50,20 +45,7 @@ public class EthTriggerContract extends Web3jContractOperation {
 
     public String computeAddress(String walletAddress, BigInteger uid) throws IOException {
         String contractAddress = configService.get(ConfigConstants.ETH_TRIGGER_ADDRESS);
-        return super.computeAddress(walletAddress,uid,contractAddress);
-    }
-
-    public String recycle(String toAddress, CurrencyAdaptType currencyAdaptType, List<Long> addressId, List<String> erc20AddressList) {
-        return super.recycle(toAddress,currencyAdaptType
-                , configService.getOrDefault(ConfigConstants.ETH_GAS_LIMIT_PLUS, "800000")
-                ,addressId,erc20AddressList);
-    }
-
-    @Override
-    public Result transfer(String to, BigInteger val, CurrencyCoin coin) {
-        String gasLimit = configService.getOrDefault(ConfigConstants.ETH_GAS_LIMIT, "200000");
-        CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(coin, NetworkType.erc20);
-        return super.tokenTransfer(to,val,currencyAdaptType,gasLimit);
+        return super.computeAddress(walletAddress, uid, contractAddress);
     }
 
     @Override
@@ -74,12 +56,12 @@ public class EthTriggerContract extends Web3jContractOperation {
     @Override
     public String getGas() {
         EthGasAPIResponse response = ethGas();
-        if(Objects.isNull(response)){
-            return configService.getOrDefault(ConfigConstants.ETH_GAS_PRICE,"80");
+        if (Objects.isNull(response)) {
+            return configService.getOrDefault(ConfigConstants.ETH_GAS_PRICE, "80");
         }
         Double fast = response.getFast();
-        if(Objects.isNull(fast)){
-            return configService.getOrDefault(ConfigConstants.ETH_GAS_PRICE,"80");
+        if (Objects.isNull(fast)) {
+            return configService.getOrDefault(ConfigConstants.ETH_GAS_PRICE, "80");
         }
         return String.valueOf(fast);
     }
@@ -97,6 +79,21 @@ public class EthTriggerContract extends Web3jContractOperation {
     @Override
     protected Long getChainId() {
         return Long.parseLong(configService.getOrDefault(ConfigConstants.ETH_CHAIN_ID, "1"));
+    }
+
+    @Override
+    protected String getRecycleGasLimit() {
+        return configService.getOrDefault(ConfigConstants.ETH_GAS_LIMIT_PLUS, "800000");
+    }
+
+    @Override
+    protected String getTransferGasLimit() {
+        return configService.getOrDefault(ConfigConstants.ETH_GAS_LIMIT, "200000");
+    }
+
+    @Override
+    protected String getRecycleTriggerAddress() {
+        return configService.get(ConfigConstants.ETH_TRIGGER_ADDRESS);
     }
 
     /**

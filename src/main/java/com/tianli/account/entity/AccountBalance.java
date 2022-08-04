@@ -2,7 +2,6 @@ package com.tianli.account.entity;
 
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.*;
 import lombok.experimental.Accessors;
 

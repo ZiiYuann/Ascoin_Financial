@@ -25,7 +25,7 @@ class ChargeControllerTest {
         httpPost.setHeader("Content-Type", "text/plain");
         httpPost.setHeader("Sign", sign);
         httpPost.setHeader("timestamp", l + "");
-        httpPost.setEntity(new StringEntity("{\"token\": [{\"id\": 1740035149293585075, \"to\": \"0x22a646ef282b62af0391eba132c53dc208928182\", \"from\": \"0x504958caa2488691d85d5b36670dc9411f8dc383\", \"hash\": \"0xeb43f70872d8332baf233fa838bbb45c3643b124c6438dac296b881b89578abc\", \"block\": 20082396, \"value\": 3000000000000000000, \"createTime\": {\"date\": {\"day\": 2, \"year\": 2022, \"month\": 8}, \"time\": {\"hour\": 15, \"nano\": 0, \"minute\": 6, \"second\": 49}}, \"contractAddress\": \"0x55d398326f99059ff775485246999027b3197955\"}], \"standardCurrency\": []}"));
+        httpPost.setEntity(new StringEntity(""));
         client.execute(httpPost);
     }
 

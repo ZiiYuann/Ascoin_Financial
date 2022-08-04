@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
-import com.tianli.currency.enums.CurrencyAdaptType;
 import com.tianli.account.enums.AccountOperationType;
 import lombok.Builder;
 import lombok.Data;

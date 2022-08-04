@@ -1,7 +1,7 @@
 package com.tianli.deposit.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -34,7 +34,7 @@ public interface ChargeDepositMapper extends BaseMapper<ChargeDeposit> {
                                             @Param("startTime") String startTime,
                                             @Param("endTime") String endTime,
                                             @Param("chargeDepositType") ChargeDepositType chargeDepositType,
-                                            @Param("tokenCurrencyType") CurrencyAdaptType currencyAdaptType);
+                                            @Param("tokenCurrencyType") TokenAdapter tokenAdapter);
 
     @Update("UPDATE `charge_deposit` SET `complete_time`=#{complete_time},`status`=#{success},`txid`=#{txid} WHERE `id`=#{id} AND `status`=#{transacting}")
     int updateSuccess(@Param("complete_time") LocalDateTime complete_time, @Param("success") ChargeDepositStatus success,
@@ -52,7 +52,7 @@ public interface ChargeDepositMapper extends BaseMapper<ChargeDeposit> {
                                       String startTime,
                                       String endTime,
                                       ChargeDepositType chargeDepositType,
-                                      CurrencyAdaptType currencyAdaptType) {
+                                      TokenAdapter tokenAdapter) {
             SQL sql = new SQL()
                     .SELECT(" ifnull(SUM(`amount`), 0) as allAmount, " +
                             "ifnull(SUM(CASE WHEN `status` = 'transacting' OR `status` = 'created' THEN `amount` ELSE 0 END), 0) as executingAmount, " +
@@ -82,7 +82,7 @@ public interface ChargeDepositMapper extends BaseMapper<ChargeDeposit> {
             if (Objects.nonNull(chargeDepositType)) {
                 sql.WHERE(" `charge_type` = #{chargeDepositType}");
             }
-            if (Objects.nonNull(currencyAdaptType)) {
+            if (Objects.nonNull(tokenAdapter)) {
                 sql.WHERE(" `currency_type` = #{tokenCurrencyType}");
             }
             return sql.toString();

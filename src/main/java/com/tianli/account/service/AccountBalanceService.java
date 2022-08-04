@@ -14,7 +14,7 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import org.springframework.stereotype.Service;
@@ -165,7 +165,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     /**
      * 获取用户余额数据并且初始化
      */
-    public AccountBalance getAndInit(long uid, CurrencyAdaptType token) {
+    public AccountBalance getAndInit(long uid, TokenAdapter token) {
        return getAndInit(uid,token.getCurrencyCoin());
     }
 

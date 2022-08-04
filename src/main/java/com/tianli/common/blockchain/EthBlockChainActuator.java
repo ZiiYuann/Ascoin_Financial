@@ -86,45 +86,6 @@ public class EthBlockChainActuator {
         return Result.success(send);
     }
 
-    public String getPrice(){
-        EthGasAPIResponse ethgasAPIResponse = ethGas();
-        if(Objects.isNull(ethgasAPIResponse)){
-            return configService.getOrDefault(ConfigConstants.ETH_GAS_PRICE,"80");
-        }
-        Double fast = ethgasAPIResponse.getFast();
-        if(Objects.isNull(fast)){
-            return configService.getOrDefault(ConfigConstants.ETH_GAS_PRICE,"80");
-        }
-        return String.valueOf(fast);
-    }
-
-    public EthGasAPIResponse ethGas() {
-        BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps("eth_gas");
-        EthGasAPIResponse ethgasAPIResponse = (EthGasAPIResponse) ops.get();
-        if (ethgasAPIResponse != null) return ethgasAPIResponse;
-        String stringResult = null;
-        try {
-            HttpResponse httpResponse = HttpUtils.doGet("https://api.etherscan.io/api?module=gastracker&action=gasoracle", "", "", Map.of(), Map.of());
-            stringResult = EntityUtils.toString(httpResponse.getEntity());
-        } catch (Exception ignore) {
-        }
-        JsonObject jsonObject = new Gson().fromJson(stringResult, JsonObject.class);
-        Double safeGasPrice = JsonObjectTool.getAsDouble(jsonObject, "result.SafeGasPrice");
-        Double proposeGasPrice = JsonObjectTool.getAsDouble(jsonObject, "result.ProposeGasPrice");
-        Double fastGasPrice = JsonObjectTool.getAsDouble(jsonObject, "result.FastGasPrice");
-        if (safeGasPrice != null && proposeGasPrice != null && fastGasPrice != null) {
-            ethgasAPIResponse = new EthGasAPIResponse();
-            ethgasAPIResponse.setFastest(fastGasPrice);
-            ethgasAPIResponse.setFast(proposeGasPrice);
-            ethgasAPIResponse.setAverage(safeGasPrice);
-            ethgasAPIResponse.setSafeLow(safeGasPrice);
-        }
-        if (ethgasAPIResponse == null || ethgasAPIResponse.getFast() == null)
-            return null;
-        ops.set(ethgasAPIResponse, 1L, TimeUnit.MINUTES);
-        return ethgasAPIResponse;
-    }
-
     public TransactionInfo getTransactionByHash(String transactionHash) throws IOException {
         Request<?, EthTransaction> ethTransactionRequest = ethWeb3j.ethGetTransactionByHash(transactionHash);
         EthTransaction send = ethTransactionRequest.send();

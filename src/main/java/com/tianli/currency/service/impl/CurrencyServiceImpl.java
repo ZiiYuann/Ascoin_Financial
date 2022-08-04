@@ -2,7 +2,7 @@ package com.tianli.currency.service.impl;
 
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.dto.DollarAmountDTO;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import org.springframework.stereotype.Service;
@@ -21,12 +21,12 @@ import java.util.Optional;
 public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
-    public DollarAmountDTO convertDollarAmount(CurrencyAdaptType currencyAdaptType, BigDecimal amount) {
+    public DollarAmountDTO convertDollarAmount(TokenAdapter tokenAdapter, BigDecimal amount) {
         amount = Optional.ofNullable(amount).orElse(BigDecimal.ZERO);
 
         DollarAmountDTO dollarAmountDTO = new DollarAmountDTO();
         // since 2022.07.10 本期功能只支持usdt和usdt，汇率都是1
-        BigDecimal dollarRate = this.getDollarRate(currencyAdaptType.getCurrencyCoin());
+        BigDecimal dollarRate = this.getDollarRate(tokenAdapter.getCurrencyCoin());
         dollarAmountDTO.setOriginalAmount(amount);
         dollarAmountDTO.setDollarAmount(amount.multiply(dollarRate).setScale(8, RoundingMode.HALF_DOWN));
         return dollarAmountDTO;

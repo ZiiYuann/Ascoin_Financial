@@ -1,6 +1,6 @@
 package com.tianli.currency.controller;
 
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,7 +20,7 @@ public class ReceiveDailyGiftVO {
     /**
      * 代币类型
      */
-    private CurrencyAdaptType token;
+    private TokenAdapter token;
 
     /**
      * 数额

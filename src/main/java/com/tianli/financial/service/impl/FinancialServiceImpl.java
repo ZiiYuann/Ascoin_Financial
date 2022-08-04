@@ -204,12 +204,12 @@ public class FinancialServiceImpl implements FinancialService {
             var dailyIncomeLog = Optional.ofNullable(dailyIncomeMap.get(financialRecord.getId())).orElse(new FinancialIncomeDaily());
 
             holdProductVo.setRecordId(financialRecord.getId());
-            holdProductVo.setName(product.getName());
-            holdProductVo.setNameEn(product.getNameEn());
+            holdProductVo.setName(financialRecord.getProductName());
+            holdProductVo.setNameEn(financialRecord.getProductNameEn());
             holdProductVo.setRate(product.getRate());
             holdProductVo.setProductType(product.getType());
             holdProductVo.setRiskType(product.getRiskType());
-            holdProductVo.setLogo(product.getLogo());
+            holdProductVo.setLogo(financialRecord.getLogo());
             holdProductVo.setCoin(product.getCoin());
 
             IncomeVO incomeVO = new IncomeVO();

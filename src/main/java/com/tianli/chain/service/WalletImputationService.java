@@ -18,7 +18,7 @@ import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.vo.WalletImputationVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.blockchain.NetworkType;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.query.WalletImputationManualQuery;
 import com.tianli.management.query.WalletImputationQuery;
@@ -34,7 +34,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -60,12 +59,12 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
      * 通过订单插入或修改归集信息
      */
     @Transactional
-    public void insert(Long uid, Address address, CurrencyAdaptType currencyAdaptType
+    public void insert(Long uid, Address address, TokenAdapter tokenAdapter
             , TRONTokenReq tronTokenReq, BigDecimal finalAmount) {
         LocalDateTime now = LocalDateTime.now();
         LambdaQueryWrapper<WalletImputation> query = new LambdaQueryWrapper<WalletImputation>().eq(WalletImputation::getUid, uid)
-                .eq(WalletImputation::getNetwork, currencyAdaptType.getNetwork())
-                .eq(WalletImputation::getCoin, currencyAdaptType.getCurrencyCoin())
+                .eq(WalletImputation::getNetwork, tokenAdapter.getNetwork())
+                .eq(WalletImputation::getCoin, tokenAdapter.getCurrencyCoin())
                 .eq(WalletImputation::getAddress, tronTokenReq.getTo())
                 .last("for update");
 
@@ -97,8 +96,8 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         WalletImputation walletImputationInsert = WalletImputation.builder()
                 .uid(uid)
-                .network(currencyAdaptType.getNetwork())
-                .coin(currencyAdaptType.getCurrencyCoin())
+                .network(tokenAdapter.getNetwork())
+                .coin(tokenAdapter.getCurrencyCoin())
                 .addressId(address.getId())
                 .address(tronTokenReq.getTo())
                 .status(ImputationStatus.wait)
@@ -151,10 +150,10 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         }
         var coin = walletImputations.stream().map(WalletImputation::getCoin).findAny().orElseThrow();
         var network = walletImputations.stream().map(WalletImputation::getNetwork).findAny().orElseThrow();
+        TokenAdapter tokenAdapter = TokenAdapter.get(coin, network);
 
-        List<String> addresses = walletImputations.stream().map(WalletImputation::getAddress).collect(Collectors.toList());
         List<Long> addressIds = walletImputations.stream().map(WalletImputation::getAddressId).collect(Collectors.toList());
-        String hash = baseContractService.getOne(network).recycle(null, CurrencyAdaptType.get(coin,network),addressIds, addresses);
+        String hash = baseContractService.getOne(network).recycle(null,addressIds,List.of(tokenAdapter.getContractAddress()));
         // 事务问题如何解决？
 
         if(StringUtils.isBlank(hash)){

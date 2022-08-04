@@ -1,6 +1,6 @@
 package com.tianli.chain.controller;
 
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import lombok.Data;
 
 import java.math.BigInteger;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class ChainLogDTO {
     private Long id;
     private String address;
-    private CurrencyAdaptType currency_type;
+    private TokenAdapter currency_type;
     private BigInteger amount;
     private double money;
     private double cny;

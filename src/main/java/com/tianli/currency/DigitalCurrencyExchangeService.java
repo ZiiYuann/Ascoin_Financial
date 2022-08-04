@@ -1,6 +1,6 @@
 package com.tianli.currency;
 
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +18,9 @@ import java.util.function.DoubleSupplier;
 @Service
 public class DigitalCurrencyExchangeService {
 
-    public double exchange(CurrencyAdaptType source, CurrencyAdaptType dest) {
-        if(source.equals(CurrencyAdaptType.usdt_trc20)){
-            source = CurrencyAdaptType.usdt_erc20;
+    public double exchange(TokenAdapter source, TokenAdapter dest) {
+        if(source.equals(TokenAdapter.usdt_trc20)){
+            source = TokenAdapter.usdt_erc20;
         }
         if (source.equals(dest)) return 1.0;
         if (EXCHANGE_RATE_FUNCTION.containsKey(source) && EXCHANGE_RATE_FUNCTION.get(source).containsKey(dest)) {
@@ -39,5 +39,5 @@ public class DigitalCurrencyExchangeService {
 
     @Resource
     private DigitalCurrencyExchangeComponent digitalCurrencyExchangeComponent;
-    private static final Map<CurrencyAdaptType, Map<CurrencyAdaptType, DoubleSupplier>> EXCHANGE_RATE_FUNCTION = new HashMap<>();
+    private static final Map<TokenAdapter, Map<TokenAdapter, DoubleSupplier>> EXCHANGE_RATE_FUNCTION = new HashMap<>();
 }

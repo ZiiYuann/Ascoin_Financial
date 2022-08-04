@@ -2,10 +2,8 @@ package com.tianli.chain.service.contract;
 
 import com.google.protobuf.ByteString;
 import com.tianli.common.ConfigConstants;
-import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.blockchain.SignTransactionResult;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
@@ -24,24 +22,17 @@ import org.tron.protos.contract.BalanceContract;
 import org.tron.protos.contract.SmartContractOuterClass;
 import org.tron.tronj.abi.FunctionEncoder;
 import org.tron.tronj.abi.datatypes.Address;
-import org.tron.tronj.abi.datatypes.DynamicArray;
 import org.tron.tronj.abi.datatypes.Function;
 import org.tron.tronj.abi.datatypes.Uint;
 import org.tron.tronj.abi.datatypes.generated.Uint256;
 import org.tron.tronj.crypto.SECP256K1;
 import org.tron.tronj.crypto.tuweniTypes.Bytes32;
-import org.tron.tronj.utils.Base58Check;
-import org.tron.tronj.utils.Numeric;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @Author cs
@@ -85,22 +76,19 @@ public class TronTriggerContract extends AbstractContractOperation {
         return triggerSmartContract(ownerAddress, contractAddress, data, 40000000L);
     }
 
-    public String recycle(String toAddress, CurrencyAdaptType currencyAdaptType, List<Long> addressId, List<String> trc20AddressList) {
+    public String recycle(String toAddress, List<Long> addressIds, List<String> tokenContractAddresses) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
         String contractAddress = configService.getOrDefault(ConfigConstants.TRON_TRIGGER_ADDRESS, "TEuLfwtYM83r4TjkewRWFFFS1inHzdpsP2");
         if (toAddress == null || toAddress.isEmpty()) toAddress = ownerAddress;
-        String data = FunctionEncoder.encode(
-                new Function("recycle", List.of(new Address(toAddress),
-                        new DynamicArray(Uint256.class, addressId.stream().map(e -> new Uint256(new BigInteger(e + ""))).collect(Collectors.toList())),
-                        new DynamicArray(Address.class, List.of(currencyAdaptType.getContractAddress()).stream().map(Address::new).collect(Collectors.toList())))
-                        , new ArrayList<>()));
+
+        String data = super.buildRecycleData(toAddress, addressIds, tokenContractAddresses);
         return triggerSmartContract(ownerAddress, contractAddress, data, 1000000000L);
     }
 
     @Override
-    public Result transfer(String to, BigInteger val, CurrencyCoin coin) {
+    public Result tokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
-        String contractAddress = CurrencyAdaptType.get(coin, NetworkType.trc20).getContractAddress();
+        String contractAddress = tokenAdapter.getContractAddress();
         String data = org.tron.tronj.abi.FunctionEncoder.encode(
                 new org.tron.tronj.abi.datatypes.Function("transfer",
                         List.of(new org.tron.tronj.abi.datatypes.Address(to), new org.tron.tronj.abi.datatypes.generated.Uint256(val)),

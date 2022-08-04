@@ -14,7 +14,7 @@ import com.tianli.common.HttpUtils;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.common.log.LoggerHandle;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.MapBuilder;
@@ -45,14 +45,14 @@ import java.util.concurrent.TimeUnit;
 public class ChainTxService extends ServiceImpl<ChainTxMapper, ChainTx> {
     //归集
     @Transactional
-    public void collect(CurrencyAdaptType currencyAdaptType, BigInteger amount, String collect_address, long uid, BigInteger other_amount) {
+    public void collect(TokenAdapter tokenAdapter, BigInteger amount, String collect_address, long uid, BigInteger other_amount) {
         if (amount.compareTo(BigInteger.ZERO) <= 0) return;
         redisLock.lock("ChainTxService_collect_" + collect_address, 2L, TimeUnit.MINUTES);
         Integer exist = chainTxMapper.selectCount(new LambdaQueryWrapper<ChainTx>().eq(ChainTx::getStatus, ChargeStatus.chaining)
                 .eq(ChainTx::getCollect_address, collect_address));
         if (exist != null && exist > 0) return;
         String main_address = null;
-        switch (currencyAdaptType) {
+        switch (tokenAdapter) {
             case usdt_erc20:
                 main_address = configService.get("eth_address");
                 break;
@@ -65,7 +65,7 @@ public class ChainTxService extends ServiceImpl<ChainTxMapper, ChainTx> {
 
         ChainTx chainTx = ChainTx.builder().id(id).create_time(LocalDateTime.now())
                 .status(ChargeStatus.chaining).uid(uid).sn("" + CommonFunction.generalSn(id))
-                .currency_type(currencyAdaptType).amount(amount).other_amount(other_amount).main_address(main_address)
+                .currency_type(tokenAdapter).amount(amount).other_amount(other_amount).main_address(main_address)
                 .collect_address(collect_address).build();
         long insert = chainTxMapper.insert(chainTx);
         if (insert > 0) {
@@ -75,7 +75,7 @@ public class ChainTxService extends ServiceImpl<ChainTxMapper, ChainTx> {
                 String wallet_url = configService.getOrDefault("wallet_url", "https://www.twallet.pro/api");
                 String url = configService.get("url");
                 MapTool paramMap;
-                switch (currencyAdaptType) {
+                switch (tokenAdapter) {
                     case usdt_erc20:
                         paramMap = MapTool.Map().put("sn", chainTx.getSn()).put("amount", chainTx.getAmount().toString()).put("from_address",
                                 chainTx.getMain_address()).put("to_address", chainTx.getCollect_address())

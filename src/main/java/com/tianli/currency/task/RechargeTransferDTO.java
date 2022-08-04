@@ -1,7 +1,7 @@
 package com.tianli.currency.task;
 
 import com.tianli.currency.TransferGraphVO;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import lombok.Builder;
 import lombok.Data;
 
@@ -16,10 +16,10 @@ public class RechargeTransferDTO {
     private BigInteger block;
     private BigInteger value;
     private BigInteger transferTime;
-    private CurrencyAdaptType currency_type;
+    private TokenAdapter currency_type;
     private Long uid;
     private BigInteger fee;
-    private CurrencyAdaptType feeType;
+    private TokenAdapter feeType;
     private System username;
     private System nick;
 

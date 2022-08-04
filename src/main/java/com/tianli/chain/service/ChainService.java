@@ -11,7 +11,7 @@ import com.tianli.chain.enums.ChainType;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
 import lombok.extern.slf4j.Slf4j;
@@ -51,8 +51,8 @@ public class ChainService {
     }
 
     public void pushCondition(NetworkType networkType, CurrencyCoin coin, CallbackPathDTO callBackPath, String to){
-        CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(coin, networkType);
-        TxConditionReq txConditionReq = TxConditionReq.builder().contractAddress(currencyAdaptType.getContractAddress())
+        TokenAdapter tokenAdapter = TokenAdapter.get(coin, networkType);
+        TxConditionReq txConditionReq = TxConditionReq.builder().contractAddress(tokenAdapter.getContractAddress())
                 .to(to)
                 .chain(networkType.getChainType()).build();
 
@@ -73,28 +73,28 @@ public class ChainService {
         String urlPrefix = configService.get(ConfigConstants.SYSTEM_URL_PATH_PREFIX);
         String url = urlPrefix + urlPath.getPath();
         if(StringUtils.isNotBlank(bsc)){
-            TxConditionReq bscTxConditionReqUsdt = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdt_bep20.getContractAddress())
+            TxConditionReq bscTxConditionReqUsdt = TxConditionReq.builder().contractAddress(TokenAdapter.usdt_bep20.getContractAddress())
                     .to(bsc)
                     .chain(ChainType.BSC).build();
-            TxConditionReq bscTxConditionReqUsdc = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdc_bep20.getContractAddress()).to(bsc)
+            TxConditionReq bscTxConditionReqUsdc = TxConditionReq.builder().contractAddress(TokenAdapter.usdc_bep20.getContractAddress()).to(bsc)
                     .chain(ChainType.BSC).build();
             txConditionReqs.add(bscTxConditionReqUsdt);
             txConditionReqs.add(bscTxConditionReqUsdc);
         }
 
         if(StringUtils.isNotBlank(eth)){
-            TxConditionReq ethTxConditionReqUsdt = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdt_erc20.getContractAddress()).to(eth)
+            TxConditionReq ethTxConditionReqUsdt = TxConditionReq.builder().contractAddress(TokenAdapter.usdt_erc20.getContractAddress()).to(eth)
                     .chain(ChainType.ETH).build();
-            TxConditionReq ethTxConditionReqUsdc = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdc_erc20.getContractAddress()).to(eth)
+            TxConditionReq ethTxConditionReqUsdc = TxConditionReq.builder().contractAddress(TokenAdapter.usdc_erc20.getContractAddress()).to(eth)
                     .chain(ChainType.ETH).build();
             txConditionReqs.add(ethTxConditionReqUsdt);
             txConditionReqs.add(ethTxConditionReqUsdc);
         }
 
         if(StringUtils.isNotBlank(tron)){
-            TxConditionReq tronTxConditionReqUsdt = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdt_trc20.getContractAddress()).to(tron)
+            TxConditionReq tronTxConditionReqUsdt = TxConditionReq.builder().contractAddress(TokenAdapter.usdt_trc20.getContractAddress()).to(tron)
                     .chain(ChainType.TRON).build();
-            TxConditionReq tronTxConditionReqUsdc = TxConditionReq.builder().contractAddress(CurrencyAdaptType.usdc_trc20.getContractAddress()).to(tron)
+            TxConditionReq tronTxConditionReqUsdc = TxConditionReq.builder().contractAddress(TokenAdapter.usdc_trc20.getContractAddress()).to(tron)
                     .chain(ChainType.TRON).build();
             txConditionReqs.add(tronTxConditionReqUsdt);
             txConditionReqs.add(tronTxConditionReqUsdc);

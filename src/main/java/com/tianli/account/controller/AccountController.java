@@ -10,7 +10,7 @@ import com.tianli.charge.service.ChargeService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
@@ -90,8 +90,8 @@ public class AccountController {
      */
     @GetMapping("/service/amount")
     public Result serviceRate(CurrencyCoin coin, NetworkType networkType) {
-        CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(coin, networkType);
-        String amount = configService.get(currencyAdaptType.name() + "_withdraw_fixed_amount");
+        TokenAdapter tokenAdapter = TokenAdapter.get(coin, networkType);
+        String amount = configService.get(tokenAdapter.name() + "_withdraw_fixed_amount");
         HashMap<String, String> rateMap = new HashMap<>();
         rateMap.put("serviceAmount",BigDecimal.valueOf(Double.parseDouble(amount)).toString());
         return Result.success().setData(rateMap);
@@ -102,8 +102,8 @@ public class AccountController {
      */
     @GetMapping("/withdraw/limit")
     public Result withdrawLimit(CurrencyCoin coin, NetworkType networkType) {
-        CurrencyAdaptType currencyAdaptType = CurrencyAdaptType.get(coin, networkType);
-        String amount = configService.get(currencyAdaptType.name() + "_withdraw_min_amount");
+        TokenAdapter tokenAdapter = TokenAdapter.get(coin, networkType);
+        String amount = configService.get(tokenAdapter.name() + "_withdraw_min_amount");
         HashMap<String, String> rateMap = new HashMap<>();
         rateMap.put("withdrawLimitAmount",BigDecimal.valueOf(Double.parseDouble(amount)).toString());
         return Result.success().setData(rateMap);

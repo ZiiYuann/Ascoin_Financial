@@ -1,14 +1,20 @@
 package com.tianli.chain.service.contract;
 
-import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.Result;
 import org.apache.commons.lang3.StringUtils;
+import org.tron.tronj.abi.FunctionEncoder;
+import org.tron.tronj.abi.datatypes.Address;
+import org.tron.tronj.abi.datatypes.DynamicArray;
+import org.tron.tronj.abi.datatypes.Function;
+import org.tron.tronj.abi.datatypes.generated.Uint256;
 import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -36,6 +42,20 @@ public abstract class AbstractContractOperation implements ContractOperation {
         return cleanAddress.length() == 40;
     }
 
+    /**
+     * @param toAddress 归集地址
+     * @param ids Address表中的id
+     * @param tokenContractAddresses 币种合约地址列表 可以传入多个一次性归集 地址数*用户数<400 最好
+     * @return data
+     */
+    protected String buildRecycleData(String toAddress,List<Long> ids,List<String> tokenContractAddresses){
+        return  FunctionEncoder.encode(
+                new Function("recycle", List.of(new Address(toAddress),
+                        new DynamicArray<>(Uint256.class, ids.stream().map(e -> new Uint256(new BigInteger(e + ""))).collect(Collectors.toList())),
+                        new DynamicArray<>(Address.class, tokenContractAddresses.stream().map(Address::new).collect(Collectors.toList())))
+                        , new ArrayList<>()));
+    }
+
     @Override
     public boolean isValidAddress(String address) {
         throw new UnsupportedOperationException();
@@ -57,12 +77,12 @@ public abstract class AbstractContractOperation implements ContractOperation {
     }
 
     @Override
-    public String recycle(String toAddress, CurrencyAdaptType currencyAdaptType, List<Long> addressId, List<String> addresses) {
+    public String recycle(String toAddress, List<Long> addressIds,List<String> tokenContractAddresses) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Result transfer(String to, BigInteger val, CurrencyCoin coin) {
+    public Result tokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter) {
         throw new UnsupportedOperationException();
     }
 }

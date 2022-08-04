@@ -1,7 +1,7 @@
 package com.tianli.chain.service.contract;
 
 import com.google.gson.Gson;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.Result;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
@@ -10,10 +10,8 @@ import org.springframework.stereotype.Component;
 import org.web3j.abi.DefaultFunctionEncoder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Uint;
-import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.RawTransaction;
@@ -31,11 +29,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * @author chenb
@@ -54,44 +48,39 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
     /**
      * 代币转账
      */
-    protected Result tokenTransfer(String to, BigInteger val, CurrencyAdaptType currencyAdaptType, String gasLimit) {
+    public Result tokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter) {
         Result result = null;
         try {
             result = this.tokenSendRawTransaction(
                     FunctionEncoder.encode(
                             new Function("transfer", List.of(new Address(to), new Uint(val)), new ArrayList<>())
                     ),
-                    currencyAdaptType.getContractAddress(),
-                    gasLimit,
-                    String.format("转账%s", currencyAdaptType.getCurrencyCoin().getName()));
+                    tokenAdapter.getContractAddress(),
+                    getTransferGasLimit(),
+                    String.format("转账%s", tokenAdapter.getCurrencyCoin().getName()));
         } catch (Exception ignored) {
-        }
 
+        }
         return result;
     }
 
     /**
      * 归集
      */
-    protected String recycle(String toAddress, CurrencyAdaptType currencyAdaptType,String gasLimit, List<Long> addressId, List<String> addresses) {
+    public String recycle(String toAddress, List<Long> addressIds, List<String> tokenContractAddresses) {
+        toAddress = Optional.ofNullable(toAddress).orElse(this.getMainWalletAddress());
         Result result;
+
+        String data = super.buildRecycleData(toAddress, addressIds, tokenContractAddresses);
         try {
-            result = this.tokenSendRawTransaction(
-                    FunctionEncoder.encode(
-                            new Function("recycle", List.of(new Address(toAddress),
-                                    new DynamicArray<>(Uint256.class, addressId.stream().map(e -> new Uint256(new BigInteger(e + ""))).collect(Collectors.toList())),
-                                    new DynamicArray<>(Address.class, addresses.stream().map(Address::new).collect(Collectors.toList())))
-                                    , new ArrayList<>())),
-                    currencyAdaptType.getContractAddress(),
-                    gasLimit,
-                    "归集: ");
+            result = this.tokenSendRawTransaction(data, this.getRecycleTriggerAddress(), this.getRecycleGasLimit(), "归集: ");
             return (String) result.getData();
         } catch (Exception ignored) {
             return null;
         }
     }
 
-    protected String computeAddress(String walletAddress, BigInteger uid,String contractAddress) throws IOException {
+    protected String computeAddress(String walletAddress, BigInteger uid, String contractAddress) throws IOException {
         EthCall send = this.getWeb3j().ethCall(Transaction.createEthCallTransaction(null, contractAddress,
                 new DefaultFunctionEncoder().encodeFunction(
                         new Function("computeAddress", List.of(new Address(walletAddress), new Uint(uid)),
@@ -191,5 +180,12 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
      * 获取chainId
      */
     protected abstract Long getChainId();
+
+    protected abstract String getRecycleGasLimit();
+
+    protected abstract String getTransferGasLimit();
+
+    protected abstract String getRecycleTriggerAddress();
+
 
 }

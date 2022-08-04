@@ -13,21 +13,26 @@ import java.math.RoundingMode;
  * 代币货币类型
  */
 @Getter
-public enum CurrencyAdaptType {
+public enum TokenAdapter {
 
+    // 代币
     // 18位
     usdt_bep20(CurrencyCoin.usdt, NetworkType.bep20,"0x55d398326f99059ff775485246999027b3197955"),
     usdc_bep20(CurrencyCoin.usdc, NetworkType.bep20,"0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"),
-    bnb(CurrencyCoin.bnb, NetworkType.bep20,"0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"),
     // 6位
     usdc_erc20(CurrencyCoin.usdc, NetworkType.erc20,"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
     usdt_erc20(CurrencyCoin.usdt, NetworkType.erc20,"0xdac17f958d2ee523a2206206994597c13d831ec7"),
     eth(CurrencyCoin.eth,NetworkType.erc20,""),
     // 6位
     usdc_trc20(CurrencyCoin.usdc, NetworkType.trc20,"TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"),
-    usdt_trc20(CurrencyCoin.usdt, NetworkType.trc20,"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t");
+    usdt_trc20(CurrencyCoin.usdt, NetworkType.trc20,"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
 
-    CurrencyAdaptType(CurrencyCoin currencyCoin, NetworkType currencyNetworkType,String contractAddress) {
+
+    // 主币
+    bnb(CurrencyCoin.bnb,NetworkType.bep20,"0x55d398326f99059ff775485246999027b3197955");
+
+
+    TokenAdapter(CurrencyCoin currencyCoin, NetworkType currencyNetworkType, String contractAddress) {
         this.fiat = false;
         this.network = currencyNetworkType;
         this.currencyCoin = currencyCoin;
@@ -39,8 +44,8 @@ public enum CurrencyAdaptType {
     private final boolean fiat;
     private final String contractAddress;
 
-    public static CurrencyAdaptType get(CurrencyCoin coin, NetworkType networkType){
-        for (CurrencyAdaptType type : CurrencyAdaptType.values()){
+    public static TokenAdapter get(CurrencyCoin coin, NetworkType networkType){
+        for (TokenAdapter type : TokenAdapter.values()){
             if(type.getCurrencyCoin().equals(coin) && type.getNetwork().equals(networkType)){
                 return type;
             }
@@ -48,8 +53,8 @@ public enum CurrencyAdaptType {
         throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
     }
 
-    public static CurrencyAdaptType get(String contractAddress){
-        for (CurrencyAdaptType type : CurrencyAdaptType.values()){
+    public static TokenAdapter get(String contractAddress){
+        for (TokenAdapter type : TokenAdapter.values()){
             if(type.getContractAddress().equals(contractAddress)){
                 return type;
             }

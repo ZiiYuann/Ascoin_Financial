@@ -2,12 +2,10 @@ package com.tianli.account.vo;
 
 import com.tianli.common.annotation.BigDecimalFormat;
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.currency.enums.CurrencyAdaptType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bitcoinj.core.Coin;
 
 import java.math.BigDecimal;
 

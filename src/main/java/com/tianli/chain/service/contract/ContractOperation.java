@@ -1,7 +1,6 @@
 package com.tianli.chain.service.contract;
 
-import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.Result;
 
 import java.io.IOException;
@@ -25,19 +24,19 @@ public interface ContractOperation {
      * 归集接口
      * @param toAddress 归集地址 如果为null，修改为主钱包地址
      * @param addressIds Address表中的id
-     * @param addresses 归集地址列表
+     * @param tokens 代币tokens 链需要合约token
      * @return 返回交易hash
      */
-    String recycle(String toAddress, CurrencyAdaptType currencyAdaptType, List<Long> addressIds, List<String> addresses);
+    String recycle(String toAddress, List<Long> addressIds,List<String> tokens);
 
     /**
-     * 转账
+     * 代币转账
      * @param to 发送地址
-     * @param coin 币别
      * @param val 转账数额
+     * @param tokenAdapter 代币包装
      * @return 交易结果
      */
-    Result transfer(String to, BigInteger val, CurrencyCoin coin);
+    Result tokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter);
 
     /**
      * 校验地址是否有效

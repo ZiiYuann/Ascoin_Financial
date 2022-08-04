@@ -1,7 +1,7 @@
 package com.tianli.chain.controller;
 
 import com.tianli.charge.enums.ChargeStatus;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import lombok.Data;
 
 import java.math.BigInteger;
@@ -19,7 +19,7 @@ public class ChainTxDTO {
     private ChargeStatus status;
     private Long uid;
     private String sn;
-    private CurrencyAdaptType currency_type;
+    private TokenAdapter currency_type;
     private BigInteger amount;
     private double money;
     private double cny;

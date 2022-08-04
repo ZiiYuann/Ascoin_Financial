@@ -1,7 +1,7 @@
 package com.tianli.deposit;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.deposit.mapper.*;
 import org.springframework.stereotype.Service;
 
@@ -20,11 +20,11 @@ import java.util.Map;
 @Service
 public class ChargeDepositService extends ServiceImpl<ChargeDepositMapper, ChargeDeposit> {
 
-    public Map<String, BigDecimal> getSumAmount(String nike, String phone, String txid, ChargeDepositStatus status, String type, String startTime, String endTime, ChargeDepositType chargeDepositType, CurrencyAdaptType currencyAdaptType) {
-        return baseMapper.selectSumAmount(nike, phone, txid, status, type, startTime, endTime, chargeDepositType, currencyAdaptType);
+    public Map<String, BigDecimal> getSumAmount(String nike, String phone, String txid, ChargeDepositStatus status, String type, String startTime, String endTime, ChargeDepositType chargeDepositType, TokenAdapter tokenAdapter) {
+        return baseMapper.selectSumAmount(nike, phone, txid, status, type, startTime, endTime, chargeDepositType, tokenAdapter);
     }
-    public Map<String, BigDecimal> getSumAmount(String nike, String phone, ChargeDepositStatus status, String type, String startTime, String endTime, ChargeDepositType chargeDepositType, CurrencyAdaptType currencyAdaptType) {
-        return getSumAmount(nike, phone, null, status, type, startTime, endTime, chargeDepositType, currencyAdaptType);
+    public Map<String, BigDecimal> getSumAmount(String nike, String phone, ChargeDepositStatus status, String type, String startTime, String endTime, ChargeDepositType chargeDepositType, TokenAdapter tokenAdapter) {
+        return getSumAmount(nike, phone, null, status, type, startTime, endTime, chargeDepositType, tokenAdapter);
     }
 
     public boolean success(LocalDateTime now, ChargeDepositStatus transaction_success, String txid, Long id, ChargeDepositStatus transacting) {

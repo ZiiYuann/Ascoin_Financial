@@ -1,6 +1,6 @@
 package com.tianli.chain.service;
 
-import com.tianli.currency.enums.CurrencyAdaptType;
+import com.tianli.currency.enums.TokenAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,6 +13,6 @@ import java.math.BigInteger;
 @NoArgsConstructor
 @Builder
 public class StatCollectAmount {
-    private CurrencyAdaptType currency_type;
+    private TokenAdapter currency_type;
     private BigInteger total_amount;
 }
