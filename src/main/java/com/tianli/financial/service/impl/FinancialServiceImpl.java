@@ -75,13 +75,13 @@ public class FinancialServiceImpl implements FinancialService {
         BigDecimal personUse = financialRecordService.getUseQuota(List.of(productId), uid).getOrDefault(productId, BigDecimal.ZERO);
 
 
-        if(product.getPersonQuota() != null &&  product.getPersonQuota().compareTo(BigDecimal.ZERO) >0 &&
-                purchaseQuery.getAmount().add(personUse).compareTo(product.getPersonQuota()) > 0){
+        if (product.getPersonQuota() != null && product.getPersonQuota().compareTo(BigDecimal.ZERO) > 0 &&
+                purchaseQuery.getAmount().add(personUse).compareTo(product.getPersonQuota()) > 0) {
             ErrorCodeEnum.throwException("用户申购金额超过个人限额");
         }
 
-        if(product.getTotalQuota() != null &&  product.getTotalQuota().compareTo(BigDecimal.ZERO) >0 &&
-                purchaseQuery.getAmount().add(totalUse).compareTo(product.getTotalQuota()) > 0){
+        if (product.getTotalQuota() != null && product.getTotalQuota().compareTo(BigDecimal.ZERO) > 0 &&
+                purchaseQuery.getAmount().add(totalUse).compareTo(product.getTotalQuota()) > 0) {
             ErrorCodeEnum.throwException("用户申购金额超过总限购额");
         }
 
@@ -102,7 +102,7 @@ public class FinancialServiceImpl implements FinancialService {
         // 减少余额
         accountBalanceService.withdraw(uid, ChargeType.purchase, product.getCoin(), amount, order.getOrderNo(), CurrencyLogDes.申购.name());
         // 确认完毕后生成申购记录
-        FinancialRecord financialRecord = financialRecordService.generateFinancialRecord(uid, product, amount,purchaseQuery.isAutoCurrent());
+        FinancialRecord financialRecord = financialRecordService.generateFinancialRecord(uid, product, amount, purchaseQuery.isAutoCurrent());
         // 修改订单状态
         order.setStatus(ChargeStatus.chain_success);
         order.setRelatedId(financialRecord.getId());
@@ -350,6 +350,8 @@ public class FinancialServiceImpl implements FinancialService {
         var list = financialProductService.page(page, query);
         List<Long> productId = list.getRecords().stream().map(FinancialProduct::getId).distinct().collect(Collectors.toList());
 
+        Boolean isNewUser = financialRecordService.isNewUser(requestInitService.uid());
+
         Map<Long, BigDecimal> useQuotaMap = financialRecordService.getUseQuota(productId);
         Map<Long, BigDecimal> usePersonQuotaMap = financialRecordService.getUseQuota(productId, requestInitService.uid());
         return list.convert(product -> {
@@ -373,8 +375,11 @@ public class FinancialServiceImpl implements FinancialService {
             if (Objects.isNull(product.getPersonQuota()) && Objects.nonNull(product.getTotalQuota())) {
                 financialProductVO.setAllowPurchase(useQuota.compareTo(product.getTotalQuota()) < 0);
             }
+            if (BusinessType.benefits.equals(product.getBusinessType()) && !isNewUser ){
+                financialProductVO.setAllowPurchase(false);
+            }
 
-            return financialProductVO;
+                return financialProductVO;
         });
     }
 

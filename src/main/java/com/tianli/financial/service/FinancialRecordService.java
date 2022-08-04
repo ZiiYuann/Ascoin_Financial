@@ -74,6 +74,12 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         return Optional.ofNullable(financialRecordMapper.selectList(query)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
     }
 
+    public Boolean isNewUser(Long uid){
+        FinancialRecord record = financialRecordMapper
+                .selectOne(new LambdaQueryWrapper<FinancialRecord>().eq(FinancialRecord::getUid, uid).last("limit 1"));
+        return Objects.isNull(record);
+    }
+
     /**
      * 获取不同产品已经使用的总额度
      */
