@@ -30,8 +30,8 @@ public enum TokenAdapter {
 
 
     // 主币
-    bnb(CurrencyCoin.bnb,NetworkType.bep20,""),
-    eth(CurrencyCoin.eth,NetworkType.erc20,"");
+    bnb(CurrencyCoin.bnb,NetworkType.bep20,"0x000000"),
+    eth(CurrencyCoin.eth,NetworkType.erc20,"0x000000");
 
 
     TokenAdapter(CurrencyCoin currencyCoin, NetworkType currencyNetworkType, String contractAddress) {
@@ -109,6 +109,8 @@ public enum TokenAdapter {
                 return decimal.divide(new BigDecimal("1000000"),8, RoundingMode.HALF_DOWN).doubleValue();
             case usdt_bep20:
             case usdc_bep20:
+            case bnb:
+            case eth:
                 return decimal.divide(new BigDecimal("1000000000000000000"),8, RoundingMode.HALF_DOWN).doubleValue();
         }
         return 0.0;

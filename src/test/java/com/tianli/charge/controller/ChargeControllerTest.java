@@ -25,7 +25,7 @@ class ChargeControllerTest {
         httpPost.setHeader("Content-Type", "text/plain");
         httpPost.setHeader("Sign", sign);
         httpPost.setHeader("timestamp", l + "");
-        httpPost.setEntity(new StringEntity(""));
+        httpPost.setEntity(new StringEntity("{\"token\": [], \"standardCurrency\": [{\"id\": 1740199879938210893, \"to\": \"0x3a0fa8e74394abe35ab01c4b307a9892dfeb63af\", \"from\": \"0x4098b66ff83bf99bc9c81a68be7b045c79ebbb97\", \"hash\": \"0x1124988bb43d08ac16541e2c458f43c8a3642990e6a3cfd1a9523643dd36cf71\", \"block\": 20135636, \"nonce\": 4, \"value\": 40000000000000000, \"status\": 1, \"gasUsed\": 21000, \"gasPrice\": 5000000000, \"createTime\": {\"date\": {\"day\": 4, \"year\": 2022, \"month\": 8}, \"time\": {\"hour\": 11, \"nano\": 0, \"minute\": 31, \"second\": 52}}}]}"));
         client.execute(httpPost);
     }
 

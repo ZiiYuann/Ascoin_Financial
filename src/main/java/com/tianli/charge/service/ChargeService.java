@@ -47,6 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -84,8 +85,11 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     }
 
     private void rechargeOperation(List<TRONTokenReq> tronTokenReqs,ChainType chainType,boolean mainToken) {
+        if(CollectionUtils.isEmpty(tronTokenReqs)){
+            return;
+        }
         for (TRONTokenReq req : tronTokenReqs) {
-            TokenAdapter tokenAdapter = mainToken ? chainType.getTokenAdapter() : TokenAdapter.getToken(req.getContractAddress());
+            TokenAdapter tokenAdapter = mainToken ? ChainType.getTokenAdapter(chainType) : TokenAdapter.getToken(req.getContractAddress());
             Address address = getAddress(tokenAdapter.getNetwork(), req.getTo());
             Long uid = address.getUid();
             BigDecimal finalAmount = BigDecimal.valueOf(tokenAdapter.alignment(req.getValue()));
@@ -122,8 +126,11 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     }
 
     private void withdrawOperation(List<TRONTokenReq> tronTokenReqs,ChainType chainType,boolean mainToken) {
+        if(CollectionUtils.isEmpty(tronTokenReqs)){
+            return;
+        }
         for (TRONTokenReq req : tronTokenReqs) {
-            TokenAdapter tokenAdapter = mainToken ? chainType.getTokenAdapter() : TokenAdapter.getToken(req.getContractAddress());
+            TokenAdapter tokenAdapter = mainToken ? ChainType.getTokenAdapter(chainType) : TokenAdapter.getToken(req.getContractAddress());
             OrderChargeInfo orderChargeInfo = orderChargeInfoService.getByTxid(req.getHash());
             Long uid = orderChargeInfo.getUid();
             Order order = orderService.getOrderByHash(req.getHash());

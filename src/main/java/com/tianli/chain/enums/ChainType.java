@@ -1,20 +1,25 @@
 package com.tianli.chain.enums;
 
 import com.tianli.currency.enums.TokenAdapter;
+import com.tianli.exception.ErrorCodeEnum;
 import lombok.Getter;
 
 /**
  * 链类型
  */
+@Getter
 public enum ChainType {
-    BSC(TokenAdapter.bnb),
-    ETH(TokenAdapter.eth),
-    TRON(null);
+    BSC,
+    ETH,
+    TRON;
 
-    @Getter
-    private TokenAdapter tokenAdapter;
 
-    ChainType(TokenAdapter tokenAdapter){
-        this.tokenAdapter = tokenAdapter;
+    public static TokenAdapter getTokenAdapter(ChainType chainType){
+        if(ChainType.BSC.equals(chainType)) return TokenAdapter.bnb;
+        if(ChainType.ETH.equals(chainType)) return TokenAdapter.eth;
+        throw ErrorCodeEnum.NOT_OPEN.generalException();
     }
+
+
+
 }

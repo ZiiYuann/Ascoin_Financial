@@ -46,8 +46,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void freeze(long uid, ChargeType type,CurrencyCoin coin, BigDecimal amount, String sn, String des) {
-        freeze(uid, type, coin,null, amount, sn, des);
+    public void freeze(long uid, ChargeType type, CurrencyCoin coin, BigDecimal amount, String sn, String des) {
+        freeze(uid, type, coin, null, amount, sn, des);
     }
 
     /**
@@ -58,8 +58,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void reduce(long uid, ChargeType type,CurrencyCoin coin, BigDecimal amount, String sn, String des) {
-        reduce(uid, type,coin,null, amount, sn, des);
+    public void reduce(long uid, ChargeType type, CurrencyCoin coin, BigDecimal amount, String sn, String des) {
+        reduce(uid, type, coin, null, amount, sn, des);
     }
 
     /**
@@ -70,52 +70,53 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void increase(long uid, ChargeType type,CurrencyCoin coin, BigDecimal amount, String sn, String des) {
-        increase(uid, type, coin,null, amount, sn, des);
+    public void increase(long uid, ChargeType type, CurrencyCoin coin, BigDecimal amount, String sn, String des) {
+        increase(uid, type, coin, null, amount, sn, des);
     }
 
     @Transactional
     public void increase(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
-        increase(uid, type, coin,networkType, amount, sn, des,AccountOperationType.increase);
+        increase(uid, type, coin, networkType, amount, sn, des, AccountOperationType.increase);
     }
 
     @Transactional
-    public void increase(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des,AccountOperationType accountOperationType) {
+    public void increase(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des, AccountOperationType accountOperationType) {
         getAndInit(uid, coin);
 
-        if (accountBalanceMapper.increase(uid, amount,coin) <= 0L) {
+        if (accountBalanceMapper.increase(uid, amount, coin) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance,type,coin,networkType, accountOperationType, amount, sn, des);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, accountOperationType, amount, sn, des);
     }
 
     @Transactional
     public void reduce(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
         getAndInit(uid, coin);
 
-        if (accountBalanceMapper.reduce(uid, amount,coin) <= 0L) {
+        if (accountBalanceMapper.reduce(uid, amount, coin) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance,type,coin,networkType ,AccountOperationType.reduce, amount, sn, des);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.reduce, amount, sn, des);
     }
 
     @Transactional
-    public void withdraw(long uid, ChargeType type, CurrencyCoin coin, BigDecimal amount, String sn, String des){
-        withdraw(uid,type,coin,null,amount,sn,des);
+    public void withdraw(long uid, ChargeType type, CurrencyCoin coin, BigDecimal amount, String sn, String des) {
+        withdraw(uid, type, coin, null, amount, sn, des);
     }
 
     @Transactional
     public void withdraw(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType,
-                         BigDecimal amount, String sn, String des,AccountOperationType accountOperationType){
+                         BigDecimal amount, String sn, String des, AccountOperationType accountOperationType) {
         getAndInit(uid, coin);
-        if (accountBalanceMapper.withdraw(uid, amount,coin) <= 0L) {
+        if (accountBalanceMapper.withdraw(uid, amount, coin) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance,type,coin,networkType, accountOperationType, amount, sn, des);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, accountOperationType, amount, sn, des);
     }
+
     /**
      * 扣除可用金额
      *
@@ -125,18 +126,18 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      */
     @Transactional
     public void withdraw(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
-        withdraw(uid,type,coin, networkType, amount, sn, des,AccountOperationType.withdraw);
+        withdraw(uid, type, coin, networkType, amount, sn, des, AccountOperationType.withdraw);
     }
 
     @Transactional
     public void freeze(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
         getAndInit(uid, coin);
 
-        if (accountBalanceMapper.freeze(uid, amount,coin) <= 0L) {
+        if (accountBalanceMapper.freeze(uid, amount, coin) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance,type,coin,networkType, AccountOperationType.freeze, amount, sn, des);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.freeze, amount, sn, des);
 
     }
 
@@ -151,23 +152,23 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     public void unfreeze(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
         getAndInit(uid, coin);
 
-        if (accountBalanceMapper.unfreeze(uid, amount,coin) <= 0L) {
+        if (accountBalanceMapper.unfreeze(uid, amount, coin) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
 
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance,type,coin,networkType, AccountOperationType.unfreeze, amount, sn, des);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.unfreeze, amount, sn, des);
     }
 
     public void unfreeze(long uid, ChargeType type, CurrencyCoin coin, BigDecimal amount, String sn, String des) {
-        unfreeze(uid,type,coin,null,amount,sn,des);
+        unfreeze(uid, type, coin, null, amount, sn, des);
     }
 
     /**
      * 获取用户余额数据并且初始化
      */
     public AccountBalance getAndInit(long uid, TokenAdapter token) {
-       return getAndInit(uid,token.getCurrencyCoin());
+        return getAndInit(uid, token.getCurrencyCoin());
     }
 
     @Transactional
@@ -185,7 +186,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
                     .remain(BigDecimal.ZERO)
                     .build();
             final AccountBalance accountBalanceBalanceFinal = accountBalanceBalance;
-            asyncService.async(() -> accountBalanceMapper.insert(accountBalanceBalanceFinal));
+            accountBalanceMapper.insert(accountBalanceBalanceFinal);
         }
         return accountBalanceBalance;
     }
@@ -225,7 +226,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         List<String> coinNames = CurrencyCoin.getNameList();
         coinNames.removeAll(existCoinNames);
 
-        for(String coin : coinNames){
+        for (String coin : coinNames) {
             accountBalanceVOS.add(AccountBalanceVO.getDefault(coin));
         }
 
@@ -239,7 +240,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         return accountBalanceVOS(uid);
     }
 
-    public List<AccountBalanceVO> accountBalanceVOS(Long uid){
+    public List<AccountBalanceVO> accountBalanceVOS(Long uid) {
         List<AccountBalance> accountBalances = Optional.ofNullable(this.list(uid)).orElse(new ArrayList<>());
 
         Map<CurrencyCoin, BigDecimal> currencyDollarRateMap = accountBalances.stream()
@@ -267,8 +268,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         return accountBalanceVOS;
     }
 
-    public AccountBalanceVO getVO(Long uid, CurrencyCoin currencyCoin){
-        AccountBalanceVO accountBalanceVO = accountConverter.toVO(this.getAndInit(uid,currencyCoin));
+    public AccountBalanceVO getVO(Long uid, CurrencyCoin currencyCoin) {
+        AccountBalanceVO accountBalanceVO = accountConverter.toVO(this.getAndInit(uid, currencyCoin));
         BigDecimal dollarRate = currencyService.getDollarRate(accountBalanceVO.getCoin());
 
         accountBalanceVO.setDollarRate(dollarRate);
@@ -282,7 +283,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     /**
      * 获取用户云钱包余额数据
      */
-    public Map<Long,BigDecimal> getSummaryBalanceAmount(List<Long> uids){
+    public Map<Long, BigDecimal> getSummaryBalanceAmount(List<Long> uids) {
 
         LambdaQueryWrapper<AccountBalance> balanceQuery = new LambdaQueryWrapper<AccountBalance>().in(AccountBalance::getUid, uids);
         List<AccountBalance> accountBalances = accountBalanceMapper.selectList(balanceQuery);
@@ -302,10 +303,10 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         ));
     }
 
-    public List<AccountBalanceSimpleVO> getTotalSummaryData(){
+    public List<AccountBalanceSimpleVO> getTotalSummaryData() {
         EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
         List<AccountBalanceSimpleVO> accountBalanceSimpleVOS = baseMapper.listAccountBalanceSimpleVO();
-        accountBalanceSimpleVOS.stream().forEach( accountBalanceSimpleVO -> {
+        accountBalanceSimpleVOS.stream().forEach(accountBalanceSimpleVO -> {
             BigDecimal rate = dollarRateMap.get(accountBalanceSimpleVO.getCoin());
             accountBalanceSimpleVO.setDollarRate(rate);
             accountBalanceSimpleVO.setBalanceDollarAmount(accountBalanceSimpleVO.getBalanceAmount().multiply(rate));
