@@ -557,7 +557,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 borrowCoinOrder.setRepayAmount(borrowCoinOrder.getRepayAmount().add(repayAmount));
                 borrowCoinOrder.setWaitRepayCapital(waitRepayCapital);
                 borrowCoinOrder.setWaitRepayInterest(waitRepayInterest);
-                borrowCoinOrder.setPledgeAmount(pledgeRate);
+                borrowCoinOrder.setPledgeAmount(pledgeAmount);
             }
             borrowCoinOrder.setPledgeRate(pledgeRate);
             borrowCoinOrderMapper.updateById(borrowCoinOrder);
