@@ -1,6 +1,5 @@
 package com.tianli.common.lock;
 
-import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.ErrorCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
