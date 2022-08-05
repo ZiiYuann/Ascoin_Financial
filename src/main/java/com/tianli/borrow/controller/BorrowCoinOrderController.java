@@ -79,6 +79,7 @@ public class BorrowCoinOrderController {
         status.add(BorrowOrderStatus.FORCED_LIQUIDATION);
         query.setStatus(status);
         query.setUid(uid);
+        query.setOrderColumn("borrow_time");
         IPage<BorrowCoinOrderVO> borrowCoinOrderVOIPage = borrowCoinOrderService.pageList(pageQuery, query);
         return Result.success(borrowCoinOrderVOIPage);
     }
@@ -180,7 +181,7 @@ public class BorrowCoinOrderController {
      * @return
      */
     @PostMapping("/order/repay")
-    //@NoOperation
+    @NoOperation
     @NoRepeatSubmit
     public Result orderRepay(@RequestBody @Valid BorrowOrderRepayBO bo){
         Long uid = requestInitService.uid();

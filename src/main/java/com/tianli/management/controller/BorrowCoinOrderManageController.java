@@ -57,6 +57,7 @@ public class BorrowCoinOrderManageController {
      */
     @GetMapping("/order/record")
     public Result pledgeRecord(PageQuery<BorrowCoinOrder> pageQuery, BorrowOrderQuery query){
+        query.setOrderColumn("settlement_time");
         IPage<BorrowCoinOrderVO> page = borrowCoinOrderService.pageList(pageQuery, query);
         return Result.success(page);
     }
