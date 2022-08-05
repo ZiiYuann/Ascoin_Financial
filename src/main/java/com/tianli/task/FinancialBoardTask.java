@@ -3,12 +3,8 @@ package com.tianli.task;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.tianli.address.AddressService;
-import com.tianli.charge.enums.ChargeType;
-import com.tianli.charge.query.ServiceAmountQuery;
 import com.tianli.charge.service.OrderService;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.ErrCodeException;
-import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.service.FinancialIncomeAccrueService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.management.entity.FinancialBoardProduct;
@@ -21,8 +17,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Optional;
@@ -92,10 +86,9 @@ public class FinancialBoardTask {
 
 //        ========================== 云钱包数据看板 ==========================
         FinancialBoardWallet financialBoardWallet = financialBoardWalletService.getByDate(yesterdayBegin.toLocalDate());
-        financialBoardWalletService.getFinancialBoardWallet(todayBegin, yesterdayBegin, financialBoardWallet);
+        financialBoardWalletService.getFinancialBoardWallet(yesterdayBegin, todayBegin, financialBoardWallet);
         financialBoardWalletService.updateById(financialBoardWallet);
     }
-
 
 
 }

@@ -16,7 +16,6 @@ import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.mapper.FinancialBoardWalletMapper;
 import com.tianli.management.query.FinancialBoardQuery;
-import com.tianli.management.vo.FinancialProductBoardVO;
 import com.tianli.management.vo.FinancialWalletBoardSummaryVO;
 import com.tianli.management.vo.FinancialWalletBoardVO;
 import com.tianli.tool.time.TimeTool;
@@ -43,16 +42,16 @@ import java.util.stream.Collectors;
 public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalletMapper, FinancialBoardWallet> {
 
 
-    public FinancialBoardWallet getFinancialBoardWallet(LocalDateTime todayBegin, LocalDateTime yesterdayBegin, FinancialBoardWallet financialBoardWallet) {
+    public FinancialBoardWallet getFinancialBoardWallet(LocalDateTime startTime, LocalDateTime entTime , FinancialBoardWallet financialBoardWallet) {
         financialBoardWallet = Optional.ofNullable(financialBoardWallet).orElse(FinancialBoardWallet.getDefault());
         ServiceAmountQuery serviceAmountQuery = new ServiceAmountQuery();
-        serviceAmountQuery.setStartTime(yesterdayBegin);
-        serviceAmountQuery.setEndTime(todayBegin);
+        serviceAmountQuery.setStartTime(startTime);
+        serviceAmountQuery.setEndTime(entTime);
         serviceAmountQuery.setChargeType(ChargeType.withdraw);
-        BigDecimal rechargeAmount = orderService.amountSumByCompleteTime(ChargeType.recharge, yesterdayBegin, todayBegin);
-        BigDecimal withdrawAmount = orderService.amountSumByCompleteTime(ChargeType.withdraw, yesterdayBegin, todayBegin);
+        BigDecimal rechargeAmount = orderService.amountSumByCompleteTime(ChargeType.recharge, startTime, entTime);
+        BigDecimal withdrawAmount = orderService.amountSumByCompleteTime(ChargeType.withdraw, startTime, entTime);
 
-        BigInteger activeWalletCount = addressService.activeCount(yesterdayBegin, todayBegin);
+        BigInteger activeWalletCount = addressService.activeCount(startTime, entTime);
         // 暂时只有提币存在手续费
         BigDecimal totalServiceAmount = orderService.serviceAmountSumByCompleteTime(serviceAmountQuery);
         serviceAmountQuery.setCoin(CurrencyCoin.usdt);
@@ -91,15 +90,24 @@ public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalle
                 .between(FinancialBoardWallet::getCreateTime, dateTime.plusDays(-14), dateTime);
 
 
-        int offsetDay = -14;
+        int offsetDay = -13;
         //获取14天前零点时间
         //构建十四天的数据
         Map<String, FinancialWalletBoardVO> financialWalletBoardVOMap = new LinkedHashMap<>();
-        for (int i = offsetDay; i < 0; i++) {
+        for (int i = offsetDay; i <= 0; i++) {
             DateTime time = DateUtil.offsetDay(new Date(), i);
             String dateTimeStr = DateUtil.format(time, "yyyy-MM-dd");
             financialWalletBoardVOMap.put(dateTimeStr, FinancialWalletBoardVO.getDefault(time.toLocalDateTime().toLocalDate()));
         }
+
+        LocalDateTime todayBegin = TimeTool.minDay(LocalDateTime.now());
+        LocalDateTime todayEnd = todayBegin.plusDays(1);
+        String todayFormat = todayBegin.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        // 本日数据
+        FinancialBoardWallet financialBoardWalletToday = getFinancialBoardWallet(todayBegin,todayEnd , null);
+        financialBoardWalletToday.setCreateTime(todayBegin.toLocalDate());
+        financialWalletBoardVOMap.put(todayFormat,managementConverter.toVO(financialBoardWalletToday));
 
         Optional.ofNullable(financialWalletBoardMapper.selectList(walletBoardQuery)).orElse(new ArrayList<>())
                 .stream().forEach(financialBoardWallet -> {

@@ -4,7 +4,6 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.borrow.vo.BorrowOrderStatisticsChartVO;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.RedisLockConstants;
@@ -118,15 +117,23 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
                 .between(FinancialBoardProduct::getCreateTime, dateTime.plusDays(-14), dateTime);
         List<FinancialBoardProduct> financialBoardProducts = financialProductBoardMapper.selectList(boardQuery);
 
-        int offsetDay = -14;
+        int offsetDay = -13;
         //获取14天前零点时间
         //构建十四天的数据
         Map<String, FinancialProductBoardVO> financialProductBoardVOMap = new LinkedHashMap<>();
-        for (int i = offsetDay; i < 0; i++) {
+        for (int i = offsetDay; i <= 0; i++) {
             DateTime time = DateUtil.offsetDay(new Date(), i);
             String dateTimeStr = DateUtil.format(time, "yyyy-MM-dd");
             financialProductBoardVOMap.put(dateTimeStr, FinancialProductBoardVO.getDefault(time.toLocalDateTime().toLocalDate()));
         }
+        LocalDateTime todayBegin = TimeTool.minDay(LocalDateTime.now());
+        LocalDateTime todayEnd = todayBegin.plusDays(1);
+        String todayFormat = todayBegin.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        // 本日数据
+        FinancialBoardProduct financialBoardProductToday = getFinancialBoardProduct(todayEnd, todayBegin, null);
+        financialBoardProductToday.setCreateTime(todayBegin.toLocalDate());
+        financialProductBoardVOMap.put(todayFormat, managementConverter.toVO(financialBoardProductToday));
 
         Optional.ofNullable(financialBoardProducts)
                 .orElse(new ArrayList<>()).stream().forEach(financialBoardProduct -> {
