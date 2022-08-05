@@ -120,7 +120,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
         List<BorrowCoinMainPageVO.BorrowOrder> borrowCoinOrders = borrowCoinOrderMapper.selectList(new QueryWrapper<BorrowCoinOrder>().lambda()
                 .eq(BorrowCoinOrder::getUid, uid)
-                .eq(BorrowCoinOrder::getStatus, BorrowOrderStatus.INTEREST_ACCRUAL))
+                .eq(BorrowCoinOrder::getStatus, BorrowOrderStatus.INTEREST_ACCRUAL)
+                .orderByDesc(BorrowCoinOrder::getBorrowTime))
                 .stream().map(borrowConverter::toMainVO).collect(Collectors.toList());
         return BorrowCoinMainPageVO.builder()
                 .totalDepositAmount(totalHoldAmount)
