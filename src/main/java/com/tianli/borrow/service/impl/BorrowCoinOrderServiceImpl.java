@@ -790,7 +790,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .completeTime(LocalDateTime.now())
                 .amount(amount)
                 .status(ChargeStatus.chain_success)
-                .type(ChargeType.pledge)
+                .type(ChargeType.release)
                 .coin(coin)
                 .createTime(LocalDateTime.now())
                 .relatedId(orderId)
