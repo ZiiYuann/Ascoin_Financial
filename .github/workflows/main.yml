@@ -1,31 +1,33 @@
+# This is a basic workflow to help you get started with Actions
+
 name: financial
 
+# Controls when the action will run.
 on:
+  # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ mian ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up JDK 11
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '11'
           distribution: 'temurin'
-          cache: maven
       - name: Build with Maven
         run: mvn -B package -DskipTests --file pom.xml
       - uses: kciter/aws-ecr-action@master
         with:
-          access_key_id: AKIAZYZHBHKSZUCLHWXV
-          secret_access_key: "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"
-          account_id: "671707380389"
+          access_key_id: AKIATKF6SDNP3KUWPL7G
+          secret_access_key: "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"
+          account_id: "228032912223"
           repo: financial
           region: ap-northeast-1
           tags: latest
