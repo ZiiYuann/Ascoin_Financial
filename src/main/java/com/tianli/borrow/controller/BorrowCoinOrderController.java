@@ -79,7 +79,7 @@ public class BorrowCoinOrderController {
         status.add(BorrowOrderStatus.FORCED_LIQUIDATION);
         query.setStatus(status);
         query.setUid(uid);
-        query.setOrderColumn("borrow_time");
+        query.setOrderColumn("settlement_time");
         IPage<BorrowCoinOrderVO> borrowCoinOrderVOIPage = borrowCoinOrderService.pageList(pageQuery, query);
         return Result.success(borrowCoinOrderVOIPage);
     }

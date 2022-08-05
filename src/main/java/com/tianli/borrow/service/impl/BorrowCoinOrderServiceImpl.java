@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -146,11 +147,11 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             lambdaQueryWrapper.in(BorrowCoinOrder::getStatus, query.getStatus());
         }
 
-        if(Objects.nonNull(query.getQueryUid())){
+        if(StrUtil.isNotEmpty(query.getQueryUid())){
             lambdaQueryWrapper.like(BorrowCoinOrder::getUid,query.getQueryUid());
         }
 
-        if(Objects.nonNull(query.getQueryOrderId())){
+        if(StrUtil.isNotEmpty(query.getQueryOrderId())){
             lambdaQueryWrapper.like(BorrowCoinOrder::getId,query.getQueryOrderId());
         }
 
