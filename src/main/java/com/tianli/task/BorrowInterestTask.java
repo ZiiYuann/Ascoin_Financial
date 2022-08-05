@@ -12,11 +12,10 @@ import com.tianli.borrow.entity.BorrowInterestRecord;
 import com.tianli.common.RedisLockConstants;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -26,11 +25,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@Configuration
-@EnableScheduling
+@Component
 @Log4j2
 public class BorrowInterestTask {
-    
+
     @Autowired
     private BorrowCoinOrderMapper borrowCoinOrderMapper;
 
