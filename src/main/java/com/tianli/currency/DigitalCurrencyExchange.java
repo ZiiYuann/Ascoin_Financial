@@ -162,7 +162,7 @@ public class DigitalCurrencyExchange {
         Object o = ops.get();
         if (o != null) return Double.valueOf(o.toString());
         if(currency.getCurrency() > 0){
-            String stringResult = HttpHandler.execute(new HttpRequest().setUrl("https://otc-api-hk.eiijo.cn/v1/data/trade-market?coinId=2&currency="+currency.getCurrency()+"&tradeType=buy&currPage=1&payMethod=0&country=37&blockType=general&online=1&range=0&amount=")).getStringResult();
+            String stringResult = HttpHandler.execute(new HttpRequest().setUrl("https://otc-api-hk.eiijo.cn/v1/data/trade-market?coinId=2&currency="+currency.getCurrency()+"&tradeType=sell&currPage=1&payMethod=0&country=37&blockType=general&online=1&range=0&amount=")).getStringResult();
             JsonObject jsonObject = new Gson().fromJson(stringResult, JsonObject.class);
             Double aDouble = JsonObjectTool.getAsDouble(jsonObject, "data[0].price");
             if (aDouble == null) ErrorCodeEnum.NETWORK_ERROR.throwException();
