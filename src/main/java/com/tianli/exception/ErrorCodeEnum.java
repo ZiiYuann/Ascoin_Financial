@@ -88,6 +88,8 @@ public enum ErrorCodeEnum {
     BORROW_CONFIG_NO_EXIST(3502,"币种配置为空"),
     BORROW_CONFIG_EXIST(3503,"币种配置已存在"),
     BORROW_CONFIG_USED(3504,"币种配置已被使用"),
+
+    BORROW_CONFIG_RATE_ERROR(3501,"币种配置比率错误"),
     BORROW_RANGE_ERROR(3505,"单笔借币数量小于最小数量或大于最大数量"),
     BORROW_GT_AVAILABLE_ERROR(3506,"借币数量大于可用数量"),
     BORROW_ORDER_NO_EXIST(3507,"借币订单不存在"),

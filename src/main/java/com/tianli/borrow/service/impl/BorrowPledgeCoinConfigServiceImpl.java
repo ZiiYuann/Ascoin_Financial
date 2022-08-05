@@ -7,7 +7,6 @@ import com.tianli.borrow.bo.BorrowPledgeCoinConfigBO;
 import com.tianli.borrow.contant.BorrowOrderPledgeStatus;
 import com.tianli.borrow.convert.BorrowCoinConfigConverter;
 import com.tianli.borrow.dao.BorrowCoinOrderMapper;
-import com.tianli.borrow.entity.BorrowCoinConfig;
 import com.tianli.borrow.entity.BorrowPledgeCoinConfig;
 import com.tianli.borrow.dao.BorrowPledgeCoinConfigMapper;
 import com.tianli.borrow.service.IBorrowPledgeCoinConfigService;
@@ -43,6 +42,7 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
     private BorrowCoinOrderMapper borrowCoinOrderMapper;
     @Override
     public void saveConfig(BorrowPledgeCoinConfigBO bo) {
+        verifyPledgeRate(bo);
         bo.convertToRate();
         BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowCoinConfigConverter.toPledgeDO(bo);
         if(Objects.nonNull(getByCoin(bo.getCoin()))) ErrorCodeEnum.BORROW_CONFIG_EXIST.throwException();
@@ -52,6 +52,7 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
 
     @Override
     public void updateConfig(BorrowPledgeCoinConfigBO bo) {
+        verifyPledgeRate(bo);
         bo.convertToRate();
         BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowCoinConfigConverter.toPledgeDO(bo);
         BorrowPledgeCoinConfig configByCoin = borrowCoinConfigConverter.toPledgeDO(bo);
@@ -105,5 +106,11 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
     public BorrowPledgeCoinConfig getByCoin(CurrencyCoin coin) {
         return borrowPledgeCoinConfigMapper.selectOne(new QueryWrapper<BorrowPledgeCoinConfig>().lambda()
                 .eq(BorrowPledgeCoinConfig::getCoin,coin.getName()));
+    }
+
+    void verifyPledgeRate(BorrowPledgeCoinConfigBO bo){
+        if(bo.getInitialPledgeRate().compareTo(bo.getWarnPledgeRate()) >= 0
+        || bo.getWarnPledgeRate().compareTo(bo.getLiquidationPledgeRate()) >= 0)
+            ErrorCodeEnum. BORROW_CONFIG_RATE_ERROR.throwException();
     }
 }

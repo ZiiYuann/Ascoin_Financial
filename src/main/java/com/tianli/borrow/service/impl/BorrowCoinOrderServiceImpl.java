@@ -495,7 +495,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .createTime(LocalDateTime.now()).build();
 
         //修改借币订单
-        BigDecimal releasePledgeAmount=null;
+        BigDecimal releasePledgeAmount=BigDecimal.ZERO;
 
         if(repayAmount.compareTo(totalAmount) == 0){
             //全部还款
