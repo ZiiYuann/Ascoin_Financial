@@ -530,12 +530,11 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 repayRecord.setRepayCapital(BigDecimal.ZERO);
                 repayRecord.setRepayInterest(repayAmount);
             }else {
-                waitRepayInterest = BigDecimal.ZERO;
-                waitRepayCapital = waitRepayCapital.subtract(waitRepayInterest).subtract(repayAmount);
+                waitRepayCapital = waitRepayCapital.subtract(repayAmount.subtract(waitRepayInterest));
                 //还款记录
                 repayRecord.setRepayCapital(repayAmount.subtract(waitRepayInterest));
                 repayRecord.setRepayInterest(waitRepayInterest);
-
+                waitRepayInterest= BigDecimal.ZERO;
             }
             //计算质押率
             BigDecimal waitRepayAmount = waitRepayCapital.add(waitRepayInterest);
