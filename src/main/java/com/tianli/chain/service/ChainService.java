@@ -26,6 +26,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -44,6 +45,7 @@ import java.util.Optional;
 
 @Slf4j
 @Service
+@DependsOn("flywayInitializer")
 public class ChainService {
 
     private static final String RECHARGE_ADDRESS = "/api/charge/recharge";
