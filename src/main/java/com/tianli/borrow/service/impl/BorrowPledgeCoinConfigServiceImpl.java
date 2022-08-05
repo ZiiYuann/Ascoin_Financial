@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.borrow.bo.BorrowPledgeCoinConfigBO;
+import com.tianli.borrow.contant.BorrowOrderPledgeStatus;
 import com.tianli.borrow.convert.BorrowCoinConfigConverter;
 import com.tianli.borrow.dao.BorrowCoinOrderMapper;
 import com.tianli.borrow.entity.BorrowCoinConfig;
@@ -18,6 +19,7 @@ import com.tianli.exception.ErrorCodeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Objects;
@@ -54,9 +56,29 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
         BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowCoinConfigConverter.toPledgeDO(bo);
         BorrowPledgeCoinConfig configByCoin = borrowCoinConfigConverter.toPledgeDO(bo);
         BorrowPledgeCoinConfig configById = borrowPledgeCoinConfigMapper.selectById(bo.getId());
+        //校验配置
         if(Objects.isNull(configById)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
         if(Objects.nonNull(configByCoin) && !configByCoin.getCoin().equals(configById.getCoin()))ErrorCodeEnum.BORROW_CONFIG_EXIST.throwException();
         borrowPledgeCoinConfigMapper.updateById(borrowPledgeCoinConfig);
+        //修改订单质押状态
+        BigDecimal warnPledgeRate = borrowPledgeCoinConfig.getWarnPledgeRate();
+        BigDecimal liquidationPledgeRate = borrowPledgeCoinConfig.getLiquidationPledgeRate();
+        //预警线上移
+        if(bo.getWarnPledgeRate().compareTo(configById.getWarnPledgeRate()) > 0) {
+            borrowCoinOrderMapper.updatePledgeStatusByPledgeRate(null, warnPledgeRate, BorrowOrderPledgeStatus.SAFE_PLEDGE);
+        }
+
+        //预警线下移 平仓线上移
+        if(bo.getWarnPledgeRate().compareTo(configById.getWarnPledgeRate()) < 0
+        || bo.getLiquidationPledgeRate().compareTo(configById.getLiquidationPledgeRate()) > 0) {
+            borrowCoinOrderMapper.updatePledgeStatusByPledgeRate(warnPledgeRate, liquidationPledgeRate, BorrowOrderPledgeStatus.WARN_PLEDGE);
+        }
+
+        //平仓线上移
+        if(bo.getLiquidationPledgeRate().compareTo(configById.getLiquidationPledgeRate()) < 0){
+            borrowCoinOrderMapper.updatePledgeStatusByPledgeRate(liquidationPledgeRate, null, BorrowOrderPledgeStatus.LIQUIDATION_PLEDGE);
+        }
+
     }
 
     @Override

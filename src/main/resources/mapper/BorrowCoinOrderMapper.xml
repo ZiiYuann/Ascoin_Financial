@@ -61,4 +61,18 @@
             </if>
         </where>
     </select>
+    
+    <update id="updatePledgeStatusByPledgeRate">
+        update borrow_coin_order 
+        set pledge_status = #{pledgeStatus} 
+        <where>
+            <if test="startPledgeRate != null">
+                pledge_rate &gt;= #{startPledgeRate}
+            </if>
+            <if test="endPledgeRate != null">
+                and pledge_rate &lt; #{endPledgeRate}
+            </if>
+          and status = 1
+        </where>
+    </update>
 </mapper>

@@ -7,6 +7,7 @@ import com.tianli.borrow.vo.BorrowOrderStatisticsChartVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -58,4 +59,11 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
 
     @Select("select count(*) from borrow_coin_order where status = #{status}")
     Integer selectCountByStatus(@Param("status") Integer status);
+
+    @Update("update borrow_coin_order set pledge_status = #{pledgeStatus} where " +
+            "pledge_status >= #{pledgeRete} and pledge_status < #{endPledgeStatus} " +
+            "and status = 1")
+    void updatePledgeStatusByPledgeRate(@Param("startPledgeRate") BigDecimal startPledgeRate,
+                                        @Param("endPledgeRate") BigDecimal endPledgeRate,
+                                        @Param("pledgeStatus")Integer pledgeStatus);
 }

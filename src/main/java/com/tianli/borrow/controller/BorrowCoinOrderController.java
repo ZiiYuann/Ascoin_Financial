@@ -19,6 +19,7 @@ import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.annotation.NoOperation;
+import com.tianli.common.annotation.NoRepeatSubmit;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.exception.Result;
@@ -58,7 +59,8 @@ public class BorrowCoinOrderController {
      * @return
      */
     @GetMapping("/main/page")
-    public Result main(){
+    @NoRepeatSubmit
+    public Result main() throws InterruptedException {
         BorrowCoinMainPageVO borrowCoinMainPageVO = borrowCoinOrderService.mainPage();
         return Result.success(borrowCoinMainPageVO);
     }
@@ -97,10 +99,8 @@ public class BorrowCoinOrderController {
      * @return
      */
     @PostMapping("/order")
+    @NoRepeatSubmit
     public Result order(@RequestBody @Valid BorrowOrderBO bo){
-        Long uid = requestInitService.uid();
-        //防止重复提交
-        redisLock.lock(RedisLockConstants.BORROW_ORDER_CREATE_LOCK+uid,5L,TimeUnit.SECONDS);
         borrowCoinOrderService.borrowCoin(bo);
         return Result.success();
     }
@@ -181,6 +181,7 @@ public class BorrowCoinOrderController {
      */
     @PostMapping("/order/repay")
     @NoOperation
+    @NoRepeatSubmit
     public Result orderRepay(@RequestBody @Valid BorrowOrderRepayBO bo){
         Long uid = requestInitService.uid();
         //防重复提交锁
@@ -209,7 +210,7 @@ public class BorrowCoinOrderController {
      * @return
      */
     @PostMapping("/order/adjust/pledge")
-    //@NoOperation
+    @NoRepeatSubmit
     public Result adjustPledge(@RequestBody @Valid AdjustPledgeBO bo){
         Long uid = requestInitService.uid();
         //防重复提交锁
