@@ -70,7 +70,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
 
         // 审核通过需要上链
         if (query.isPass()) {
-            chargeService.withdrawChain(order);
+//            chargeService.withdrawChain(order);
             order.setStatus(ChargeStatus.chaining);
         }
         // 审核不通过需要解冻金额
