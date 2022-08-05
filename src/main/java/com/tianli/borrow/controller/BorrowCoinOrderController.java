@@ -180,7 +180,7 @@ public class BorrowCoinOrderController {
      * @return
      */
     @PostMapping("/order/repay")
-    @NoOperation
+    //@NoOperation
     @NoRepeatSubmit
     public Result orderRepay(@RequestBody @Valid BorrowOrderRepayBO bo){
         Long uid = requestInitService.uid();
