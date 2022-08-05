@@ -97,11 +97,20 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
 
     public FinancialProductBoardSummaryVO productBoard(FinancialBoardQuery query) {
 
+        LocalDateTime todayBegin = TimeTool.minDay(LocalDateTime.now());
+        LocalDateTime todayEnd = todayBegin.plusDays(1);
+
+        // 本日数据 实时查询
+        FinancialBoardProduct financialBoardProductToday = getFinancialBoardProduct(todayEnd, todayBegin, null);
+        financialBoardProductToday.setCreateTime(todayBegin.toLocalDate());
+
+        // 根据日期动态查询出已经持久化的数据
         var boardQuery = new LambdaQueryWrapper<FinancialBoardProduct>()
                 .between(FinancialBoardProduct::getCreateTime, query.getStartTime(), query.getEndTime());
-
         var financialProductBoards = Optional.ofNullable(financialProductBoardMapper.selectList(boardQuery))
                 .orElse(new ArrayList<>());
+        // 额外加入当日数据
+        financialProductBoards.add(financialBoardProductToday);
 
         BigDecimal purchaseAmount = financialProductBoards.stream().map(FinancialBoardProduct::getPurchaseAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal redeemAmount = financialProductBoards.stream().map(FinancialBoardProduct::getRedeemAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -112,11 +121,6 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
         BigInteger fixedProductCount = financialProductBoards.stream().map(FinancialBoardProduct::getFixedProductCount).reduce(BigInteger.ZERO, BigInteger::add);
         BigInteger currentProductCount = financialProductBoards.stream().map(FinancialBoardProduct::getCurrentProductCount).reduce(BigInteger.ZERO, BigInteger::add);
 
-        LocalDateTime dateTime = TimeTool.minDay(LocalDateTime.now());
-        boardQuery = new LambdaQueryWrapper<FinancialBoardProduct>()
-                .between(FinancialBoardProduct::getCreateTime, dateTime.plusDays(-14), dateTime);
-        List<FinancialBoardProduct> financialBoardProducts = financialProductBoardMapper.selectList(boardQuery);
-
         int offsetDay = -13;
         //获取14天前零点时间
         //构建十四天的数据
@@ -126,17 +130,14 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
             String dateTimeStr = DateUtil.format(time, "yyyy-MM-dd");
             financialProductBoardVOMap.put(dateTimeStr, FinancialProductBoardVO.getDefault(time.toLocalDateTime().toLocalDate()));
         }
-        LocalDateTime todayBegin = TimeTool.minDay(LocalDateTime.now());
-        LocalDateTime todayEnd = todayBegin.plusDays(1);
-        String todayFormat = todayBegin.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        // 本日数据
-        FinancialBoardProduct financialBoardProductToday = getFinancialBoardProduct(todayEnd, todayBegin, null);
-        financialBoardProductToday.setCreateTime(todayBegin.toLocalDate());
-        financialProductBoardVOMap.put(todayFormat, managementConverter.toVO(financialBoardProductToday));
-
-        Optional.ofNullable(financialBoardProducts)
-                .orElse(new ArrayList<>()).stream().forEach(financialBoardProduct -> {
+        // 固定查询前13日的数据
+        boardQuery = new LambdaQueryWrapper<FinancialBoardProduct>()
+                .between(FinancialBoardProduct::getCreateTime, todayBegin.plusDays(-13), todayBegin);
+        List<FinancialBoardProduct> financialProductBoards13 = Optional.ofNullable(financialProductBoardMapper.selectList(boardQuery))
+                .orElse(new ArrayList<>());
+        // 添加当日数据
+        financialProductBoards13.add(financialBoardProductToday);
+        financialProductBoards13.stream().forEach(financialBoardProduct -> {
                     FinancialProductBoardVO financialProductBoardVO = managementConverter.toVO(financialBoardProduct);
                     String dateTimeStr = financialProductBoardVO.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                     financialProductBoardVOMap.put(dateTimeStr, financialProductBoardVO);
