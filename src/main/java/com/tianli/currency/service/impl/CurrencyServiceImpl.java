@@ -45,6 +45,8 @@ public class CurrencyServiceImpl implements CurrencyService {
             case usdt: return BigDecimal.valueOf(digitalCurrencyExchange.usdtPrice(NationalCurrencyEnum.USD));
             case bnb : return BigDecimal.valueOf(digitalCurrencyExchange.usdtPrice(NationalCurrencyEnum.USD))
                     .multiply(BigDecimal.valueOf(digitalCurrencyExchange.bnbUsdtPrice()));
+            case eth: return BigDecimal.valueOf(digitalCurrencyExchange.usdtPrice(NationalCurrencyEnum.USD))
+                    .multiply(BigDecimal.valueOf(digitalCurrencyExchange.ethUsdtPrice()));
             default: break;
         }
         throw ErrorCodeEnum.CURRENCY_NOT_SUPPORT.generalException();
