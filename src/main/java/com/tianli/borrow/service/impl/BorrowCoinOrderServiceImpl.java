@@ -135,43 +135,44 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     @Override
     public IPage<BorrowCoinOrderVO> pageList(PageQuery<BorrowCoinOrder> pageQuery, BorrowOrderQuery query) {
 
-        LambdaQueryWrapper<BorrowCoinOrder> queryWrapper = new QueryWrapper<BorrowCoinOrder>().lambda();
+        QueryWrapper<BorrowCoinOrder> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc(query.getOrderColumn());
+        LambdaQueryWrapper<BorrowCoinOrder> lambdaQueryWrapper = queryWrapper.lambda();
         if(Objects.nonNull(query.getUid())){
-            queryWrapper.eq(BorrowCoinOrder::getUid, query.getUid());
+            lambdaQueryWrapper.eq(BorrowCoinOrder::getUid, query.getUid());
         }
 
         if(Objects.nonNull(query.getStatus())){
-            queryWrapper.in(BorrowCoinOrder::getStatus, query.getStatus());
+            lambdaQueryWrapper.in(BorrowCoinOrder::getStatus, query.getStatus());
         }
 
         if(Objects.nonNull(query.getQueryUid())){
-            queryWrapper.like(BorrowCoinOrder::getUid,query.getQueryUid());
+            lambdaQueryWrapper.like(BorrowCoinOrder::getUid,query.getQueryUid());
         }
 
         if(Objects.nonNull(query.getQueryOrderId())){
-            queryWrapper.like(BorrowCoinOrder::getId,query.getQueryOrderId());
+            lambdaQueryWrapper.like(BorrowCoinOrder::getId,query.getQueryOrderId());
         }
 
         if(Objects.nonNull(query.getPledgeStatus())){
-            queryWrapper.eq(BorrowCoinOrder::getPledgeStatus,query.getPledgeStatus());
+            lambdaQueryWrapper.eq(BorrowCoinOrder::getPledgeStatus,query.getPledgeStatus());
         }
 
         if(Objects.nonNull(query.getMinPledgeRate())){
-            queryWrapper.ge(BorrowCoinOrder::getPledgeRate,query.getMinPledgeRate());
+            lambdaQueryWrapper.ge(BorrowCoinOrder::getPledgeRate,query.getMinPledgeRate());
         }
 
         if(Objects.nonNull(query.getMaxPledgeRate())){
-            queryWrapper.le(BorrowCoinOrder::getPledgeRate,query.getMaxPledgeRate());
+            lambdaQueryWrapper.le(BorrowCoinOrder::getPledgeRate,query.getMaxPledgeRate());
         }
 
         if(Objects.nonNull(query.getStartTime())){
-            queryWrapper.ge(BorrowCoinOrder::getBorrowTime,query.getStartTime());
+            lambdaQueryWrapper.ge(BorrowCoinOrder::getBorrowTime,query.getStartTime());
         }
 
         if(Objects.nonNull(query.getEndTime())){
-            queryWrapper.le(BorrowCoinOrder::getBorrowTime,query.getEndTime());
+            lambdaQueryWrapper.le(BorrowCoinOrder::getBorrowTime,query.getEndTime());
         }
-        queryWrapper.orderByDesc(BorrowCoinOrder::getSettlementTime);
 
         return borrowCoinOrderMapper.selectPage(pageQuery.page(),queryWrapper).convert(borrowConverter::toVO);
     }

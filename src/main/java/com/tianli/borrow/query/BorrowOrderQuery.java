@@ -30,4 +30,6 @@ public class BorrowOrderQuery {
 
     private Set<Integer> status;
 
+    private String orderColumn;
+
 }
