@@ -45,7 +45,7 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
     public BigDecimal getYesterdayDailyAmount(Long uid, ProductType type){
 
         LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
-        LocalDateTime yesterdayZero = todayZero.plusDays(-1).plusHours(1);
+        LocalDateTime yesterdayZero = todayZero.plusDays(-1);
 
         List<FinancialIncomeDailyDTO> dailyIncomeLogs = financialIncomeDailyMapper.listByUidAndType(uid,type,yesterdayZero,todayZero);
 

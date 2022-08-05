@@ -117,6 +117,7 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     public IncomeVO income(Long uid) {
+        uid = 1731427416633264397L;
         List<ProductType> types = List.of(ProductType.values());
 
         BigDecimal totalHoldFee = BigDecimal.ZERO;

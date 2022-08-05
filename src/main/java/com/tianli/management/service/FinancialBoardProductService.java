@@ -5,8 +5,13 @@ import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.borrow.vo.BorrowOrderStatisticsChartVO;
+import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.service.OrderService;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedisLock;
+import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.service.FinancialIncomeAccrueService;
+import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.mapper.FinancialBoardProductMapper;
@@ -65,6 +70,30 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
         } finally {
             redisLock.unlock(RedisLockConstants.FINANCIAL_PRODUCT_BOARD_GET);
         }
+    }
+
+    public FinancialBoardProduct getFinancialBoardProduct(LocalDateTime endTime, LocalDateTime startTime, FinancialBoardProduct today) {
+        today = Optional.ofNullable(today).orElse(FinancialBoardProduct.getDefault());
+        BigDecimal purchaseAmount = orderService.amountSumByCompleteTime(ChargeType.purchase, startTime, endTime);
+        BigDecimal redeemAmount = orderService.amountSumByCompleteTime(ChargeType.redeem, startTime, endTime);
+        BigDecimal settleAmount = orderService.amountSumByCompleteTime(ChargeType.settle, startTime, endTime);
+        BigDecimal transferAmount = orderService.amountSumByCompleteTime(ChargeType.transfer, startTime, endTime);
+        BigDecimal income = Optional.ofNullable(financialIncomeAccrueService.getAmountSum(endTime)).orElse(BigDecimal.ZERO);
+        BigInteger fixedProductCount = financialRecordService.countProcess(ProductType.fixed);
+        BigInteger currentProductCount = financialRecordService.countProcess(ProductType.current);
+        BigInteger totalProductCount = currentProductCount.add(fixedProductCount);
+        BigInteger holdUserCount = financialRecordService.countUid();
+
+        today.setPurchaseAmount(purchaseAmount);
+        today.setRedeemAmount(redeemAmount);
+        today.setSettleAmount(settleAmount);
+        today.setTransferAmount(transferAmount);
+        today.setIncome(income);
+        today.setCurrentProductCount(currentProductCount);
+        today.setFixedProductCount(fixedProductCount);
+        today.setTotalProductCount(totalProductCount);
+        today.setHoldUserCount(holdUserCount);
+        return today;
     }
 
     public FinancialProductBoardSummaryVO productBoard(FinancialBoardQuery query) {
@@ -126,5 +155,11 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
     private ManagementConverter managementConverter;
     @Resource
     private RedisLock redisLock;
+    @Resource
+    private OrderService orderService;
+    @Resource
+    private FinancialIncomeAccrueService financialIncomeAccrueService;
+    @Resource
+    private FinancialRecordService financialRecordService;
 
 }

@@ -6,7 +6,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
+import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.query.ServiceAmountQuery;
+import com.tianli.charge.service.OrderService;
 import com.tianli.common.RedisLockConstants;
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.entity.FinancialBoardWallet;
@@ -37,6 +41,30 @@ import java.util.stream.Collectors;
  **/
 @Service
 public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalletMapper, FinancialBoardWallet> {
+
+
+    public FinancialBoardWallet getFinancialBoardWallet(LocalDateTime todayBegin, LocalDateTime yesterdayBegin, FinancialBoardWallet financialBoardWallet) {
+        financialBoardWallet = Optional.ofNullable(financialBoardWallet).orElse(FinancialBoardWallet.getDefault());
+        ServiceAmountQuery serviceAmountQuery = new ServiceAmountQuery();
+        serviceAmountQuery.setStartTime(yesterdayBegin);
+        serviceAmountQuery.setEndTime(todayBegin);
+        serviceAmountQuery.setChargeType(ChargeType.withdraw);
+        BigDecimal rechargeAmount = orderService.amountSumByCompleteTime(ChargeType.recharge, yesterdayBegin, todayBegin);
+        BigDecimal withdrawAmount = orderService.amountSumByCompleteTime(ChargeType.withdraw, yesterdayBegin, todayBegin);
+
+        BigInteger activeWalletCount = addressService.activeCount(yesterdayBegin, todayBegin);
+        // 暂时只有提币存在手续费
+        BigDecimal totalServiceAmount = orderService.serviceAmountSumByCompleteTime(serviceAmountQuery);
+        serviceAmountQuery.setCoin(CurrencyCoin.usdt);
+        BigDecimal usdtServiceAmount = orderService.serviceAmountSumByCompleteTime(serviceAmountQuery);
+
+        financialBoardWallet.setRechargeAmount(rechargeAmount);
+        financialBoardWallet.setWithdrawAmount(withdrawAmount);
+        financialBoardWallet.setActiveWalletCount(activeWalletCount);
+        financialBoardWallet.setTotalServiceAmount(totalServiceAmount);
+        financialBoardWallet.setUsdtServiceAmount(usdtServiceAmount);
+        return financialBoardWallet;
+    }
 
     public FinancialWalletBoardSummaryVO walletBoard(FinancialBoardQuery query) {
         var addressQuery =
@@ -127,5 +155,7 @@ public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalle
     private FinancialBoardWalletMapper financialWalletBoardMapper;
     @Resource
     private RedisLock redisLock;
+    @Resource
+    private OrderService orderService;
 
 }
