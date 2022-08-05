@@ -12,23 +12,25 @@ import com.tianli.borrow.entity.BorrowInterestRecord;
 import com.tianli.common.RedisLockConstants;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.support.atomic.RedisAtomicLong;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-@Component
+@Configuration
+@EnableScheduling
 @Log4j2
 public class BorrowInterestTask {
-
+    
     @Autowired
     private BorrowCoinOrderMapper borrowCoinOrderMapper;
 
@@ -44,25 +46,16 @@ public class BorrowInterestTask {
     //3.添加定时任务（每小时执行一次）
     @Scheduled(cron = "0 0 * * * ?")
     public void interestTasks() {
-
         LocalDateTime now = LocalDateTime.now();
         String hour = String.format("%s_%s_%s", now.getMonthValue(), now.getDayOfMonth(),now.getHour());
         String redisKey = RedisLockConstants.BORROW_INCOME_TASK + hour;
-        BoundValueOperations<String, Object> operation = redisTemplate.boundValueOps(redisKey);
-        operation.setIfAbsent(0, 30, TimeUnit.MINUTES);
 
         log.info("========执行计算利息定时任务========");
         while (true){
-            Long page = operation.increment();
-
-            List<BorrowCoinOrder> records;
-            if(page == null){
-                records = new ArrayList<>();
-            }else {
-                records = borrowCoinOrderMapper.selectPage(new Page<>(page, 100),
+            long page = incr(redisKey,30L);
+            List<BorrowCoinOrder> records = borrowCoinOrderMapper.selectPage(new Page<>(page+1, 100),
                         new QueryWrapper<BorrowCoinOrder>().lambda()
                                 .eq(BorrowCoinOrder::getStatus, BorrowOrderStatus.INTEREST_ACCRUAL)).getRecords();
-            }
             if(CollUtil.isEmpty(records)){
                 break;
             }
@@ -77,7 +70,6 @@ public class BorrowInterestTask {
         if(count > 0){
             return;
         }
-
         BigDecimal waitRepayInterest = borrowCoinOrder.getWaitRepayInterest();
         BigDecimal cumulativeInterest = borrowCoinOrder.getCumulativeInterest();
         //总待还款
@@ -112,4 +104,21 @@ public class BorrowInterestTask {
                 .build();
         borrowInterestRecordMapper.insert(interestRecord);
     }
+
+    /**
+     *
+     * @param key
+     * @param liveTime
+     * @return
+     */
+    public Long incr(String key, long liveTime) {
+        RedisAtomicLong entityIdCounter = new RedisAtomicLong(key, Objects.requireNonNull(redisTemplate.getConnectionFactory()));
+        long increment = entityIdCounter.getAndIncrement();
+        if ( increment == 0 && liveTime > 0) {//初始设置过期时间
+            entityIdCounter.expire(liveTime, TimeUnit.MINUTES);
+        }
+        return increment;
+    }
+
+
 }
