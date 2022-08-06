@@ -487,17 +487,14 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      */
     public String getMainWalletAddressUrl(TokenAdapter tokenAdapter) {
         String fromAddress = null;
-        switch (tokenAdapter) {
-            case usdt_trc20:
-            case usdc_trc20:
+        switch (tokenAdapter.getNetwork()) {
+            case trc20:
                 fromAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
                 break;
-            case usdt_erc20:
-            case usdc_erc20:
+            case erc20:
                 fromAddress = configService.get(ConfigConstants.ETH_MAIN_WALLET_ADDRESS);
                 break;
-            case usdt_bep20:
-            case usdc_bep20:
+            case bep20:
                 fromAddress = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
                 break;
             default:
