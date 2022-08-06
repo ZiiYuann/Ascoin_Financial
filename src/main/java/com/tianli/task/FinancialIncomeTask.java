@@ -74,34 +74,36 @@ public class FinancialIncomeTask {
     private static final ConcurrentHashMap<String, AtomicInteger> FAIL_COUNT_CACHE = new ConcurrentHashMap<>();
 
 //    @Scheduled(cron = "0 0/1 * * * ?")
-//    public void calIncomeTest() {
-//        log.info("========执行计算每日利息定时任务========");
-//        asyncService.async(() -> {
-//            LocalDateTime now = LocalDateTime.now();
-//            String day = String.format("%s_%s", now.getMonthValue(), now.getDayOfMonth());
-//            String redisKey = RedisLockConstants.FINANCIAL_INCOME_TASK + day;
-//            BoundValueOperations<String, Object> operation = redisTemplate.boundValueOps(redisKey);
-//            operation.setIfAbsent(0, 1, TimeUnit.HOURS);
-//            while (true) {
-//                Long page = operation.increment();
-//                List<FinancialRecord> records;
-//                if (page == null) {
-//                    records = new ArrayList<>();
-//                } else {
-//                    LambdaQueryWrapper<FinancialRecord> eq = new LambdaQueryWrapper<FinancialRecord>().eq(FinancialRecord::getUid, 1739656452879941634L);
-//                    records = financialRecordService.list(eq);
-//                }
-//
-//                if ((records.size()) <= 0) {
-//                    break;
-//                }
-//                for (FinancialRecord c : records) {
-//                    FinancialIncomeTask task = SpringUtil.getBean(FinancialIncomeTask.class);
-//                    task.interestStat(c);
-//                }
-//            }
-//        });
-//    }
+    public void calIncomeTest() {
+        log.info("========执行计算每日利息定时任务========");
+        asyncService.async(() -> {
+            LocalDateTime now = LocalDateTime.now();
+            String day = String.format("%s_%s", now.getMonthValue(), now.getDayOfMonth());
+            String redisKey = RedisLockConstants.FINANCIAL_INCOME_TASK + day;
+            BoundValueOperations<String, Object> operation = redisTemplate.boundValueOps(redisKey);
+            operation.setIfAbsent(0, 1, TimeUnit.HOURS);
+            while (true) {
+                Long page = operation.increment();
+                List<FinancialRecord> records;
+                if (page == null) {
+                    records = new ArrayList<>();
+                } else {
+                    LambdaQueryWrapper<FinancialRecord> eq = new LambdaQueryWrapper<FinancialRecord>()
+                            .eq(FinancialRecord::getUid, 1739656452879941634L)
+                            .eq(FinancialRecord :: getStatus,RecordStatus.PROCESS);
+                    records = financialRecordService.list(eq);
+                }
+
+                if ((records.size()) <= 0) {
+                    break;
+                }
+                for (FinancialRecord c : records) {
+                    FinancialIncomeTask task = SpringUtil.getBean(FinancialIncomeTask.class);
+                    task.interestStat(c);
+                }
+            }
+        });
+    }
 
     /**
      * 计算利息
@@ -128,9 +130,30 @@ public class FinancialIncomeTask {
                 if ((records.size()) <= 0) {
                     break;
                 }
-                for (FinancialRecord c : records) {
+                for (FinancialRecord financialRecord : records) {
                     FinancialIncomeTask task = SpringUtil.getBean(FinancialIncomeTask.class);
-                    task.interestStat(c);
+                    try {
+                        task.interestStat(financialRecord);
+                    }catch (Exception e) {
+                        e.printStackTrace();
+                        if(e instanceof ErrCodeException){
+                            return;
+                        }
+                        String toJson = gson.toJson(financialRecord);
+                        RetryScheduledExecutor.DEFAULT_EXECUTOR.schedule(() -> {
+                            String recordId = String.valueOf(financialRecord.getId());
+                            AtomicInteger atomicInteger = FAIL_COUNT_CACHE.getOrDefault(recordId,new AtomicInteger(3));
+                            FAIL_COUNT_CACHE.put(String.valueOf(financialRecord.getId()), atomicInteger);
+
+                            int andDecrement = atomicInteger.getAndDecrement();
+                            if (andDecrement > 0) {
+                                interestStat(financialRecord);
+                            } else {
+                                log.error("统计每日利息失败: record:{}", toJson);
+                                FAIL_COUNT_CACHE.remove(recordId);
+                            }
+                        }, 30, TimeUnit.MINUTES,new RetryTaskInfo<>("incomeTask","定时计息",financialRecord));
+                    }
                 }
             }
         });
@@ -141,7 +164,6 @@ public class FinancialIncomeTask {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void interestStat(FinancialRecord financialRecord) {
-        try {
             ProductType type = financialRecord.getProductType();
             LocalDateTime endTime = financialRecord.getEndTime();
             LocalDateTime now = LocalDateTime.now();
@@ -160,27 +182,6 @@ public class FinancialIncomeTask {
             if (ProductType.current.equals(type) && todayZero.compareTo(grantIncomeTime) >= 0) {
                 incomeOperation(financialRecord, now);
             }
-
-
-        } catch (Exception e) {
-            if(e instanceof ErrCodeException){
-                return;
-            }
-            String toJson = gson.toJson(financialRecord);
-            RetryScheduledExecutor.DEFAULT_EXECUTOR.schedule(() -> {
-                String recordId = String.valueOf(financialRecord.getId());
-                AtomicInteger atomicInteger = FAIL_COUNT_CACHE.getOrDefault(recordId,new AtomicInteger(3));
-                FAIL_COUNT_CACHE.put(String.valueOf(financialRecord.getId()), atomicInteger);
-
-                int andDecrement = atomicInteger.getAndDecrement();
-                if (andDecrement > 0) {
-                    interestStat(financialRecord);
-                } else {
-                    log.error("统计每日利息失败: record:{}", toJson);
-                    FAIL_COUNT_CACHE.remove(recordId);
-                }
-            }, 30, TimeUnit.MINUTES,new RetryTaskInfo<>("incomeTask","定时计息",financialRecord));
-        }
     }
 
     /**
@@ -208,9 +209,8 @@ public class FinancialIncomeTask {
 
         // 取第一个有效的产品
         FinancialProduct product = products.get(0);
-        FinancialRecord financialRecordNew = financialRecordService.generateFinancialRecord(financialRecord.getUid()
+        financialRecordService.generateFinancialRecord(financialRecord.getUid()
                 , product, financialRecord.getHoldAmount(),false);
-        financialRecordService.save(financialRecordNew);
 
     }
 
@@ -223,12 +223,13 @@ public class FinancialIncomeTask {
         long id = CommonFunction.generalId();
         Order order = Order.builder()
                 .id(id)
+                .uid(financialRecord.getUid())
                 .orderNo(AccountChangeType.settle.getPrefix() + CommonFunction.generalSn(id))
                 .type(ChargeType.settle)
                 .status(ChargeStatus.chain_success)
                 .coin(financialRecord.getCoin())
                 // 结算金额为总收益
-                .amount(financialIncomeAccrue.getIncomeAmount())
+                .amount(financialRecord.isAutoRenewal() ? BigDecimal.ZERO :financialRecord.getHoldAmount())
                 .relatedId(financialRecord.getId())
                 .createTime(now)
                 .completeTime(now)

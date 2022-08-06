@@ -17,7 +17,7 @@ public class WithdrawQuery {
     @DecimalMin(value = "0.0001", message = "提现金额不能为空")
     private double amount;
 
-    @NotNull(message = "提笔网络不能为null")
+    @NotNull(message = "提币网络不能为null")
     private NetworkType network;
 
     @NotNull(message = "币别不能为null")
