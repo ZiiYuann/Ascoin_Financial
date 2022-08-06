@@ -20,4 +20,8 @@ public class RedisLockConstants {
     public static String BORROW_ORDER_CHANGE_LOCK = "BorrowOrder#change:lock:";
 
     public static String BORROW_ORDER_CREATE_LOCK = "BorrowOrder#create:lock:";
+
+    public static String RECYCLE_LOCK = "recharge:recycle:";
+
+
 }

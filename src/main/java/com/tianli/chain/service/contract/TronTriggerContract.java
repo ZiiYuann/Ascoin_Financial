@@ -8,6 +8,7 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.time.TimeTool;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jcajce.provider.digest.SHA256;
 import org.bouncycastle.util.encoders.Hex;
@@ -31,8 +32,10 @@ import org.tron.tronj.crypto.tuweniTypes.Bytes32;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @Author cs
@@ -266,6 +269,19 @@ public class TronTriggerContract extends AbstractContractOperation {
     public boolean isValidAddress(String address) {
         byte[] bytes = Base58Utils.decode58Check(address);
         return Base58Utils.addressValid(bytes);
+    }
+
+    @Override
+    public boolean successByHash(String hash) {
+        byte[] decode = Hex.decode(hash);
+        Protocol.Transaction transaction =
+                blockingStub.getTransactionById(GrpcAPI.BytesMessage.newBuilder().setValue(ByteString.copyFrom(decode)).build());
+        List<Protocol.Transaction.Result.code> codes = transaction.getRetList().stream().map(result -> result.getRet()).distinct().collect(Collectors.toList());
+
+        if (CollectionUtils.isNotEmpty(codes) && codes.size() > 1) {
+            return false;
+        }
+        return true;
     }
 
 

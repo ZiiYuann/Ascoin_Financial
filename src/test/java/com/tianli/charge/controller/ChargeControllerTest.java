@@ -21,11 +21,11 @@ class ChargeControllerTest {
 
         HttpClient client = HttpClientBuilder.create().build();
         // BSC链
-        HttpPost httpPost = new HttpPost("http://127.0.0.1:8080/api/charge/recharge/BSC");
+        HttpPost httpPost = new HttpPost("http://127.0.0.1:8080/api/charge/recharge/ETH");
         httpPost.setHeader("Content-Type", "text/plain");
         httpPost.setHeader("Sign", sign);
         httpPost.setHeader("timestamp", l + "");
-        httpPost.setEntity(new StringEntity("{\"token\": [], \"standardCurrency\": [{\"id\": 1740199879938210893, \"to\": \"0x3a0fa8e74394abe35ab01c4b307a9892dfeb63af\", \"from\": \"0x4098b66ff83bf99bc9c81a68be7b045c79ebbb97\", \"hash\": \"0x1124988bb43d08ac16541e2c458f43c8a3642990e6a3cfd1a9523643dd36cf71\", \"block\": 20135636, \"nonce\": 4, \"value\": 40000000000000000, \"status\": 1, \"gasUsed\": 21000, \"gasPrice\": 5000000000, \"createTime\": {\"date\": {\"day\": 4, \"year\": 2022, \"month\": 8}, \"time\": {\"hour\": 11, \"nano\": 0, \"minute\": 31, \"second\": 52}}}]}"));
+        httpPost.setEntity(new StringEntity("{\"token\":[],\"standardCurrency\":[{\"id\":1740301064781596700,\"to\":\"0x09abcb496fbbcd3f43ebf05e7256114e71feb7e3\",\"from\":\"0x504958caa2488691d85d5b36670dc9411f8dc383\",\"hash\":\"0x0a17097701f087e956c86595cbfeb403c74b73158f8682d532cfe9cf4858f95d\",\"block\":15280576,\"nonce\":6,\"value\":4000000000000000,\"status\":1,\"gasUsed\":21000,\"gasPrice\":10000000000,\"createTime\":{\"date\":{\"day\":5,\"year\":2022,\"month\":8},\"time\":{\"hour\":14,\"nano\":0,\"minute\":19,\"second\":53}}}]}"));
         client.execute(httpPost);
     }
 

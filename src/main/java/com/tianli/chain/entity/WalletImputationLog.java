@@ -58,4 +58,6 @@ public class WalletImputationLog {
      */
     private LocalDateTime createTime;
 
+    private LocalDateTime finishTime;
+
 }

@@ -101,4 +101,5 @@ public abstract class AbstractContractOperation implements ContractOperation {
      * 主币转账
      */
     abstract Result mainTokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter);
+
 }

@@ -40,4 +40,6 @@ public class WalletImputation {
 
     private LocalDateTime updateTime;
 
+    private Long logId;
+
 }

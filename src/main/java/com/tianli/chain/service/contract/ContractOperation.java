@@ -45,4 +45,12 @@ public interface ContractOperation {
      */
     boolean isValidAddress(String address);
 
+    /**
+     * 根据hash获取交易状态
+     * @param hash 交易hash
+     * @return 交易状态
+     */
+    boolean successByHash(String hash);
+
+
 }

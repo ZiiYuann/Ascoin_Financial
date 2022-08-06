@@ -21,6 +21,7 @@ import org.web3j.protocol.core.JsonRpc2_0Web3j;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.EthCall;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
+import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.utils.Numeric;
 import party.loveit.bip44forjava.utils.Bip44Utils;
@@ -171,6 +172,21 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
         return Result.success(send.getTransactionHash());
     }
 
+    public EthGetTransactionReceipt getTransactionByHash(String hash) {
+        try {
+            return getWeb3j().ethGetTransactionReceipt(hash).send();
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("执行查询数据异常, 执行异常 !");
+        }
+        return null;
+    }
+
+    @Override
+    public boolean successByHash(String hash) {
+        return "0x1".equals(getTransactionByHash(hash).getResult().getStatus());
+    }
+
     protected abstract JsonRpc2_0Web3j getWeb3j();
 
     /**
@@ -198,6 +214,5 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
     protected abstract String getTransferGasLimit();
 
     protected abstract String getRecycleTriggerAddress();
-
 
 }

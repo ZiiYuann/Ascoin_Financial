@@ -18,6 +18,7 @@ import org.web3j.protocol.core.JsonRpc2_0Web3j;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -127,4 +128,5 @@ public class EthTriggerContract extends Web3jContractOperation {
         ops.set(response, 1L, TimeUnit.MINUTES);
         return response;
     }
+
 }
