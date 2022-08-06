@@ -84,7 +84,7 @@ public class EthTriggerContract extends Web3jContractOperation {
 
     @Override
     protected String getRecycleGasLimit() {
-        return configService.getOrDefault(ConfigConstants.ETH_GAS_LIMIT_PLUS, "1000000");
+        return configService.getOrDefault(ConfigConstants.ETH_GAS_LIMIT_PLUS, "1500000");
     }
 
     @Override
