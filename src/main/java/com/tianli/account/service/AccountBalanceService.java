@@ -263,6 +263,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
                     accountBalanceVO.setDollarBalance(dollarBalance);
                     accountBalanceVO.setDollarFreeze(dollarFreeze);
                     accountBalanceVO.setDollarRemain(dollarRemain);
+                    accountBalanceVO.setLogo(currencyCoin.getLogoPath());
                     accountBalanceVOS.add(accountBalanceVO);
                 });
         return accountBalanceVOS;
