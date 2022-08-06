@@ -7,6 +7,7 @@ import com.tianli.borrow.contant.BorrowOrderStatus;
 import com.tianli.borrow.dao.BorrowCoinConfigMapper;
 import com.tianli.borrow.dao.BorrowCoinOrderMapper;
 import com.tianli.borrow.dao.BorrowInterestRecordMapper;
+import com.tianli.borrow.entity.BorrowCoinConfig;
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.tianli.borrow.entity.BorrowInterestRecord;
 import com.tianli.common.RedisLockConstants;
@@ -23,8 +24,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableScheduling
@@ -49,6 +52,9 @@ public class BorrowInterestTask {
         LocalDateTime now = LocalDateTime.now();
         String hour = String.format("%s_%s_%s", now.getMonthValue(), now.getDayOfMonth(),now.getHour());
         String redisKey = RedisLockConstants.BORROW_INCOME_TASK + hour;
+        List<BorrowCoinConfig> borrowCoinConfigs = borrowCoinConfigMapper.selectList(null);
+
+        Map<String, BigDecimal> coinInterestRateMap = borrowCoinConfigs.stream().collect(Collectors.toMap(BorrowCoinConfig::getCoin, BorrowCoinConfig::getAnnualInterestRate));
 
         log.info("========执行计算利息定时任务========");
         while (true){
@@ -59,24 +65,19 @@ public class BorrowInterestTask {
             if(CollUtil.isEmpty(records)){
                 break;
             }
-            records.forEach(record -> calculateInterest(record,now));
+            records.forEach(record -> calculateInterest(record,coinInterestRateMap,now));
         }
     }
 
     @Transactional
-    public void calculateInterest(BorrowCoinOrder borrowCoinOrder, LocalDateTime now){
-        //判断是否已计息
-        Integer count = borrowInterestRecordMapper.selectCountByOrderIdAndTime(borrowCoinOrder.getId(), now);
-        if(count > 0){
-            return;
-        }
+    public void calculateInterest(BorrowCoinOrder borrowCoinOrder, Map<String, BigDecimal> coinInterestRateMap, LocalDateTime now){
         BigDecimal waitRepayInterest = borrowCoinOrder.getWaitRepayInterest();
         BigDecimal cumulativeInterest = borrowCoinOrder.getCumulativeInterest();
         //总待还款
         BigDecimal totalWaitRepayAmount = borrowCoinOrder.calculateWaitRepay();
         BigDecimal pledgeAmount = borrowCoinOrder.getPledgeAmount();
         //计算每小时利息
-        BigDecimal interestRate = borrowCoinConfigMapper.getAnnualInterestRateByCoin(borrowCoinOrder.getBorrowCoin());
+        BigDecimal interestRate = coinInterestRateMap.get(borrowCoinOrder.getBorrowCoin());
         BigDecimal interest = (totalWaitRepayAmount.multiply(interestRate))
                 .divide(new BigDecimal(365 * 24), 8, RoundingMode.UP);
         cumulativeInterest = cumulativeInterest.add(interest);

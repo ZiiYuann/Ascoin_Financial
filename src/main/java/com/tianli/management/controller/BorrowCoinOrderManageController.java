@@ -42,7 +42,6 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @PostMapping("/order/liquidation/{orderId}")
-    @NoOperation
     public Result liquidation(@PathVariable Long orderId){
         //防重复提交锁
         redisLock.lock(RedisLockConstants.BORROW_ORDER_CHANGE_LOCK+orderId,5L, TimeUnit.SECONDS);
