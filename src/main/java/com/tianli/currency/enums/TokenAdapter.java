@@ -67,6 +67,13 @@ public enum TokenAdapter {
      * 根据网络和币别获取token包装
      */
     public static TokenAdapter get(CurrencyCoin coin, NetworkType networkType){
+        if(CurrencyCoin.bnb.equals(coin)){
+            return TokenAdapter.bnb;
+        }
+        if(CurrencyCoin.eth.equals(coin)){
+            return TokenAdapter.eth;
+        }
+
         for (TokenAdapter type : TokenAdapter.values()){
             if(type.getCurrencyCoin().equals(coin) && type.getNetwork().equals(networkType)){
                 return type;
