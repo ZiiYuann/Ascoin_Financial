@@ -9,10 +9,10 @@ import java.util.List;
 // 各种币ø
 @Getter
 public enum CurrencyCoin {
-    usdt("https://wallet-news-dev.oss-cn-shanghai.aliyuncs.com/file/f736f08c-0b0c-4cd0-8beb-1b6445462b80.png"),
-    usdc("https://wallet-news-dev.oss-cn-shanghai.aliyuncs.com/file/e17e613e-5fbd-4317-8b2b-b2ba1858d9c5.png"),
-    bnb(""),
-    eth("");
+    usdt("https://financial-dev-jp.s3-accelerate.amazonaws.com/file/66e1ea07-7da8-459b-8d50-f49f1e36cd5e.png"),
+    usdc("https://financial-dev-jp.s3-accelerate.amazonaws.com/file/0887ce3c-4699-4d40-8992-5acb5e5b760c.png"),
+    bnb("https://financial-dev-jp.s3-accelerate.amazonaws.com/file/eb26dd33-9638-45eb-9501-6ec5771954eb.png"),
+    eth("https://financial-dev-jp.s3-accelerate.amazonaws.com/file/31cf3184-ed54-4872-803a-092a894b7ad8.png");
 
     CurrencyCoin(String logoPath) {
         this.name = super.name();
