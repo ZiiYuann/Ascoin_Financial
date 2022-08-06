@@ -17,16 +17,13 @@ public class WithdrawQuery {
     @DecimalMin(value = "0.0001", message = "提现金额不能为空")
     private double amount;
 
-    /**
-     * 提币网络
-     */
-    @NotNull
+    @NotNull(message = "提笔网络不能为null")
     private NetworkType network;
 
-    @NotNull
+    @NotNull(message = "币别不能为null")
     private CurrencyCoin coin;
 
-    @NotNull
+    @NotNull(message = "地址不能为空")
     private String to;
 
 }
