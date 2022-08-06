@@ -365,6 +365,11 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     }
 
     @Override
+    public BorrowOrderAmountVO cumulativeAmount(BorrowOrderQuery query) {
+        return borrowCoinOrderMapper.selectAmountSumByQuery(query);
+    }
+
+    @Override
     public IPage<BorrowRepayRecordVO> repayRecord(PageQuery<BorrowRepayRecord> pageQuery, BorrowRepayQuery query) {
         LambdaQueryWrapper<BorrowRepayRecord> queryWrapper = new QueryWrapper<BorrowRepayRecord>().lambda();
 
@@ -505,7 +510,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             //全部还款
             releasePledgeAmount = borrowCoinOrder.getPledgeAmount();
             //借币质押记录
-            pledgeRecord.setAmount(borrowCoinOrder.getPledgeAmount());
+            pledgeRecord.setAmount(borrowCoinOrder.getPledgeAmount().negate());
             borrowPledgeRecordMapper.insert(pledgeRecord);
             borrowCoinOrder.setRepayAmount(borrowCoinOrder.getRepayAmount().add(repayAmount));
             borrowCoinOrder.setWaitRepayCapital(BigDecimal.ZERO);
@@ -550,7 +555,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 BigDecimal currPledgeAmount = waitRepayAmount.divide(initialPledgeRate, 8, RoundingMode.UP);
                 releasePledgeAmount = pledgeAmount.subtract(currPledgeAmount);
                 //借币质押记录
-                pledgeRecord.setAmount(releasePledgeAmount);
+                pledgeRecord.setAmount(releasePledgeAmount.negate());
                 borrowPledgeRecordMapper.insert(pledgeRecord);
                 //修改借币订单
                 borrowCoinOrder.setRepayAmount(borrowCoinOrder.getRepayAmount().add(repayAmount));

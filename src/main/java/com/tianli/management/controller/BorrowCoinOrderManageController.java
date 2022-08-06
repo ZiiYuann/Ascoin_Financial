@@ -73,6 +73,14 @@ public class BorrowCoinOrderManageController {
         return Result.success(amountVO);
     }
 
+
+
+    @GetMapping("/order/cumulative/amount")
+    public Result cumulativeAmount(BorrowOrderQuery query){
+        BorrowOrderAmountVO borrowOrderAmountVO = borrowCoinOrderService.cumulativeAmount(query);
+        return Result.success(borrowOrderAmountVO);
+    }
+
     /**
      * 质押记录
      * @param
