@@ -175,7 +175,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         BigDecimal realWithdrawAmount = withdrawAmount.subtract(serviceAmount);
 
         if (serviceAmount.compareTo(BigDecimal.ZERO) < 0) ErrorCodeEnum.FEE_LT_ZERO_ERROR.throwException();
-        if (withdrawAmount.compareTo(serviceAmount) < 0)
+        if (withdrawAmount.compareTo(serviceAmount) <= 0)
             ErrorCodeEnum.WITHDRAWAL_AMOUNT_LT_FEE_ERROR.throwException();
 
         LocalDateTime now = requestInitService.now();
