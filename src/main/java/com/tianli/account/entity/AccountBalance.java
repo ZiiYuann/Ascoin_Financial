@@ -31,7 +31,7 @@ public class AccountBalance extends Model<AccountBalance> {
     private Long id;
 
     /**
-     * logo 地址
+     * logo 地址  可以删除
      */
     private String logo;
 
