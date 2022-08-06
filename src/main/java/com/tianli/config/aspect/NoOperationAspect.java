@@ -1,6 +1,5 @@
 package com.tianli.config.aspect;
 
-import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.tianli.common.annotation.NoOperation;
 import com.tianli.exception.ErrorCodeEnum;
@@ -25,10 +24,9 @@ public class NoOperationAspect {
     @Before("pointCut(noOperation)")
     public void before(JoinPoint jp,NoOperation noOperation) {
         Date now = new Date();
-        Date beginOfHour = DateUtil.beginOfHour(now);
-        DateTime endOfHour = DateUtil.endOfHour(now);
-        Date beginTime = DateUtil.offsetMinute(beginOfHour,5);
-        Date endTime = DateUtil.offsetMinute(endOfHour,-5);
+        int lockTime = noOperation.lockTime();
+        Date beginTime = DateUtil.offsetMinute(DateUtil.beginOfHour(now),lockTime);
+        Date endTime = DateUtil.offsetMinute(DateUtil.endOfHour(now),-lockTime);
         if(!DateUtil.isIn(now,beginTime,endTime)){
             ErrorCodeEnum.NO_OPERATION.throwException();
         }
