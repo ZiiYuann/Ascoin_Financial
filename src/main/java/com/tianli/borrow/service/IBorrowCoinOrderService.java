@@ -52,6 +52,8 @@ public interface IBorrowCoinOrderService extends IService<BorrowCoinOrder> {
 
     AmountVO interestAmount(BorrowInterestRecordQuery query);
 
+    BorrowOrderAmountVO cumulativeAmount(BorrowOrderQuery query);
+
     IPage<BorrowRepayRecordVO> repayRecord(PageQuery<BorrowRepayRecord> pageQuery, BorrowRepayQuery query);
 
     AmountVO repayAmount(BorrowRepayQuery query);

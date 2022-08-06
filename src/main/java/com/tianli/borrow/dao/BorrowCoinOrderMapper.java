@@ -2,7 +2,9 @@ package com.tianli.borrow.dao;
 
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.tianli.borrow.query.BorrowInterestRecordQuery;
 import com.tianli.borrow.query.BorrowOrderQuery;
+import com.tianli.borrow.vo.BorrowOrderAmountVO;
 import com.tianli.borrow.vo.BorrowOrderStatisticsChartVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -66,4 +68,7 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
     void updatePledgeStatusByPledgeRate(@Param("startPledgeRate") BigDecimal startPledgeRate,
                                         @Param("endPledgeRate") BigDecimal endPledgeRate,
                                         @Param("pledgeStatus")Integer pledgeStatus);
+
+
+    BorrowOrderAmountVO selectAmountSumByQuery(BorrowOrderQuery query);
 }
