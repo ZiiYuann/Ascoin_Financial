@@ -69,7 +69,8 @@
                record.coin,
                record.product_name,
                record.product_term,
-               record.product_name_en
+               record.product_name_en,
+               record.end_time as settle_time
         FROM `order` o
                  INNER JOIN financial_record record on record.id = o.related_id and record.uid = o.uid
                  INNER JOIN financial_income_accrue income ON income.uid = o.uid and income.record_id = record.id

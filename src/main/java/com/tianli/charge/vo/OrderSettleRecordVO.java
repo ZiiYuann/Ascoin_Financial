@@ -31,7 +31,7 @@ public class OrderSettleRecordVO extends OrderBaseVO {
     private LocalDateTime purchaseTime;
 
     /**
-     * 记息时间
+     * 计息时间
      */
     private LocalDateTime startIncomeTime;
 
@@ -39,5 +39,10 @@ public class OrderSettleRecordVO extends OrderBaseVO {
      * 赎回时间
      */
     private LocalDateTime redeemTime;
+
+    /**
+     * 结算
+     */
+    private LocalDateTime settleTime;
 
 }
