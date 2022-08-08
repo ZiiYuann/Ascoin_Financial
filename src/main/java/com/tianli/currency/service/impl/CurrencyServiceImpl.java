@@ -34,7 +34,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         // since 2022.07.10 本期功能只支持usdt和usdt，汇率都是1
         BigDecimal dollarRate = this.getDollarRate(tokenAdapter.getCurrencyCoin());
         dollarAmountDTO.setOriginalAmount(amount);
-        dollarAmountDTO.setDollarAmount(amount.multiply(dollarRate).setScale(8, RoundingMode.HALF_DOWN));
+        dollarAmountDTO.setDollarAmount(amount.multiply(dollarRate).setScale(8, RoundingMode.DOWN));
         return dollarAmountDTO;
     }
 

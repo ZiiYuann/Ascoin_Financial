@@ -219,7 +219,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         var accountBalanceVOS = accountBalanceVOS(uid);
         BigDecimal totalDollarBalance = accountBalanceVOS.stream()
                 .map(AccountBalanceVO::getDollarBalance)
-                .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(8, RoundingMode.HALF_DOWN);
+                .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(8, RoundingMode.DOWN);
 
         var existCoinNames =
                 accountBalanceVOS.stream().map(balance -> balance.getCoin().getName()).collect(Collectors.toList());

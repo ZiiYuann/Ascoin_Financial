@@ -113,12 +113,12 @@ public enum TokenAdapter {
             case usdt_trc20:
             case usdc_erc20:
             case usdc_trc20:
-                return decimal.divide(new BigDecimal("1000000"),8, RoundingMode.HALF_DOWN).doubleValue();
+                return decimal.divide(new BigDecimal("1000000"),8, RoundingMode.DOWN).doubleValue();
             case usdt_bep20:
             case usdc_bep20:
             case bnb:
             case eth:
-                return decimal.divide(new BigDecimal("1000000000000000000"),8, RoundingMode.HALF_DOWN).doubleValue();
+                return decimal.divide(new BigDecimal("1000000000000000000"),8, RoundingMode.DOWN).doubleValue();
         }
         return 0.0;
     }
@@ -130,10 +130,10 @@ public enum TokenAdapter {
             case usdt_trc20:
             case usdc_erc20:
             case usdc_trc20:
-                return amount.divide(new BigDecimal("1000000"),8, RoundingMode.HALF_DOWN);
+                return amount.divide(new BigDecimal("1000000"),8, RoundingMode.DOWN);
             case usdt_bep20:
             case usdc_bep20:
-                return amount.divide(new BigDecimal("1000000000000000000"),8, RoundingMode.HALF_DOWN);
+                return amount.divide(new BigDecimal("1000000000000000000"),8, RoundingMode.DOWN);
         }
         return BigDecimal.ZERO;
     }
