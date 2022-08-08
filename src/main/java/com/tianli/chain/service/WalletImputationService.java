@@ -174,7 +174,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         List<Long> addressIds = walletImputations.stream().map(WalletImputation::getAddressId).collect(Collectors.toList());
         String hash = baseContractService.getOne(network).recycle(null, addressIds, tokenAdapter.getContractAddressList());
-        // 事务问题如何解决？
+        // 事务问题如何解决，如果中间出现异常，整个事务回滚，归集状态为wait，重新归集只收取手续费
 
         if (StringUtils.isBlank(hash)) {
             ErrorCodeEnum.throwException("上链失败");

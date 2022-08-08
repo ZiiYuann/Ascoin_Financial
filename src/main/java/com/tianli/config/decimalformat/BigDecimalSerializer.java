@@ -11,6 +11,7 @@ import org.springframework.boot.jackson.JsonComponent;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Objects;
 
@@ -42,7 +43,9 @@ public class BigDecimalSerializer extends JsonSerializer<BigDecimal> implements 
 
     @Override
     public void serialize(BigDecimal bigDecimal, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-        jsonGenerator.writeString(new DecimalFormat(format).format(bigDecimal.stripTrailingZeros()));
+        DecimalFormat decimalFormat = new DecimalFormat(format);
+        decimalFormat.setRoundingMode(RoundingMode.DOWN);
+        jsonGenerator.writeString(decimalFormat.format(bigDecimal.stripTrailingZeros()));
     }
 }
 
