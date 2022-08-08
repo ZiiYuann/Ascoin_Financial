@@ -99,8 +99,15 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
     }
 
     public IPage<OrderChargeInfoVO> selectOrderChargeInfoVOPage(IPage<OrderChargeInfoVO> page, FinancialChargeQuery query) {
-        return orderMapper.selectOrderChargeInfoVOPage(page, query);
-    }
+        IPage<OrderChargeInfoVO> orderChargeInfoVOIPage = orderMapper.selectOrderChargeInfoVOPage(page, query);
+        orderChargeInfoVOIPage.convert(orderChargeInfoVO ->  {
+            BigDecimal amount = Optional.ofNullable(orderChargeInfoVO.getAmount()).orElse(BigDecimal.ZERO);
+            BigDecimal serviceAmount = Optional.ofNullable(orderChargeInfoVO.getServiceAmount()).orElse(BigDecimal.ZERO);
+            orderChargeInfoVO.setAccountAmount(amount.subtract(serviceAmount));
+            return orderChargeInfoVO;
+        });
+        return orderChargeInfoVOIPage;
+}
 
 
     /**
