@@ -17,7 +17,6 @@ import com.tianli.common.async.AsyncService;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrCodeException;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.BusinessType;
@@ -73,7 +72,7 @@ public class FinancialIncomeTask {
 
     private static final ConcurrentHashMap<String, AtomicInteger> FAIL_COUNT_CACHE = new ConcurrentHashMap<>();
 
-    //    @Scheduled(cron = "0 0/1 * * * ?")
+        @Scheduled(cron = "0 0/1 * * * ?")
     public void calIncomeTest() {
         log.info("========执行计算每日利息定时任务========");
         asyncService.async(() -> {
@@ -89,8 +88,7 @@ public class FinancialIncomeTask {
                     records = new ArrayList<>();
                 } else {
                     LambdaQueryWrapper<FinancialRecord> eq = new LambdaQueryWrapper<FinancialRecord>()
-                            .eq(FinancialRecord::getUid, 1739656452879941634L)
-                            .eq(FinancialRecord::getStatus, RecordStatus.PROCESS);
+                            .eq(FinancialRecord::getId, 1740575276235094472L);
                     records = financialRecordService.list(eq);
                 }
 
@@ -225,8 +223,8 @@ public class FinancialIncomeTask {
                 // 转存金额为 结算金额加收益金额
                 .amount(transferAmount)
                 .relatedId(transferRecord.getId())
-                .createTime(now)
-                .completeTime(now)
+                .createTime(now.plusSeconds(1))
+                .completeTime(now.plusSeconds(1))
                 .build();
         orderService.save(order);
 
