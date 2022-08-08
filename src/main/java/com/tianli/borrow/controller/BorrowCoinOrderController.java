@@ -17,7 +17,6 @@ import com.tianli.borrow.query.BorrowRepayQuery;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
-import com.tianli.common.RedisLockConstants;
 import com.tianli.common.annotation.NoOperation;
 import com.tianli.common.annotation.NoRepeatSubmit;
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -31,7 +30,6 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -50,9 +48,6 @@ public class BorrowCoinOrderController {
 
     @Autowired
     private IBorrowCoinOrderService borrowCoinOrderService;
-
-    @Autowired
-    private RedisLock redisLock;
 
     /**
      * 借币主页面
@@ -184,9 +179,6 @@ public class BorrowCoinOrderController {
     @NoOperation
     @NoRepeatSubmit
     public Result orderRepay(@RequestBody @Valid BorrowOrderRepayBO bo){
-        Long uid = requestInitService.uid();
-        //防重复提交锁
-        redisLock.lock(RedisLockConstants.BORROW_ORDER_CHANGE_LOCK+uid,5L,TimeUnit.SECONDS);
         borrowCoinOrderService.orderRepay(bo);
         return Result.success();
     }
@@ -213,9 +205,6 @@ public class BorrowCoinOrderController {
     @PostMapping("/order/adjust/pledge")
     @NoRepeatSubmit
     public Result adjustPledge(@RequestBody @Valid AdjustPledgeBO bo){
-        Long uid = requestInitService.uid();
-        //防重复提交锁
-        redisLock.lock(RedisLockConstants.BORROW_ORDER_CHANGE_LOCK+uid,5L,TimeUnit.SECONDS);
         borrowCoinOrderService.adjustPledge(bo);
         return Result.success();
     }
