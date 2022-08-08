@@ -30,22 +30,22 @@ public interface AccountBalanceMapper extends BaseMapper<AccountBalance> {
     List<AccountBalance> list(long uid);
 
     @Update("UPDATE `account_balance` SET `balance`=`balance`+#{amount},`remain`=`remain`+#{amount} WHERE `uid`=#{id} and coin=#{coin}")
-    long increase(@Param("id") long id, @Param("amount") BigDecimal amount,@Param("coin") CurrencyCoin coin);
+    long increase(@Param("id") long id, @Param("amount") BigDecimal amount, @Param("coin") CurrencyCoin coin);
 
     @Update("UPDATE `account_balance` SET `balance`=`balance`-#{amount},`remain`=`remain`-#{amount} WHERE `uid`=#{id}  and coin=#{coin} AND `remain`>= #{amount}")
-    long decrease(@Param("id") long id, @Param("amount") BigDecimal amount,@Param("coin") CurrencyCoin coin);
+    long decrease(@Param("id") long id, @Param("amount") BigDecimal amount, @Param("coin") CurrencyCoin coin);
 
     @Update("UPDATE `account_balance` SET `balance`=`balance`-#{amount},`freeze`=`freeze`-#{amount} WHERE `uid`=#{id} and coin=#{coin} AND  `freeze`>=#{amount} ")
-    long reduce(@Param("id") long id, @Param("amount") BigDecimal amount,@Param("coin") CurrencyCoin coin);
+    long reduce(@Param("id") long id, @Param("amount") BigDecimal amount, @Param("coin") CurrencyCoin coin);
 
     @Update("UPDATE `account_balance` SET `balance`=`balance`-#{amount},`remain`=`remain`-#{amount} WHERE `uid`=#{id} and coin=#{coin} AND `remain`>=#{amount} ")
-    long withdraw(@Param("id") long id, @Param("amount") BigDecimal amount,@Param("coin") CurrencyCoin coin);
+    long withdraw(@Param("id") long id, @Param("amount") BigDecimal amount, @Param("coin") CurrencyCoin coin);
 
     @Update("UPDATE `account_balance` SET `freeze`=`freeze`+#{amount},`remain`=`remain`-#{amount} WHERE `uid`=#{id} and coin=#{coin} AND `remain`>=#{amount} ")
-    long freeze(@Param("id") long id, @Param("amount") BigDecimal amount,@Param("coin") CurrencyCoin coin);
+    long freeze(@Param("id") long id, @Param("amount") BigDecimal amount, @Param("coin") CurrencyCoin coin);
 
     @Update("UPDATE `account_balance` SET `freeze`=`freeze`- #{amount},`remain`=`remain`+#{amount} WHERE `uid`=#{id} and coin=#{coin} AND `freeze`>=#{amount} ")
-    long unfreeze(@Param("id") long id, @Param("amount") BigDecimal amount,@Param("coin") CurrencyCoin coin);
+    long unfreeze(@Param("id") long id, @Param("amount") BigDecimal amount, @Param("coin") CurrencyCoin coin);
 
     @Select("select sum(balance) as balanceAmount ,coin from account_balance GROUP BY coin")
     List<AccountBalanceSimpleVO> listAccountBalanceSimpleVO();

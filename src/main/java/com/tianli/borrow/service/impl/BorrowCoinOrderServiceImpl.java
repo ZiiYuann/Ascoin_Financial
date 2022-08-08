@@ -812,7 +812,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .createTime(LocalDateTime.now())
                 .build();
         orderService.save(order);
-        accountBalanceService.withdraw(uid,ChargeType.pledge,coin,null,pledgeAmount,order.getOrderNo()
+        accountBalanceService.decrease(uid,ChargeType.pledge,coin,null,pledgeAmount,order.getOrderNo()
                 ,CurrencyLogDes.质押.name(), AccountOperationType.pledge);
 
     }
@@ -863,7 +863,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .relatedId(orderId)
                 .build();
         orderService.save(order);
-        accountBalanceService.withdraw(uid, ChargeType.repay, coin,null, amount, order.getOrderNo()
+        accountBalanceService.decrease(uid, ChargeType.repay, coin,null, amount, order.getOrderNo()
                 , CurrencyLogDes.还币.name(),AccountOperationType.repay);
     }
 }
