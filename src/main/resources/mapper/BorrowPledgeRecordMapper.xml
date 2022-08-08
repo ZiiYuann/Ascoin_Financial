@@ -14,7 +14,5 @@
                 and pledge_time &lt;= #{endTime}
             </if>
         </where>
-
-
     </select>
 </mapper>
