@@ -20,7 +20,6 @@ import com.tianli.common.PageQuery;
 import com.tianli.common.annotation.NoOperation;
 import com.tianli.common.annotation.NoRepeatSubmit;
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.common.lock.RedisLock;
 import com.tianli.exception.Result;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.beans.factory.annotation.Autowired;
