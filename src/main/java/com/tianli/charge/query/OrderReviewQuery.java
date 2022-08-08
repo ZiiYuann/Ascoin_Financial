@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
+
 /**
  * @author chenb
  * @apiNote
@@ -14,10 +16,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OrderReviewQuery {
 
-    /**
-     * 订单号
-     */
+    @NotBlank(message = "订单号不允许为空")
     private String orderNo;
+
+    @NotBlank(message = "交易hash不允许为空")
+    private String hash;
 
     /**
      * 审核信息

@@ -13,7 +13,6 @@ import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.vo.OrderReviewVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.sso.init.RequestInitService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,7 +70,15 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         // 审核通过需要上链
         if (query.isPass()) {
 //            chargeService.withdrawChain(order);
-            order.setStatus(ChargeStatus.chaining);
+            // 更新order相关链信息
+            OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
+            orderChargeInfo.setTxid(query.getHash());
+            orderChargeInfoService.updateById(orderChargeInfo);
+
+            // 操作余额信息
+            accountBalanceService.reduce(order.getUid(), ChargeType.withdraw, order.getCoin()
+                    , orderChargeInfo.getNetwork(), orderChargeInfo.getFee(), order.getOrderNo(), "提现成功扣除");
+            order.setStatus(ChargeStatus.chain_success);
         }
         // 审核不通过需要解冻金额
         if (!query.isPass()) {
@@ -89,13 +96,8 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
     @Resource
     private OrderReviewMapper orderReviewMapper;
     @Resource
-    private RequestInitService requestInitService;
-    @Resource
-    private ChargeService chargeService;
-    @Resource
     private AccountBalanceService accountBalanceService;
     @Resource
     private OrderChargeInfoService orderChargeInfoService;
-
 
 }
