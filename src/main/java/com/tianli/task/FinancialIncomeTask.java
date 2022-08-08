@@ -73,7 +73,7 @@ public class FinancialIncomeTask {
 
     private static final ConcurrentHashMap<String, AtomicInteger> FAIL_COUNT_CACHE = new ConcurrentHashMap<>();
 
-//    @Scheduled(cron = "0 0/1 * * * ?")
+    //    @Scheduled(cron = "0 0/1 * * * ?")
     public void calIncomeTest() {
         log.info("========执行计算每日利息定时任务========");
         asyncService.async(() -> {
@@ -90,7 +90,7 @@ public class FinancialIncomeTask {
                 } else {
                     LambdaQueryWrapper<FinancialRecord> eq = new LambdaQueryWrapper<FinancialRecord>()
                             .eq(FinancialRecord::getUid, 1739656452879941634L)
-                            .eq(FinancialRecord :: getStatus,RecordStatus.PROCESS);
+                            .eq(FinancialRecord::getStatus, RecordStatus.PROCESS);
                     records = financialRecordService.list(eq);
                 }
 
@@ -134,15 +134,15 @@ public class FinancialIncomeTask {
                     FinancialIncomeTask task = SpringUtil.getBean(FinancialIncomeTask.class);
                     try {
                         task.interestStat(financialRecord);
-                    }catch (Exception e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
-                        if(e instanceof ErrCodeException){
+                        if (e instanceof ErrCodeException) {
                             return;
                         }
                         String toJson = gson.toJson(financialRecord);
                         RetryScheduledExecutor.DEFAULT_EXECUTOR.schedule(() -> {
                             String recordId = String.valueOf(financialRecord.getId());
-                            AtomicInteger atomicInteger = FAIL_COUNT_CACHE.getOrDefault(recordId,new AtomicInteger(3));
+                            AtomicInteger atomicInteger = FAIL_COUNT_CACHE.getOrDefault(recordId, new AtomicInteger(3));
                             FAIL_COUNT_CACHE.put(String.valueOf(financialRecord.getId()), atomicInteger);
 
                             int andDecrement = atomicInteger.getAndDecrement();
@@ -152,7 +152,7 @@ public class FinancialIncomeTask {
                                 log.error("统计每日利息失败: record:{}", toJson);
                                 FAIL_COUNT_CACHE.remove(recordId);
                             }
-                        }, 30, TimeUnit.MINUTES,new RetryTaskInfo<>("incomeTask","定时计息",financialRecord));
+                        }, 30, TimeUnit.MINUTES, new RetryTaskInfo<>("incomeTask", "定时计息", financialRecord));
                     }
                 }
             }
@@ -164,30 +164,30 @@ public class FinancialIncomeTask {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void interestStat(FinancialRecord financialRecord) {
-            ProductType type = financialRecord.getProductType();
-            LocalDateTime endTime = financialRecord.getEndTime();
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime grantIncomeTime = financialRecord.getStartIncomeTime().plusDays(1);
-            LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
+        ProductType type = financialRecord.getProductType();
+        LocalDateTime endTime = financialRecord.getEndTime();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime grantIncomeTime = financialRecord.getStartIncomeTime().plusDays(1);
+        LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
 
 
-            // 如果是定期产品且当前时间为到期前一天则计算利息
-            if (ProductType.fixed.equals(type) && endTime.compareTo(todayZero) == 0 ) {
-                incomeOperation(financialRecord, now);
-                settleOperation(financialRecord, now);
-                renewalOperation(financialRecord);
-            }
+        // 如果是定期产品且当前时间为到期前一天则计算利息
+        if (ProductType.fixed.equals(type) && endTime.compareTo(todayZero) == 0) {
+            var incomeOrder = incomeOperation(financialRecord, now);
+            var settleOrder = settleOperation(financialRecord, now);
+            renewalOperation(financialRecord, incomeOrder, settleOrder,now);
+        }
 
-            // 如果是活期产品需要当前时间 >= 收益发放时间
-            if (ProductType.current.equals(type) && todayZero.compareTo(grantIncomeTime) >= 0) {
-                incomeOperation(financialRecord, now);
-            }
+        // 如果是活期产品需要当前时间 >= 收益发放时间
+        if (ProductType.current.equals(type) && todayZero.compareTo(grantIncomeTime) >= 0) {
+            incomeOperation(financialRecord, now);
+        }
     }
 
     /**
      * 自动续费操作
      */
-    private void renewalOperation(FinancialRecord financialRecord) {
+    private void renewalOperation(FinancialRecord financialRecord, Order incomeOrder, Order settleOrder,LocalDateTime now) {
         if (!financialRecord.isAutoRenewal()) {
             return;
         }
@@ -198,28 +198,47 @@ public class FinancialIncomeTask {
                 .eq(FinancialProduct::isDeleted, false)
                 .eq(FinancialProduct::getBusinessType, BusinessType.normal)
                 .eq(FinancialProduct::getType, ProductType.current)
-                .orderByDesc(FinancialProduct :: getCreateTime);
+                .orderByDesc(FinancialProduct::getCreateTime);
 
 
         List<FinancialProduct> products = financialProductService.list(query);
-        if (CollectionUtils.isEmpty(products)){
+        if (CollectionUtils.isEmpty(products)) {
             log.error("当前币别下不存在有效的活期产品用于自动续费");
             ErrorCodeEnum.SYSTEM_ERROR.throwException();
         }
+        // 转存金额 = 收益金额 + 本金
+        BigDecimal transferAmount = incomeOrder.getAmount().add(settleOrder.getAmount());
 
         // 取第一个有效的产品
         FinancialProduct product = products.get(0);
-        financialRecordService.generateFinancialRecord(financialRecord.getUid()
-                , product, financialRecord.getHoldAmount(),false);
+        FinancialRecord transferRecord = financialRecordService.generateFinancialRecord(financialRecord.getUid()
+                , product, transferAmount, false);
 
+        long id = CommonFunction.generalId();
+        Order order = Order.builder()
+                .id(id)
+                .uid(financialRecord.getUid())
+                .orderNo(AccountChangeType.transfer.getPrefix() + CommonFunction.generalSn(id))
+                .type(ChargeType.transfer)
+                .status(ChargeStatus.chain_success)
+                .coin(financialRecord.getCoin())
+                // 转存金额为 结算金额加收益金额
+                .amount(transferAmount)
+                .relatedId(transferRecord.getId())
+                .createTime(now)
+                .completeTime(now)
+                .build();
+        orderService.save(order);
+
+        // 减少金额
+        accountBalanceService.decrease(financialRecord.getUid(), ChargeType.purchase, product.getCoin(), transferAmount
+                , order.getOrderNo(), "转存");
     }
 
     /**
      * 结算操作
      */
-    private void settleOperation(FinancialRecord financialRecord, LocalDateTime now) {
-        FinancialIncomeAccrue financialIncomeAccrue =
-                financialIncomeAccrueService.selectByRecordId(financialRecord.getUid(), financialRecord.getId());
+    private Order settleOperation(FinancialRecord financialRecord, LocalDateTime now) {
         long id = CommonFunction.generalId();
         Order order = Order.builder()
                 .id(id)
@@ -228,8 +247,8 @@ public class FinancialIncomeTask {
                 .type(ChargeType.settle)
                 .status(ChargeStatus.chain_success)
                 .coin(financialRecord.getCoin())
-                // 结算金额为总收益
-                .amount(financialRecord.isAutoRenewal() ? BigDecimal.ZERO :financialRecord.getHoldAmount())
+                // 结算金额为持有金额
+                .amount(financialRecord.getHoldAmount())
                 .relatedId(financialRecord.getId())
                 .createTime(now)
                 .completeTime(now)
@@ -241,19 +260,16 @@ public class FinancialIncomeTask {
         financialRecord.setStatus(RecordStatus.SUCCESS);
         financialRecordService.updateById(financialRecord);
 
-        // 不是自动续费结算增加金额
-        if(!financialRecord.isAutoRenewal()){
-            // 增加
-            accountBalanceService.increase(financialRecord.getUid(), ChargeType.settle, financialRecord.getCoin()
-                    , financialRecord.getHoldAmount(), order.getOrderNo(), CurrencyLogDes.结算.name());
-        }
-
+        // 增加
+        accountBalanceService.increase(financialRecord.getUid(), ChargeType.settle, financialRecord.getCoin()
+                , financialRecord.getHoldAmount(), order.getOrderNo(), CurrencyLogDes.结算.name());
+        return order;
     }
 
     /**
      * 收益操作
      */
-    private void incomeOperation(FinancialRecord financialRecord, LocalDateTime now) {
+    private Order incomeOperation(FinancialRecord financialRecord, LocalDateTime now) {
         BigDecimal income = financialRecord.getHoldAmount()
                 .multiply(financialRecord.getRate()) // 乘年化利率
                 .multiply(BigDecimal.valueOf(financialRecord.getProductTerm().getDay())) // 乘计息周期，活期默认为1
@@ -283,6 +299,7 @@ public class FinancialIncomeTask {
         // 操作余额
         accountBalanceService.increase(uid, ChargeType.income, financialRecord.getCoin()
                 , income, order.getOrderNo(), CurrencyLogDes.收益.name());
+        return order;
     }
 
 }

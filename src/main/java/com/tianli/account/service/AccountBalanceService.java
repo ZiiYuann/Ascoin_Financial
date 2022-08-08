@@ -102,15 +102,15 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     }
 
     @Transactional
-    public void withdraw(long uid, ChargeType type, CurrencyCoin coin, BigDecimal amount, String sn, String des) {
-        withdraw(uid, type, coin, null, amount, sn, des);
+    public void decrease(long uid, ChargeType type, CurrencyCoin coin, BigDecimal amount, String sn, String des) {
+        decrease(uid, type, coin, null, amount, sn, des);
     }
 
     @Transactional
-    public void withdraw(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType,
+    public void decrease(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType,
                          BigDecimal amount, String sn, String des, AccountOperationType accountOperationType) {
         getAndInit(uid, coin);
-        if (accountBalanceMapper.withdraw(uid, amount, coin) <= 0L) {
+        if (accountBalanceMapper.decrease(uid, amount, coin) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
@@ -125,8 +125,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void withdraw(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
-        withdraw(uid, type, coin, networkType, amount, sn, des, AccountOperationType.withdraw);
+    public void decrease(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+        decrease(uid, type, coin, networkType, amount, sn, des, AccountOperationType.withdraw);
     }
 
     @Transactional

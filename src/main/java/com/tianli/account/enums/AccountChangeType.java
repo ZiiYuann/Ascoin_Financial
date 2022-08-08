@@ -19,6 +19,7 @@ public enum AccountChangeType {
     normal("NO"),
     //充值
     recharge("RE"),
+    transfer("TR"),
     //收益
     income("IN"),
     //结算
