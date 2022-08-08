@@ -67,9 +67,6 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
     @Select("select count(*) from borrow_coin_order where status = #{status} and borrow_time >= #{now}")
     Integer selectCountByStatus(@Param("status") Integer status,@Param("now") LocalDate now);
 
-    @Update("update borrow_coin_order set pledge_status = #{pledgeStatus} where " +
-            "pledge_status >= #{pledgeRete} and pledge_status < #{endPledgeStatus} " +
-            "and status = 1")
     void updatePledgeStatusByPledgeRate(@Param("startPledgeRate") BigDecimal startPledgeRate,
                                         @Param("endPledgeRate") BigDecimal endPledgeRate,
                                         @Param("pledgeStatus")Integer pledgeStatus);
