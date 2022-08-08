@@ -615,13 +615,17 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             //减少质押
             BigDecimal pledgeRateAmount = waitRepay.divide(initialPledgeRate, 8, RoundingMode.UP);
             BigDecimal ableReduceAmount = borrowCoinOrder.getPledgeAmount().subtract(pledgeRateAmount);
-            if(adjustAmount.compareTo(ableReduceAmount) > 0)ErrorCodeEnum.ADJUST_GT_AVAILABLE.throwException();
-            if(ableReduceAmount.compareTo(BigDecimal.ZERO) <= 0){
+            if(adjustAmount.compareTo(ableReduceAmount) > 0){
                 borrowAdjustPageVO.setAbleReduceAmount(BigDecimal.ZERO);
                 borrowAdjustPageVO.setAdjustPledgeRate(borrowCoinOrder.getPledgeRate());
             }else {
-                borrowAdjustPageVO.setAbleReduceAmount(ableReduceAmount);
-                borrowAdjustPageVO.setAdjustPledgeRate(waitRepay.divide((pledgeAmount.subtract(adjustAmount)), 8, RoundingMode.UP));
+                if (ableReduceAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                    borrowAdjustPageVO.setAbleReduceAmount(BigDecimal.ZERO);
+                    borrowAdjustPageVO.setAdjustPledgeRate(borrowCoinOrder.getPledgeRate());
+                } else {
+                    borrowAdjustPageVO.setAbleReduceAmount(ableReduceAmount);
+                    borrowAdjustPageVO.setAdjustPledgeRate(waitRepay.divide((pledgeAmount.subtract(adjustAmount)), 8, RoundingMode.UP));
+                }
             }
         }
         return borrowAdjustPageVO;
