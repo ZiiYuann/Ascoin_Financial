@@ -72,7 +72,7 @@ public class FinancialIncomeTask {
 
     private static final ConcurrentHashMap<String, AtomicInteger> FAIL_COUNT_CACHE = new ConcurrentHashMap<>();
 
-        @Scheduled(cron = "0 0/1 * * * ?")
+//        @Scheduled(cron = "0 0/1 * * * ?")
     public void calIncomeTest() {
         log.info("========执行计算每日利息定时任务========");
         asyncService.async(() -> {
