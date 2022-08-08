@@ -3,13 +3,16 @@ package com.tianli.task;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tianli.borrow.contant.BorrowOrderPledgeStatus;
 import com.tianli.borrow.contant.BorrowOrderStatus;
 import com.tianli.borrow.dao.BorrowCoinConfigMapper;
 import com.tianli.borrow.dao.BorrowCoinOrderMapper;
 import com.tianli.borrow.dao.BorrowInterestRecordMapper;
+import com.tianli.borrow.dao.BorrowPledgeCoinConfigMapper;
 import com.tianli.borrow.entity.BorrowCoinConfig;
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.tianli.borrow.entity.BorrowInterestRecord;
+import com.tianli.borrow.entity.BorrowPledgeCoinConfig;
 import com.tianli.common.RedisLockConstants;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +44,9 @@ public class BorrowInterestTask {
     private BorrowCoinConfigMapper borrowCoinConfigMapper;
 
     @Autowired
+    private BorrowPledgeCoinConfigMapper borrowPledgeCoinConfigMapper;
+
+    @Autowired
     private BorrowInterestRecordMapper borrowInterestRecordMapper;
 
     @Autowired
@@ -53,9 +59,10 @@ public class BorrowInterestTask {
         String hour = String.format("%s_%s_%s", now.getMonthValue(), now.getDayOfMonth(),now.getHour());
         String redisKey = RedisLockConstants.BORROW_INCOME_TASK + hour;
         List<BorrowCoinConfig> borrowCoinConfigs = borrowCoinConfigMapper.selectList(null);
-
+        List<BorrowPledgeCoinConfig> borrowPledgeCoinConfigs = borrowPledgeCoinConfigMapper.selectList(null);
         Map<String, BigDecimal> coinInterestRateMap = borrowCoinConfigs.stream().collect(Collectors.toMap(BorrowCoinConfig::getCoin, BorrowCoinConfig::getAnnualInterestRate));
-
+        Map<String, BigDecimal> coinWarnPledgeRateMap = borrowPledgeCoinConfigs.stream().collect(Collectors.toMap(BorrowPledgeCoinConfig::getCoin, BorrowPledgeCoinConfig::getWarnPledgeRate));
+        Map<String, BigDecimal> coinLiquidationPledgeRateMap = borrowPledgeCoinConfigs.stream().collect(Collectors.toMap(BorrowPledgeCoinConfig::getCoin, BorrowPledgeCoinConfig::getLiquidationPledgeRate));
         log.info("========执行计算利息定时任务========");
         while (true){
             long page = incr(redisKey,30L);
@@ -65,12 +72,16 @@ public class BorrowInterestTask {
             if(CollUtil.isEmpty(records)){
                 break;
             }
-            records.forEach(record -> calculateInterest(record,coinInterestRateMap,now));
+            records.forEach(record -> calculateInterest(record,coinInterestRateMap,coinWarnPledgeRateMap,coinLiquidationPledgeRateMap,now));
         }
     }
 
     @Transactional
-    public void calculateInterest(BorrowCoinOrder borrowCoinOrder, Map<String, BigDecimal> coinInterestRateMap, LocalDateTime now){
+    public void calculateInterest(BorrowCoinOrder borrowCoinOrder,
+                                  Map<String, BigDecimal> coinInterestRateMap,
+                                  Map<String, BigDecimal> coinWarnPledgeRateMap,
+                                  Map<String, BigDecimal> coinLiquidationPledgeRateMap,
+                                  LocalDateTime now){
         BigDecimal waitRepayInterest = borrowCoinOrder.getWaitRepayInterest();
         BigDecimal cumulativeInterest = borrowCoinOrder.getCumulativeInterest();
         //总待还款
@@ -85,7 +96,12 @@ public class BorrowInterestTask {
         //计算质押率
         totalWaitRepayAmount = totalWaitRepayAmount.add(interest);
         BigDecimal pledgeRate = totalWaitRepayAmount.divide(pledgeAmount,8, RoundingMode.UP);
-
+        //计算质押状态
+        if(pledgeRate.compareTo(coinLiquidationPledgeRateMap.get(borrowCoinOrder.getPledgeCoin())) >= 0){
+            borrowCoinOrder.setPledgeStatus(BorrowOrderPledgeStatus.LIQUIDATION_PLEDGE);
+        }else if(pledgeRate.compareTo(coinWarnPledgeRateMap.get(borrowCoinOrder.getPledgeCoin())) >= 0) {
+            borrowCoinOrder.setPledgeStatus(BorrowOrderPledgeStatus.WARN_PLEDGE);
+        }
         //修改订单
         borrowCoinOrder.setWaitRepayInterest(waitRepayInterest);
         borrowCoinOrder.setCumulativeInterest(cumulativeInterest);
