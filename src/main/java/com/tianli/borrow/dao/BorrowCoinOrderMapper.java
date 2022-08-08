@@ -2,7 +2,6 @@ package com.tianli.borrow.dao;
 
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tianli.borrow.query.BorrowInterestRecordQuery;
 import com.tianli.borrow.query.BorrowOrderQuery;
 import com.tianli.borrow.vo.BorrowOrderAmountVO;
 import com.tianli.borrow.vo.BorrowOrderStatisticsChartVO;
@@ -12,6 +11,7 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -59,8 +59,8 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
     @Select("select count(*) from borrow_coin_order where pledge_coin = #{coin}")
     Integer selectCountByPledgeCoin(@Param("coin") String coin);
 
-    @Select("select count(*) from borrow_coin_order where status = #{status}")
-    Integer selectCountByStatus(@Param("status") Integer status);
+    @Select("select count(*) from borrow_coin_order where status = #{status} and borrow_time >= #{now}")
+    Integer selectCountByStatus(@Param("status") Integer status,@Param("now") LocalDate now);
 
     @Update("update borrow_coin_order set pledge_status = #{pledgeStatus} where " +
             "pledge_status >= #{pledgeRete} and pledge_status < #{endPledgeStatus} " +
