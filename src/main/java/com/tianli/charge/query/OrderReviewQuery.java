@@ -19,7 +19,6 @@ public class OrderReviewQuery {
     @NotBlank(message = "订单号不允许为空")
     private String orderNo;
 
-    @NotBlank(message = "交易hash不允许为空")
     private String hash;
 
     /**
