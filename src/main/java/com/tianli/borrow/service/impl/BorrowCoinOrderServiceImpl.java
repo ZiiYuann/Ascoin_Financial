@@ -708,21 +708,13 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BorrowPledgeCoinConfig pledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(currencyCoin);
         //校验质押率
         if(borrowCoinOrder.getPledgeRate().compareTo(pledgeCoinConfig.getLiquidationPledgeRate()) < 0 )ErrorCodeEnum.PLEDGE_LT_LIQUIDATION.throwException();
-        //修改订单状态
-        borrowCoinOrder.setStatus(BorrowOrderStatus.FORCED_LIQUIDATION);
-        borrowCoinOrder.setSettlementTime(LocalDateTime.now());
-        borrowCoinOrder.setWaitRepayCapital(BigDecimal.ZERO);
-        borrowCoinOrder.setPledgeAmount(BigDecimal.ZERO);
-        borrowCoinOrder.setPledgeRate(BigDecimal.ZERO);
-        borrowCoinOrder.setBorrowDuration(DateUtil.between(TimeTool.toDate(borrowCoinOrder.getCreateTime()) ,TimeTool.toDate(borrowCoinOrder.getSettlementTime()),DateUnit.HOUR));
-        borrowCoinOrderMapper.updateById(borrowCoinOrder);
         //增加还款记录
         BorrowRepayRecord repayRecord = BorrowRepayRecord.builder()
                 .orderId(orderId)
                 .coin(borrowCoinOrder.getBorrowCoin())
-                .repayAmount(borrowCoinOrder.getWaitRepayCapital())
+                .repayAmount(borrowCoinOrder.getWaitRepayCapital().add(borrowCoinOrder.getWaitRepayInterest()))
                 .repayCapital(borrowCoinOrder.getWaitRepayCapital())
-                .repayInterest(BigDecimal.ZERO)
+                .repayInterest(borrowCoinOrder.getWaitRepayInterest())
                 .releasePledgeAmount(BigDecimal.ZERO)
                 .type(BorrowRepayType.FORCED_LIQUIDATION)
                 .status(BorrowRepayStatus.SUCCESSFUL_REPAYMENT)
@@ -730,6 +722,15 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .createTime(LocalDateTime.now())
                 .build();
         borrowRepayRecordMapper.insert(repayRecord);
+        //修改订单状态
+        borrowCoinOrder.setStatus(BorrowOrderStatus.FORCED_LIQUIDATION);
+        borrowCoinOrder.setSettlementTime(LocalDateTime.now());
+        borrowCoinOrder.setWaitRepayCapital(BigDecimal.ZERO);
+        borrowCoinOrder.setPledgeAmount(BigDecimal.ZERO);
+        borrowCoinOrder.setPledgeRate(BigDecimal.ZERO);
+        borrowCoinOrder.setWaitRepayInterest(BigDecimal.ZERO);
+        borrowCoinOrder.setBorrowDuration(DateUtil.between(TimeTool.toDate(borrowCoinOrder.getCreateTime()) ,TimeTool.toDate(borrowCoinOrder.getSettlementTime()),DateUnit.HOUR));
+        borrowCoinOrderMapper.updateById(borrowCoinOrder);
         //统计每日计息订单
         borrowOrderNumDailyService.statisticalOrderNum();
     }
