@@ -76,6 +76,7 @@
         WHERE o.uid = #{uid}
           and record.product_type = #{productType}
           and o.type = 'settle'
+          order by o.create_time desc
     </select>
     <select id="selectOrderChargeInfoVOPage" resultType="com.tianli.charge.vo.OrderChargeInfoVO">
         SELECT
