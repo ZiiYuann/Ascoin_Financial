@@ -714,6 +714,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         borrowCoinOrder.setWaitRepayCapital(BigDecimal.ZERO);
         borrowCoinOrder.setPledgeAmount(BigDecimal.ZERO);
         borrowCoinOrder.setPledgeRate(BigDecimal.ZERO);
+        borrowCoinOrder.setBorrowDuration(DateUtil.between(TimeTool.toDate(borrowCoinOrder.getCreateTime()) ,TimeTool.toDate(borrowCoinOrder.getSettlementTime()),DateUnit.HOUR));
         borrowCoinOrderMapper.updateById(borrowCoinOrder);
         //增加还款记录
         BorrowRepayRecord repayRecord = BorrowRepayRecord.builder()
