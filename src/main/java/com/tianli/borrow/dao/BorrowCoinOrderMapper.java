@@ -44,8 +44,8 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
     @Select("SELECT ifnull(SUM(wait_repay_interest),0.0) FROM borrow_coin_order")
     BigDecimal selectWaitRepayInterestSumByBorrowTime();
 
-    @Select("SELECT ifnull(count(*),0) FROM borrow_coin_order")
-    Integer selectCountByBorrowTime();
+    @Select("SELECT ifnull(count(*),0) FROM borrow_coin_order where `status` = #{status}")
+    Integer selectCountByBorrowTime(Integer status);
 
     @Select("SELECT DATE_FORMAT(borrow_time,'%Y-%m-%d') time,SUM(borrow_capital) amount FROM borrow_coin_order\n" +
             "WHERE borrow_time >= #{startTime}\n" +

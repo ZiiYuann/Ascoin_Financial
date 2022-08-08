@@ -744,7 +744,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BigDecimal borrowAmount = borrowCoinOrderMapper.selectBorrowCapitalSumByBorrowTime();
         BigDecimal pledgeAmount = borrowCoinOrderMapper.selectPledgeAmountSumByBorrowTime();
         BigDecimal interestAmount = borrowCoinOrderMapper.selectWaitRepayInterestSumByBorrowTime();
-        Integer orderNum = borrowCoinOrderMapper.selectCountByBorrowTime();
+        Integer orderNum = borrowCoinOrderMapper.selectCountByBorrowTime(BorrowOrderStatus.INTEREST_ACCRUAL);
         return BorrowOrderStatisticsVO.builder()
                 .borrowAmount(borrowAmount)
                 .pledgeAmount(pledgeAmount)
