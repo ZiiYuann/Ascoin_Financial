@@ -740,25 +740,11 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     }
 
     @Override
-    public BorrowOrderStatisticsVO statistics(BorrowStatisticsChartDay chartDay,Date startTime, Date endTime) {
-
-        if(Objects.isNull(chartDay) && Objects.isNull(startTime) && Objects.isNull(endTime)){
-            chartDay = BorrowStatisticsChartDay.day;
-        }
-        if(Objects.nonNull(chartDay)){
-            endTime = null;
-            if(chartDay == BorrowStatisticsChartDay.day){
-                startTime = DateUtil.beginOfDay(new Date());
-            }else if (chartDay == BorrowStatisticsChartDay.week){
-                startTime = DateUtil.beginOfWeek(new Date());
-            }else {
-                startTime = DateUtil.beginOfMonth(new Date());
-            }
-        }
-        BigDecimal borrowAmount = borrowCoinOrderMapper.selectBorrowCapitalSumByBorrowTime(startTime, endTime);
-        BigDecimal pledgeAmount = borrowCoinOrderMapper.selectPledgeAmountSumByBorrowTime(startTime, endTime);
-        BigDecimal interestAmount = borrowCoinOrderMapper.selectWaitRepayInterestSumByBorrowTime(startTime, endTime);
-        Integer orderNum = borrowOrderNumDailyService.getCount(startTime,endTime);
+    public BorrowOrderStatisticsVO statistics() {
+        BigDecimal borrowAmount = borrowCoinOrderMapper.selectBorrowCapitalSumByBorrowTime();
+        BigDecimal pledgeAmount = borrowCoinOrderMapper.selectPledgeAmountSumByBorrowTime();
+        BigDecimal interestAmount = borrowCoinOrderMapper.selectWaitRepayInterestSumByBorrowTime();
+        Integer orderNum = borrowCoinOrderMapper.selectCountByBorrowTime();
         return BorrowOrderStatisticsVO.builder()
                 .borrowAmount(borrowAmount)
                 .pledgeAmount(pledgeAmount)

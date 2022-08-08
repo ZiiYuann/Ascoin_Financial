@@ -70,7 +70,7 @@ public interface IBorrowCoinOrderService extends IService<BorrowCoinOrder> {
 
     void forcedLiquidation(Long orderId);
 
-    BorrowOrderStatisticsVO statistics(BorrowStatisticsChartDay chartDay,Date startTime, Date endTime);
+    BorrowOrderStatisticsVO statistics();
 
     List<BorrowOrderStatisticsChartVO> statisticsChart(BorrowStatisticsType statisticsType);
 }

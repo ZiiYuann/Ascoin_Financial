@@ -35,16 +35,19 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
     @Select("SELECT ifnull(SUM(pledge_amount),0.0) FROM borrow_coin_order where uid = #{uid}")
     BigDecimal selectPledgeAmountByUid(Long uid);
 
-    BigDecimal selectBorrowCapitalSumByBorrowTime(@Param("startTime")Date startTime,@Param("endTime") Date endTime);
+    @Select("SELECT ifnull(SUM(wait_repay_capital),0.0) FROM borrow_coin_order")
+    BigDecimal selectBorrowCapitalSumByBorrowTime();
 
-    BigDecimal selectPledgeAmountSumByBorrowTime(@Param("startTime")Date startTime,@Param("endTime") Date endTime);
+    @Select("SELECT ifnull(SUM(pledge_amount),0.0) FROM borrow_coin_order")
+    BigDecimal selectPledgeAmountSumByBorrowTime();
 
-    BigDecimal selectWaitRepayInterestSumByBorrowTime(@Param("startTime")Date startTime,@Param("endTime") Date endTime);
+    @Select("SELECT ifnull(SUM(wait_repay_interest),0.0) FROM borrow_coin_order")
+    BigDecimal selectWaitRepayInterestSumByBorrowTime();
 
+    @Select("SELECT ifnull(count(*),0) FROM borrow_coin_order")
+    Integer selectCountByBorrowTime();
 
-    Integer selectCountByBorrowTime(@Param("status") Integer status , @Param("startTime")Date startTime,@Param("endTime") Date endTime);
-
-    @Select("SELECT DATE_FORMAT(borrow_time,'%Y-%m-%d') time,SUM(wait_repay_capital) amount FROM borrow_coin_order\n" +
+    @Select("SELECT DATE_FORMAT(borrow_time,'%Y-%m-%d') time,SUM(borrow_capital) amount FROM borrow_coin_order\n" +
             "WHERE borrow_time >= #{startTime}\n" +
             "GROUP BY DATE_FORMAT(borrow_time,'%Y-%m-%d')")
     List<BorrowOrderStatisticsChartVO> selectBorrowCapitalChartByTime(@Param("startTime")Date startTime);

@@ -1,64 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tianli.borrow.dao.BorrowCoinOrderMapper">
-    <select id="selectBorrowCapitalSumByBorrowTime" resultType="decimal">
-        SELECT
-            ifnull(SUM(wait_repay_capital),0.0)
-        FROM borrow_coin_order
-        <where>
-            <if test="startTime != null">
-                borrow_time &gt;= #{startTime}
-            </if>
-            <if test="endTime != null">
-                and borrow_time &lt;= #{endTime}
-            </if>
 
-        </where>
-    </select>
-
-    <select id="selectPledgeAmountSumByBorrowTime" resultType="decimal">
-        SELECT
-        ifnull(SUM(pledge_amount),0.0)
-        FROM borrow_coin_order
-        <where>
-            <if test="startTime != null">
-                borrow_time &gt;= #{startTime}
-            </if>
-            <if test="endTime != null">
-                and borrow_time &lt;= #{endTime}
-            </if>
-
-        </where>
-    </select>
-
-    <select id="selectWaitRepayInterestSumByBorrowTime" resultType="decimal">
-        SELECT
-        ifnull(SUM(wait_repay_interest),0.0)
-        FROM borrow_coin_order
-        <where>
-            <if test="startTime != null">
-                borrow_time &gt;= #{startTime}
-            </if>
-            <if test="endTime != null">
-                and borrow_time &lt;= #{endTime}
-            </if>
-
-        </where>
-    </select>
-    <select id="selectCountByBorrowTime" resultType="integer">
-        SELECT
-            ifnull(count(*),0)
-        FROM borrow_coin_order
-        <where>
-            status = #{status}
-            <if test="startTime != null">
-                and borrow_time &gt;= #{startTime}
-            </if>
-            <if test="endTime != null">
-             and borrow_time &lt;= #{endTime}
-            </if>
-        </where>
-    </select>
 
     <select id="selectCumulativeInterestByQuery" resultType="decimal">
         select

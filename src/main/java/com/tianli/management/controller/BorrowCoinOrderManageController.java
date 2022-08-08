@@ -148,15 +148,11 @@ public class BorrowCoinOrderManageController {
 
     /**
      * 借贷数据统计
-     * @param startTime
-     * @param endTime
      * @return
      */
     @GetMapping("/order/statistics")
-    public Result statistics(@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date startTime,
-                             @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date endTime,
-                             BorrowStatisticsChartDay date){
-        BorrowOrderStatisticsVO statistics = borrowCoinOrderService.statistics(date,startTime, endTime);
+    public Result statistics(){
+        BorrowOrderStatisticsVO statistics = borrowCoinOrderService.statistics();
         return Result.success(statistics);
     }
 
