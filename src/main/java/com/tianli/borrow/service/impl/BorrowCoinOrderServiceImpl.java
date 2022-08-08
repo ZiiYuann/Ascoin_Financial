@@ -756,8 +756,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             }
         }
         BigDecimal borrowAmount = borrowCoinOrderMapper.selectBorrowCapitalSumByBorrowTime(startTime, endTime);
-        BigDecimal pledgeAmount = borrowPledgeRecordMapper.selectAmountSumByTime(startTime, endTime);
-        BigDecimal interestAmount = borrowInterestRecordMapper.selectInterestSumByQuery(BorrowInterestRecordQuery.builder().startTime(startTime).endTime(endTime).build());
+        BigDecimal pledgeAmount = borrowCoinOrderMapper.selectPledgeAmountSumByBorrowTime(startTime, endTime);
+        BigDecimal interestAmount = borrowCoinOrderMapper.selectWaitRepayInterestSumByBorrowTime(startTime, endTime);
         Integer orderNum = borrowOrderNumDailyService.getCount(startTime,endTime);
         return BorrowOrderStatisticsVO.builder()
                 .borrowAmount(borrowAmount)

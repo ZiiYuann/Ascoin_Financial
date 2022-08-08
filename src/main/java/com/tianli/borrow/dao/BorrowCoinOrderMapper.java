@@ -37,6 +37,11 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
 
     BigDecimal selectBorrowCapitalSumByBorrowTime(@Param("startTime")Date startTime,@Param("endTime") Date endTime);
 
+    BigDecimal selectPledgeAmountSumByBorrowTime(@Param("startTime")Date startTime,@Param("endTime") Date endTime);
+
+    BigDecimal selectWaitRepayInterestSumByBorrowTime(@Param("startTime")Date startTime,@Param("endTime") Date endTime);
+
+
     Integer selectCountByBorrowTime(@Param("status") Integer status , @Param("startTime")Date startTime,@Param("endTime") Date endTime);
 
     @Select("SELECT DATE_FORMAT(borrow_time,'%Y-%m-%d') time,SUM(wait_repay_capital) amount FROM borrow_coin_order\n" +
