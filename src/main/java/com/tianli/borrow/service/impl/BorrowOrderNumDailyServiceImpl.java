@@ -37,8 +37,9 @@ public class BorrowOrderNumDailyServiceImpl extends ServiceImpl<BorrowOrderNumDa
 
     @Override
     public void statisticalOrderNum() {
-        BorrowOrderNumDaily borrowOrderNumDaily = getByDate(LocalDate.now());
-        Integer count = borrowCoinOrderMapper.selectCountByStatus(BorrowOrderStatus.INTEREST_ACCRUAL);
+        LocalDate now = LocalDate.now();
+        BorrowOrderNumDaily borrowOrderNumDaily = getByDate(now);
+        Integer count = borrowCoinOrderMapper.selectCountByStatus(BorrowOrderStatus.INTEREST_ACCRUAL,now);
         if(Objects.nonNull(borrowOrderNumDaily)){
             borrowOrderNumDaily.setOrderNum(count);
         }else {
