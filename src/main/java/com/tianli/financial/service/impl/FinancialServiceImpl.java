@@ -297,8 +297,8 @@ public class FinancialServiceImpl implements FinancialService {
         var rechargeOrderAmount = orderService.getSummaryOrderAmount(uids, ChargeType.recharge);
         var withdrawBalanceAmount = orderService.getSummaryOrderAmount(uids, ChargeType.withdraw);
         var moneyAmount = financialRecordService.getSummaryAmount(uids, null, RecordStatus.PROCESS);
-        var fixedAmount = financialRecordService.getSummaryAmount(uids, ProductType.fixed, null);
-        var currentAmount = financialRecordService.getSummaryAmount(uids, ProductType.current, null);
+        var fixedAmount = financialRecordService.getSummaryAmount(uids, ProductType.fixed, RecordStatus.PROCESS);
+        var currentAmount = financialRecordService.getSummaryAmount(uids, ProductType.current, RecordStatus.PROCESS);
         var profitAndLossAmount = financialIncomeAccrueService.getSummaryAmount(uids);
 
         return addresses.convert(address -> {
