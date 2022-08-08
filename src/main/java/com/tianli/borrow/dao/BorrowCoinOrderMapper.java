@@ -39,7 +39,7 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
 
     Integer selectCountByBorrowTime(@Param("status") Integer status , @Param("startTime")Date startTime,@Param("endTime") Date endTime);
 
-    @Select("SELECT DATE_FORMAT(borrow_time,'%Y-%m-%d') time,SUM(borrow_capital) amount FROM borrow_coin_order\n" +
+    @Select("SELECT DATE_FORMAT(borrow_time,'%Y-%m-%d') time,SUM(wait_repay_capital) amount FROM borrow_coin_order\n" +
             "WHERE borrow_time >= #{startTime}\n" +
             "GROUP BY DATE_FORMAT(borrow_time,'%Y-%m-%d')")
     List<BorrowOrderStatisticsChartVO> selectBorrowCapitalChartByTime(@Param("startTime")Date startTime);

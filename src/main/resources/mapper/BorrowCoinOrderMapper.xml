@@ -3,7 +3,7 @@
 <mapper namespace="com.tianli.borrow.dao.BorrowCoinOrderMapper">
     <select id="selectBorrowCapitalSumByBorrowTime" resultType="decimal">
         SELECT
-            ifnull(SUM(borrow_capital),0.0)
+            ifnull(SUM(wait_repay_capital),0.0)
         FROM borrow_coin_order
         <where>
             <if test="startTime != null">
