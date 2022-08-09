@@ -28,6 +28,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -79,7 +80,7 @@ public class ChainService {
 
         List<Address> addresses = null;
         for (TokenAdapter token : TokenAdapter.values()) {
-            String flag = configService._get(token.name() + "_push_recharge_condition");
+            String flag = configService._get(token.name() + ConfigConstants.PUSH_RECHARGE_CONDITION);
             if (flag == null) {
                 continue;
             }
@@ -87,8 +88,17 @@ public class ChainService {
             // todo address表数据量大考虑流式
             addresses = Optional.ofNullable(addresses).orElse(addressMapper.selectList(new LambdaQueryWrapper<>()));
             addresses.forEach(address -> pushCondition(address, token,pre + "/api/charge/recharge"));
-            configService.remove(new LambdaQueryWrapper<Config>().eq(Config :: getName, token.name() + "_push_recharge_condition"));
+            configService.remove(new LambdaQueryWrapper<Config>().eq(Config :: getName, token.name() + ConfigConstants.PUSH_RECHARGE_CONDITION));
         }
+    }
+
+
+    @Transactional
+    public void conditionPushConfigAdd(TokenAdapter tokenAdapter){
+        Config config = new Config();
+        config.setName(tokenAdapter + ConfigConstants.PUSH_RECHARGE_CONDITION);
+        config.setValue("666666"); //无所谓
+        configService.insert(config);
     }
 
     public void pushCondition(Address address, TokenAdapter tokenAdapter,String url) {

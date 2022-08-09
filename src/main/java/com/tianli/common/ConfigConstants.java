@@ -49,4 +49,10 @@ public class ConfigConstants {
     public static final String DATA_CENTER_URL_PUSH_PATH = "data_center_url_push_path";
     public static final String DATA_CENTER_URL_REGISTER_PATH = "data_center_url_register_path";
 
+
+    /**
+     * 推送相关配置
+     */
+    public static final String PUSH_RECHARGE_CONDITION = "_push_recharge_condition";
+
 }
