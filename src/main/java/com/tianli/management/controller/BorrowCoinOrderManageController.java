@@ -33,7 +33,6 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @PostMapping("/order/liquidation/{orderId}")
-    @NoRepeatSubmit
     public Result liquidation(@PathVariable Long orderId){
         borrowCoinOrderService.forcedLiquidation(orderId);
         return Result.success();
