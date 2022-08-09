@@ -11,7 +11,7 @@ import java.util.List;
 public enum CurrencyCoin {
     usdt("https://twallet-news-jp.oss-accelerate.aliyuncs.com/file/06e76726-793c-413e-b8c0-362d38018567.png"),
     usdc("https://twallet-news-jp.oss-accelerate.aliyuncs.com/file/f01d6cd4-d0d5-4330-aeba-f82e1db54c2e.png"),
-    bnb("https://twallet-news-jp.oss-accelerate.aliyuncs.com/file/37706386-5421-434e-a2bf-5cb21d4255da.png"),
+    bnb("https://twallet-news-jp.oss-accelerate.aliyuncs.com/file/37b536ed-a16b-40d5-bc42-8f068e7234d7.png"),
     eth("https://twallet-news-jp.oss-accelerate.aliyuncs.com/file/bce61785-ea06-4edd-a7a2-fa7ccf35468b.png");
 
     CurrencyCoin(String logoPath) {
