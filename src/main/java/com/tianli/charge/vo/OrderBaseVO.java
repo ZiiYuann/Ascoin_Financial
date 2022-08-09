@@ -77,4 +77,6 @@ public class OrderBaseVO {
      * 自动续费
      */
     private boolean autoRenewal;
+
+    private Long productId;
 }

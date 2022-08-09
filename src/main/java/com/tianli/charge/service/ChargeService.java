@@ -378,6 +378,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         orderBaseVO.setChargeType(order.getType());
         orderBaseVO.setOrderNo(order.getOrderNo());
         orderBaseVO.setAmount(order.getAmount());
+        orderBaseVO.setProductId(record.getProductId());
         return orderBaseVO;
     }
 
