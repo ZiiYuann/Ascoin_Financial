@@ -1,6 +1,7 @@
 package com.tianli.management.controller;
 
 import com.tianli.account.service.AccountBalanceService;
+import com.tianli.chain.entity.ChainCallbackLog;
 import com.tianli.chain.entity.WalletImputation;
 import com.tianli.chain.entity.WalletImputationLog;
 import com.tianli.chain.entity.WalletImputationLogAppendix;
@@ -169,8 +170,8 @@ public class FinancialWalletController {
 
     @GetMapping("/callback/logs")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result chainCallbackLogs(){
-        return Result.instance().setData(chainCallbackLogService.list());
+    public Result chainCallbackLogs(PageQuery<ChainCallbackLog> page){
+        return Result.instance().setData(chainCallbackLogService.page(page.page()));
     }
 
 }

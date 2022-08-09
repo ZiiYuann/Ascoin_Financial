@@ -169,8 +169,11 @@ public class ChainService {
                     .chain(ChainType.BSC).build();
             TxConditionReq bscTxConditionReqUsdc = TxConditionReq.builder().contractAddress(TokenAdapter.usdc_bep20.getContractAddress()).to(bsc)
                     .chain(ChainType.BSC).build();
+            TxConditionReq bscTxConditionReqBnb = TxConditionReq.builder().contractAddress(TokenAdapter.bnb.getContractAddress()).to(bsc)
+                    .chain(ChainType.BSC).build();
             txConditionReqs.add(bscTxConditionReqUsdt);
             txConditionReqs.add(bscTxConditionReqUsdc);
+            txConditionReqs.add(bscTxConditionReqBnb);
         }
 
         if (StringUtils.isNotBlank(eth)) {
@@ -178,8 +181,11 @@ public class ChainService {
                     .chain(ChainType.ETH).build();
             TxConditionReq ethTxConditionReqUsdc = TxConditionReq.builder().contractAddress(TokenAdapter.usdc_erc20.getContractAddress()).to(eth)
                     .chain(ChainType.ETH).build();
+            TxConditionReq ethTxConditionReq = TxConditionReq.builder().contractAddress(TokenAdapter.eth.getContractAddress()).to(eth)
+                    .chain(ChainType.ETH).build();
             txConditionReqs.add(ethTxConditionReqUsdt);
             txConditionReqs.add(ethTxConditionReqUsdc);
+            txConditionReqs.add(ethTxConditionReq);
         }
 
         if (StringUtils.isNotBlank(tron)) {
