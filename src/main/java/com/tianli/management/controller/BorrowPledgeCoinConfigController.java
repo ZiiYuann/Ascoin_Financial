@@ -36,7 +36,7 @@ public class BorrowPledgeCoinConfigController {
      */
     @PostMapping
     @AdminPrivilege(and = Privilege.质押币配置)
-    private Result save(@RequestBody BorrowPledgeCoinConfigBO bo){
+    public Result save(@RequestBody BorrowPledgeCoinConfigBO bo){
         borrowPledgeCoinConfigService.saveConfig(bo);
         return Result.success();
     }
@@ -48,7 +48,7 @@ public class BorrowPledgeCoinConfigController {
      */
     @PutMapping
     @AdminPrivilege(and = Privilege.质押币配置)
-    private Result update(@RequestBody BorrowPledgeCoinConfigBO bo){
+    public Result update(@RequestBody BorrowPledgeCoinConfigBO bo){
         borrowPledgeCoinConfigService.updateConfig(bo);
         return Result.success();
     }
@@ -60,7 +60,7 @@ public class BorrowPledgeCoinConfigController {
      */
     @DeleteMapping("/{ids}")
     @AdminPrivilege(and = Privilege.质押币配置)
-    private Result delete(@PathVariable Long[] ids){
+    public Result delete(@PathVariable Long[] ids){
         borrowPledgeCoinConfigService.delConfig(ids);
         return Result.success();
     }
@@ -73,7 +73,7 @@ public class BorrowPledgeCoinConfigController {
      */
     @GetMapping
     @AdminPrivilege(and = Privilege.质押币配置)
-    private Result pageList(PageQuery<BorrowPledgeCoinConfig> pageQuery, CurrencyCoin coin){
+    public Result pageList(PageQuery<BorrowPledgeCoinConfig> pageQuery, CurrencyCoin coin){
         IPage<BorrowPledgeCoinConfigVO> pageList = borrowPledgeCoinConfigService.pageList(pageQuery, coin);
         return Result.success(pageList);
     }
