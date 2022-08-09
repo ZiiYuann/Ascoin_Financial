@@ -609,29 +609,43 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             //增加质押
             AccountBalance accountBalance = accountBalanceService.getAndInit(uid, coin);
             BigDecimal availableAmount = accountBalance.getRemain();
+            //调整金额为0
+            if(adjustAmount.compareTo(BigDecimal.ZERO) == 0){
+                borrowAdjustPageVO.setAvailableAmount(availableAmount);
+                borrowAdjustPageVO.setAdjustPledgeRate(null);
+                return borrowAdjustPageVO;
+            }
+            //调整金额大于可用金额
             if(adjustAmount.compareTo(availableAmount)>0){
                 borrowAdjustPageVO.setAvailableAmount(availableAmount);
                 borrowAdjustPageVO.setAdjustPledgeRate(waitRepay.divide((pledgeAmount.add(availableAmount)),8,RoundingMode.UP));
-            }else {
-                borrowAdjustPageVO.setAvailableAmount(availableAmount);
-                borrowAdjustPageVO.setAdjustPledgeRate(waitRepay.divide((pledgeAmount.add(adjustAmount)), 8, RoundingMode.UP));
+                return borrowAdjustPageVO;
             }
-        }else {
+            borrowAdjustPageVO.setAvailableAmount(availableAmount);
+            borrowAdjustPageVO.setAdjustPledgeRate(waitRepay.divide((pledgeAmount.add(adjustAmount)), 8, RoundingMode.UP));
+        } else {
             //减少质押
             BigDecimal pledgeRateAmount = waitRepay.divide(initialPledgeRate, 8, RoundingMode.UP);
             BigDecimal ableReduceAmount = borrowCoinOrder.getPledgeAmount().subtract(pledgeRateAmount);
+            //调整金额为0
+            if(adjustAmount.compareTo(BigDecimal.ZERO) == 0){
+                borrowAdjustPageVO.setAbleReduceAmount(ableReduceAmount);
+                borrowAdjustPageVO.setAdjustPledgeRate(null);
+                return borrowAdjustPageVO;
+            }
+            //调整金额大于可用金额
             if(adjustAmount.compareTo(ableReduceAmount) > 0){
                 borrowAdjustPageVO.setAbleReduceAmount(BigDecimal.ZERO);
                 borrowAdjustPageVO.setAdjustPledgeRate(borrowCoinOrder.getPledgeRate());
-            }else {
-                if (ableReduceAmount.compareTo(BigDecimal.ZERO) <= 0) {
-                    borrowAdjustPageVO.setAbleReduceAmount(BigDecimal.ZERO);
-                    borrowAdjustPageVO.setAdjustPledgeRate(borrowCoinOrder.getPledgeRate());
-                } else {
-                    borrowAdjustPageVO.setAbleReduceAmount(ableReduceAmount);
-                    borrowAdjustPageVO.setAdjustPledgeRate(waitRepay.divide((pledgeAmount.subtract(adjustAmount)), 8, RoundingMode.UP));
-                }
+                return borrowAdjustPageVO;
             }
+            if (ableReduceAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                borrowAdjustPageVO.setAbleReduceAmount(BigDecimal.ZERO);
+                borrowAdjustPageVO.setAdjustPledgeRate(borrowCoinOrder.getPledgeRate());
+                return borrowAdjustPageVO;
+            }
+            borrowAdjustPageVO.setAbleReduceAmount(ableReduceAmount);
+            borrowAdjustPageVO.setAdjustPledgeRate(waitRepay.divide((pledgeAmount.subtract(adjustAmount)), 8, RoundingMode.UP));
         }
         return borrowAdjustPageVO;
     }
