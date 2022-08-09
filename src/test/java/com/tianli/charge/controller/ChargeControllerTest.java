@@ -21,11 +21,11 @@ class ChargeControllerTest {
 
         HttpClient client = HttpClientBuilder.create().build();
         // BSC链
-        HttpPost httpPost = new HttpPost("https://www.assureadd.com//api/charge/recharge/ETH");
+        HttpPost httpPost = new HttpPost("https://www.assureadd.com//api/charge/recharge/BSC");
         httpPost.setHeader("Content-Type", "text/plain");
         httpPost.setHeader("Sign", sign);
         httpPost.setHeader("timestamp", l + "");
-        httpPost.setEntity(new StringEntity("{\"token\": [{\"id\": 1740648242323999537, \"to\": \"0xfafa1a6f307671e6649ad4d9258b4f85e6d1120c\", \"from\": \"0x74398c5a3f89341e5ab6d495945c0e183424e421\", \"hash\": \"0xbe0cd07d5a79a7302aecf7d3c1ccd823770e19f7fb0967d0e23e0e442077d490\", \"block\": 15305288, \"value\": 4000000, \"createTime\": {\"date\": {\"day\": 9, \"year\": 2022, \"month\": 8}, \"time\": {\"hour\": 10, \"nano\": 0, \"minute\": 17, \"second\": 35}}, \"contractAddress\": \"0xdac17f958d2ee523a2206206994597c13d831ec7\"}], \"standardCurrency\": []}"));
+        httpPost.setEntity(new StringEntity("{\"standardCurrency\": [{\"id\": 1740648242323999539, \"to\": \"0xd42130a1850edcf48990d230a4105c8441e93c18\", \"from\": \"0x4098b66ff83bf99bc9c81a68be7b045c79ebbb97\", \"hash\": \"0x86544116998ef4e747a032e2221a64f36bb949929014d8652df3b6537fd52c3d\", \"block\": 20278305, \"value\": 10000000000000000, \"createTime\": {\"date\": {\"day\": 9, \"year\": 2022, \"month\": 8}, \"time\": {\"hour\": 10, \"nano\": 0, \"minute\": 17, \"second\": 35}}}], \"token\": []}"));
 //        httpPost.setEntity(new StringEntity(""));
         client.execute(httpPost);
     }

@@ -24,7 +24,7 @@ public class RedeemQuery {
      * 赎回金额
      */
     @NotNull
-    @DecimalMin(value = "0.0001", message = "赎回金额不能为空")
+    @DecimalMin(value = "0.00000001", message = "赎回金额不能为空")
     private BigDecimal redeemAmount;
 
 }
