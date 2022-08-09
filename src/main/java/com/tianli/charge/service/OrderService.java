@@ -23,6 +23,7 @@ import com.tianli.management.query.FinancialOrdersQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -39,6 +40,20 @@ import java.util.stream.Collectors;
 @Service
 public class OrderService extends ServiceImpl<OrderMapper,Order> {
 
+
+    @PostConstruct
+    // todo 待删除
+    public void init(){
+        LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>().eq(Order::getStatus, ChargeStatus.chain_success)
+                .eq(Order::getType, ChargeType.withdraw)
+                .isNull(Order :: getCompleteTime);
+        List<Order> orders = orderMapper.selectList(queryWrapper);
+        orders.forEach(order -> {
+            order.setCompleteTime(LocalDateTime.now());
+            orderMapper.updateById(order);
+        });
+
+    }
 
     /**
      * 全局保存订单的入口，保存订单的时候请不要调用其他的接口
