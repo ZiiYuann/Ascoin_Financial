@@ -609,9 +609,13 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             //增加质押
             AccountBalance accountBalance = accountBalanceService.getAndInit(uid, coin);
             BigDecimal availableAmount = accountBalance.getRemain();
-            if(adjustAmount.compareTo(availableAmount)>0)ErrorCodeEnum.ADJUST_GT_AVAILABLE.throwException();
-            borrowAdjustPageVO.setAvailableAmount(availableAmount);
-            borrowAdjustPageVO.setAdjustPledgeRate(waitRepay.divide((pledgeAmount.add(adjustAmount)),8,RoundingMode.UP));
+            if(adjustAmount.compareTo(availableAmount)>0){
+                borrowAdjustPageVO.setAvailableAmount(availableAmount);
+                borrowAdjustPageVO.setAdjustPledgeRate(waitRepay.divide((pledgeAmount.add(availableAmount)),8,RoundingMode.UP));
+            }else {
+                borrowAdjustPageVO.setAvailableAmount(availableAmount);
+                borrowAdjustPageVO.setAdjustPledgeRate(waitRepay.divide((pledgeAmount.add(adjustAmount)), 8, RoundingMode.UP));
+            }
         }else {
             //减少质押
             BigDecimal pledgeRateAmount = waitRepay.divide(initialPledgeRate, 8, RoundingMode.UP);
