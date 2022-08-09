@@ -21,11 +21,11 @@ class ChargeControllerTest {
 
         HttpClient client = HttpClientBuilder.create().build();
         // BSC链
-        HttpPost httpPost = new HttpPost("http://127.0.0.1:8080/api/charge/recharge/ETH");
+        HttpPost httpPost = new HttpPost("https://www.assureadd.com//api/charge/recharge/TRON");
         httpPost.setHeader("Content-Type", "text/plain");
         httpPost.setHeader("Sign", sign);
         httpPost.setHeader("timestamp", l + "");
-        httpPost.setEntity(new StringEntity("{\"token\":[],\"standardCurrency\":[{\"id\":1740301064781596700,\"to\":\"0x09abcb496fbbcd3f43ebf05e7256114e71feb7e3\",\"from\":\"0x504958caa2488691d85d5b36670dc9411f8dc383\",\"hash\":\"0x0a17097701f087e956c86595cbfeb403c74b73158f8682d532cfe9cf4858f95d\",\"block\":15280576,\"nonce\":6,\"value\":4000000000000000,\"status\":1,\"gasUsed\":21000,\"gasPrice\":10000000000,\"createTime\":{\"date\":{\"day\":5,\"year\":2022,\"month\":8},\"time\":{\"hour\":14,\"nano\":0,\"minute\":19,\"second\":53}}}]}"));
+        httpPost.setEntity(new StringEntity("{\"token\": [{\"id\": 1740647482801496358, \"to\": \"TVi7uDV8Nw3RT4prbtmSzJnny53VYAXbzY\", \"from\": \"TTahu848LG5HLPBmyzUwgG8v2XvCfrF8y9\", \"hash\": \"fd25a6c32b33438d0757ab4c9ee261c6a3e2cc3ccb6418889492b054ebb68556\", \"block\": 43144439, \"value\": 9888888, \"netFee\": 0, \"status\": 1, \"netUsage\": 345, \"energyFee\": 8302000, \"createTime\": {\"date\": {\"day\": 9, \"year\": 2022, \"month\": 8}, \"time\": {\"hour\": 10, \"nano\": 0, \"minute\": 6, \"second\": 27}}, \"energyUsage\": 0, \"contractAddress\": \"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t\", \"energyUsageTotal\": 29650, \"originEnergyUsage\": 0}], \"standardCurrency\": []}"));
         client.execute(httpPost);
     }
 
