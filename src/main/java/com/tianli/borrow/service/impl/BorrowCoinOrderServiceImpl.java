@@ -332,6 +332,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             queryWrapper.le(BorrowPledgeRecord::getPledgeTime,query.getEndTime());
         }
 
+        queryWrapper.ne(BorrowPledgeRecord::getType,4);
+
         queryWrapper.orderByDesc(BorrowPledgeRecord::getPledgeTime);
         return borrowPledgeRecordMapper.selectPage(pageQuery.page(), queryWrapper).convert(borrowConverter::toPledgeVO);
     }
@@ -726,13 +728,21 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .createTime(LocalDateTime.now())
                 .build();
         borrowRepayRecordMapper.insert(repayRecord);
+        //质押记录
+        BorrowPledgeRecord borrowPledgeRecord = BorrowPledgeRecord.builder()
+                .orderId(orderId)
+                .coin(borrowCoinOrder.getPledgeCoin())
+                .amount(borrowCoinOrder.getPledgeAmount().negate())
+                .type(BorrowPledgeType.LIQUIDATION)
+                .pledgeTime(LocalDateTime.now()).createTime(LocalDateTime.now()).build();
+        borrowPledgeRecordMapper.insert(borrowPledgeRecord);
         //修改订单状态
-        borrowCoinOrder.setStatus(BorrowOrderStatus.FORCED_LIQUIDATION);
-        borrowCoinOrder.setSettlementTime(LocalDateTime.now());
         borrowCoinOrder.setWaitRepayCapital(BigDecimal.ZERO);
+        borrowCoinOrder.setWaitRepayInterest(BigDecimal.ZERO);
         borrowCoinOrder.setPledgeAmount(BigDecimal.ZERO);
         borrowCoinOrder.setPledgeRate(BigDecimal.ZERO);
-        borrowCoinOrder.setWaitRepayInterest(BigDecimal.ZERO);
+        borrowCoinOrder.setStatus(BorrowOrderStatus.FORCED_LIQUIDATION);
+        borrowCoinOrder.setSettlementTime(LocalDateTime.now());
         borrowCoinOrder.setBorrowDuration(DateUtil.between(TimeTool.toDate(borrowCoinOrder.getCreateTime()) ,TimeTool.toDate(borrowCoinOrder.getSettlementTime()),DateUnit.HOUR));
         borrowCoinOrderMapper.updateById(borrowCoinOrder);
         //统计每日计息订单

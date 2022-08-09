@@ -10,4 +10,7 @@ public interface BorrowPledgeType {
 
     //减少
     Integer REDUCE = 3;
+
+    //平仓
+    Integer LIQUIDATION = 4;
 }
