@@ -86,6 +86,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
             accountBalanceService.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), orderNo, "提现申请未通过");
         }
 
+        order.setCompleteTime(LocalDateTime.now());
         orderService.saveOrUpdate(order);
     }
 
