@@ -208,10 +208,4 @@ public class ChargeController {
     public Result orderStatus(ChargeType chargeType) {
         return Result.instance().setData(ChargeType.orderStatusPull(chargeType));
     }
-
-    @GetMapping("/callback/logs")
-    public Result chainCallbackLogs(){
-        return Result.instance().setData(chainCallbackLogService.list());
-    }
-
 }

@@ -4,6 +4,7 @@ import com.tianli.account.service.AccountBalanceService;
 import com.tianli.chain.entity.WalletImputation;
 import com.tianli.chain.entity.WalletImputationLog;
 import com.tianli.chain.entity.WalletImputationLogAppendix;
+import com.tianli.chain.service.ChainCallbackLogService;
 import com.tianli.chain.service.WalletImputationLogAppendixService;
 import com.tianli.chain.service.WalletImputationLogService;
 import com.tianli.chain.service.WalletImputationService;
@@ -46,6 +47,8 @@ public class FinancialWalletController {
     private AccountBalanceService accountBalanceService;
     @Resource
     private OrderReviewService orderReviewService;
+    @Resource
+    private ChainCallbackLogService chainCallbackLogService;
 
     /**
      * 【云钱包数据展板】
@@ -163,4 +166,11 @@ public class FinancialWalletController {
     public Result imputationLogs(PageQuery<WalletImputationLogAppendix> page, String txid) {
         return Result.success(walletImputationLogAppendixService.pageByTxid(page.page(), txid));
     }
+
+    @GetMapping("/callback/logs")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result chainCallbackLogs(){
+        return Result.instance().setData(chainCallbackLogService.list());
+    }
+
 }
