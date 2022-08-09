@@ -9,6 +9,8 @@ import com.tianli.borrow.vo.BorrowPledgeCoinConfigVO;
 import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.Result;
+import com.tianli.sso.permission.AdminPrivilege;
+import com.tianli.sso.permission.Privilege;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +35,7 @@ public class BorrowPledgeCoinConfigController {
      * @return
      */
     @PostMapping
+    @AdminPrivilege(and = Privilege.质押币配置)
     private Result save(@RequestBody BorrowPledgeCoinConfigBO bo){
         borrowPledgeCoinConfigService.saveConfig(bo);
         return Result.success();
@@ -44,6 +47,7 @@ public class BorrowPledgeCoinConfigController {
      * @return
      */
     @PutMapping
+    @AdminPrivilege(and = Privilege.质押币配置)
     private Result update(@RequestBody BorrowPledgeCoinConfigBO bo){
         borrowPledgeCoinConfigService.updateConfig(bo);
         return Result.success();
@@ -55,6 +59,7 @@ public class BorrowPledgeCoinConfigController {
      * @return
      */
     @DeleteMapping("/{ids}")
+    @AdminPrivilege(and = Privilege.质押币配置)
     private Result delete(@PathVariable Long[] ids){
         borrowPledgeCoinConfigService.delConfig(ids);
         return Result.success();
@@ -67,6 +72,7 @@ public class BorrowPledgeCoinConfigController {
      * @return
      */
     @GetMapping
+    @AdminPrivilege(and = Privilege.质押币配置)
     private Result pageList(PageQuery<BorrowPledgeCoinConfig> pageQuery, CurrencyCoin coin){
         IPage<BorrowPledgeCoinConfigVO> pageList = borrowPledgeCoinConfigService.pageList(pageQuery, coin);
         return Result.success(pageList);

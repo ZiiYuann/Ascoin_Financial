@@ -13,8 +13,9 @@ import com.tianli.borrow.query.BorrowRepayQuery;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
-import com.tianli.common.annotation.NoRepeatSubmit;
 import com.tianli.exception.Result;
+import com.tianli.sso.permission.AdminPrivilege;
+import com.tianli.sso.permission.Privilege;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +34,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @PostMapping("/order/liquidation/{orderId}")
+    @AdminPrivilege(and = Privilege.借币订单管理)
     public Result liquidation(@PathVariable Long orderId){
         borrowCoinOrderService.forcedLiquidation(orderId);
         return Result.success();
@@ -44,6 +46,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/record")
+    @AdminPrivilege(and = Privilege.借币订单管理)
     public Result pledgeRecord(PageQuery<BorrowCoinOrder> pageQuery, BorrowOrderQuery query){
         query.setOrderColumn("borrow_time");
         IPage<BorrowCoinOrderVO> page = borrowCoinOrderService.pageList(pageQuery, query);
@@ -56,6 +59,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/cumulative/interest/amount")
+    @AdminPrivilege(and = Privilege.借币订单管理)
     public Result cumulativeInterestAmount(BorrowOrderQuery query){
         AmountVO amountVO = borrowCoinOrderService.cumulativeInterestAmount(query);
         return Result.success(amountVO);
@@ -64,6 +68,7 @@ public class BorrowCoinOrderManageController {
 
 
     @GetMapping("/order/cumulative/amount")
+    @AdminPrivilege(and = Privilege.借币订单管理)
     public Result cumulativeAmount(BorrowOrderQuery query){
         BorrowOrderAmountVO borrowOrderAmountVO = borrowCoinOrderService.cumulativeAmount(query);
         return Result.success(borrowOrderAmountVO);
@@ -75,6 +80,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/pledge/record")
+    @AdminPrivilege(and = Privilege.借币订单管理)
     public Result pledgeRecord(PageQuery<BorrowPledgeRecord> pageQuery,@Valid BorrowPledgeRecordQuery query){
         IPage<BorrowPledgeRecordVO> page = borrowCoinOrderService.pledgeRecord(pageQuery, query);
         return Result.success(page);
@@ -86,6 +92,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/interest/record")
+    @AdminPrivilege(and = Privilege.借币订单管理)
     public Result interestRecord(PageQuery<BorrowInterestRecord> pageQuery,@Valid BorrowInterestRecordQuery query){
         IPage<BorrowInterestRecordVO> page = borrowCoinOrderService.interestRecord(pageQuery, query);
         return Result.success(page);
@@ -97,6 +104,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/interest/amount")
+    @AdminPrivilege(and = Privilege.借币订单管理)
     public Result interestAmount( @Valid BorrowInterestRecordQuery query){
         AmountVO amountVO = borrowCoinOrderService.interestAmount(query);
         return Result.success(amountVO);
@@ -108,6 +116,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/repay/record")
+    @AdminPrivilege(and = Privilege.借币订单管理)
     public Result repayRecord(PageQuery<BorrowRepayRecord> pageQuery, @Valid BorrowRepayQuery query){
         IPage<BorrowRepayRecordVO> borrowRepayRecordVOS = borrowCoinOrderService.repayRecord(pageQuery,query);
         return Result.success(borrowRepayRecordVOS);
@@ -119,6 +128,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/repay/amount")
+    @AdminPrivilege(and = Privilege.借币订单管理)
     public Result repayAmount( @Valid BorrowRepayQuery query){
         AmountVO amountVO = borrowCoinOrderService.repayAmount(query);
         return Result.success(amountVO);
@@ -130,6 +140,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/liquidation/record/{orderId}")
+    @AdminPrivilege(and = Privilege.借币订单管理)
     public Result liquidationRecord(@PathVariable Long orderId){
         BorrowLiquidationRecordVO borrowLiquidationRecordVO = borrowCoinOrderService.liquidationRecord(orderId);
         return Result.success(borrowLiquidationRecordVO);
@@ -140,6 +151,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/statistics")
+    @AdminPrivilege(and = Privilege.借币订单管理)
     public Result statistics(){
         BorrowOrderStatisticsVO statistics = borrowCoinOrderService.statistics();
         return Result.success(statistics);
@@ -151,6 +163,7 @@ public class BorrowCoinOrderManageController {
      * @return
      */
     @GetMapping("/order/statistics/chart")
+    @AdminPrivilege(and = Privilege.借币订单管理)
     public Result statisticsChart(@RequestParam BorrowStatisticsType statisticsType){
         List<BorrowOrderStatisticsChartVO> borrowOrderStatisticsChartVOS = borrowCoinOrderService.statisticsChart(statisticsType);
         return Result.success(borrowOrderStatisticsChartVOS);
