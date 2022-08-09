@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -93,7 +94,8 @@ public class AccountController {
         TokenAdapter tokenAdapter = TokenAdapter.get(coin, networkType);
         String amount = configService.get(tokenAdapter.name() + "_withdraw_fixed_amount");
         HashMap<String, String> rateMap = new HashMap<>();
-        rateMap.put("serviceAmount",BigDecimal.valueOf(Double.parseDouble(amount)).toString());
+        DecimalFormat decimalFormat = new DecimalFormat("#.########");
+        rateMap.put("serviceAmount",decimalFormat.format(Double.parseDouble(amount)));
         return Result.success().setData(rateMap);
     }
 
