@@ -48,7 +48,7 @@ public class FinancialWalletController {
     private OrderReviewService orderReviewService;
 
     /**
-     * 云钱包数据board
+     * 【云钱包数据展板】
      */
     @GetMapping("/board")
     @AdminPrivilege(and = Privilege.理财管理)
@@ -57,6 +57,9 @@ public class FinancialWalletController {
         return Result.success().setData(financialWalletBoardService.walletBoard(query));
     }
 
+    /**
+     * 【云钱包充值记录】列表
+     */
     @GetMapping("/order/recharge")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result rechargeOrder(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
@@ -64,6 +67,9 @@ public class FinancialWalletController {
         return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(), query));
     }
 
+    /**
+     * 【云钱包充值记录】上方数据
+     */
     @GetMapping("/order/recharge/data")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result rechargeOrderData(FinancialChargeQuery query) {
@@ -72,6 +78,18 @@ public class FinancialWalletController {
                 .setData(FinancialSummaryDataVO.builder().rechargeAmount(chargeService.orderAmountSum(query)).build());
     }
 
+    /**
+     * 【云钱包充值记录】查看钱包余额
+     */
+    @GetMapping("/accounts")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result accounts() {
+        return Result.success().setData(accountBalanceService.getTotalSummaryData());
+    }
+
+    /**
+     * 【云钱包提币管理】列表
+     */
     @GetMapping("/order/withdraw")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result withdrawOrder(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
@@ -80,24 +98,8 @@ public class FinancialWalletController {
     }
 
     /**
-     * 审核详情信息
+     * 【云钱包提币管理】上方统计
      */
-    @GetMapping("/order/withdraw/review/{orderNo}")
-    @AdminPrivilege(and = Privilege.理财管理)
-    public Result orderReview(@PathVariable String orderNo) {
-        return Result.success().setData(orderReviewService.getVOByOrderNo(orderNo));
-    }
-
-    /**
-     * 管理端审核
-     */
-    @PostMapping("/order/withdraw/review")
-    @AdminPrivilege(and = Privilege.理财管理)
-    public Result orderReview(@RequestBody @Valid OrderReviewQuery query) {
-        orderReviewService.review(query);
-        return Result.success();
-    }
-
     @GetMapping("/order/withdraw/data")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result withdrawOrderData(FinancialChargeQuery query) {
@@ -107,16 +109,26 @@ public class FinancialWalletController {
     }
 
     /**
-     * 钱包余额
+     * 【云钱包提币管理】审核详情信息
      */
-    @GetMapping("/accounts")
+    @GetMapping("/order/withdraw/review/{orderNo}")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result accounts() {
-        return Result.success().setData(accountBalanceService.getTotalSummaryData());
+    public Result orderReview(@PathVariable String orderNo) {
+        return Result.success().setData(orderReviewService.getVOByOrderNo(orderNo));
     }
 
     /**
-     * 归集列表
+     * 【云钱包提币管理】审核
+     */
+    @PostMapping("/order/withdraw/review")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result orderReview(@RequestBody @Valid OrderReviewQuery query) {
+        orderReviewService.review(query);
+        return Result.success();
+    }
+
+    /**
+     * 【云钱包归集】归集列表
      */
     @GetMapping("/imputations")
     @AdminPrivilege(and = Privilege.理财管理)
@@ -125,7 +137,7 @@ public class FinancialWalletController {
     }
 
     /**
-     * 手动归集
+     * 【云钱包归集】手动归集
      */
     @PostMapping("/imputation")
     @AdminPrivilege(and = Privilege.理财管理)
@@ -135,7 +147,7 @@ public class FinancialWalletController {
     }
 
     /**
-     * 归集日志列表列表
+     * 【归集记录】归集日志列表列表
      */
     @GetMapping("/imputationLogs")
     @AdminPrivilege(and = Privilege.理财管理)
@@ -144,7 +156,7 @@ public class FinancialWalletController {
     }
 
     /**
-     * 归集日志详情地址列表
+     * 【归集记录】查看地址
      */
     @GetMapping("/imputation/appendix")
     @AdminPrivilege(and = Privilege.理财管理)
