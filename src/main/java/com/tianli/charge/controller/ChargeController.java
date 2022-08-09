@@ -1,5 +1,6 @@
 package com.tianli.charge.controller;
 
+import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.map.MapUtil;
 import com.tianli.chain.entity.ChainCallbackLog;
 import com.tianli.chain.enums.ChainType;
@@ -11,6 +12,7 @@ import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.exception.ExceptionUtils;
 import com.tianli.exception.Result;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
@@ -76,6 +78,7 @@ public class ChargeController {
             chargeService.rechargeCallback(chain,str);
             chainCallbackLog.setStatus("success");
         } catch (Exception e) {
+            chainCallbackLog.setMsg(ExceptionUtil.getMessage(e));
             chainCallbackLog.setStatus("fail");
             throw e;
         } finally {
@@ -113,6 +116,7 @@ public class ChargeController {
             chargeService.withdrawCallback(chain,str);
             chainCallbackLog.setStatus("success");
         } catch (Exception e) {
+            chainCallbackLog.setMsg(ExceptionUtil.getMessage(e));
             chainCallbackLog.setStatus("fail");
             throw e;
         } finally {
