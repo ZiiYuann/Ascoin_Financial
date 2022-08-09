@@ -19,7 +19,6 @@ import com.tianli.borrow.bo.AdjustPledgeBO;
 import com.tianli.borrow.bo.BorrowOrderBO;
 import com.tianli.borrow.bo.BorrowOrderRepayBO;
 import com.tianli.borrow.entity.*;
-import com.tianli.borrow.enums.BorrowStatisticsChartDay;
 import com.tianli.borrow.enums.BorrowStatisticsType;
 import com.tianli.borrow.query.BorrowInterestRecordQuery;
 import com.tianli.borrow.query.BorrowOrderQuery;
@@ -751,10 +750,10 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
     @Override
     public BorrowOrderStatisticsVO statistics() {
-        BigDecimal borrowAmount = borrowCoinOrderMapper.selectBorrowCapitalSumByBorrowTime();
-        BigDecimal pledgeAmount = borrowCoinOrderMapper.selectPledgeAmountSumByBorrowTime();
-        BigDecimal interestAmount = borrowCoinOrderMapper.selectWaitRepayInterestSumByBorrowTime();
-        Integer orderNum = borrowCoinOrderMapper.selectCountByBorrowTime(BorrowOrderStatus.INTEREST_ACCRUAL);
+        BigDecimal borrowAmount = borrowCoinOrderMapper.selectBorrowCapitalSum();
+        BigDecimal pledgeAmount = borrowCoinOrderMapper.selectPledgeAmountSum();
+        BigDecimal interestAmount = borrowCoinOrderMapper.selectWaitRepayInterestSum();
+        Integer orderNum = borrowCoinOrderMapper.selectCountByStatus(BorrowOrderStatus.INTEREST_ACCRUAL);
         return BorrowOrderStatisticsVO.builder()
                 .borrowAmount(borrowAmount)
                 .pledgeAmount(pledgeAmount)

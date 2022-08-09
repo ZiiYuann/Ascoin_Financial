@@ -5,7 +5,6 @@ import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.tianli.borrow.entity.BorrowInterestRecord;
 import com.tianli.borrow.entity.BorrowPledgeRecord;
 import com.tianli.borrow.entity.BorrowRepayRecord;
-import com.tianli.borrow.enums.BorrowStatisticsChartDay;
 import com.tianli.borrow.enums.BorrowStatisticsType;
 import com.tianli.borrow.query.BorrowInterestRecordQuery;
 import com.tianli.borrow.query.BorrowOrderQuery;
@@ -14,18 +13,13 @@ import com.tianli.borrow.query.BorrowRepayQuery;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
-import com.tianli.common.RedisLockConstants;
-import com.tianli.common.annotation.NoOperation;
-import com.tianli.common.lock.RedisLock;
+import com.tianli.common.annotation.NoRepeatSubmit;
 import com.tianli.exception.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/management/borrow")
@@ -33,18 +27,14 @@ public class BorrowCoinOrderManageController {
 
     @Autowired
     private IBorrowCoinOrderService borrowCoinOrderService;
-    @Autowired
-    private RedisLock redisLock;
-
     /**
      * 强制平仓
      * @param orderId
      * @return
      */
     @PostMapping("/order/liquidation/{orderId}")
+    @NoRepeatSubmit
     public Result liquidation(@PathVariable Long orderId){
-        //防重复提交锁
-        redisLock.lock(RedisLockConstants.BORROW_ORDER_CHANGE_LOCK+orderId,5L, TimeUnit.SECONDS);
         borrowCoinOrderService.forcedLiquidation(orderId);
         return Result.success();
     }

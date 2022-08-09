@@ -56,6 +56,7 @@ public class BorrowInterestTask {
     @Scheduled(cron = "0 0 * * * ?")
     public void interestTasks() {
         LocalDateTime now = LocalDateTime.now();
+        LocalDateTime dateTime = LocalDateTime.of(now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), 0);
         String hour = String.format("%s_%s_%s", now.getMonthValue(), now.getDayOfMonth(),now.getHour());
         String redisKey = RedisLockConstants.BORROW_INCOME_TASK + hour;
         List<BorrowCoinConfig> borrowCoinConfigs = borrowCoinConfigMapper.selectList(null);
@@ -72,7 +73,7 @@ public class BorrowInterestTask {
             if(CollUtil.isEmpty(records)){
                 break;
             }
-            records.forEach(record -> calculateInterest(record,coinInterestRateMap,coinWarnPledgeRateMap,coinLiquidationPledgeRateMap,now));
+            records.forEach(record -> calculateInterest(record,coinInterestRateMap,coinWarnPledgeRateMap,coinLiquidationPledgeRateMap,dateTime));
         }
     }
 
@@ -81,7 +82,7 @@ public class BorrowInterestTask {
                                   Map<String, BigDecimal> coinInterestRateMap,
                                   Map<String, BigDecimal> coinWarnPledgeRateMap,
                                   Map<String, BigDecimal> coinLiquidationPledgeRateMap,
-                                  LocalDateTime now){
+                                  LocalDateTime dateTime){
         BigDecimal waitRepayInterest = borrowCoinOrder.getWaitRepayInterest();
         BigDecimal cumulativeInterest = borrowCoinOrder.getCumulativeInterest();
         //总待还款
@@ -110,8 +111,8 @@ public class BorrowInterestTask {
 
         //添加利息记录
         BorrowInterestRecord interestRecord = BorrowInterestRecord.builder()
-                .interestAccrualTime(now)
-                .createTime(now)
+                .interestAccrualTime(dateTime)
+                .createTime(dateTime)
                 .orderId(borrowCoinOrder.getId())
                 .coin(borrowCoinOrder.getBorrowCoin())
                 .waitRepayCapital(borrowCoinOrder.getWaitRepayCapital())

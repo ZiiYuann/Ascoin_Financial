@@ -8,7 +8,6 @@ import com.tianli.borrow.vo.BorrowOrderStatisticsChartVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -36,28 +35,21 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
     BigDecimal selectPledgeAmountByUid(Long uid);
 
     @Select("SELECT ifnull(SUM(wait_repay_capital),0.0) FROM borrow_coin_order")
-    BigDecimal selectBorrowCapitalSumByBorrowTime();
+    BigDecimal selectBorrowCapitalSum();
 
     @Select("SELECT ifnull(SUM(pledge_amount),0.0) FROM borrow_coin_order")
-    BigDecimal selectPledgeAmountSumByBorrowTime();
+    BigDecimal selectPledgeAmountSum();
 
     @Select("SELECT ifnull(SUM(wait_repay_interest),0.0) FROM borrow_coin_order")
-    BigDecimal selectWaitRepayInterestSumByBorrowTime();
+    BigDecimal selectWaitRepayInterestSum();
 
     @Select("SELECT ifnull(count(*),0) FROM borrow_coin_order where `status` = #{status}")
-    Integer selectCountByBorrowTime(Integer status);
+    Integer selectCountByStatus(Integer status);
 
     @Select("SELECT DATE_FORMAT(borrow_time,'%Y-%m-%d') time,SUM(borrow_capital) amount FROM borrow_coin_order\n" +
             "WHERE borrow_time >= #{startTime}\n" +
             "GROUP BY DATE_FORMAT(borrow_time,'%Y-%m-%d')")
     List<BorrowOrderStatisticsChartVO> selectBorrowCapitalChartByTime(@Param("startTime")Date startTime);
-
-
-    @Select("SELECT DATE_FORMAT(borrow_time,'%Y-%m-%d') time,count(*) amount FROM borrow_coin_order\n" +
-            "WHERE borrow_time >= #{startTime} and status = #{status} \n" +
-            "GROUP BY DATE_FORMAT(borrow_time,'%Y-%m-%d')")
-    List<BorrowOrderStatisticsChartVO> selectTotalChartByTime(@Param("status") Integer status ,@Param("startTime")Date startTime);
-
 
     BigDecimal selectCumulativeInterestByQuery(BorrowOrderQuery query);
 
