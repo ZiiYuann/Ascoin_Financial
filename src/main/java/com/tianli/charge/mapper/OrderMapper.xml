@@ -105,7 +105,7 @@
     <select id="serviceAmountSumByCompleteTime" resultType="com.tianli.management.dto.AmountDto">
         SELECT service_amount as amount,coin FROM `order`
         WHERE type=#{query.chargeType}
-        and o.status = 'chain_success'
+        and status = 'chain_success'
         <if test="query.coin != null">
             AND coin = #{query.coin}
         </if>
