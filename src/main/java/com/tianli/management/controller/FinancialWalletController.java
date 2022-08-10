@@ -5,6 +5,7 @@ import com.tianli.chain.entity.ChainCallbackLog;
 import com.tianli.chain.entity.WalletImputation;
 import com.tianli.chain.entity.WalletImputationLog;
 import com.tianli.chain.entity.WalletImputationLogAppendix;
+import com.tianli.chain.enums.ImputationStatus;
 import com.tianli.chain.service.ChainCallbackLogService;
 import com.tianli.chain.service.WalletImputationLogAppendixService;
 import com.tianli.chain.service.WalletImputationLogService;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.Objects;
 
 /**
  * @author lzy
@@ -174,4 +176,26 @@ public class FinancialWalletController {
         return Result.instance().setData(chainCallbackLogService.page(page.page()));
     }
 
+    /**
+     * 【云钱包归集】归集补偿,直接补偿
+     */
+    @PutMapping("/imputation/compensate")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result imputationCompensate(Long imputationId, ImputationStatus status) {
+        if(Objects.isNull(status)){
+            status = ImputationStatus.success;
+        }
+        walletImputationService.imputationCompensate(imputationId,status);
+        return Result.success();
+    }
+
+    /**
+     * 【云钱包归集】归集补偿,扫链补偿
+     */
+    @PutMapping("/imputation/compensate/scan")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result imputationCompensateScan(Long imputationId) {
+        walletImputationService.imputationCompensateScan(imputationId);
+        return Result.success();
+    }
 }

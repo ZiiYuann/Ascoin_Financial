@@ -36,6 +36,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -212,6 +213,53 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         // 异步检测数据
         asynCheckImputationStatus();
 
+    }
+
+    /**
+     * 进行归集补偿
+     */
+    @Transactional
+    public void imputationCompensate(Long imputationId,ImputationStatus status){
+        WalletImputation walletImputation = walletImputationMapper.selectById(imputationId);
+
+        if(Objects.isNull(walletImputation) || !ImputationStatus.processing.equals(walletImputation.getStatus())
+                || Objects.isNull(walletImputation.getLogId())){
+            ErrorCodeEnum.throwException("本次归集不需要补偿");
+        }
+
+        Long logId = walletImputation.getLogId();
+        Optional.of(walletImputation).ifPresent(o->{
+            o.setStatus(status);
+            o.setUpdateTime(LocalDateTime.now());
+            walletImputationMapper.updateById(o);
+        });
+
+
+        WalletImputationLog walletImputationLog = walletImputationLogService.getById(logId);
+        if(Objects.nonNull(walletImputationLog)){
+            walletImputationLog.setFinishTime(LocalDateTime.now());
+            walletImputationLog.setStatus(status);
+            walletImputationLogService.updateById(walletImputationLog);
+        }
+
+    }
+
+    /**
+     * 进行归集补偿
+     */
+    @Transactional
+    public void imputationCompensateScan(Long imputationId){
+        WalletImputation walletImputation = walletImputationMapper.selectById(imputationId);
+        if(Objects.isNull(walletImputation) || !ImputationStatus.processing.equals(walletImputation.getStatus())
+                || Objects.isNull(walletImputation.getLogId())){
+            ErrorCodeEnum.throwException("本次归集不需要补偿");
+        }
+        WalletImputationLog walletImputationLog = walletImputationLogService.getById(walletImputation.getLogId());
+        List<WalletImputation> walletImputations = walletImputationMapper.selectList(new LambdaQueryWrapper<WalletImputation>()
+                .eq(WalletImputation::getLogId, walletImputation.getLogId()));
+        if (Objects.nonNull(walletImputationLog)){
+            checkImputationStatus(walletImputation.getLogId(),walletImputations);
+        }
     }
 
     /**

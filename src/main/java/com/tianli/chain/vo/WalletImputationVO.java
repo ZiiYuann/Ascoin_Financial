@@ -34,4 +34,6 @@ public class WalletImputationVO {
 
     private LocalDateTime updateTime;
 
+    private Long logId;
+
 }
