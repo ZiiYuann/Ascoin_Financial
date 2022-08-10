@@ -105,15 +105,13 @@
     <select id="serviceAmountSumByCompleteTime" resultType="com.tianli.management.dto.AmountDto">
         SELECT service_amount as amount,coin FROM `order`
         WHERE type=#{query.chargeType}
-        and status = 'chain_success'
+
         <if test="query.coin != null">
             AND coin = #{query.coin}
         </if>
         <if test="query.startTime != null and query.endTime">
             AND complete_time BETWEEN #{query.startTime} AND #{query.endTime}
         </if>
-
-
     </select>
 
     <sql id="FinancialChargeQuery">
