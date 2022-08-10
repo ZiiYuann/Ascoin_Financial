@@ -9,14 +9,15 @@ import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.vo.OrderFinancialVO;
-import com.tianli.management.query.FinancialOrdersQuery;
+import com.tianli.management.dto.AmountDto;
 import com.tianli.management.query.FinancialChargeQuery;
+import com.tianli.management.query.FinancialOrdersQuery;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 /**
@@ -37,12 +38,12 @@ public interface OrderMapper extends BaseMapper<Order> {
     IPage<OrderChargeInfoVO> selectOrderChargeInfoVOPage(@Param("page") IPage<OrderChargeInfoVO> page,
                                                          @Param("query") FinancialChargeQuery query);
 
-    BigDecimal orderAmountSum(@Param("query") FinancialChargeQuery query);
+    List<AmountDto> orderAmountSum(@Param("query") FinancialChargeQuery query);
 
-    @Select("SELECT SUM(amount) FROM `order` WHERE type=#{chargeType} AND complete_time BETWEEN #{startTime} and #{endTime} and status ='chain_success'")
-    BigDecimal amountSumByCompleteTime(@Param("chargeType") ChargeType chargeType,
+    @Select("SELECT amount,coin FROM `order` WHERE type=#{chargeType} AND complete_time BETWEEN #{startTime} and #{endTime} and status ='chain_success'")
+    List<AmountDto> amountSumByCompleteTime(@Param("chargeType") ChargeType chargeType,
                                        @Param("startTime") LocalDateTime startTime,
                                        @Param("endTime") LocalDateTime endTime);
 
-    BigDecimal serviceAmountSumByCompleteTime(@Param("query") ServiceAmountQuery query);
+    List<AmountDto> serviceAmountSumByCompleteTime(@Param("query") ServiceAmountQuery query);
 }

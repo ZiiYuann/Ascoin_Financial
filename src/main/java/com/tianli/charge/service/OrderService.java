@@ -18,12 +18,13 @@ import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.vo.OrderFinancialVO;
+import com.tianli.management.dto.AmountDto;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -134,18 +135,19 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
     }
 
 
-    public BigDecimal orderAmountSum(FinancialChargeQuery query) {
-        return Optional.ofNullable(orderMapper.orderAmountSum(query)).orElse(BigDecimal.ZERO);
+    public BigDecimal orderAmountDollarSum(FinancialChargeQuery query) {
+        List<AmountDto> amountDtos = orderMapper.orderAmountSum(query);
+        return calDollarAmount(amountDtos);
     }
 
-    public BigDecimal amountSumByCompleteTime(ChargeType chargeType, LocalDateTime startTime, LocalDateTime endTime) {
-        return Optional.ofNullable(orderMapper.amountSumByCompleteTime(chargeType,startTime,endTime))
-                .orElse(BigDecimal.ZERO);
+    public BigDecimal amountDollarSumByCompleteTime(ChargeType chargeType, LocalDateTime startTime, LocalDateTime endTime) {
+        List<AmountDto> amountDtos = orderMapper.amountSumByCompleteTime(chargeType,startTime,endTime);
+        return calDollarAmount(amountDtos);
     }
 
-    public BigDecimal serviceAmountSumByCompleteTime(ServiceAmountQuery serviceAmountQuery) {
-        return Optional.ofNullable(orderMapper.serviceAmountSumByCompleteTime(serviceAmountQuery))
-                .orElse(BigDecimal.ZERO);
+    public BigDecimal serviceAmountDollarSumByCompleteTime(ServiceAmountQuery serviceAmountQuery) {
+        List<AmountDto> amountDtos = orderMapper.serviceAmountSumByCompleteTime(serviceAmountQuery);
+        return calDollarAmount(amountDtos);
     }
 
     public Order getOrderNo(String orderNo) {
@@ -153,6 +155,15 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
         return orderMapper.selectOne(query);
     }
 
+    private BigDecimal calDollarAmount(List<AmountDto> amountDtos){
+        if(CollectionUtils.isEmpty(amountDtos)){
+            return BigDecimal.ZERO;
+        }
+       return amountDtos.stream().map( amountDto -> {
+            BigDecimal amount = Optional.ofNullable(amountDto.getAmount()).orElse(BigDecimal.ZERO);
+            return currencyService.getDollarRate(amountDto.getCoin()).multiply(amount);
+        }).reduce(BigDecimal.ZERO,BigDecimal::add);
+    }
     @Resource
     private OrderMapper orderMapper;
     @Resource

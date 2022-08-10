@@ -48,14 +48,14 @@ public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalle
         serviceAmountQuery.setStartTime(startTime);
         serviceAmountQuery.setEndTime(entTime);
         serviceAmountQuery.setChargeType(ChargeType.withdraw);
-        BigDecimal rechargeAmount = orderService.amountSumByCompleteTime(ChargeType.recharge, startTime, entTime);
-        BigDecimal withdrawAmount = orderService.amountSumByCompleteTime(ChargeType.withdraw, startTime, entTime);
+        BigDecimal rechargeAmount = orderService.amountDollarSumByCompleteTime(ChargeType.recharge, startTime, entTime);
+        BigDecimal withdrawAmount = orderService.amountDollarSumByCompleteTime(ChargeType.withdraw, startTime, entTime);
 
         BigInteger activeWalletCount = addressService.activeCount(startTime, entTime);
         // 暂时只有提币存在手续费
-        BigDecimal totalServiceAmount = orderService.serviceAmountSumByCompleteTime(serviceAmountQuery);
+        BigDecimal totalServiceAmount = orderService.serviceAmountDollarSumByCompleteTime(serviceAmountQuery);
         serviceAmountQuery.setCoin(CurrencyCoin.usdt);
-        BigDecimal usdtServiceAmount = orderService.serviceAmountSumByCompleteTime(serviceAmountQuery);
+        BigDecimal usdtServiceAmount = orderService.serviceAmountDollarSumByCompleteTime(serviceAmountQuery);
 
         financialBoardWallet.setRechargeAmount(rechargeAmount);
         financialBoardWallet.setWithdrawAmount(withdrawAmount);

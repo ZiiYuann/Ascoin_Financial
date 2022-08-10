@@ -73,10 +73,10 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
 
     public FinancialBoardProduct getFinancialBoardProduct(LocalDateTime endTime, LocalDateTime startTime, FinancialBoardProduct today) {
         today = Optional.ofNullable(today).orElse(FinancialBoardProduct.getDefault());
-        BigDecimal purchaseAmount = orderService.amountSumByCompleteTime(ChargeType.purchase, startTime, endTime);
-        BigDecimal redeemAmount = orderService.amountSumByCompleteTime(ChargeType.redeem, startTime, endTime);
-        BigDecimal settleAmount = orderService.amountSumByCompleteTime(ChargeType.settle, startTime, endTime);
-        BigDecimal transferAmount = orderService.amountSumByCompleteTime(ChargeType.transfer, startTime, endTime);
+        BigDecimal purchaseAmount = orderService.amountDollarSumByCompleteTime(ChargeType.purchase, startTime, endTime);
+        BigDecimal redeemAmount = orderService.amountDollarSumByCompleteTime(ChargeType.redeem, startTime, endTime);
+        BigDecimal settleAmount = orderService.amountDollarSumByCompleteTime(ChargeType.settle, startTime, endTime);
+        BigDecimal transferAmount = orderService.amountDollarSumByCompleteTime(ChargeType.transfer, startTime, endTime);
         BigDecimal income = Optional.ofNullable(financialIncomeAccrueService.getAmountSum(endTime)).orElse(BigDecimal.ZERO);
         BigInteger fixedProductCount = financialRecordService.countProcess(ProductType.fixed);
         BigInteger currentProductCount = financialRecordService.countProcess(ProductType.current);

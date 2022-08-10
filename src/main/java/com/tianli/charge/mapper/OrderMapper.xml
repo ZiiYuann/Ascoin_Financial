@@ -58,10 +58,10 @@
     </select>
     <select id="selectOrderSettleInfoVOPage" resultType="com.tianli.charge.vo.OrderSettleRecordVO">
         SELECT o.uid,
-               o.type    as charge_type,
-               record.id as record_id,
+               o.type          as charge_type,
+               record.id       as record_id,
                income.income_amount,
-               o.amount  as settle_amount,
+               o.amount        as settle_amount,
                record.logo,
                record.purchase_time,
                record.start_income_time,
@@ -77,7 +77,7 @@
         WHERE o.uid = #{uid}
           and record.product_type = #{productType}
           and o.type = 'settle'
-          order by o.create_time desc
+        order by o.create_time desc
     </select>
     <select id="selectOrderChargeInfoVOPage" resultType="com.tianli.charge.vo.OrderChargeInfoVO">
         SELECT
@@ -91,17 +91,19 @@
         ORDER BY o.create_time DESC
 
     </select>
-    <select id="orderAmountSum" resultType="java.math.BigDecimal">
+
+    <select id="orderAmountSum" resultType="com.tianli.management.dto.AmountDto">
         SELECT
-        sum(o.amount)
+        o.amount,o.coin
         FROM `order` o
         INNER JOIN order_charge_info charge on charge.id = o.related_id
         WHERE 1 = 1
         <include refid="FinancialChargeQuery"/>
         AND o.status = 'chain_success'
     </select>
-    <select id="serviceAmountSumByCompleteTime" resultType="java.math.BigDecimal">
-        SELECT SUM(service_amount) FROM `order`
+
+    <select id="serviceAmountSumByCompleteTime" resultType="com.tianli.management.dto.AmountDto">
+        SELECT service_amount as amount,coin FROM `order`
         WHERE type=#{query.chargeType}
         and status = 'chain_success'
         <if test="query.coin != null">
