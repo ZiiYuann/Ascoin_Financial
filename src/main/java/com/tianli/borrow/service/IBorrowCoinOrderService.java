@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.borrow.entity.BorrowInterestRecord;
 import com.tianli.borrow.entity.BorrowPledgeRecord;
 import com.tianli.borrow.entity.BorrowRepayRecord;
-import com.tianli.borrow.enums.BorrowStatisticsChartDay;
 import com.tianli.borrow.enums.BorrowStatisticsType;
 import com.tianli.borrow.query.BorrowInterestRecordQuery;
 import com.tianli.borrow.query.BorrowOrderQuery;
@@ -20,7 +19,6 @@ import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 
 /**

@@ -25,7 +25,7 @@ public interface BorrowPledgeRecordMapper extends BaseMapper<BorrowPledgeRecord>
     BigDecimal selectAmountSumByTime(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
 
     @Select("SELECT DATE_FORMAT(pledge_time,'%Y-%m-%d') time,SUM(amount)amount FROM borrow_pledge_record\n" +
-            "WHERE pledge_time >= #{startTime}\n" +
+            "WHERE pledge_time >= #{startTime} and type in(1,2)\n" +
             "GROUP BY DATE_FORMAT(pledge_time,'%Y-%m-%d')")
     List<BorrowOrderStatisticsChartVO> selectAmountChartByTime(@Param("startTime")Date startTime);
 
