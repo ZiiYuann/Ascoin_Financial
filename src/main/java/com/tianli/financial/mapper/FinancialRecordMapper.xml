@@ -11,4 +11,16 @@
             hold_amount = hold_amount - #{amount}
         where id = #{recordId}
     </update>
+
+    <select id="countProcess" resultType="com.tianli.management.dto.AmountDto">
+        SELECT
+            hold_amount as amount,coin
+        FROM financial_record
+        <where>
+            <if test="productType != null">
+                product_type = #{productType}
+            </if>
+            AND status = 'PROCESS'
+        </where>
+    </select>
 </mapper>
