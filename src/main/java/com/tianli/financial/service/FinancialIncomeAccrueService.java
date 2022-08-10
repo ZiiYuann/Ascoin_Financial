@@ -94,7 +94,7 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
      * @param uid  uid
      * @param type 产品类型
      */
-    public BigDecimal getAccrueAmount(Long uid, ProductType type) {
+    public BigDecimal getAccrueDollarAmount(Long uid, ProductType type) {
 
 
         List<FinancialIncomeAccrueDTO> accrueIncomeLogs = financialIncomeAccrueMapper.listByUidAndType(uid, type);

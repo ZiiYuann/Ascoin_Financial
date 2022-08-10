@@ -42,7 +42,7 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
      * @param uid uid
      * @param type 产品类型
      */
-    public BigDecimal getYesterdayDailyAmount(Long uid, ProductType type){
+    public BigDecimal getYesterdayDailyDollarAmount(Long uid, ProductType type){
 
         LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
         LocalDateTime yesterdayZero = todayZero.plusDays(-1);

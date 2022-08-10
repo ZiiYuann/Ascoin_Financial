@@ -131,12 +131,12 @@ public class FinancialServiceImpl implements FinancialService {
             totalHoldFee = totalHoldFee.add(holdFee);
 
             // 单类型产品累计收益
-            BigDecimal incomeAmount = financialIncomeAccrueService.getAccrueAmount(uid, type);
+            BigDecimal incomeAmount = financialIncomeAccrueService.getAccrueDollarAmount(uid, type);
             incomeVO.setAccrueIncomeFee(incomeAmount);
             totalAccrueIncomeFee = totalAccrueIncomeFee.add(incomeAmount);
 
             // 单个类型产品昨日收益
-            BigDecimal yesterdayIncomeFee = financialIncomeDailyService.getYesterdayDailyAmount(uid, type);
+            BigDecimal yesterdayIncomeFee = financialIncomeDailyService.getYesterdayDailyDollarAmount(uid, type);
             incomeVO.setYesterdayIncomeFee(yesterdayIncomeFee);
             totalYesterdayIncomeFee = totalYesterdayIncomeFee.add(yesterdayIncomeFee);
 

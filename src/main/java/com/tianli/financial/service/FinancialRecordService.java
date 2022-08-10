@@ -155,7 +155,8 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      */
     public BigDecimal getPurchaseAmount(Long uid, ProductType type, RecordStatus status) {
         var financialPurchaseRecords = this.selectList(uid, type, status);
-        return financialPurchaseRecords.stream().map(FinancialRecord::getHoldAmount)
+        return financialPurchaseRecords.stream()
+                .map(o -> o.getHoldAmount().multiply(currencyService.getDollarRate(o.getCoin())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
