@@ -629,7 +629,10 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             BigDecimal ableReduceAmount = borrowCoinOrder.getPledgeAmount().subtract(pledgeRateAmount);
             //调整金额为0
             if(adjustAmount.compareTo(BigDecimal.ZERO) == 0){
-                borrowAdjustPageVO.setAbleReduceAmount(ableReduceAmount);
+                if(ableReduceAmount.compareTo(BigDecimal.ZERO) < 0)
+                    borrowAdjustPageVO.setAbleReduceAmount(BigDecimal.ZERO);
+                else
+                    borrowAdjustPageVO.setAbleReduceAmount(ableReduceAmount);
                 borrowAdjustPageVO.setAdjustPledgeRate(null);
                 return borrowAdjustPageVO;
             }
@@ -639,6 +642,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 borrowAdjustPageVO.setAdjustPledgeRate(borrowCoinOrder.getPledgeRate());
                 return borrowAdjustPageVO;
             }
+            //可减少金额小于等于0
             if (ableReduceAmount.compareTo(BigDecimal.ZERO) <= 0) {
                 borrowAdjustPageVO.setAbleReduceAmount(BigDecimal.ZERO);
                 borrowAdjustPageVO.setAdjustPledgeRate(borrowCoinOrder.getPledgeRate());
