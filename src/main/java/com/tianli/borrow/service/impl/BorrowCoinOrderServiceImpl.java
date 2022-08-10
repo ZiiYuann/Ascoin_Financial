@@ -105,16 +105,6 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     @Autowired
     private IBorrowOrderNumDailyService borrowOrderNumDailyService;
 
-    @PostConstruct
-    public void updatePledgeStatus(){
-        log.info("======更新质押状态======");
-        List<BorrowCoinOrder> borrowCoinOrders = borrowCoinOrderMapper.selectList(new QueryWrapper<BorrowCoinOrder>().lambda().eq(BorrowCoinOrder::getStatus, 3));
-        borrowCoinOrders.forEach(order -> {
-            order.setPledgeStatus(1);
-            borrowCoinOrderMapper.updateById(order);
-        });
-    }
-
     @Override
     public BorrowCoinMainPageVO mainPage() {
         Long uid = requestInitService.uid();
