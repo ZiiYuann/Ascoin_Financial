@@ -32,11 +32,17 @@ import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.*;
 import com.tianli.financial.vo.*;
+import com.tianli.management.entity.FinancialBoardProduct;
+import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
+import com.tianli.management.query.TimeQuery;
+import com.tianli.management.service.FinancialBoardProductService;
+import com.tianli.management.service.FinancialBoardWalletService;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.FinancialUserInfoVO;
 import com.tianli.sso.init.RequestInitService;
+import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +53,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -342,6 +349,23 @@ public class FinancialServiceImpl implements FinancialService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public void boardManual(TimeQuery query) {
+        LocalDateTime time = query.getTime();
+        LocalDateTime dateTime = TimeTool.minDay(time);
+        FinancialBoardProduct financialBoardProduct =
+                financialBoardProductService.getFinancialBoardProduct(dateTime.plusDays(1), dateTime, null);
+        FinancialBoardWallet financialBoardWallet =
+                financialBoardWalletService.getFinancialBoardWallet(dateTime, dateTime.plusDays(1), null);
+        financialBoardProduct.setCreateTime(dateTime.toLocalDate());
+        financialBoardWallet.setCreateTime(dateTime.toLocalDate());
+        financialBoardProductService.update(financialBoardProduct,new LambdaQueryWrapper<FinancialBoardProduct>()
+                .eq(FinancialBoardProduct :: getCreateTime,dateTime));
+        financialBoardWalletService.update(financialBoardWallet,new LambdaQueryWrapper<FinancialBoardWallet>()
+                .eq(FinancialBoardWallet :: getCreateTime,dateTime));
+    }
+
     private IPage<FinancialProductVO> getFinancialProductVOIPage(Page<FinancialProduct> page, ProductType type, LambdaQueryWrapper<FinancialProduct> query) {
         if (Objects.nonNull(type)) {
             query.eq(FinancialProduct::getType, type);
@@ -404,5 +428,8 @@ public class FinancialServiceImpl implements FinancialService {
     private AddressService addressService;
     @Resource
     private RedisService redisService;
-
+    @Resource
+    private FinancialBoardProductService financialBoardProductService;
+    @Resource
+    private FinancialBoardWalletService financialBoardWalletService;
 }

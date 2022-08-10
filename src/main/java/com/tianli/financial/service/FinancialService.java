@@ -4,8 +4,6 @@ package com.tianli.financial.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.address.mapper.Address;
-import com.tianli.charge.enums.ChargeType;
-import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
@@ -17,6 +15,7 @@ import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.vo.*;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
+import com.tianli.management.query.TimeQuery;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.FinancialUserInfoVO;
 
@@ -104,4 +103,5 @@ public interface FinancialService {
      */
     FinancialSummaryDataVO userData(String uid);
 
+    void boardManual(TimeQuery query);
 }

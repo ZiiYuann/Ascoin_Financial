@@ -116,6 +116,15 @@ public class FinancialProductController {
         return Result.success(financialService.summaryIncomeByQuery(query));
     }
 
+    /**
+     * 手动更新展板数据
+     */
+    @PutMapping("/board/manual")
+    @AdminPrivilege(and = Privilege.理财配置)
+    public Result boardManual(@RequestBody TimeQuery query) {
+        financialService.boardManual(query);
+        return Result.success();
+    }
 
 
 }
