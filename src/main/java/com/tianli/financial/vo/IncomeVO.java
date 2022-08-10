@@ -18,7 +18,7 @@ public class IncomeVO {
     /**
      * 持有币
      */
-    @BigDecimalFormat("0.00")
+    @BigDecimalFormat("0.00######")
     private BigDecimal holdFee;
 
     /**
