@@ -55,8 +55,10 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public EnumMap<CurrencyCoin, BigDecimal> getDollarRateMap() {
         EnumMap<CurrencyCoin, BigDecimal> rateMap = new EnumMap<>(CurrencyCoin.class);
-        rateMap.put(CurrencyCoin.usdt,BigDecimal.ONE);
-        rateMap.put(CurrencyCoin.usdc,BigDecimal.ONE);
+        rateMap.put(CurrencyCoin.usdt,this.getDollarRate(CurrencyCoin.usdt));
+        rateMap.put(CurrencyCoin.usdc,this.getDollarRate(CurrencyCoin.usdc));
+        rateMap.put(CurrencyCoin.bnb,this.getDollarRate(CurrencyCoin.bnb));
+        rateMap.put(CurrencyCoin.eth,this.getDollarRate(CurrencyCoin.eth));
         // 设置其他类型的汇率
         return rateMap;
     }
