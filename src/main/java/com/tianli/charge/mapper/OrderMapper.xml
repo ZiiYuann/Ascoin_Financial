@@ -103,7 +103,7 @@
     <select id="serviceAmountSumByCompleteTime" resultType="java.math.BigDecimal">
         SELECT SUM(service_amount) FROM `order`
         WHERE type=#{query.chargeType}
-        and o.status = 'chain_success'
+        and status = 'chain_success'
         <if test="query.coin != null">
             AND coin = #{query.coin}
         </if>
