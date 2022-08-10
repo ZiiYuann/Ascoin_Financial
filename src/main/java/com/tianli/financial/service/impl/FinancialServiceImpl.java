@@ -44,6 +44,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -126,19 +127,19 @@ public class FinancialServiceImpl implements FinancialService {
         for (ProductType type : types) {
             IncomeVO incomeVO = new IncomeVO();
             // 单类型产品持有币数量
-            BigDecimal holdFee = financialRecordService.getPurchaseAmount(uid, type, RecordStatus.PROCESS);
-            incomeVO.setHoldFee(holdFee);
-            totalHoldFee = totalHoldFee.add(holdFee);
+            BigDecimal holdFeeDollar = financialRecordService.getPurchaseAmount(uid, type, RecordStatus.PROCESS);
+            incomeVO.setHoldFee(holdFeeDollar);
+            totalHoldFee = totalHoldFee.add(holdFeeDollar);
 
             // 单类型产品累计收益
-            BigDecimal incomeAmount = financialIncomeAccrueService.getAccrueDollarAmount(uid, type);
-            incomeVO.setAccrueIncomeFee(incomeAmount);
-            totalAccrueIncomeFee = totalAccrueIncomeFee.add(incomeAmount);
+            BigDecimal incomeAmountDollar = financialIncomeAccrueService.getAccrueDollarAmount(uid, type);
+            incomeVO.setAccrueIncomeFee(incomeAmountDollar);
+            totalAccrueIncomeFee = totalAccrueIncomeFee.add(incomeAmountDollar);
 
             // 单个类型产品昨日收益
-            BigDecimal yesterdayIncomeFee = financialIncomeDailyService.getYesterdayDailyDollarAmount(uid, type);
-            incomeVO.setYesterdayIncomeFee(yesterdayIncomeFee);
-            totalYesterdayIncomeFee = totalYesterdayIncomeFee.add(yesterdayIncomeFee);
+            BigDecimal yesterdayIncomeAmountDollar = financialIncomeDailyService.getYesterdayDailyDollarAmount(uid, type);
+            incomeVO.setYesterdayIncomeFee(yesterdayIncomeAmountDollar);
+            totalYesterdayIncomeFee = totalYesterdayIncomeFee.add(yesterdayIncomeAmountDollar);
 
             incomeMap.put(type, incomeVO);
         }
@@ -146,7 +147,7 @@ public class FinancialServiceImpl implements FinancialService {
 
         IncomeVO incomeVO = new IncomeVO();
         incomeVO.setHoldFee(totalHoldFee);
-        incomeVO.setAccrueIncomeFee(totalAccrueIncomeFee);
+        incomeVO.setAccrueIncomeFee(totalAccrueIncomeFee.setScale(2, RoundingMode.DOWN));
         incomeVO.setYesterdayIncomeFee(totalYesterdayIncomeFee);
         incomeVO.setIncomeMap(incomeMap);
 
