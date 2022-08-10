@@ -155,7 +155,7 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
         return orderMapper.selectOne(query);
     }
 
-    private BigDecimal calDollarAmount(List<AmountDto> amountDtos){
+    public BigDecimal calDollarAmount(List<AmountDto> amountDtos){
         if(CollectionUtils.isEmpty(amountDtos)){
             return BigDecimal.ZERO;
         }

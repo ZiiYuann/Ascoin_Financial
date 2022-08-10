@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.charge.service.OrderService;
 import com.tianli.common.IdGenerator;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
@@ -12,6 +13,7 @@ import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.mapper.FinancialIncomeAccrueMapper;
+import com.tianli.management.dto.AmountDto;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
@@ -38,24 +40,21 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
     private FinancialIncomeAccrueMapper financialIncomeAccrueMapper;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private OrderService orderService;
 
     public IPage<FinancialIncomeAccrueDTO> incomeRecord(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
         return financialIncomeAccrueMapper.pageByQuery(page, query);
     }
 
     public BigDecimal summaryIncomeByQuery(FinancialProductIncomeQuery query) {
-        return financialIncomeAccrueMapper.summaryIncomeByQuery(query);
+        List<AmountDto> amountDtos = financialIncomeAccrueMapper.summaryIncomeByQuery(query);
+        return orderService.calDollarAmount(amountDtos);
     }
 
     public List<FinancialIncomeAccrue> selectListByRecordId(List<Long> recordIds) {
         return financialIncomeAccrueMapper.selectList(new LambdaQueryWrapper<FinancialIncomeAccrue>()
                 .in(FinancialIncomeAccrue::getRecordId, recordIds));
-    }
-
-    public FinancialIncomeAccrue selectByRecordId(Long uid,Long recordId) {
-        return financialIncomeAccrueMapper.selectOne(new LambdaQueryWrapper<FinancialIncomeAccrue>()
-                .eq(FinancialIncomeAccrue :: getUid,uid)
-                .eq(FinancialIncomeAccrue::getRecordId, recordId));
     }
 
     @Transactional
@@ -108,7 +107,8 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
     }
 
     public BigDecimal getAmountSum(LocalDateTime endTime) {
-        return financialIncomeAccrueMapper.getAmountSum(endTime);
+        List<AmountDto> amountDtos = financialIncomeAccrueMapper.getAmountSum(endTime);
+        return orderService.calDollarAmount(amountDtos);
     }
 
     /**

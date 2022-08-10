@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.enums.ProductType;
+import com.tianli.management.dto.AmountDto;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -23,8 +24,8 @@ public interface FinancialIncomeAccrueMapper extends BaseMapper<FinancialIncomeA
     IPage<FinancialIncomeAccrueDTO> pageByQuery(@Param("page") Page<FinancialIncomeAccrueDTO> page
             , @Param("query") FinancialProductIncomeQuery query);
 
-    BigDecimal summaryIncomeByQuery(@Param("query") FinancialProductIncomeQuery query);
+    List<AmountDto> summaryIncomeByQuery(@Param("query") FinancialProductIncomeQuery query);
 
-    @Select("SELECT SUM(income_amount) FROM financial_income_accrue WHERE update_time <= #{endTime}")
-    BigDecimal getAmountSum(@Param("endTime") LocalDateTime endTime);
+    @Select("SELECT income_amount as amount,coin FROM financial_income_accrue WHERE update_time <= #{endTime}")
+    List<AmountDto> getAmountSum(@Param("endTime") LocalDateTime endTime);
 }
