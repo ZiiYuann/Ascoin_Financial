@@ -106,7 +106,7 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public BigDecimal getAmountSum(LocalDateTime endTime) {
+    public BigDecimal getAmountDollarSum(LocalDateTime endTime) {
         List<AmountDto> amountDtos = financialIncomeAccrueMapper.getAmountSum(endTime);
         return orderService.calDollarAmount(amountDtos);
     }
