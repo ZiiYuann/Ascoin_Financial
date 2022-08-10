@@ -78,9 +78,9 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
         BigDecimal settleAmount = orderService.amountDollarSumByCompleteTime(ChargeType.settle, startTime, endTime);
         BigDecimal transferAmount = orderService.amountDollarSumByCompleteTime(ChargeType.transfer, startTime, endTime);
         BigDecimal income = Optional.ofNullable(financialIncomeAccrueService.getAmountDollarSum(endTime)).orElse(BigDecimal.ZERO);
-        BigInteger fixedProductCount = financialRecordService.countProcess(ProductType.fixed);
-        BigInteger currentProductCount = financialRecordService.countProcess(ProductType.current);
-        BigInteger totalProductCount = currentProductCount.add(fixedProductCount);
+        BigDecimal fixedProductCount = financialRecordService.holdAmountDollar(ProductType.fixed);
+        BigDecimal currentProductCount = financialRecordService.holdAmountDollar(ProductType.current);
+        BigDecimal totalProductCount = currentProductCount.add(fixedProductCount);
         BigInteger holdUserCount = financialRecordService.countUid();
 
         today.setPurchaseAmount(purchaseAmount);
@@ -118,8 +118,8 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
         BigDecimal transferAmount = financialProductBoards.stream().map(FinancialBoardProduct::getTransferAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigInteger holdUserCount = financialProductBoards.stream().map(FinancialBoardProduct::getHoldUserCount).reduce(BigInteger.ZERO, BigInteger::add);
         BigDecimal income = financialProductBoards.stream().map(FinancialBoardProduct::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigInteger fixedProductCount = financialProductBoards.stream().map(FinancialBoardProduct::getFixedProductCount).reduce(BigInteger.ZERO, BigInteger::add);
-        BigInteger currentProductCount = financialProductBoards.stream().map(FinancialBoardProduct::getCurrentProductCount).reduce(BigInteger.ZERO, BigInteger::add);
+        BigDecimal fixedProductAmount = financialProductBoards.stream().map(FinancialBoardProduct::getFixedProductCount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal currentProductAmount = financialProductBoards.stream().map(FinancialBoardProduct::getCurrentProductCount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         int offsetDay = -13;
         //获取14天前零点时间
@@ -151,8 +151,8 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
                 .data(financialProductBoardVOMap.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList()))
                 .holdUserCount(holdUserCount)
                 .income(income)
-                .fixedProductCount(fixedProductCount)
-                .currentProductCount(currentProductCount)
+                .fixedProductCount(fixedProductAmount)
+                .currentProductCount(currentProductAmount)
                 .build();
     }
 

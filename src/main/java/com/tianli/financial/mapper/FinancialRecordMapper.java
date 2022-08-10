@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
+import com.tianli.management.dto.AmountDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -11,6 +12,7 @@ import org.apache.ibatis.annotations.Select;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Mapper
 public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
@@ -23,8 +25,8 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
     /**
      * 用户还持用产品的数量
      */
-    @Select("SELECT COUNT(1) FROM financial_record WHERE product_type = #{productType} AND status = 'PROCESS' ")
-    BigInteger countProcess(@Param("productType") ProductType productType);
+    @Select("SELECT hold_amount as amount,coin FROM financial_record WHERE product_type = #{productType} AND status = 'PROCESS' ")
+    List<AmountDto> countProcess(@Param("productType") ProductType productType);
 
     /**
      * 还持有产品的用户数量

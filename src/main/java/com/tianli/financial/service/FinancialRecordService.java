@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
@@ -14,6 +15,7 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.mapper.FinancialRecordMapper;
 import com.tianli.financial.query.RecordRenewalQuery;
+import com.tianli.management.dto.AmountDto;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,6 +39,8 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     private RequestInitService requestInitService;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private OrderService orderService;
 
     /**
      * 赎回金额
@@ -241,8 +245,9 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     /**
      * 正持有的产品数量
      */
-    public BigInteger countProcess(ProductType productType) {
-        return Optional.ofNullable(financialRecordMapper.countProcess(productType)).orElse(BigInteger.ZERO);
+    public BigDecimal holdAmountDollar(ProductType productType) {
+        List<AmountDto> amountDtos = financialRecordMapper.countProcess(productType);
+        return orderService.calDollarAmount(amountDtos);
     }
 
     /**

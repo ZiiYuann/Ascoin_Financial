@@ -53,17 +53,17 @@ public class FinancialBoardProduct {
     /**
      * 活期产品持有
      */
-    private BigInteger currentProductCount;
+    private BigDecimal currentProductCount;
 
     /**
      * 定期产品持有
      */
-    private BigInteger fixedProductCount;
+    private BigDecimal fixedProductCount;
 
     /**
      * 总产品持有
      */
-    private BigInteger totalProductCount;
+    private BigDecimal totalProductCount;
 
     /**
      * 理财产品持有用户数量
@@ -81,9 +81,9 @@ public class FinancialBoardProduct {
                 .settleAmount(BigDecimal.ZERO)
                 .transferAmount(BigDecimal.ZERO)
                 .income(BigDecimal.ZERO)
-                .currentProductCount(BigInteger.ZERO)
-                .fixedProductCount(BigInteger.ZERO)
-                .totalProductCount(BigInteger.ZERO)
+                .currentProductCount(BigDecimal.ZERO)
+                .fixedProductCount(BigDecimal.ZERO)
+                .totalProductCount(BigDecimal.ZERO)
                 .holdUserCount(BigInteger.ZERO).build();
     }
 }

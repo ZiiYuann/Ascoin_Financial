@@ -31,14 +31,14 @@ public class FinancialProductBoardSummaryVO {
     private BigDecimal income;
 
     /**
-     * 定期产品持有
+     * 定期产品持有U
      */
-    private BigInteger currentProductCount;
+    private BigDecimal currentProductCount;
 
     /**
-     * 活期产品持有
+     * 活期产品持有U
      */
-    private BigInteger fixedProductCount;
+    private BigDecimal fixedProductCount;
 
     /**
      * 理财产品持有用户数量
