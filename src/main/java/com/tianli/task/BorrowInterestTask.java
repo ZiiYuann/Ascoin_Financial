@@ -23,6 +23,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
@@ -52,10 +53,29 @@ public class BorrowInterestTask {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+    /**
+     * 补偿数据
+     */
+    @PostConstruct
+    public void compensationData(){
+        log.info("======借币计算利息补偿数据======");
+        LocalDateTime now = LocalDateTime.now();
+        String hour = String.format("%s_%s_%s", now.getMonthValue(), now.getDayOfMonth(),now.getHour());
+        String redisKey = RedisLockConstants.BORROW_INCOME_TASK + hour;
+        Boolean hasKey = redisTemplate.hasKey(redisKey);
+        if(Boolean.FALSE.equals(hasKey)){
+            interestTasks(now);
+        }
+    }
+
     //3.添加定时任务（每小时执行一次）
     @Scheduled(cron = "0 0 * * * ?")
     public void interestTasks() {
         LocalDateTime now = LocalDateTime.now();
+        interestTasks(now);
+    }
+
+    public void interestTasks(LocalDateTime now) {
         LocalDateTime dateTime = LocalDateTime.of(now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), 0);
         String hour = String.format("%s_%s_%s", now.getMonthValue(), now.getDayOfMonth(),now.getHour());
         String redisKey = RedisLockConstants.BORROW_INCOME_TASK + hour;
@@ -66,10 +86,10 @@ public class BorrowInterestTask {
         Map<String, BigDecimal> coinLiquidationPledgeRateMap = borrowPledgeCoinConfigs.stream().collect(Collectors.toMap(BorrowPledgeCoinConfig::getCoin, BorrowPledgeCoinConfig::getLiquidationPledgeRate));
         log.info("========执行计算利息定时任务========");
         while (true){
-            long page = incr(redisKey,30L);
+            long page = incr(redisKey,61L);
             List<BorrowCoinOrder> records = borrowCoinOrderMapper.selectPage(new Page<>(page+1, 100),
-                        new QueryWrapper<BorrowCoinOrder>().lambda()
-                                .eq(BorrowCoinOrder::getStatus, BorrowOrderStatus.INTEREST_ACCRUAL)).getRecords();
+                    new QueryWrapper<BorrowCoinOrder>().lambda()
+                            .eq(BorrowCoinOrder::getStatus, BorrowOrderStatus.INTEREST_ACCRUAL)).getRecords();
             if(CollUtil.isEmpty(records)){
                 break;
             }
