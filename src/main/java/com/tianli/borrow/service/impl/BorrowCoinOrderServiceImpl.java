@@ -428,7 +428,6 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BorrowPledgeCoinConfig pledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(coin);
         BigDecimal initialPledgeRate = pledgeCoinConfig.getInitialPledgeRate();
 
-        BigDecimal totalRepayAmount = waitRepay;
         BigDecimal repayInterest;
         BigDecimal repayCapital;
         BigDecimal pledgeRate;
@@ -458,7 +457,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         }
         return BorrowRepayPageVO.builder()
                 .waitRepayAmount(borrowCoinOrder.calculateWaitRepay())
-                .totalRepayAmount(totalRepayAmount)
+                .totalRepayAmount(repayCapital.add(repayInterest))
                 .availableBalance(accountBalance.getRemain())
                 .repayCapital(repayCapital)
                 .repayInterest(repayInterest)
