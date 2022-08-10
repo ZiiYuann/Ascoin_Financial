@@ -42,10 +42,12 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.mapper.FinancialRecordMapper;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.time.TimeTool;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -64,6 +66,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional
+@Log4j2
 public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMapper, BorrowCoinOrder> implements IBorrowCoinOrderService {
 
     @Resource
@@ -101,6 +104,16 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
     @Autowired
     private IBorrowOrderNumDailyService borrowOrderNumDailyService;
+
+    @PostConstruct
+    public void updatePledgeStatus(){
+        log.info("======更新质押状态======");
+        List<BorrowCoinOrder> borrowCoinOrders = borrowCoinOrderMapper.selectList(new QueryWrapper<BorrowCoinOrder>().lambda().eq(BorrowCoinOrder::getStatus, 3));
+        borrowCoinOrders.forEach(order -> {
+            order.setPledgeStatus(1);
+            borrowCoinOrderMapper.updateById(order);
+        });
+    }
 
     @Override
     public BorrowCoinMainPageVO mainPage() {
@@ -763,6 +776,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         borrowCoinOrder.setPledgeAmount(BigDecimal.ZERO);
         borrowCoinOrder.setPledgeRate(BigDecimal.ZERO);
         borrowCoinOrder.setStatus(BorrowOrderStatus.FORCED_LIQUIDATION);
+        borrowCoinOrder.setPledgeStatus(BorrowOrderPledgeStatus.SAFE_PLEDGE);
         borrowCoinOrder.setSettlementTime(LocalDateTime.now());
         borrowCoinOrder.setBorrowDuration(DateUtil.between(TimeTool.toDate(borrowCoinOrder.getCreateTime()) ,TimeTool.toDate(borrowCoinOrder.getSettlementTime()),DateUnit.HOUR));
         borrowCoinOrderMapper.updateById(borrowCoinOrder);

@@ -66,7 +66,11 @@ public class BorrowCoinOrderManageController {
     }
 
 
-
+    /**
+     * 累计数据
+     * @param query
+     * @return
+     */
     @GetMapping("/order/cumulative/amount")
     @AdminPrivilege(and = Privilege.借币订单管理)
     public Result cumulativeAmount(BorrowOrderQuery query){
