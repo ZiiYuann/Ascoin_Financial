@@ -54,19 +54,6 @@ public class BorrowCoinOrderManageController {
     }
 
     /**
-     * 订单利息合计
-     * @param
-     * @return
-     */
-    @GetMapping("/order/cumulative/interest/amount")
-    @AdminPrivilege(and = Privilege.借币订单管理)
-    public Result cumulativeInterestAmount(BorrowOrderQuery query){
-        AmountVO amountVO = borrowCoinOrderService.cumulativeInterestAmount(query);
-        return Result.success(amountVO);
-    }
-
-
-    /**
      * 累计数据
      * @param query
      * @return

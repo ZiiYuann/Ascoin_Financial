@@ -44,14 +44,12 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
     BigDecimal selectWaitRepayInterestSum();
 
     @Select("SELECT ifnull(count(*),0) FROM borrow_coin_order where `status` = #{status}")
-    Integer selectCountByStatus(Integer status);
+    Integer selectCountByStatusAndTime(Integer status);
 
     @Select("SELECT DATE_FORMAT(borrow_time,'%Y-%m-%d') time,SUM(borrow_capital) amount FROM borrow_coin_order\n" +
             "WHERE borrow_time >= #{startTime}\n" +
             "GROUP BY DATE_FORMAT(borrow_time,'%Y-%m-%d')")
     List<BorrowOrderStatisticsChartVO> selectBorrowCapitalChartByTime(@Param("startTime")Date startTime);
-
-    BigDecimal selectCumulativeInterestByQuery(BorrowOrderQuery query);
 
     @Select("select count(*) from borrow_coin_order where borrow_coin = #{coin}")
     Integer selectCountByBorrowCoin(@Param("coin") String coin);
@@ -60,7 +58,7 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
     Integer selectCountByPledgeCoin(@Param("coin") String coin);
 
     @Select("select count(*) from borrow_coin_order where status = #{status} and borrow_time >= #{now}")
-    Integer selectCountByStatus(@Param("status") Integer status,@Param("now") LocalDate now);
+    Integer selectCountByStatusAndTime(@Param("status") Integer status, @Param("now") LocalDate now);
 
     void updatePledgeStatusByPledgeRate(@Param("startPledgeRate") BigDecimal startPledgeRate,
                                         @Param("endPledgeRate") BigDecimal endPledgeRate,

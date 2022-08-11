@@ -181,11 +181,6 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         return borrowCoinOrderMapper.selectPage(pageQuery.page(),queryWrapper).convert(borrowConverter::toVO);
     }
 
-    @Override
-    public AmountVO cumulativeInterestAmount(BorrowOrderQuery query) {
-        BigDecimal cumulativeInterest = borrowCoinOrderMapper.selectCumulativeInterestByQuery(query);
-        return new AmountVO(cumulativeInterest);
-    }
 
     @Override
     public BorrowApplePageVO applyPage(CurrencyCoin coin) {
@@ -780,7 +775,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BigDecimal borrowAmount = borrowCoinOrderMapper.selectBorrowCapitalSum();
         BigDecimal pledgeAmount = borrowCoinOrderMapper.selectPledgeAmountSum();
         BigDecimal interestAmount = borrowCoinOrderMapper.selectWaitRepayInterestSum();
-        Integer orderNum = borrowCoinOrderMapper.selectCountByStatus(BorrowOrderStatus.INTEREST_ACCRUAL);
+        Integer orderNum = borrowCoinOrderMapper.selectCountByStatusAndTime(BorrowOrderStatus.INTEREST_ACCRUAL);
         return BorrowOrderStatisticsVO.builder()
                 .borrowAmount(borrowAmount)
                 .pledgeAmount(pledgeAmount)
