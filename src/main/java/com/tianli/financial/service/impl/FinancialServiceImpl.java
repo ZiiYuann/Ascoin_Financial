@@ -355,7 +355,7 @@ public class FinancialServiceImpl implements FinancialService {
         LocalDateTime time = query.getTime();
         LocalDateTime dateTime = TimeTool.minDay(time);
         FinancialBoardProduct financialBoardProduct =
-                financialBoardProductService.getFinancialBoardProduct(dateTime.plusDays(1), dateTime, null);
+                financialBoardProductService.getFinancialBoardProduct(dateTime,dateTime.plusDays(1), null);
         FinancialBoardWallet financialBoardWallet =
                 financialBoardWalletService.getFinancialBoardWallet(dateTime, dateTime.plusDays(1), null);
         financialBoardProduct.setCreateTime(dateTime.toLocalDate());

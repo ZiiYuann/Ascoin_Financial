@@ -81,7 +81,7 @@ public class FinancialBoardTask {
 
 
         FinancialBoardProduct today = financialBoardProductService.getByDate(yesterdayBegin.toLocalDate());
-        financialBoardProductService.getFinancialBoardProduct(todayBegin, yesterdayBegin, today);
+        financialBoardProductService.getFinancialBoardProduct(yesterdayBegin,todayBegin , today);
         financialBoardProductService.updateById(today);
 
 //        ========================== 云钱包数据看板 ==========================

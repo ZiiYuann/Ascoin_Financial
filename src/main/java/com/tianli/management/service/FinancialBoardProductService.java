@@ -71,7 +71,7 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
         }
     }
 
-    public FinancialBoardProduct getFinancialBoardProduct(LocalDateTime endTime, LocalDateTime startTime, FinancialBoardProduct today) {
+    public FinancialBoardProduct getFinancialBoardProduct(LocalDateTime startTime, LocalDateTime endTime, FinancialBoardProduct today) {
         today = Optional.ofNullable(today).orElse(FinancialBoardProduct.getDefault());
         BigDecimal purchaseAmount = orderService.amountDollarSumByCompleteTime(ChargeType.purchase, startTime, endTime);
         BigDecimal redeemAmount = orderService.amountDollarSumByCompleteTime(ChargeType.redeem, startTime, endTime);
@@ -97,12 +97,12 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
 
     public FinancialProductBoardSummaryVO productBoard(FinancialBoardQuery query) {
         // 按用户输入时间
-        FinancialBoardProduct financialBoardProduct = this.getFinancialBoardProduct(query.getStartTime(), query.getEndTime(), null);
+        FinancialBoardProduct financialBoardProduct = this.getFinancialBoardProduct(query.getStartTime(),query.getEndTime(), null);
 
         // 本日数据 实时查询
         LocalDateTime todayBegin = TimeTool.minDay(LocalDateTime.now());
         LocalDateTime todayEnd = todayBegin.plusDays(1);
-        FinancialBoardProduct financialBoardProductToday = getFinancialBoardProduct(todayEnd, todayBegin, null);
+        FinancialBoardProduct financialBoardProductToday = getFinancialBoardProduct(todayBegin,todayEnd, null);
         financialBoardProductToday.setCreateTime(todayBegin.toLocalDate());
 
         int offsetDay = -13;
