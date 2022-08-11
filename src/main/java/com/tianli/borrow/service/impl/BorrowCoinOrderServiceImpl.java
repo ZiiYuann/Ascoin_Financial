@@ -43,6 +43,7 @@ import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.mapper.FinancialRecordMapper;
+import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.log4j.Log4j2;
@@ -78,7 +79,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     private RequestInitService requestInitService;
 
     @Autowired
-    private FinancialRecordMapper financialRecordMapper;
+    private FinancialRecordService financialRecordService;
 
     @Autowired
     private BorrowCoinOrderMapper borrowCoinOrderMapper;
@@ -111,7 +112,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     public BorrowCoinMainPageVO mainPage() {
         Long uid = requestInitService.uid();
         //存款市场总额
-        BigDecimal totalHoldAmount = financialRecordMapper.selectTotalHoldAmount();
+        BigDecimal totalHoldAmount = financialRecordService.holdAmountDollar(null);
         //借款市场总额
         BigDecimal totalBorrowAmount = borrowCoinOrderMapper.selectTotalBorrowAmount();
         //借出总额
