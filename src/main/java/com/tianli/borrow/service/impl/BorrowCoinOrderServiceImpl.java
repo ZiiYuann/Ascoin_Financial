@@ -8,16 +8,20 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.enums.AccountOperationType;
 import com.tianli.account.service.AccountBalanceService;
-import com.tianli.borrow.contant.*;
-import com.tianli.borrow.convert.BorrowOrderConverter;
-import com.tianli.borrow.dao.*;
 import com.tianli.borrow.bo.AdjustPledgeBO;
 import com.tianli.borrow.bo.BorrowOrderBO;
 import com.tianli.borrow.bo.BorrowOrderRepayBO;
+import com.tianli.borrow.contant.*;
+import com.tianli.borrow.convert.BorrowOrderConverter;
+import com.tianli.borrow.dao.BorrowCoinOrderMapper;
+import com.tianli.borrow.dao.BorrowInterestRecordMapper;
+import com.tianli.borrow.dao.BorrowPledgeRecordMapper;
+import com.tianli.borrow.dao.BorrowRepayRecordMapper;
 import com.tianli.borrow.entity.*;
 import com.tianli.borrow.enums.BorrowStatisticsType;
 import com.tianli.borrow.query.BorrowInterestRecordQuery;
@@ -26,7 +30,6 @@ import com.tianli.borrow.query.BorrowPledgeRecordQuery;
 import com.tianli.borrow.query.BorrowRepayQuery;
 import com.tianli.borrow.service.IBorrowCoinConfigService;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.borrow.service.IBorrowOrderNumDailyService;
 import com.tianli.borrow.service.IBorrowPledgeCoinConfigService;
 import com.tianli.borrow.vo.*;
@@ -40,7 +43,6 @@ import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.mapper.FinancialRecordMapper;
-import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.log4j.Log4j2;
@@ -48,7 +50,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -106,14 +107,11 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     @Autowired
     private IBorrowOrderNumDailyService borrowOrderNumDailyService;
 
-    @Autowired
-    private FinancialRecordService financialRecordService;
-
     @Override
     public BorrowCoinMainPageVO mainPage() {
         Long uid = requestInitService.uid();
         //存款市场总额
-        BigDecimal totalHoldAmount = financialRecordService.holdAmountDollar(null);
+        BigDecimal totalHoldAmount = financialRecordMapper.selectTotalHoldAmount();
         //借款市场总额
         BigDecimal totalBorrowAmount = borrowCoinOrderMapper.selectTotalBorrowAmount();
         //借出总额

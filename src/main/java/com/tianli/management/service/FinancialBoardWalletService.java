@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalletMapper, FinancialBoardWallet> {
 
 
-    public FinancialBoardWallet getFinancialBoardWallet(LocalDateTime startTime, LocalDateTime entTime , FinancialBoardWallet financialBoardWallet) {
+    public FinancialBoardWallet getFinancialBoardWallet(LocalDateTime startTime, LocalDateTime entTime, FinancialBoardWallet financialBoardWallet) {
         financialBoardWallet = Optional.ofNullable(financialBoardWallet).orElse(FinancialBoardWallet.getDefault());
         ServiceAmountQuery serviceAmountQuery = new ServiceAmountQuery();
         serviceAmountQuery.setStartTime(startTime);
@@ -67,31 +67,19 @@ public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalle
 
     public FinancialWalletBoardSummaryVO walletBoard(FinancialBoardQuery query) {
 
-        LocalDateTime todayBegin = TimeTool.minDay(LocalDateTime.now());
-        LocalDateTime todayEnd = todayBegin.plusDays(1);
-        // 本日数据
-        FinancialBoardWallet financialBoardWalletToday = getFinancialBoardWallet(todayBegin,todayEnd , null);
-        financialBoardWalletToday.setCreateTime(todayBegin.toLocalDate());
-
+        // 按用户输入时间
+        FinancialBoardWallet financialBoardWallet = this.getFinancialBoardWallet(query.getStartTime(), query.getEndTime(), null);
         var addressQuery =
                 new LambdaQueryWrapper<Address>().between(Address::getCreateTime, query.getStartTime(), query.getEndTime());
-        var walletBoardQuery =
-                new LambdaQueryWrapper<FinancialBoardWallet>().between(FinancialBoardWallet::getCreateTime, query.getStartTime(), query.getEndTime());
-
-        List<Address> addresses = Optional.ofNullable(addressService.list(addressQuery)).orElse(new ArrayList<>());
-
-
-        var financialWalletBoards =
-                Optional.ofNullable(financialWalletBoardMapper.selectList(walletBoardQuery)).orElse(new ArrayList<>())
-                        .stream().collect(Collectors.toList());
-        financialWalletBoards.add(financialBoardWalletToday);
-
-        BigDecimal rechargeAmount = financialWalletBoards.stream().map(FinancialBoardWallet::getRechargeAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal withdrawAmount = financialWalletBoards.stream().map(FinancialBoardWallet::getWithdrawAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalServiceAmount = financialWalletBoards.stream().map(FinancialBoardWallet::getTotalServiceAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal usdtServiceAmount = financialWalletBoards.stream().map(FinancialBoardWallet::getUsdtServiceAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        long newActiveWalletCount = addresses.size();
+        long newActiveWalletCount = addressService.count(addressQuery);
         int totalActiveWalletCount = addressService.count();
+
+        // 本日数据
+        LocalDateTime todayBegin = TimeTool.minDay(LocalDateTime.now());
+        LocalDateTime todayEnd = todayBegin.plusDays(1);
+        FinancialBoardWallet financialBoardWalletToday = getFinancialBoardWallet(todayBegin, todayEnd, null);
+        financialBoardWalletToday.setCreateTime(todayBegin.toLocalDate());
+
 
         int offsetDay = -13;
         //获取13天前零点时间
@@ -103,27 +91,24 @@ public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalle
             financialWalletBoardVOMap.put(dateTimeStr, FinancialWalletBoardVO.getDefault(time.toLocalDateTime().toLocalDate()));
         }
 
-        walletBoardQuery = new LambdaQueryWrapper<FinancialBoardWallet>()
+        var walletBoardQuery = new LambdaQueryWrapper<FinancialBoardWallet>()
                 .between(FinancialBoardWallet::getCreateTime, todayBegin.plusDays(-13), todayBegin);
         List<FinancialBoardWallet> financialBoardWallets13 =
                 Optional.ofNullable(financialWalletBoardMapper.selectList(walletBoardQuery)).orElse(new ArrayList<>());
         financialBoardWallets13.add(financialBoardWalletToday);
 
-        financialBoardWallets13.stream().forEach(financialBoardWallet -> {
-                    FinancialWalletBoardVO financialWalletBoardVO = managementConverter.toVO(financialBoardWallet);
-                    String dateTimeStr = financialWalletBoardVO.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    financialWalletBoardVOMap.put(dateTimeStr, financialWalletBoardVO);
-                });
+        financialBoardWallets13.stream().forEach(o -> {
+            FinancialWalletBoardVO financialWalletBoardVO = managementConverter.toVO(o);
+            String dateTimeStr = financialWalletBoardVO.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            financialWalletBoardVOMap.put(dateTimeStr, financialWalletBoardVO);
+        });
 
-        return FinancialWalletBoardSummaryVO.builder()
-                .rechargeAmount(rechargeAmount)
-                .withdrawAmount(withdrawAmount)
-                .newActiveWalletCount(BigInteger.valueOf(newActiveWalletCount))
-                .totalActiveWalletCount(BigInteger.valueOf(totalActiveWalletCount))
-                .totalServiceAmount(totalServiceAmount)
-                .usdtServiceAmount(usdtServiceAmount)
-                .data(financialWalletBoardVOMap.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList()))
-                .build();
+        FinancialWalletBoardSummaryVO vo = managementConverter.toFinancialWalletBoardSummaryVO(financialBoardWallet);
+        vo.setData(financialWalletBoardVOMap.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList()));
+        vo.setNewActiveWalletCount(BigInteger.valueOf(newActiveWalletCount));
+        vo.setTotalActiveWalletCount(BigInteger.valueOf(totalActiveWalletCount));
+
+        return vo;
     }
 
     /**

@@ -96,30 +96,14 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
     }
 
     public FinancialProductBoardSummaryVO productBoard(FinancialBoardQuery query) {
-
-        LocalDateTime todayBegin = TimeTool.minDay(LocalDateTime.now());
-        LocalDateTime todayEnd = todayBegin.plusDays(1);
+        // 按用户输入时间
+        FinancialBoardProduct financialBoardProduct = this.getFinancialBoardProduct(query.getStartTime(), query.getEndTime(), null);
 
         // 本日数据 实时查询
+        LocalDateTime todayBegin = TimeTool.minDay(LocalDateTime.now());
+        LocalDateTime todayEnd = todayBegin.plusDays(1);
         FinancialBoardProduct financialBoardProductToday = getFinancialBoardProduct(todayEnd, todayBegin, null);
         financialBoardProductToday.setCreateTime(todayBegin.toLocalDate());
-
-        // 根据日期动态查询出已经持久化的数据
-        var boardQuery = new LambdaQueryWrapper<FinancialBoardProduct>()
-                .between(FinancialBoardProduct::getCreateTime, query.getStartTime(), query.getEndTime());
-        var financialProductBoards = Optional.ofNullable(financialProductBoardMapper.selectList(boardQuery))
-                .orElse(new ArrayList<>());
-        // 额外加入当日数据
-        financialProductBoards.add(financialBoardProductToday);
-
-        BigDecimal purchaseAmount = financialProductBoards.stream().map(FinancialBoardProduct::getPurchaseAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal redeemAmount = financialProductBoards.stream().map(FinancialBoardProduct::getRedeemAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal settleAmount = financialProductBoards.stream().map(FinancialBoardProduct::getSettleAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal transferAmount = financialProductBoards.stream().map(FinancialBoardProduct::getTransferAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigInteger holdUserCount = financialProductBoards.stream().map(FinancialBoardProduct::getHoldUserCount).reduce(BigInteger.ZERO, BigInteger::add);
-        BigDecimal income = financialProductBoards.stream().map(FinancialBoardProduct::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal fixedProductAmount = financialProductBoards.stream().map(FinancialBoardProduct::getFixedProductCount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal currentProductAmount = financialProductBoards.stream().map(FinancialBoardProduct::getCurrentProductCount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         int offsetDay = -13;
         //获取14天前零点时间
@@ -131,29 +115,22 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
             financialProductBoardVOMap.put(dateTimeStr, FinancialProductBoardVO.getDefault(time.toLocalDateTime().toLocalDate()));
         }
         // 固定查询前13日的数据
-        boardQuery = new LambdaQueryWrapper<FinancialBoardProduct>()
+        var boardQuery = new LambdaQueryWrapper<FinancialBoardProduct>()
                 .between(FinancialBoardProduct::getCreateTime, todayBegin.plusDays(-13), todayBegin);
         List<FinancialBoardProduct> financialProductBoards13 = Optional.ofNullable(financialProductBoardMapper.selectList(boardQuery))
                 .orElse(new ArrayList<>());
         // 添加当日数据
         financialProductBoards13.add(financialBoardProductToday);
-        financialProductBoards13.stream().forEach(financialBoardProduct -> {
-                    FinancialProductBoardVO financialProductBoardVO = managementConverter.toVO(financialBoardProduct);
+        financialProductBoards13.stream().forEach(o -> {
+                    FinancialProductBoardVO financialProductBoardVO = managementConverter.toVO(o);
                     String dateTimeStr = financialProductBoardVO.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                     financialProductBoardVOMap.put(dateTimeStr, financialProductBoardVO);
                 });
 
-        return FinancialProductBoardSummaryVO.builder()
-                .transferAmount(transferAmount)
-                .purchaseAmount(purchaseAmount)
-                .redeemAmount(redeemAmount)
-                .settleAmount(settleAmount)
-                .data(financialProductBoardVOMap.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList()))
-                .holdUserCount(holdUserCount)
-                .income(income)
-                .fixedProductCount(fixedProductAmount)
-                .currentProductCount(currentProductAmount)
-                .build();
+        FinancialProductBoardSummaryVO financialProductBoardSummaryVO =
+                managementConverter.toFinancialProductBoardSummaryVO(financialBoardProduct);
+        financialProductBoardSummaryVO.setData(financialProductBoardVOMap.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList()));
+        return financialProductBoardSummaryVO;
     }
 
 

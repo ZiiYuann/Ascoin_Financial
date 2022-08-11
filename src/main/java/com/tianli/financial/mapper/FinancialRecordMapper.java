@@ -25,6 +25,7 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
     /**
      * 用户还持用产品的数量
      */
+    @Select("SELECT hold_amount as amount,coin FROM financial_record WHERE product_type = #{productType} AND status = 'PROCESS' ")
     List<AmountDto> countProcess(@Param("productType") ProductType productType);
 
     /**
