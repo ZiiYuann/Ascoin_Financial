@@ -124,15 +124,15 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IncomeVO income(Long uid) {
+    public DollarIncomeVO income(Long uid) {
         List<ProductType> types = List.of(ProductType.values());
 
         BigDecimal totalHoldFeeDollar = BigDecimal.ZERO;
         BigDecimal totalAccrueIncomeFeeDollar = BigDecimal.ZERO;
         BigDecimal totalYesterdayIncomeFeeDollar = BigDecimal.ZERO;
-        EnumMap<ProductType, IncomeVO> incomeMap = new EnumMap<>(ProductType.class);
+        EnumMap<ProductType, DollarIncomeVO> incomeMap = new EnumMap<>(ProductType.class);
         for (ProductType type : types) {
-            IncomeVO incomeVO = new IncomeVO();
+            DollarIncomeVO incomeVO = new DollarIncomeVO();
             // 单类型产品持有币数量
             BigDecimal holdFeeDollar = financialRecordService.getPurchaseAmount(uid, type, RecordStatus.PROCESS);
             incomeVO.setHoldFee(holdFeeDollar);
@@ -152,8 +152,8 @@ public class FinancialServiceImpl implements FinancialService {
         }
 
 
-        IncomeVO incomeVO = new IncomeVO();
-        incomeVO.setHoldFee(totalHoldFeeDollar.setScale(2, RoundingMode.DOWN));
+        DollarIncomeVO incomeVO = new DollarIncomeVO();
+        incomeVO.setHoldFee(totalHoldFeeDollar);
         incomeVO.setAccrueIncomeFee(totalAccrueIncomeFeeDollar);
         incomeVO.setYesterdayIncomeFee(totalYesterdayIncomeFeeDollar);
         incomeVO.setIncomeMap(incomeMap);

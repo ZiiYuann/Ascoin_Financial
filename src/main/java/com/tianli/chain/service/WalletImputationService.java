@@ -69,15 +69,15 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         StringBuilder keyBuilder = new StringBuilder()
                 .append(RedisLockConstants.RECYCLE_LOCK).append(":").append(tokenAdapter.getNetwork().name())
-                        .append(":").append(tokenAdapter.getCurrencyCoin().name()).append(":").append(tronTokenReq.getTo());
-        redisLock.lock(keyBuilder.toString(),1L,TimeUnit.MINUTES);
+                .append(":").append(tokenAdapter.getCurrencyCoin().name()).append(":").append(tronTokenReq.getTo());
+        redisLock.lock(keyBuilder.toString(), 1L, TimeUnit.MINUTES);
 
         LocalDateTime now = LocalDateTime.now();
-        LambdaQueryWrapper<WalletImputation> query = new LambdaQueryWrapper<WalletImputation>().eq(WalletImputation::getUid, uid)
+        LambdaQueryWrapper<WalletImputation> query = new LambdaQueryWrapper<WalletImputation>()
+                .eq(WalletImputation::getUid, uid)
                 .eq(WalletImputation::getNetwork, tokenAdapter.getNetwork())
                 .eq(WalletImputation::getCoin, tokenAdapter.getCurrencyCoin())
-                .eq(WalletImputation::getAddress, tronTokenReq.getTo())
-                .eq(false,WalletImputation :: getStatus,ImputationStatus.fail);
+                .eq(false, WalletImputation::getStatus, ImputationStatus.fail);
 
         // 操作归集信息的时候不允许管理端进行归集操作
         WalletImputation walletImputation = walletImputationMapper.selectOne(query);
@@ -87,6 +87,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
             if (ImputationStatus.processing.equals(walletImputation.getStatus())) {
                 WalletImputationTemporary walletImputationTemporary = chainConverter.toTemporary(walletImputation);
                 walletImputationTemporary.setAmount(finalAmount);
+                walletImputationTemporary.setCreateTime(LocalDateTime.now());
                 walletImputationTemporaryMapper.insert(walletImputationTemporary);
             }
 
@@ -157,7 +158,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         long networkCount = walletImputations.stream().map(WalletImputation::getNetwork).distinct().count();
 
         // 检测是否有订单操作归集信息
-        walletImputations.forEach( walletImputation ->  {
+        walletImputations.forEach(walletImputation -> {
             StringBuilder keyBuilder = new StringBuilder()
                     .append(RedisLockConstants.RECYCLE_LOCK).append(":").append(walletImputation.getNetwork().name())
                     .append(":").append(walletImputation.getCoin().name()).append(":").append(walletImputation.getAddress());
@@ -219,16 +220,16 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
      * 进行归集补偿
      */
     @Transactional
-    public void imputationCompensate(Long imputationId,ImputationStatus status){
+    public void imputationCompensate(Long imputationId, ImputationStatus status) {
         WalletImputation walletImputation = walletImputationMapper.selectById(imputationId);
 
-        if(Objects.isNull(walletImputation) || !ImputationStatus.processing.equals(walletImputation.getStatus())
-                || Objects.isNull(walletImputation.getLogId())){
+        if (Objects.isNull(walletImputation) || !ImputationStatus.processing.equals(walletImputation.getStatus())
+                || Objects.isNull(walletImputation.getLogId())) {
             ErrorCodeEnum.throwException("本次归集不需要补偿");
         }
 
         Long logId = walletImputation.getLogId();
-        Optional.of(walletImputation).ifPresent(o->{
+        Optional.of(walletImputation).ifPresent(o -> {
             o.setStatus(status);
             o.setUpdateTime(LocalDateTime.now());
             walletImputationMapper.updateById(o);
@@ -236,7 +237,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
 
         WalletImputationLog walletImputationLog = walletImputationLogService.getById(logId);
-        if(Objects.nonNull(walletImputationLog)){
+        if (Objects.nonNull(walletImputationLog)) {
             walletImputationLog.setFinishTime(LocalDateTime.now());
             walletImputationLog.setStatus(status);
             walletImputationLogService.updateById(walletImputationLog);
@@ -248,17 +249,17 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
      * 进行归集补偿
      */
     @Transactional
-    public void imputationCompensateScan(Long imputationId){
+    public void imputationCompensateScan(Long imputationId) {
         WalletImputation walletImputation = walletImputationMapper.selectById(imputationId);
-        if(Objects.isNull(walletImputation) || !ImputationStatus.processing.equals(walletImputation.getStatus())
-                || Objects.isNull(walletImputation.getLogId())){
+        if (Objects.isNull(walletImputation) || !ImputationStatus.processing.equals(walletImputation.getStatus())
+                || Objects.isNull(walletImputation.getLogId())) {
             ErrorCodeEnum.throwException("本次归集不需要补偿");
         }
         WalletImputationLog walletImputationLog = walletImputationLogService.getById(walletImputation.getLogId());
         List<WalletImputation> walletImputations = walletImputationMapper.selectList(new LambdaQueryWrapper<WalletImputation>()
                 .eq(WalletImputation::getLogId, walletImputation.getLogId()));
-        if (Objects.nonNull(walletImputationLog)){
-            checkImputationStatus(walletImputation.getLogId(),walletImputations);
+        if (Objects.nonNull(walletImputationLog)) {
+            checkImputationStatus(walletImputation.getLogId(), walletImputations);
         }
     }
 
@@ -269,9 +270,9 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         var query =
                 new LambdaQueryWrapper<WalletImputation>().eq(WalletImputation::getStatus, ImputationStatus.processing);
         List<WalletImputation> walletImputations = walletImputationMapper.selectList(query);
-        walletImputations.stream().collect(Collectors.groupingBy(WalletImputation :: getLogId)).entrySet()
+        walletImputations.stream().collect(Collectors.groupingBy(WalletImputation::getLogId)).entrySet()
                 .stream()
-                .forEach(entry -> RetryScheduledExecutor.DEFAULT_EXECUTOR.schedule(() -> checkImputationStatus(entry.getKey(),entry.getValue()),
+                .forEach(entry -> RetryScheduledExecutor.DEFAULT_EXECUTOR.schedule(() -> checkImputationStatus(entry.getKey(), entry.getValue()),
                         10, TimeUnit.MINUTES
                         , new RetryTaskInfo<>("asynCheckImputationStatus", "异步定时扫链检测归集状态", entry)));
     }
@@ -287,7 +288,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         String txid = walletImputationLog.getTxid();
         ContractOperation contractOperation = baseContractService.getOne(network);
 
-        ImputationStatus status =  contractOperation.successByHash(txid) ? ImputationStatus.success : ImputationStatus.fail;
+        ImputationStatus status = contractOperation.successByHash(txid) ? ImputationStatus.success : ImputationStatus.fail;
 
         // 更新信息
         LocalDateTime now = LocalDateTime.now();
@@ -301,6 +302,25 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         });
         this.updateBatchById(walletImputations);
     }
+
+
+    /**
+     * 合并
+     */
+//    @Transactional
+//    public void mergeImputationTemp() {
+//        List<WalletImputationTemporary> walletImputationTemporaries =
+//                walletImputationTemporaryMapper.selectList(new LambdaQueryWrapper<>());
+//
+//        walletImputationTemporaries.forEach(temp -> {
+//            LambdaQueryWrapper<WalletImputation> queryWrapper = new LambdaQueryWrapper<WalletImputation>()
+//                    .eq(WalletImputation::getUid, temp.getUid())
+//                    .eq(WalletImputation::getNetwork, temp.getNetwork())
+//                    .eq(WalletImputation::getCoin, temp.getCoin());
+//            walletImputationMapper.selectOne(queryWrapper);
+//
+//        });
+//    }
 
 
 }

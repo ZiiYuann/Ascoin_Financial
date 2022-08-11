@@ -9,33 +9,33 @@ import java.util.Map;
 
 /**
  * @author chenb
- * @apiNote 收益汇总VO
- * @since 2022-07-13
+ * @apiNote
+ * @since 2022-08-11
  **/
 @Data
-public class IncomeVO {
+public class DollarIncomeVO {
 
     /**
      * 持有币
      */
-    @BigDecimalFormat("0.00######")
+    @BigDecimalFormat("0.00")
     private BigDecimal holdFee;
 
     /**
      * 累计收益
      */
-    @BigDecimalFormat("0.00######")
+    @BigDecimalFormat("0.00")
     private BigDecimal accrueIncomeFee;
 
     /**
      * 昨日收益
      */
-    @BigDecimalFormat("0.00######")
+    @BigDecimalFormat("0.00")
     private BigDecimal yesterdayIncomeFee;
 
     /**
      * 不同类型产品收益
      */
-    private Map<ProductType,IncomeVO> incomeMap;
+    private Map<ProductType,DollarIncomeVO> incomeMap;
 
 }

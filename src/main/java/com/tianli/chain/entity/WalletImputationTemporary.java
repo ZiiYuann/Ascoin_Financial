@@ -26,8 +26,6 @@ public class WalletImputationTemporary {
 
     private Long uid;
 
-    private String address;
-
     private BigDecimal amount;
 
     private CurrencyCoin coin;

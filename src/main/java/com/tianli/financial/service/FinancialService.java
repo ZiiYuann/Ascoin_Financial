@@ -38,7 +38,7 @@ public interface FinancialService {
     /**
      * 统计利息
      */
-    IncomeVO income(Long uid);
+    DollarIncomeVO income(Long uid);
 
     /**
      * 单条记录的收益信息

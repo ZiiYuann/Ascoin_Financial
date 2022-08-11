@@ -101,7 +101,7 @@ public class FinancialController {
     }
 
     /**
-     * 我的赚币【我的持用】
+     * 【我的赚币】我的持用
      */
     @GetMapping("/hold")
     public Result myHold(PageQuery<FinancialRecord> pageQuery,ProductType productType) {
