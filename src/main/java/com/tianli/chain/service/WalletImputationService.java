@@ -9,10 +9,8 @@ import com.tianli.chain.dto.TRONTokenReq;
 import com.tianli.chain.entity.WalletImputation;
 import com.tianli.chain.entity.WalletImputationLog;
 import com.tianli.chain.entity.WalletImputationLogAppendix;
-import com.tianli.chain.entity.WalletImputationTemporary;
 import com.tianli.chain.enums.ImputationStatus;
 import com.tianli.chain.mapper.WalletImputationMapper;
-import com.tianli.chain.mapper.WalletImputationTemporaryMapper;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.service.contract.ContractOperation;
 import com.tianli.chain.vo.WalletImputationVO;
@@ -49,8 +47,6 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     @Resource
     private ChainConverter chainConverter;
     @Resource
-    private WalletImputationTemporaryMapper walletImputationTemporaryMapper;
-    @Resource
     private ContractAdapter baseContractService;
     @Resource
     private WalletImputationLogService walletImputationLogService;
@@ -58,7 +54,6 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     private WalletImputationLogAppendixService walletImputationLogAppendixService;
     @Resource
     private RedisLock redisLock;
-
 
     /**
      * 通过订单插入或修改归集信息
@@ -73,36 +68,19 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         redisLock.lock(keyBuilder.toString(), 1L, TimeUnit.MINUTES);
 
         LocalDateTime now = LocalDateTime.now();
+
+        // uid,network,coin 处于wait状态的记录 <= 1
         LambdaQueryWrapper<WalletImputation> query = new LambdaQueryWrapper<WalletImputation>()
                 .eq(WalletImputation::getUid, uid)
                 .eq(WalletImputation::getNetwork, tokenAdapter.getNetwork())
                 .eq(WalletImputation::getCoin, tokenAdapter.getCurrencyCoin())
-                .eq(false, WalletImputation::getStatus, ImputationStatus.fail);
+                .eq(WalletImputation::getStatus, ImputationStatus.wait);
 
         // 操作归集信息的时候不允许管理端进行归集操作
         WalletImputation walletImputation = walletImputationMapper.selectOne(query);
 
         if (Objects.nonNull(walletImputation)) {
-            // 如果处于进行中
-            if (ImputationStatus.processing.equals(walletImputation.getStatus())) {
-                WalletImputationTemporary walletImputationTemporary = chainConverter.toTemporary(walletImputation);
-                walletImputationTemporary.setAmount(finalAmount);
-                walletImputationTemporary.setCreateTime(LocalDateTime.now());
-                walletImputationTemporaryMapper.insert(walletImputationTemporary);
-            }
-
-            if (ImputationStatus.success.equals(walletImputation.getStatus())) {
-                walletImputation.setAmount(finalAmount);
-                walletImputation.setUpdateTime(now);
-                walletImputation.setStatus(ImputationStatus.wait);
-                walletImputationMapper.updateById(walletImputation);
-            }
-
-            if (ImputationStatus.wait.equals(walletImputation.getStatus())) {
-                walletImputation.setAmount(walletImputation.getAmount().add(finalAmount));
-                walletImputation.setUpdateTime(now);
-                walletImputationMapper.updateById(walletImputation);
-            }
+            walletImputationMapper.increase(walletImputation.getId(),finalAmount);
             return;
         }
 
@@ -281,6 +259,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     public void checkImputationStatus(Long logId, List<WalletImputation> walletImputations) {
         WalletImputationLog walletImputationLog = walletImputationLogService.getById(logId);
         if (!ImputationStatus.processing.equals(walletImputationLog.getStatus()) || StringUtils.isBlank(walletImputationLog.getTxid())) {
+           log.error("当前数据异常，请校验{}",walletImputationLog);
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
 
@@ -302,25 +281,5 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         });
         this.updateBatchById(walletImputations);
     }
-
-
-    /**
-     * 合并
-     */
-//    @Transactional
-//    public void mergeImputationTemp() {
-//        List<WalletImputationTemporary> walletImputationTemporaries =
-//                walletImputationTemporaryMapper.selectList(new LambdaQueryWrapper<>());
-//
-//        walletImputationTemporaries.forEach(temp -> {
-//            LambdaQueryWrapper<WalletImputation> queryWrapper = new LambdaQueryWrapper<WalletImputation>()
-//                    .eq(WalletImputation::getUid, temp.getUid())
-//                    .eq(WalletImputation::getNetwork, temp.getNetwork())
-//                    .eq(WalletImputation::getCoin, temp.getCoin());
-//            walletImputationMapper.selectOne(queryWrapper);
-//
-//        });
-//    }
-
 
 }
