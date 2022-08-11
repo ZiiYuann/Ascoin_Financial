@@ -227,7 +227,9 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         coinNames.removeAll(existCoinNames);
 
         for (String coin : coinNames) {
-            accountBalanceVOS.add(AccountBalanceVO.getDefault(coin));
+            AccountBalanceVO accountBalanceVO = AccountBalanceVO.getDefault(coin);
+            accountBalanceVO.setDollarRate(currencyService.getDollarRate(CurrencyCoin.valueOf(coin)));
+            accountBalanceVOS.add(accountBalanceVO);
         }
 
         var result = new AccountBalanceMainPageVO();
