@@ -40,31 +40,6 @@ public class BorrowOrderNumDailyServiceImpl extends ServiceImpl<BorrowOrderNumDa
     @Autowired
     private BorrowCoinOrderMapper borrowCoinOrderMapper;
 
-    @Autowired
-    private RedisLock redisLock;
-
-    @PostConstruct
-    public void addData(){
-        redisLock.lock("BorrowOrderNumDailyServiceImpl:addData",10L, TimeUnit.SECONDS);
-        LocalDate localDate2 = LocalDate.of(2022, 8, 11);
-        BorrowOrderNumDaily borrowOrderNumDaily2 = getByDate(localDate2);
-        if(Objects.isNull(borrowOrderNumDaily2)){
-            borrowOrderNumDaily2 = BorrowOrderNumDaily.builder()
-                    .orderNum(8)
-                    .statisticalDate(localDate2).build();
-            borrowOrderNumDailyMapper.insert(borrowOrderNumDaily2);
-        }
-        LocalDate localDate = LocalDate.of(2022, 8, 12);
-        BorrowOrderNumDaily borrowOrderNumDaily = getByDate(localDate);
-        if(Objects.isNull(borrowOrderNumDaily)){
-            borrowOrderNumDaily = BorrowOrderNumDaily.builder()
-                    .orderNum(8)
-                    .statisticalDate(localDate).build();
-            borrowOrderNumDailyMapper.insert(borrowOrderNumDaily);
-        }
-
-    }
-
     @Override
     public void statisticalOrderNum() {
         LocalDate now = LocalDate.now();
