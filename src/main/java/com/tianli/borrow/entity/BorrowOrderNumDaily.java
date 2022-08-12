@@ -3,6 +3,8 @@ package com.tianli.borrow.entity;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import java.time.LocalDate;
 import java.io.Serializable;
+
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -15,6 +17,7 @@ import lombok.EqualsAndHashCode;
  * @since 2022-08-01
  */
 @Data
+@Builder
 @EqualsAndHashCode(callSuper = false)
 public class BorrowOrderNumDaily extends Model<BorrowOrderNumDaily> {
 

@@ -9,14 +9,19 @@ import com.tianli.borrow.dao.BorrowOrderNumDailyMapper;
 import com.tianli.borrow.service.IBorrowOrderNumDailyService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.borrow.vo.BorrowOrderStatisticsChartVO;
+import com.tianli.common.lock.RedisLock;
 import com.tianli.tool.time.TimeTool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -35,6 +40,31 @@ public class BorrowOrderNumDailyServiceImpl extends ServiceImpl<BorrowOrderNumDa
     @Autowired
     private BorrowCoinOrderMapper borrowCoinOrderMapper;
 
+    @Autowired
+    private RedisLock redisLock;
+
+    @PostConstruct
+    public void addData(){
+        redisLock.lock("BorrowOrderNumDailyServiceImpl:addData",10L, TimeUnit.SECONDS);
+        LocalDate localDate2 = LocalDate.of(2022, 8, 11);
+        BorrowOrderNumDaily borrowOrderNumDaily2 = getByDate(localDate2);
+        if(Objects.isNull(borrowOrderNumDaily2)){
+            borrowOrderNumDaily2 = BorrowOrderNumDaily.builder()
+                    .orderNum(8)
+                    .statisticalDate(localDate2).build();
+            borrowOrderNumDailyMapper.insert(borrowOrderNumDaily2);
+        }
+        LocalDate localDate = LocalDate.of(2022, 8, 12);
+        BorrowOrderNumDaily borrowOrderNumDaily = getByDate(localDate);
+        if(Objects.isNull(borrowOrderNumDaily)){
+            borrowOrderNumDaily = BorrowOrderNumDaily.builder()
+                    .orderNum(8)
+                    .statisticalDate(localDate).build();
+            borrowOrderNumDailyMapper.insert(borrowOrderNumDaily);
+        }
+
+    }
+
     @Override
     public void statisticalOrderNum() {
         LocalDate now = LocalDate.now();
@@ -42,12 +72,34 @@ public class BorrowOrderNumDailyServiceImpl extends ServiceImpl<BorrowOrderNumDa
         Integer count = borrowCoinOrderMapper.selectCountByStatusAndTime(BorrowOrderStatus.INTEREST_ACCRUAL,now);
         if(Objects.nonNull(borrowOrderNumDaily)){
             borrowOrderNumDaily.setOrderNum(count);
-        }else {
-            borrowOrderNumDaily = new BorrowOrderNumDaily();
-            borrowOrderNumDaily.setOrderNum(count);
-            borrowOrderNumDaily.setStatisticalDate(LocalDate.now());
+        } else {
+            borrowOrderNumDaily = BorrowOrderNumDaily.builder()
+                    .orderNum(count)
+                    .statisticalDate(LocalDate.now()).build();
         }
         this.saveOrUpdate(borrowOrderNumDaily);
+    }
+
+    @Override
+    public void increaseNum() {
+        BorrowOrderNumDaily borrowOrderNumDaily = getByDate(LocalDate.now());
+        if(Objects.isNull(borrowOrderNumDaily)){
+            statisticalOrderNum();
+        }else {
+            borrowOrderNumDailyMapper.increaseNum(borrowOrderNumDaily.getId());
+        }
+
+    }
+
+    @Override
+    public void reduceNum() {
+        BorrowOrderNumDaily borrowOrderNumDaily = getByDate(LocalDate.now());
+        if(Objects.isNull(borrowOrderNumDaily)){
+            statisticalOrderNum();
+        }else {
+            borrowOrderNumDailyMapper.reduceNum(borrowOrderNumDaily.getId());
+        }
+
     }
 
     @Override

@@ -21,6 +21,10 @@ public interface IBorrowOrderNumDailyService extends IService<BorrowOrderNumDail
 
     void statisticalOrderNum();
 
+    void increaseNum();
+
+    void reduceNum();
+
     BorrowOrderNumDaily getByDate(LocalDate localDate);
 
     Integer getCount(Date startDate,Date endDate);

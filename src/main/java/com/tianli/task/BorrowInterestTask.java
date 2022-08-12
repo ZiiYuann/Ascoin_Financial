@@ -58,12 +58,12 @@ public class BorrowInterestTask {
      */
     @PostConstruct
     public void compensationData(){
-        log.info("======借币计算利息补偿数据======");
         LocalDateTime now = LocalDateTime.now();
         String hour = String.format("%s_%s_%s", now.getMonthValue(), now.getDayOfMonth(),now.getHour());
         String redisKey = RedisLockConstants.BORROW_INCOME_TASK + hour;
         Boolean hasKey = redisTemplate.hasKey(redisKey);
         if(Boolean.FALSE.equals(hasKey)){
+            log.info("======借币计算利息补偿数据======");
             interestTasks(now);
         }
     }

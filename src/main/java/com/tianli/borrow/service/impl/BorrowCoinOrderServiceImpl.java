@@ -42,7 +42,6 @@ import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.financial.mapper.FinancialRecordMapper;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.time.TimeTool;
@@ -257,8 +256,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .createTime(LocalDateTime.now()).build();
         borrowPledgeRecordMapper.insert(pledgeRecord);
 
-        //统计每日计息订单
-        borrowOrderNumDailyService.statisticalOrderNum();
+        //增加每日计息订单
+        borrowOrderNumDailyService.increaseNum();
 
     }
 
@@ -531,8 +530,8 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             repayRecord.setRepayInterest(waitRepayInterest);
             repayRecord.setStatus(BorrowRepayStatus.SUCCESSFUL_REPAYMENT);
             repayRecord.setReleasePledgeAmount(borrowCoinOrder.getPledgeAmount());
-            //统计每日计息订单
-            borrowOrderNumDailyService.statisticalOrderNum();
+            //减少每日计息订单
+            borrowOrderNumDailyService.reduceNum();
         }else {
             //部分还款
             BigDecimal initialPledgeRate = pledgeCoinConfig.getInitialPledgeRate();
@@ -768,7 +767,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         borrowCoinOrder.setBorrowDuration(DateUtil.between(TimeTool.toDate(borrowCoinOrder.getCreateTime()) ,TimeTool.toDate(borrowCoinOrder.getSettlementTime()),DateUnit.HOUR));
         borrowCoinOrderMapper.updateById(borrowCoinOrder);
         //统计每日计息订单
-        borrowOrderNumDailyService.statisticalOrderNum();
+        borrowOrderNumDailyService.reduceNum();
     }
 
     @Override

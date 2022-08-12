@@ -6,6 +6,7 @@ import com.tianli.borrow.vo.BorrowOrderStatisticsChartVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -26,5 +27,11 @@ public interface BorrowOrderNumDailyMapper extends BaseMapper<BorrowOrderNumDail
 
     @Select("SELECT DATE_FORMAT(statistical_date,'%Y-%m-%d') time,order_num amount FROM borrow_order_num_daily where statistical_date >= #{startTime}")
     List<BorrowOrderStatisticsChartVO> selectTotalChartByTime(@Param("startTime") LocalDate startTime);
+
+    @Update("update borrow_order_num_daily set order_num=order_num+1 where id = #{id}")
+    void increaseNum(@Param("id") Long id);
+
+    @Update("update borrow_order_num_daily set order_num=order_num-1 where id = #{id}")
+    void reduceNum(@Param("id") Long id);
 
 }
