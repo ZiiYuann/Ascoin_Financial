@@ -26,6 +26,7 @@ public class BorrowInterestRecordServiceImpl extends ServiceImpl<BorrowInterestR
 
     @Autowired
     private BorrowInterestRecordMapper borrowInterestRecordMapper;
+
     @Override
     public BigDecimal selectInterestSumByQuery(BorrowInterestRecordQuery query) {
         return borrowInterestRecordMapper.selectInterestSumByQuery(query);

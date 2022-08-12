@@ -3,6 +3,7 @@ package com.tianli.borrow.vo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
  * @since 2022-07-20
  */
 @Data
-public class BorrowInterestRecordVO{
+public class BorrowInterestRecordVO implements Serializable {
 
     private static final long serialVersionUID=1L;
 

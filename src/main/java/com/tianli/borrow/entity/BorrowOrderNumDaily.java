@@ -39,9 +39,4 @@ public class BorrowOrderNumDaily extends Model<BorrowOrderNumDaily> {
     private LocalDate statisticalDate;
 
 
-    @Override
-    protected Serializable pkVal() {
-        return null;
-    }
-
 }

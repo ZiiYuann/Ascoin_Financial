@@ -4,6 +4,7 @@ import com.tianli.common.annotation.BigDecimalFormat;
 import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
@@ -15,7 +16,7 @@ import java.math.BigDecimal;
  * @since 2022-07-28
  */
 @Data
-public class BorrowPledgeCoinConfigVO {
+public class BorrowPledgeCoinConfigVO implements Serializable {
 
     private static final long serialVersionUID=1L;
 

@@ -6,12 +6,16 @@ import com.tianli.common.annotation.BigDecimalFormat;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
 @Data
 @Builder
-public class BorrowCoinMainPageVO {
+public class BorrowCoinMainPageVO implements Serializable {
+
+    private static final long serialVersionUID=1L;
+
     //存款市场总额
     @BigDecimalFormat
     private BigDecimal totalDepositAmount;

@@ -18,7 +18,5 @@ import java.math.BigDecimal;
 @Mapper
 public interface BorrowCoinConfigMapper extends BaseMapper<BorrowCoinConfig> {
 
-    @Select("select annual_interest_rate from borrow_coin_config where coin = #{coin}")
-    BigDecimal getAnnualInterestRateByCoin(String coin);
 
 }

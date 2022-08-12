@@ -50,7 +50,6 @@ public class BorrowCoinOrderController {
 
     /**
      * 借币主页面
-     * @return
      */
     @GetMapping("/main/page")
     @NoRepeatSubmit
@@ -61,8 +60,6 @@ public class BorrowCoinOrderController {
 
     /**
      * 借币订单历史
-     * @param pageQuery
-     * @return
      */
     @GetMapping("/order/history")
     public Result history(PageQuery<BorrowCoinOrder> pageQuery){
@@ -80,7 +77,6 @@ public class BorrowCoinOrderController {
 
     /**
      * 借币申请页面
-     * @return
      */
     @GetMapping("/apply/page")
     public Result applyPage(CurrencyCoin coin){
@@ -90,8 +86,6 @@ public class BorrowCoinOrderController {
 
     /**
      * 借币
-     * @param bo
-     * @return
      */
     @PostMapping("/order")
     @NoRepeatSubmit
@@ -102,8 +96,6 @@ public class BorrowCoinOrderController {
 
     /**
      * 订单详情
-     * @param orderId
-     * @return
      */
     @GetMapping("/order/{orderId}")
     public Result orderInfo(@PathVariable Long orderId){
@@ -113,8 +105,6 @@ public class BorrowCoinOrderController {
 
     /**
      * 借款记录
-     * @param orderId
-     * @return
      */
     @GetMapping("/order/borrow/record/{orderId}")
     public Result orderBorrowRecord(@PathVariable Long orderId){
@@ -124,8 +114,6 @@ public class BorrowCoinOrderController {
 
     /**
      * 质押记录
-     * @param
-     * @return
      */
     @GetMapping("/order/pledge/record")
     public Result pledgeRecord(PageQuery<BorrowPledgeRecord> pageQuery,@Valid BorrowPledgeRecordQuery query){
@@ -135,8 +123,6 @@ public class BorrowCoinOrderController {
 
     /**
      * 利息记录
-     * @param
-     * @return
      */
     @GetMapping("/order/interest/record")
     public Result interestRecord(PageQuery<BorrowInterestRecord> pageQuery,@Valid BorrowInterestRecordQuery query){
@@ -146,8 +132,6 @@ public class BorrowCoinOrderController {
 
     /**
      * 还款记录
-     * @param
-     * @return
      */
     @GetMapping("/order/repay/record")
     public Result repayRecord(PageQuery<BorrowRepayRecord> pageQuery,@Valid BorrowRepayQuery query){
@@ -157,9 +141,6 @@ public class BorrowCoinOrderController {
 
     /**
      * 还款页面
-     * @param orderId
-     * @param coin
-     * @return
      */
     @GetMapping("/order/repay/page")
     public Result repayPage(@RequestParam Long orderId,
@@ -171,8 +152,6 @@ public class BorrowCoinOrderController {
 
     /**
      * 还款
-     * @param bo
-     * @return
      */
     @PostMapping("/order/repay")
     @NoOperation
@@ -184,8 +163,6 @@ public class BorrowCoinOrderController {
 
     /**
      * 调整质押页面
-     * @param coin
-     * @return
      */
     @GetMapping("/order/adjust/page")
     public Result adjustPage(@RequestParam Long orderId,
@@ -198,8 +175,6 @@ public class BorrowCoinOrderController {
 
     /**
      * 调整质押率
-     * @param bo
-     * @return
      */
     @PostMapping("/order/adjust/pledge")
     @NoRepeatSubmit

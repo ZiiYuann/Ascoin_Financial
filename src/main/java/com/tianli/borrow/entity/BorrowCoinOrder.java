@@ -118,14 +118,4 @@ public class BorrowCoinOrder extends Model<BorrowCoinOrder> {
     public BigDecimal calculateWaitRepay(){
         return waitRepayCapital.add(waitRepayInterest);
     }
-
-    public BigDecimal calculatePledgeRate(){
-        BigDecimal waitRepay = calculateWaitRepay();
-        return waitRepay.divide(pledgeAmount,8, RoundingMode.UP);
-    }
-
-    public BigDecimal calculatePledgeAmount(){
-        BigDecimal waitRepay = calculateWaitRepay();
-        return waitRepay.divide(pledgeRate,8,RoundingMode.UP);
-    }
 }

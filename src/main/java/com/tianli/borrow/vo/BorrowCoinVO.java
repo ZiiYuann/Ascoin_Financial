@@ -3,11 +3,13 @@ package com.tianli.borrow.vo;
 import com.tianli.common.annotation.BigDecimalFormat;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-public class BorrowCoinVO {
+public class BorrowCoinVO implements Serializable {
+    private static final long serialVersionUID=1L;
     //存款市场总额
     private BigDecimal totalDepositAmount;
     //借款市场总额

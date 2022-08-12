@@ -16,7 +16,6 @@ import lombok.EqualsAndHashCode;
  * @since 2022-07-28
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
 public class BorrowPledgeCoinConfig extends Model<BorrowPledgeCoinConfig> {
 
     private static final long serialVersionUID=1L;

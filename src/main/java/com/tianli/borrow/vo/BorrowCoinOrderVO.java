@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.tianli.common.annotation.BigDecimalFormat;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -18,7 +19,7 @@ import java.time.LocalDateTime;
  * @since 2022-07-20
  */
 @Data
-public class BorrowCoinOrderVO {
+public class BorrowCoinOrderVO implements Serializable {
 
     private static final long serialVersionUID=1L;
 

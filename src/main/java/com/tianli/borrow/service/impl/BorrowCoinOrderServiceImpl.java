@@ -19,9 +19,6 @@ import com.tianli.borrow.bo.BorrowOrderRepayBO;
 import com.tianli.borrow.contant.*;
 import com.tianli.borrow.convert.BorrowOrderConverter;
 import com.tianli.borrow.dao.BorrowCoinOrderMapper;
-import com.tianli.borrow.dao.BorrowInterestRecordMapper;
-import com.tianli.borrow.dao.BorrowPledgeRecordMapper;
-import com.tianli.borrow.dao.BorrowRepayRecordMapper;
 import com.tianli.borrow.entity.*;
 import com.tianli.borrow.enums.BorrowStatisticsType;
 import com.tianli.borrow.query.BorrowInterestRecordQuery;
@@ -428,7 +425,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BigDecimal pledgeRate;
         BigDecimal releasePledgeAmount = BigDecimal.ZERO;
 
-        if(repayAmount.compareTo(waitRepay) > 0)ErrorCodeEnum.REPAY_GT_CAPITAL.throwException();
+        if(repayAmount.compareTo(waitRepay) > 0)ErrorCodeEnum.REPAY_GT_CAPITAL_ERROR.throwException();
 
         if(repayAmount.compareTo(waitRepay) == 0){
             repayInterest = waitRepayInterest;
@@ -482,7 +479,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BigDecimal waitRepayCapital = borrowCoinOrder.getWaitRepayCapital();
         BigDecimal waitRepayInterest = borrowCoinOrder.getWaitRepayInterest();
         BigDecimal totalAmount = borrowCoinOrder.calculateWaitRepay();
-        if(repayAmount.compareTo(totalAmount) > 0)ErrorCodeEnum.REPAY_GT_CAPITAL.throwException();
+        if(repayAmount.compareTo(totalAmount) > 0)ErrorCodeEnum.REPAY_GT_CAPITAL_ERROR.throwException();
         //质押记录
         BorrowPledgeRecord pledgeRecord = BorrowPledgeRecord.builder()
                 .orderId(borrowCoinOrder.getId())
@@ -684,7 +681,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         if(pledgeType.equals(BorrowPledgeType.INCREASE)){
             AccountBalance accountBalance = accountBalanceService.getAndInit(uid, currencyCoin);
             BigDecimal availableAmount = accountBalance.getRemain();
-            if(adjustAmount.compareTo(availableAmount) > 0)ErrorCodeEnum.ADJUST_GT_AVAILABLE.throwException();
+            if(adjustAmount.compareTo(availableAmount) > 0)ErrorCodeEnum.ADJUST_GT_AVAILABLE_ERROR.throwException();
 
             pledgeAmount = pledgeAmount.add(adjustAmount);
             BigDecimal pledgeRate = totalWaitRepay.divide(pledgeAmount,8,RoundingMode.UP);
@@ -703,7 +700,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             pledgeRecord.setType(BorrowPledgeType.INCREASE);
             pledgeRecord.setAmount(adjustAmount);
         }else {
-            if(adjustAmount.compareTo(pledgeAmount) > 0)ErrorCodeEnum.ADJUST_GT_AVAILABLE.throwException();
+            if(adjustAmount.compareTo(pledgeAmount) > 0)ErrorCodeEnum.ADJUST_GT_AVAILABLE_ERROR.throwException();
             pledgeAmount = pledgeAmount.subtract(adjustAmount);
             BigDecimal pledgeRate = totalWaitRepay.divide(pledgeAmount,8,RoundingMode.UP);
             if(pledgeRate.compareTo(initialPledgeRate) >0) ErrorCodeEnum.PLEDGE_RATE_RANGE_ERROR.throwException();
@@ -731,7 +728,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         CurrencyCoin currencyCoin = CurrencyCoin.getCurrencyCoinEnum(borrowCoinOrder.getPledgeCoin());
         BorrowPledgeCoinConfig pledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(currencyCoin);
         //校验质押率
-        if(borrowCoinOrder.getPledgeRate().compareTo(pledgeCoinConfig.getLiquidationPledgeRate()) < 0 )ErrorCodeEnum.PLEDGE_LT_LIQUIDATION.throwException();
+        if(borrowCoinOrder.getPledgeRate().compareTo(pledgeCoinConfig.getLiquidationPledgeRate()) < 0 )ErrorCodeEnum.PLEDGE_LT_LIQUIDATION_ERROR.throwException();
         //增加还款记录
         BorrowRepayRecord repayRecord = BorrowRepayRecord.builder()
                 .orderId(orderId)
@@ -793,7 +790,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             borrowOrderStatisticsChartVOMap.put(dateTime,new BorrowOrderStatisticsChartVO(dateTime,BigDecimal.ZERO));
         }
 
-        List<BorrowOrderStatisticsChartVO> borrowOrderStatisticsChartVOS = null;
+        List<BorrowOrderStatisticsChartVO> borrowOrderStatisticsChartVOS;
         switch (statisticsType){
             case borrow:{
                 borrowOrderStatisticsChartVOS = borrowCoinOrderMapper.selectBorrowCapitalChartByTime(beginOfDay);

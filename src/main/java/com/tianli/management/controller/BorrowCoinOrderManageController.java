@@ -30,8 +30,6 @@ public class BorrowCoinOrderManageController {
     private IBorrowCoinOrderService borrowCoinOrderService;
     /**
      * 强制平仓
-     * @param orderId
-     * @return
      */
     @PostMapping("/order/liquidation/{orderId}")
     @AdminPrivilege(and = Privilege.借币订单管理)
@@ -42,8 +40,6 @@ public class BorrowCoinOrderManageController {
 
     /**
      * 订单列表
-     * @param
-     * @return
      */
     @GetMapping("/order/record")
     @AdminPrivilege(and = Privilege.借币订单管理)
@@ -55,8 +51,6 @@ public class BorrowCoinOrderManageController {
 
     /**
      * 累计数据
-     * @param query
-     * @return
      */
     @GetMapping("/order/cumulative/amount")
     @AdminPrivilege(and = Privilege.借币订单管理)
@@ -67,8 +61,6 @@ public class BorrowCoinOrderManageController {
 
     /**
      * 质押记录
-     * @param
-     * @return
      */
     @GetMapping("/order/pledge/record")
     @AdminPrivilege(and = Privilege.借币订单管理)
@@ -79,8 +71,6 @@ public class BorrowCoinOrderManageController {
 
     /**
      * 利息记录
-     * @param
-     * @return
      */
     @GetMapping("/order/interest/record")
     @AdminPrivilege(and = Privilege.借币订单管理)
@@ -91,8 +81,6 @@ public class BorrowCoinOrderManageController {
 
     /**
      * 利息总额
-     * @param query
-     * @return
      */
     @GetMapping("/order/interest/amount")
     @AdminPrivilege(and = Privilege.借币订单管理)
@@ -103,8 +91,6 @@ public class BorrowCoinOrderManageController {
 
     /**
      * 还款记录
-     * @param
-     * @return
      */
     @GetMapping("/order/repay/record")
     @AdminPrivilege(and = Privilege.借币订单管理)
@@ -115,8 +101,6 @@ public class BorrowCoinOrderManageController {
 
     /**
      * 还款总额
-     * @param query
-     * @return
      */
     @GetMapping("/order/repay/amount")
     @AdminPrivilege(and = Privilege.借币订单管理)
@@ -127,8 +111,6 @@ public class BorrowCoinOrderManageController {
 
     /**
      * 平仓记录
-     * @param orderId
-     * @return
      */
     @GetMapping("/order/liquidation/record/{orderId}")
     @AdminPrivilege(and = Privilege.借币订单管理)
@@ -139,7 +121,6 @@ public class BorrowCoinOrderManageController {
 
     /**
      * 借贷数据统计
-     * @return
      */
     @GetMapping("/order/statistics")
     @AdminPrivilege(and = Privilege.借币订单管理)
@@ -150,8 +131,6 @@ public class BorrowCoinOrderManageController {
 
     /**
      * 借贷数据统计图表
-     * @param statisticsType
-     * @return
      */
     @GetMapping("/order/statistics/chart")
     @AdminPrivilege(and = Privilege.借币订单管理)

@@ -19,7 +19,6 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @Builder
-@EqualsAndHashCode(callSuper = false)
 public class BorrowPledgeRecord extends Model<BorrowPledgeRecord> {
 
     private static final long serialVersionUID=1L;

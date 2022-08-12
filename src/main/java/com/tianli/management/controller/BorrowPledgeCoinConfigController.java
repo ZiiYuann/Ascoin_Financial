@@ -31,8 +31,6 @@ public class BorrowPledgeCoinConfigController {
 
     /**
      * 新增配置
-     * @param bo
-     * @return
      */
     @PostMapping
     @AdminPrivilege(and = Privilege.质押币配置)
@@ -43,8 +41,6 @@ public class BorrowPledgeCoinConfigController {
 
     /**
      * 修改配置
-     * @param bo
-     * @return
      */
     @PutMapping
     @AdminPrivilege(and = Privilege.质押币配置)
@@ -55,8 +51,6 @@ public class BorrowPledgeCoinConfigController {
 
     /**
      * 删除配置
-     * @param ids
-     * @return
      */
     @DeleteMapping("/{ids}")
     @AdminPrivilege(and = Privilege.质押币配置)
@@ -67,9 +61,6 @@ public class BorrowPledgeCoinConfigController {
 
     /**
      * 查询配置
-     * @param pageQuery
-     * @param coin
-     * @return
      */
     @GetMapping
     @AdminPrivilege(and = Privilege.质押币配置)

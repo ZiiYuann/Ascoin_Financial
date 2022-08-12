@@ -4,11 +4,14 @@ import com.tianli.common.annotation.BigDecimalFormat;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
 @Builder
-public class BorrowRepayPageVO {
+public class BorrowRepayPageVO implements Serializable {
+
+    private static final long serialVersionUID=1L;
 
     /**
      * 可用余额

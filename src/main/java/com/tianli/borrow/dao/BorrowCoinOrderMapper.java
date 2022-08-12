@@ -64,6 +64,5 @@ public interface BorrowCoinOrderMapper extends BaseMapper<BorrowCoinOrder> {
                                         @Param("endPledgeRate") BigDecimal endPledgeRate,
                                         @Param("pledgeStatus")Integer pledgeStatus);
 
-
     BorrowOrderAmountVO selectAmountSumByQuery(BorrowOrderQuery query);
 }
