@@ -19,6 +19,7 @@ import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -69,4 +70,12 @@ public interface IBorrowCoinOrderService extends IService<BorrowCoinOrder> {
     BorrowOrderStatisticsVO statistics();
 
     List<BorrowOrderStatisticsChartVO> statisticsChart(BorrowStatisticsType statisticsType);
+
+    Integer selectCountByBorrowCoin(String coin);
+
+    Integer selectCountByStatusAndTime(Integer interestAccrual, LocalDate now);
+
+    void updatePledgeStatusByPledgeRate(BigDecimal startPledgeRate, BigDecimal endPledgeRate, Integer pledgeStatus);
+
+    Integer selectCountByPledgeCoin(String coin);
 }

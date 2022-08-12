@@ -13,6 +13,10 @@ import com.tianli.borrow.entity.BorrowCoinConfig;
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.tianli.borrow.entity.BorrowInterestRecord;
 import com.tianli.borrow.entity.BorrowPledgeCoinConfig;
+import com.tianli.borrow.service.IBorrowCoinConfigService;
+import com.tianli.borrow.service.IBorrowCoinOrderService;
+import com.tianli.borrow.service.IBorrowInterestRecordService;
+import com.tianli.borrow.service.IBorrowPledgeCoinConfigService;
 import com.tianli.common.RedisLockConstants;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,16 +43,16 @@ import java.util.stream.Collectors;
 public class BorrowInterestTask {
     
     @Autowired
-    private BorrowCoinOrderMapper borrowCoinOrderMapper;
+    private IBorrowCoinOrderService borrowCoinOrderService;
 
     @Autowired
-    private BorrowCoinConfigMapper borrowCoinConfigMapper;
+    private IBorrowCoinConfigService borrowCoinConfigService;
 
     @Autowired
-    private BorrowPledgeCoinConfigMapper borrowPledgeCoinConfigMapper;
+    private IBorrowPledgeCoinConfigService borrowPledgeCoinConfigService;
 
     @Autowired
-    private BorrowInterestRecordMapper borrowInterestRecordMapper;
+    private IBorrowInterestRecordService borrowInterestRecordService;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -79,15 +83,15 @@ public class BorrowInterestTask {
         LocalDateTime dateTime = LocalDateTime.of(now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), 0);
         String hour = String.format("%s_%s_%s", now.getMonthValue(), now.getDayOfMonth(),now.getHour());
         String redisKey = RedisLockConstants.BORROW_INCOME_TASK + hour;
-        List<BorrowCoinConfig> borrowCoinConfigs = borrowCoinConfigMapper.selectList(null);
-        List<BorrowPledgeCoinConfig> borrowPledgeCoinConfigs = borrowPledgeCoinConfigMapper.selectList(null);
+        List<BorrowCoinConfig> borrowCoinConfigs = borrowCoinConfigService.list(null);
+        List<BorrowPledgeCoinConfig> borrowPledgeCoinConfigs = borrowPledgeCoinConfigService.list(null);
         Map<String, BigDecimal> coinInterestRateMap = borrowCoinConfigs.stream().collect(Collectors.toMap(BorrowCoinConfig::getCoin, BorrowCoinConfig::getAnnualInterestRate));
         Map<String, BigDecimal> coinWarnPledgeRateMap = borrowPledgeCoinConfigs.stream().collect(Collectors.toMap(BorrowPledgeCoinConfig::getCoin, BorrowPledgeCoinConfig::getWarnPledgeRate));
         Map<String, BigDecimal> coinLiquidationPledgeRateMap = borrowPledgeCoinConfigs.stream().collect(Collectors.toMap(BorrowPledgeCoinConfig::getCoin, BorrowPledgeCoinConfig::getLiquidationPledgeRate));
         log.info("========执行计算利息定时任务========");
         while (true){
             long page = incr(redisKey,61L);
-            List<BorrowCoinOrder> records = borrowCoinOrderMapper.selectPage(new Page<>(page+1, 100),
+            List<BorrowCoinOrder> records = borrowCoinOrderService.page(new Page<>(page+1, 100),
                     new QueryWrapper<BorrowCoinOrder>().lambda()
                             .eq(BorrowCoinOrder::getStatus, BorrowOrderStatus.INTEREST_ACCRUAL)).getRecords();
             if(CollUtil.isEmpty(records)){
@@ -127,7 +131,7 @@ public class BorrowInterestTask {
         borrowCoinOrder.setWaitRepayInterest(waitRepayInterest);
         borrowCoinOrder.setCumulativeInterest(cumulativeInterest);
         borrowCoinOrder.setPledgeRate(pledgeRate);
-        borrowCoinOrderMapper.updateById(borrowCoinOrder);
+        borrowCoinOrderService.updateById(borrowCoinOrder);
 
         //添加利息记录
         BorrowInterestRecord interestRecord = BorrowInterestRecord.builder()
@@ -140,7 +144,7 @@ public class BorrowInterestTask {
                 .interestAccrual(interest)
                 .annualInterestRate(interestRate)
                 .build();
-        borrowInterestRecordMapper.insert(interestRecord);
+        borrowInterestRecordService.save(interestRecord);
     }
 
     /**

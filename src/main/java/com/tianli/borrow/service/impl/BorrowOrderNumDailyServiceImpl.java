@@ -6,6 +6,7 @@ import com.tianli.borrow.contant.BorrowOrderStatus;
 import com.tianli.borrow.dao.BorrowCoinOrderMapper;
 import com.tianli.borrow.entity.BorrowOrderNumDaily;
 import com.tianli.borrow.dao.BorrowOrderNumDailyMapper;
+import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.service.IBorrowOrderNumDailyService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.borrow.vo.BorrowOrderStatisticsChartVO;
@@ -38,13 +39,13 @@ public class BorrowOrderNumDailyServiceImpl extends ServiceImpl<BorrowOrderNumDa
     private BorrowOrderNumDailyMapper borrowOrderNumDailyMapper;
 
     @Autowired
-    private BorrowCoinOrderMapper borrowCoinOrderMapper;
+    private IBorrowCoinOrderService borrowCoinOrderService;
 
     @Override
     public void statisticalOrderNum() {
         LocalDate now = LocalDate.now();
         BorrowOrderNumDaily borrowOrderNumDaily = getByDate(now);
-        Integer count = borrowCoinOrderMapper.selectCountByStatusAndTime(BorrowOrderStatus.INTEREST_ACCRUAL,now);
+        Integer count = borrowCoinOrderService.selectCountByStatusAndTime(BorrowOrderStatus.INTEREST_ACCRUAL,now);
         if(Objects.nonNull(borrowOrderNumDaily)){
             borrowOrderNumDaily.setOrderNum(count);
         } else {

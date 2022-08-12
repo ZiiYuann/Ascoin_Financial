@@ -10,6 +10,7 @@ import com.tianli.borrow.entity.BorrowCoinConfig;
 import com.tianli.borrow.dao.BorrowCoinConfigMapper;
 import com.tianli.borrow.service.IBorrowCoinConfigService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.vo.BorrowCoinConfigVO;
 import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -38,9 +39,8 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
     private BorrowCoinConfigConverter borrowCoinConfigConverter;
     @Autowired
     private BorrowCoinConfigMapper borrowCoinConfigMapper;
-
     @Autowired
-    private BorrowCoinOrderMapper borrowCoinOrderMapper;
+    private IBorrowCoinOrderService borrowCoinOrderService;
 
     @Override
     public void saveConfig(BorrowOrderConfigBO bo) {
@@ -68,7 +68,7 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
         Arrays.asList(ids).forEach(id ->{
             BorrowCoinConfig borrowCoinConfig = borrowCoinConfigMapper.selectById(id);
             if(Objects.isNull(borrowCoinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
-            Integer count = borrowCoinOrderMapper.selectCountByBorrowCoin(borrowCoinConfig.getCoin());
+            Integer count = borrowCoinOrderService.selectCountByBorrowCoin(borrowCoinConfig.getCoin());
             if(count > 0) ErrorCodeEnum.BORROW_CONFIG_USED.throwException();
             borrowCoinConfigMapper.deleteById(id);
         });

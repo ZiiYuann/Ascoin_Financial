@@ -28,10 +28,7 @@ import com.tianli.borrow.query.BorrowInterestRecordQuery;
 import com.tianli.borrow.query.BorrowOrderQuery;
 import com.tianli.borrow.query.BorrowPledgeRecordQuery;
 import com.tianli.borrow.query.BorrowRepayQuery;
-import com.tianli.borrow.service.IBorrowCoinConfigService;
-import com.tianli.borrow.service.IBorrowCoinOrderService;
-import com.tianli.borrow.service.IBorrowOrderNumDailyService;
-import com.tianli.borrow.service.IBorrowPledgeCoinConfigService;
+import com.tianli.borrow.service.*;
 import com.tianli.borrow.vo.*;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
@@ -53,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -93,13 +91,13 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     private AccountBalanceService accountBalanceService;
 
     @Autowired
-    private BorrowPledgeRecordMapper borrowPledgeRecordMapper;
+    private IBorrowPledgeRecordService borrowPledgeRecordService;
 
     @Autowired
-    private BorrowInterestRecordMapper borrowInterestRecordMapper;
+    private IBorrowInterestRecordService borrowInterestRecordService;
 
     @Autowired
-    private BorrowRepayRecordMapper borrowRepayRecordMapper;
+    private IBorrowRepayRecordService borrowRepayRecordService;
 
     @Autowired
     private IBorrowPledgeCoinConfigService  borrowPledgeCoinConfigService;
@@ -254,7 +252,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .type(BorrowPledgeType.INIT)
                 .pledgeTime(LocalDateTime.now())
                 .createTime(LocalDateTime.now()).build();
-        borrowPledgeRecordMapper.insert(pledgeRecord);
+        borrowPledgeRecordService.save(pledgeRecord);
 
         //增加每日计息订单
         borrowOrderNumDailyService.increaseNum();
@@ -334,7 +332,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         queryWrapper.ne(BorrowPledgeRecord::getType,BorrowPledgeType.LIQUIDATION);
 
         queryWrapper.orderByDesc(BorrowPledgeRecord::getPledgeTime);
-        return borrowPledgeRecordMapper.selectPage(pageQuery.page(), queryWrapper).convert(borrowConverter::toPledgeVO);
+        return borrowPledgeRecordService.page(pageQuery.page(), queryWrapper).convert(borrowConverter::toPledgeVO);
     }
 
     @Override
@@ -356,12 +354,12 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         }
 
         queryWrapper.orderByDesc(BorrowInterestRecord::getInterestAccrualTime);
-        return borrowInterestRecordMapper.selectPage(pageQuery.page(),queryWrapper).convert(borrowConverter::toInterestVO);
+        return borrowInterestRecordService.page(pageQuery.page(),queryWrapper).convert(borrowConverter::toInterestVO);
     }
 
     @Override
     public AmountVO interestAmount(BorrowInterestRecordQuery query) {
-        return new AmountVO(borrowInterestRecordMapper.selectInterestSumByQuery(query)) ;
+        return new AmountVO(borrowInterestRecordService.selectInterestSumByQuery(query)) ;
     }
 
     @Override
@@ -394,13 +392,13 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         }
 
         queryWrapper.orderByDesc(BorrowRepayRecord::getRepayTime);
-        return borrowRepayRecordMapper.selectPage(pageQuery.page(),queryWrapper).convert(borrowConverter::toRepayVO);
+        return borrowRepayRecordService.page(pageQuery.page(),queryWrapper).convert(borrowConverter::toRepayVO);
     }
 
 
     @Override
     public AmountVO repayAmount(BorrowRepayQuery query) {
-        BigDecimal repaySum = borrowRepayRecordMapper.selectRepaySumQuery(query);
+        BigDecimal repaySum = borrowRepayRecordService.selectRepaySumQuery(query);
         return new AmountVO(repaySum);
     }
 
@@ -514,7 +512,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             releasePledgeAmount = borrowCoinOrder.getPledgeAmount();
             //借币质押记录
             pledgeRecord.setAmount(borrowCoinOrder.getPledgeAmount().negate());
-            borrowPledgeRecordMapper.insert(pledgeRecord);
+            borrowPledgeRecordService.save(pledgeRecord);
             borrowCoinOrder.setRepayAmount(borrowCoinOrder.getRepayAmount().add(repayAmount));
             borrowCoinOrder.setWaitRepayCapital(BigDecimal.ZERO);
             borrowCoinOrder.setWaitRepayInterest(BigDecimal.ZERO);
@@ -559,7 +557,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 releasePledgeAmount = pledgeAmount.subtract(currPledgeAmount);
                 //借币质押记录
                 pledgeRecord.setAmount(releasePledgeAmount.negate());
-                borrowPledgeRecordMapper.insert(pledgeRecord);
+                borrowPledgeRecordService.save(pledgeRecord);
                 //修改借币订单
                 borrowCoinOrder.setRepayAmount(borrowCoinOrder.getRepayAmount().add(repayAmount));
                 borrowCoinOrder.setWaitRepayCapital(waitRepayCapital);
@@ -581,7 +579,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         }
         //还款记录
         repayRecord.setReleasePledgeAmount(releasePledgeAmount);
-        borrowRepayRecordMapper.insert(repayRecord);
+        borrowRepayRecordService.save(repayRecord);
         //减少余额
         repayCoin(uid,orderId,currencyCoin,repayAmount);
         //释放质押
@@ -720,7 +718,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
             pledgeRecord.setAmount(adjustAmount.negate());
         }
         //保存质押记录
-        borrowPledgeRecordMapper.insert(pledgeRecord);
+        borrowPledgeRecordService.save(pledgeRecord);
 
     }
 
@@ -747,7 +745,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .repayTime(LocalDateTime.now())
                 .createTime(LocalDateTime.now())
                 .build();
-        borrowRepayRecordMapper.insert(repayRecord);
+        borrowRepayRecordService.save(repayRecord);
         //质押记录
         BorrowPledgeRecord borrowPledgeRecord = BorrowPledgeRecord.builder()
                 .orderId(orderId)
@@ -755,7 +753,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .amount(borrowCoinOrder.getPledgeAmount().negate())
                 .type(BorrowPledgeType.LIQUIDATION)
                 .pledgeTime(LocalDateTime.now()).createTime(LocalDateTime.now()).build();
-        borrowPledgeRecordMapper.insert(borrowPledgeRecord);
+        borrowPledgeRecordService.save(borrowPledgeRecord);
         //修改订单状态
         borrowCoinOrder.setWaitRepayCapital(BigDecimal.ZERO);
         borrowCoinOrder.setWaitRepayInterest(BigDecimal.ZERO);
@@ -802,11 +800,11 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 break;
             }
             case pledge:{
-                borrowOrderStatisticsChartVOS = borrowPledgeRecordMapper.selectAmountChartByTime(beginOfDay);
+                borrowOrderStatisticsChartVOS = borrowPledgeRecordService.selectAmountChartByTime(beginOfDay);
                 break;
             }
             case interest:{
-                borrowOrderStatisticsChartVOS = borrowInterestRecordMapper.selectInterestChartByTime(beginOfDay);
+                borrowOrderStatisticsChartVOS = borrowInterestRecordService.selectInterestChartByTime(beginOfDay);
                 break;
             }
             default:
@@ -814,6 +812,26 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         }
         borrowOrderStatisticsChartVOS.forEach(item -> borrowOrderStatisticsChartVOMap.put(item.getTime(),item));
         return CollUtil.list(false,borrowOrderStatisticsChartVOMap.values()) ;
+    }
+
+    @Override
+    public Integer selectCountByBorrowCoin(String coin) {
+        return borrowCoinOrderMapper.selectCountByBorrowCoin(coin);
+    }
+
+    @Override
+    public Integer selectCountByStatusAndTime(Integer interestAccrual, LocalDate now) {
+        return borrowCoinOrderMapper.selectCountByStatusAndTime(interestAccrual,now);
+    }
+
+    @Override
+    public void updatePledgeStatusByPledgeRate(BigDecimal startPledgeRate, BigDecimal endPledgeRate, Integer pledgeStatus) {
+        borrowCoinOrderMapper.updatePledgeStatusByPledgeRate(startPledgeRate,endPledgeRate,pledgeStatus);
+    }
+
+    @Override
+    public Integer selectCountByPledgeCoin(String coin) {
+        return borrowCoinOrderMapper.selectCountByBorrowCoin(coin);
     }
 
 

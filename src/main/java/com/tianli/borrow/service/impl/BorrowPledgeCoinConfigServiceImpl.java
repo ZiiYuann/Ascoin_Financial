@@ -9,6 +9,7 @@ import com.tianli.borrow.convert.BorrowCoinConfigConverter;
 import com.tianli.borrow.dao.BorrowCoinOrderMapper;
 import com.tianli.borrow.entity.BorrowPledgeCoinConfig;
 import com.tianli.borrow.dao.BorrowPledgeCoinConfigMapper;
+import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.service.IBorrowPledgeCoinConfigService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.borrow.vo.BorrowPledgeCoinConfigVO;
@@ -39,7 +40,7 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
     @Autowired
     private BorrowPledgeCoinConfigMapper borrowPledgeCoinConfigMapper;
     @Autowired
-    private BorrowCoinOrderMapper borrowCoinOrderMapper;
+    private IBorrowCoinOrderService borrowCoinOrderService;
     @Override
     public void saveConfig(BorrowPledgeCoinConfigBO bo) {
         verifyPledgeRate(bo);
@@ -66,18 +67,18 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
         BigDecimal liquidationPledgeRate = borrowPledgeCoinConfig.getLiquidationPledgeRate();
         //预警线上移
         if(bo.getWarnPledgeRate().compareTo(configById.getWarnPledgeRate()) > 0) {
-            borrowCoinOrderMapper.updatePledgeStatusByPledgeRate(null, warnPledgeRate, BorrowOrderPledgeStatus.SAFE_PLEDGE);
+            borrowCoinOrderService.updatePledgeStatusByPledgeRate(null, warnPledgeRate, BorrowOrderPledgeStatus.SAFE_PLEDGE);
         }
 
         //预警线下移 平仓线上移
         if(bo.getWarnPledgeRate().compareTo(configById.getWarnPledgeRate()) < 0
         || bo.getLiquidationPledgeRate().compareTo(configById.getLiquidationPledgeRate()) > 0) {
-            borrowCoinOrderMapper.updatePledgeStatusByPledgeRate(warnPledgeRate, liquidationPledgeRate, BorrowOrderPledgeStatus.WARN_PLEDGE);
+            borrowCoinOrderService.updatePledgeStatusByPledgeRate(warnPledgeRate, liquidationPledgeRate, BorrowOrderPledgeStatus.WARN_PLEDGE);
         }
 
         //平仓线上移
         if(bo.getLiquidationPledgeRate().compareTo(configById.getLiquidationPledgeRate()) < 0){
-            borrowCoinOrderMapper.updatePledgeStatusByPledgeRate(liquidationPledgeRate, null, BorrowOrderPledgeStatus.LIQUIDATION_PLEDGE);
+            borrowCoinOrderService.updatePledgeStatusByPledgeRate(liquidationPledgeRate, null, BorrowOrderPledgeStatus.LIQUIDATION_PLEDGE);
         }
 
     }
@@ -87,7 +88,7 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
         Arrays.asList(ids).forEach(id ->{
             BorrowPledgeCoinConfig borrowPledgeCoinConfig = borrowPledgeCoinConfigMapper.selectById(id);
             if(Objects.isNull(borrowPledgeCoinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
-            Integer count = borrowCoinOrderMapper.selectCountByPledgeCoin(borrowPledgeCoinConfig.getCoin());
+            Integer count = borrowCoinOrderService.selectCountByPledgeCoin(borrowPledgeCoinConfig.getCoin());
             if(count > 0) ErrorCodeEnum.BORROW_CONFIG_USED.throwException();
             borrowPledgeCoinConfigMapper.deleteById(id);
         });

@@ -2,6 +2,9 @@ package com.tianli.borrow.service;
 
 import com.tianli.borrow.entity.BorrowRepayRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tianli.borrow.query.BorrowRepayQuery;
+
+import java.math.BigDecimal;
 
 /**
  * <p>
@@ -13,4 +16,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IBorrowRepayRecordService extends IService<BorrowRepayRecord> {
 
+    BigDecimal selectRepaySumQuery(BorrowRepayQuery query);
 }
