@@ -41,11 +41,24 @@ public class BorrowOrderNumDailyServiceImpl extends ServiceImpl<BorrowOrderNumDa
     @Autowired
     private IBorrowCoinOrderService borrowCoinOrderService;
 
+    @PostConstruct
+    private void addData(){
+        BorrowOrderNumDaily byDate13 = getByDate(LocalDate.of(2022, 8, 13));
+        BorrowOrderNumDaily byDate14 = getByDate(LocalDate.of(2022, 8, 14));
+        BorrowOrderNumDaily byDate15 = getByDate(LocalDate.of(2022, 8, 15));
+        byDate13.setOrderNum(8);
+        byDate14.setOrderNum(8);
+        byDate15.setOrderNum(8);
+        borrowOrderNumDailyMapper.updateById(byDate13);
+        borrowOrderNumDailyMapper.updateById(byDate14);
+        borrowOrderNumDailyMapper.updateById(byDate15);
+    }
+
     @Override
     public void statisticalOrderNum() {
         LocalDate now = LocalDate.now();
         BorrowOrderNumDaily borrowOrderNumDaily = getByDate(now);
-        Integer count = borrowCoinOrderService.selectCountByStatusAndTime(BorrowOrderStatus.INTEREST_ACCRUAL,now);
+        Integer count = borrowCoinOrderService.selectCountByStatus(BorrowOrderStatus.INTEREST_ACCRUAL);
         if(Objects.nonNull(borrowOrderNumDaily)){
             borrowOrderNumDaily.setOrderNum(count);
         } else {

@@ -308,50 +308,12 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
     @Override
     public IPage<BorrowPledgeRecordVO>  pledgeRecord(PageQuery<BorrowPledgeRecord> pageQuery, BorrowPledgeRecordQuery query) {
-        LambdaQueryWrapper<BorrowPledgeRecord> queryWrapper = new QueryWrapper<BorrowPledgeRecord>().lambda();
-
-        if(Objects.nonNull(query.getOrderId())){
-            queryWrapper.eq(BorrowPledgeRecord::getOrderId,query.getOrderId());
-        }
-
-        if(Objects.nonNull(query.getType())){
-            queryWrapper.eq(BorrowPledgeRecord::getType,query.getType());
-        }
-
-        if(Objects.nonNull(query.getStartTime())){
-            queryWrapper.ge(BorrowPledgeRecord::getPledgeTime,query.getStartTime());
-        }
-
-        if(Objects.nonNull(query.getEndTime())){
-            queryWrapper.le(BorrowPledgeRecord::getPledgeTime,query.getEndTime());
-        }
-
-        queryWrapper.ne(BorrowPledgeRecord::getType,BorrowPledgeType.LIQUIDATION);
-
-        queryWrapper.orderByDesc(BorrowPledgeRecord::getPledgeTime);
-        return borrowPledgeRecordService.page(pageQuery.page(), queryWrapper).convert(borrowConverter::toPledgeVO);
+        return borrowPledgeRecordService.pledgeRecordPage(pageQuery,query);
     }
 
     @Override
     public IPage<BorrowInterestRecordVO> interestRecord(PageQuery<BorrowInterestRecord> pageQuery, BorrowInterestRecordQuery query) {
-
-
-        LambdaQueryWrapper<BorrowInterestRecord> queryWrapper = new QueryWrapper<BorrowInterestRecord>().lambda();
-
-        if(Objects.nonNull(query.getOrderId())){
-            queryWrapper.eq(BorrowInterestRecord::getOrderId,query.getOrderId());
-        }
-
-        if(Objects.nonNull(query.getStartTime())){
-            queryWrapper.ge(BorrowInterestRecord::getInterestAccrualTime,query.getStartTime());
-        }
-
-        if(Objects.nonNull(query.getEndTime())){
-            queryWrapper.le(BorrowInterestRecord::getInterestAccrualTime,query.getEndTime());
-        }
-
-        queryWrapper.orderByDesc(BorrowInterestRecord::getInterestAccrualTime);
-        return borrowInterestRecordService.page(pageQuery.page(),queryWrapper).convert(borrowConverter::toInterestVO);
+        return borrowInterestRecordService.interestRecordPage(pageQuery,query);
     }
 
     @Override
@@ -366,30 +328,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
     @Override
     public IPage<BorrowRepayRecordVO> repayRecord(PageQuery<BorrowRepayRecord> pageQuery, BorrowRepayQuery query) {
-        LambdaQueryWrapper<BorrowRepayRecord> queryWrapper = new QueryWrapper<BorrowRepayRecord>().lambda();
-
-        if(Objects.nonNull(query.getOrderId())){
-            queryWrapper.eq(BorrowRepayRecord::getOrderId, query.getOrderId());
-        }
-
-        if(Objects.nonNull(query.getType())){
-            queryWrapper.eq(BorrowRepayRecord::getType, query.getType());
-        }
-
-        if(Objects.nonNull(query.getStatus())){
-            queryWrapper.eq(BorrowRepayRecord::getStatus, query.getStatus());
-        }
-
-        if(Objects.nonNull(query.getStartTime())){
-            queryWrapper.ge(BorrowRepayRecord::getRepayTime, query.getStartTime());
-        }
-
-        if(Objects.nonNull(query.getEndTime())){
-            queryWrapper.le(BorrowRepayRecord::getRepayTime, query.getEndTime());
-        }
-
-        queryWrapper.orderByDesc(BorrowRepayRecord::getRepayTime);
-        return borrowRepayRecordService.page(pageQuery.page(),queryWrapper).convert(borrowConverter::toRepayVO);
+        return borrowRepayRecordService.repayRecordPage(pageQuery,query);
     }
 
 
@@ -770,7 +709,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BigDecimal borrowAmount = borrowCoinOrderMapper.selectBorrowCapitalSum();
         BigDecimal pledgeAmount = borrowCoinOrderMapper.selectPledgeAmountSum();
         BigDecimal interestAmount = borrowCoinOrderMapper.selectWaitRepayInterestSum();
-        Integer orderNum = borrowCoinOrderMapper.selectCountByStatusAndTime(BorrowOrderStatus.INTEREST_ACCRUAL);
+        Integer orderNum = borrowCoinOrderMapper.selectCountByStatus(BorrowOrderStatus.INTEREST_ACCRUAL);
         return BorrowOrderStatisticsVO.builder()
                 .borrowAmount(borrowAmount)
                 .pledgeAmount(pledgeAmount)
@@ -829,6 +768,11 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     @Override
     public Integer selectCountByPledgeCoin(String coin) {
         return borrowCoinOrderMapper.selectCountByBorrowCoin(coin);
+    }
+
+    @Override
+    public Integer selectCountByStatus(Integer status) {
+        return borrowCoinOrderMapper.selectCountByStatus(status);
     }
 
 

@@ -1,8 +1,12 @@
 package com.tianli.borrow.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.borrow.entity.BorrowPledgeRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tianli.borrow.query.BorrowPledgeRecordQuery;
 import com.tianli.borrow.vo.BorrowOrderStatisticsChartVO;
+import com.tianli.borrow.vo.BorrowPledgeRecordVO;
+import com.tianli.common.PageQuery;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -21,5 +25,5 @@ public interface IBorrowPledgeRecordService extends IService<BorrowPledgeRecord>
 
     List<BorrowOrderStatisticsChartVO> selectAmountChartByTime(Date startTime);
 
-
+    IPage<BorrowPledgeRecordVO> pledgeRecordPage(PageQuery<BorrowPledgeRecord> pageQuery, BorrowPledgeRecordQuery query);
 }

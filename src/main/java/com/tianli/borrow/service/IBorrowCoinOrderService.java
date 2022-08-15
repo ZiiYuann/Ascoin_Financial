@@ -78,4 +78,6 @@ public interface IBorrowCoinOrderService extends IService<BorrowCoinOrder> {
     void updatePledgeStatusByPledgeRate(BigDecimal startPledgeRate, BigDecimal endPledgeRate, Integer pledgeStatus);
 
     Integer selectCountByPledgeCoin(String coin);
+
+    Integer selectCountByStatus(Integer interestAccrual);
 }
