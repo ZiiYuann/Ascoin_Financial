@@ -756,11 +756,6 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     }
 
     @Override
-    public Integer selectCountByStatusAndTime(Integer interestAccrual, LocalDate now) {
-        return borrowCoinOrderMapper.selectCountByStatusAndTime(interestAccrual,now);
-    }
-
-    @Override
     public void updatePledgeStatusByPledgeRate(BigDecimal startPledgeRate, BigDecimal endPledgeRate, Integer pledgeStatus) {
         borrowCoinOrderMapper.updatePledgeStatusByPledgeRate(startPledgeRate,endPledgeRate,pledgeStatus);
     }
