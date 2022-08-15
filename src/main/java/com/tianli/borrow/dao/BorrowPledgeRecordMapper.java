@@ -26,7 +26,7 @@ public interface BorrowPledgeRecordMapper extends BaseMapper<BorrowPledgeRecord>
 
     @Select("SELECT DATE_FORMAT(pledge_time,'%Y-%m-%d') time,SUM(amount)amount FROM borrow_pledge_record\n" +
             "WHERE pledge_time >= #{startTime} and type in(1,2)\n" +
-            "GROUP BY DATE_FORMAT(pledge_time,'%Y-%m-%d')")
+            "GROUP BY time")
     List<BorrowOrderStatisticsChartVO> selectAmountChartByTime(@Param("startTime")Date startTime);
 
 
