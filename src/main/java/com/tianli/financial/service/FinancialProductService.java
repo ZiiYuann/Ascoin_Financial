@@ -14,10 +14,12 @@ import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.mapper.FinancialProductMapper;
-import com.tianli.financial.vo.FinancialProductVO;
+import com.tianli.management.converter.ManagementConverter;
+import com.tianli.management.dto.ProductSummaryDataDto;
 import com.tianli.management.query.FinancialProductEditQuery;
 import com.tianli.management.query.FinancialProductEditStatusQuery;
 import com.tianli.management.query.FinancialProductsQuery;
+import com.tianli.management.vo.MFinancialProductVO;
 import com.tianli.mconfig.ConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -26,11 +28,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.tianli.common.ConfigConstants.SYSTEM_PURCHASE_MIN_AMOUNT;
 
@@ -40,6 +45,8 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
 
     @Resource
     private FinancialConverter financialConverter;
+    @Resource
+    private ManagementConverter managementConverter;
     @Resource
     private FinancialProductMapper financialProductMapper;
     @Resource
@@ -121,7 +128,7 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
     /**
      * 查询产品列表数据
      */
-    public IPage<FinancialProductVO> selectListByQuery(IPage<FinancialProduct> page, FinancialProductsQuery query){
+    public IPage<MFinancialProductVO> mSelectListByQuery(IPage<FinancialProduct> page, FinancialProductsQuery query){
         LambdaQueryWrapper<FinancialProduct> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper = queryWrapper.eq(FinancialProduct :: isDeleted,false);
         if(StringUtils.isNotBlank(query.getName())){
@@ -141,6 +148,15 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
         queryWrapper = queryWrapper.orderByDesc(FinancialProduct :: getCreateTime);
 
         IPage<FinancialProduct> financialProductIPage = financialProductMapper.selectPage(page, queryWrapper);
-        return financialProductIPage.convert(financialConverter ::toFinancialProductVO);
+
+        List<Long> productIds = financialProductIPage.getRecords().stream().map(FinancialProduct::getId).collect(Collectors.toList());
+        var productSummaryDataDtoMap = financialRecordService.getProductSummaryDataDtoMap(productIds);
+        return financialProductIPage.convert( index -> {
+            var mFinancialProductVO = managementConverter.toMFinancialProductVO(index);
+            var productSummaryDataDto = productSummaryDataDtoMap.getOrDefault(index.getId(), new ProductSummaryDataDto());
+            mFinancialProductVO.setUseQuota(Optional.ofNullable(productSummaryDataDto.getUseQuota()).orElse(BigDecimal.ZERO));
+            mFinancialProductVO.setHoldUserCount(Optional.ofNullable(productSummaryDataDto.getHoldUserCount()).orElse(BigInteger.ZERO));
+            return mFinancialProductVO;
+        });
     }
 }

@@ -23,4 +23,17 @@
              AND status = 'PROCESS'
         </where>
     </select>
+    <select id="listProductSummaryDataDto" resultType="com.tianli.management.dto.ProductSummaryDataDto">
+        SELECT
+               product_id ,
+               sum(hold_amount) as use_quota,
+               count(1) as hold_user_count
+        FROM financial_record
+        WHERE  product_id in
+        <foreach collection="productIds" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        AND status = 'PROCESS'
+        GROUP BY product_id
+    </select>
 </mapper>

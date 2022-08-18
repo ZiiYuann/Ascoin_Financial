@@ -8,10 +8,10 @@ import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialService;
-import com.tianli.financial.vo.FinancialProductVO;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.*;
 import com.tianli.management.service.FinancialBoardProductService;
+import com.tianli.management.vo.MFinancialProductVO;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.validation.annotation.Validated;
@@ -82,7 +82,7 @@ public class FinancialProductController {
     @GetMapping("/products")
     @AdminPrivilege(and = Privilege.理财配置)
     public Result products(PageQuery<FinancialProduct> page, FinancialProductsQuery query) {
-        IPage<FinancialProductVO> financialProductVOIPage = financialProductService.selectListByQuery(page.page(), query);
+        IPage<MFinancialProductVO> financialProductVOIPage = financialProductService.mSelectListByQuery(page.page(), query);
         return Result.success(financialProductVOIPage);
     }
 
