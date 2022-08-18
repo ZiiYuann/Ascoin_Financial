@@ -9,9 +9,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.web3j.abi.DefaultFunctionEncoder;
 import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.FunctionReturnDecoder;
+import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Uint;
+import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.RawTransaction;
@@ -187,6 +191,44 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
     @Override
     public boolean successByHash(String hash) {
         return "0x1".equals(getTransactionByHash(hash).getResult().getStatus());
+    }
+
+
+    @Override
+    public BigDecimal mainBalance(String address) {
+        BigInteger balanceOf;
+        try {
+            balanceOf = getWeb3j().ethGetBalance(address, DefaultBlockParameterName.LATEST).send().getBalance();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return BigDecimal.ZERO;
+        }
+        return new BigDecimal(balanceOf);
+    }
+
+    @Override
+    @SuppressWarnings({"unchecked","rawtypes"})
+    public BigDecimal tokenBalance(String address, TokenAdapter tokenAdapter) {
+        String balanceOf;
+        try {
+            var transaction = Transaction.createEthCallTransaction(
+                    null
+                    , tokenAdapter.getContractAddress()
+                    , new DefaultFunctionEncoder().encodeFunction(
+                    new Function("balanceOf", List.of(new Address(address)),
+                            List.of(TypeReference.create(Uint.class)))
+            ));
+            balanceOf = getWeb3j().ethCall(transaction, DefaultBlockParameterName.LATEST).send().getValue();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return BigDecimal.ZERO;
+        }
+        List<Type> list = FunctionReturnDecoder.decode(balanceOf,
+                List.of(TypeReference.create((Class) Uint256.class))
+        );
+        balanceOf = list.get(0).getValue().toString();
+        return new BigDecimal(balanceOf);
     }
 
     protected abstract JsonRpc2_0Web3j getWeb3j();

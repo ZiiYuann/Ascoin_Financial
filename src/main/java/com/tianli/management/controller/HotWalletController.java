@@ -63,4 +63,13 @@ public class HotWalletController {
         return Result.success().setData(hotWalletDetailedService.SummaryData(query));
     }
 
+    /**
+     * 【热钱包管理】余额
+     */
+    @GetMapping("/detailed/balance")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result balance() {
+        return Result.success().setData(hotWalletDetailedService.balance());
+    }
+
 }
