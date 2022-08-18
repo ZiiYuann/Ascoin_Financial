@@ -16,8 +16,10 @@ import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.mapper.FinancialRecordMapper;
 import com.tianli.financial.query.RecordRenewalQuery;
 import com.tianli.management.dto.AmountDto;
+import com.tianli.management.dto.ProductSummaryDataDto;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.MapUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -273,5 +275,19 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         record.setUpdateTime(LocalDateTime.now());
         record.setAutoRenewal(query.isAutoRenewal());
         financialRecordMapper.updateById(record);
+    }
+
+    /**
+     * 获取产品相关的汇总信息
+     */
+    @SuppressWarnings("unchecked")
+    public Map<Long, ProductSummaryDataDto> getProductSummaryDataDtoMap(List<Long> productIds){
+        if(CollectionUtils.isEmpty(productIds)){
+            return MapUtils.EMPTY_MAP;
+        }
+        return Optional.ofNullable(financialRecordMapper.listProductSummaryDataDto(productIds))
+                .orElse(new ArrayList<>())
+                .stream()
+                .collect(Collectors.toMap(ProductSummaryDataDto ::getProductId, o->o));
     }
 }

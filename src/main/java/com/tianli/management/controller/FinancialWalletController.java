@@ -198,4 +198,5 @@ public class FinancialWalletController {
         walletImputationService.imputationCompensateScan(imputationId);
         return Result.success();
     }
+
 }

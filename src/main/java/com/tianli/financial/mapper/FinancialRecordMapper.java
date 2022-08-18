@@ -5,6 +5,7 @@ import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.management.dto.AmountDto;
+import com.tianli.management.dto.ProductSummaryDataDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -32,4 +33,6 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
      */
     @Select("SELECT count(DISTINCT uid) FROM financial_record WHERE status = 'PROCESS'")
     BigInteger countUid();
+
+    List<ProductSummaryDataDto> listProductSummaryDataDto(List<Long> productIds);
 }
