@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.borrow.bo.BorrowPledgeCoinConfigBO;
 import com.tianli.borrow.contant.BorrowOrderPledgeStatus;
 import com.tianli.borrow.convert.BorrowCoinConfigConverter;
-import com.tianli.borrow.dao.BorrowCoinOrderMapper;
 import com.tianli.borrow.entity.BorrowPledgeCoinConfig;
 import com.tianli.borrow.dao.BorrowPledgeCoinConfigMapper;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
@@ -67,18 +66,18 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
         BigDecimal liquidationPledgeRate = borrowPledgeCoinConfig.getLiquidationPledgeRate();
         //预警线上移
         if(bo.getWarnPledgeRate().compareTo(configById.getWarnPledgeRate()) > 0) {
-            borrowCoinOrderService.updatePledgeStatusByPledgeRate(null, warnPledgeRate, BorrowOrderPledgeStatus.SAFE_PLEDGE);
+            borrowCoinOrderService.updatePledgeStatusByPledgeRateRange(null, warnPledgeRate, BorrowOrderPledgeStatus.SAFE_PLEDGE);
         }
 
         //预警线下移 平仓线上移
         if(bo.getWarnPledgeRate().compareTo(configById.getWarnPledgeRate()) < 0
         || bo.getLiquidationPledgeRate().compareTo(configById.getLiquidationPledgeRate()) > 0) {
-            borrowCoinOrderService.updatePledgeStatusByPledgeRate(warnPledgeRate, liquidationPledgeRate, BorrowOrderPledgeStatus.WARN_PLEDGE);
+            borrowCoinOrderService.updatePledgeStatusByPledgeRateRange(warnPledgeRate, liquidationPledgeRate, BorrowOrderPledgeStatus.WARN_PLEDGE);
         }
 
         //平仓线上移
         if(bo.getLiquidationPledgeRate().compareTo(configById.getLiquidationPledgeRate()) < 0){
-            borrowCoinOrderService.updatePledgeStatusByPledgeRate(liquidationPledgeRate, null, BorrowOrderPledgeStatus.LIQUIDATION_PLEDGE);
+            borrowCoinOrderService.updatePledgeStatusByPledgeRateRange(liquidationPledgeRate, null, BorrowOrderPledgeStatus.LIQUIDATION_PLEDGE);
         }
 
     }

@@ -755,7 +755,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     }
 
     @Override
-    public void updatePledgeStatusByPledgeRate(BigDecimal startPledgeRate, BigDecimal endPledgeRate, Integer pledgeStatus) {
+    public void updatePledgeStatusByPledgeRateRange(BigDecimal startPledgeRate, BigDecimal endPledgeRate, Integer pledgeStatus) {
         borrowCoinOrderMapper.updatePledgeStatusByPledgeRate(startPledgeRate,endPledgeRate,pledgeStatus);
     }
 
@@ -769,7 +769,9 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         return borrowCoinOrderMapper.selectCountByStatus(status);
     }
 
-
+    /**
+     * 借币质押
+     */
     private void borrowPledge(Long uid, Long orderId, CurrencyCoin coin, BigDecimal pledgeAmount){
         Order order = Order.builder()
                 .uid(uid)
@@ -787,6 +789,9 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
     }
 
+    /**
+     * 借币
+     */
     private void borrowCoin(Long uid,Long orderId,CurrencyCoin coin, BigDecimal pledgeAmount){
         Order order = Order.builder()
                 .uid(uid)
@@ -803,8 +808,11 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 , CurrencyLogDes.借币.name(),AccountOperationType.borrow);
     }
 
+    /**
+     * 释放质押
+     */
     private void releasePledge(Long uid, Long orderId, CurrencyCoin coin, BigDecimal amount){
-        Order releaseOrder = Order.builder()
+        Order order = Order.builder()
                 .uid(uid)
                 .orderNo(AccountChangeType.release.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
                 .completeTime(LocalDateTime.now())
@@ -815,11 +823,14 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .createTime(LocalDateTime.now())
                 .relatedId(orderId)
                 .build();
-        orderService.save(releaseOrder);
-        accountBalanceService.increase(uid, ChargeType.release, coin,null, amount, releaseOrder.getOrderNo()
+        orderService.save(order);
+        accountBalanceService.increase(uid, ChargeType.release, coin,null, amount, order.getOrderNo()
                 , CurrencyLogDes.释放质押.name(),AccountOperationType.release);
     }
 
+    /**
+     * 还币
+     */
     private void repayCoin(Long uid,Long orderId,CurrencyCoin coin, BigDecimal amount){
         Order order = Order.builder()
                 .uid(uid)
