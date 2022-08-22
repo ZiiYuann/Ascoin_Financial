@@ -3,8 +3,6 @@ package com.tianli.borrow.entity;
 import java.math.BigDecimal;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import java.time.LocalDateTime;
-import java.io.Serializable;
-import java.util.Date;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -48,6 +46,16 @@ public class BorrowCoinConfig extends Model<BorrowCoinConfig> {
     /**
      * 创建时间
      */
-    private Date createTime;
+    private LocalDateTime createTime;
+
+    /**
+     * 是否为折扣
+     */
+    private Boolean discount;
+
+    /**
+     * 折扣额度
+     */
+    private BigDecimal discountAmount;
 
 }
