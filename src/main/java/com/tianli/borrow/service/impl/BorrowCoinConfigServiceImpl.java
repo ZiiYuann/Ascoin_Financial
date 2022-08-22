@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
@@ -48,7 +49,7 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
         BorrowCoinConfig coinConfig = this.getByCoin(bo.getCoin());
         BorrowCoinConfig borrowCoinConfig = borrowCoinConfigConverter.toDO(bo);
         if(Objects.nonNull(coinConfig))ErrorCodeEnum.BORROW_CONFIG_EXIST.throwException();
-        borrowCoinConfig.setCreateTime(new Date());
+        borrowCoinConfig.setCreateTime(LocalDateTime.now());
         borrowCoinConfigMapper.insert(borrowCoinConfig);
     }
 
