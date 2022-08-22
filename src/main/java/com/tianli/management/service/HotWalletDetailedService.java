@@ -88,7 +88,7 @@ public class HotWalletDetailedService extends ServiceImpl<HotWalletDetailedMappe
         query.setType(HotWalletOperationType.withdraw);
         BigDecimal withdrawAmountDollar = orderService.calDollarAmount(baseMapper.summaryDataByQuery(query));
 
-        query.setType(HotWalletOperationType.user_recharge);
+        query.setType(HotWalletOperationType.user_withdraw);
         BigDecimal userWithdrawAmountDollar = orderService.calDollarAmount(baseMapper.summaryDataByQuery(query));
 
         query.setType(HotWalletOperationType.imputation);

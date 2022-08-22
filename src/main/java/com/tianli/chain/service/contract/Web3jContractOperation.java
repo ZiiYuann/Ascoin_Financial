@@ -134,7 +134,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
         String gas = this.getGas();
         BigInteger nonce = BigInteger.valueOf(getNonce(address));
         Long chainId = this.getChainId();
-        return SendRawTransaction(nonce, chainId, to, data,value, gas, gasLimit, password, operation);
+        return sendRawTransaction(nonce, chainId, to, data,value, gas, gasLimit, password, operation);
     }
 
     /**
@@ -151,7 +151,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
      * @param operation 操作信息
      * @return 结果
      */
-    public Result SendRawTransaction(BigInteger nonce, Long chainId, String to, String data, BigInteger value,
+    public Result sendRawTransaction(BigInteger nonce, Long chainId, String to, String data, BigInteger value,
                                      String gas, BigInteger gasLimit, String password, String operation) {
         log.info("gas:{}, limit: {}", gas, gasLimit);
 
