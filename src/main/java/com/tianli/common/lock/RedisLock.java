@@ -68,27 +68,6 @@ public class RedisLock {
         }
     }
 
-    /**
-     * 增加锁的时间 (非原子性操作, 高并发情况下谨慎使用)
-     * @param expireTime 需要重置设置的时间
-     * @param timeUnit 单位
-     * @param remainingTime 剩余的时长(s)
-     */
-    public void _addExpireTime(String key, Long expireTime, TimeUnit timeUnit, long remainingTime) {
-        BoundValueOperations<String, String> ops = stringRedisTemplate.boundValueOps(key);
-        Long expire = ops.getExpire();
-        if(Objects.isNull(expire) || expire > remainingTime){
-            return;
-        }
-        String val = ops.get();
-        if (val != null) {
-            Map<String, String> map = threadLocal.get();
-            if (map != null) {
-                ops.setIfPresent(val, expireTime, timeUnit);
-            }
-        }
-    }
-
     public void unlock(String key) {
         String attribute = null;
         Map<String, String> map = threadLocal.get();
@@ -104,7 +83,6 @@ public class RedisLock {
             }
         }
     }
-
 
     public void unlock() {
         Map<String, String> map = threadLocal.get();
