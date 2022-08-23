@@ -28,7 +28,7 @@
             AND `type` = #{query.type}
         </if>
         <if test="query.startTime != null and query.endTime != null">
-            AND create_time BETWEEN #{query.startTime}, #{query.endTime}
+            AND create_time BETWEEN #{query.startTime} and #{query.endTime}
         </if>
 
     </sql>
