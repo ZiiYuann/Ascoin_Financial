@@ -17,11 +17,13 @@ import com.tianli.borrow.query.BorrowRepayQuery;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
+import com.tianli.common.RedisLockConstants;
 import com.tianli.common.annotation.NoOperation;
-import com.tianli.common.annotation.NoRepeatSubmit;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.Result;
 import com.tianli.sso.init.RequestInitService;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,12 +50,14 @@ public class BorrowCoinOrderController {
     @Autowired
     private IBorrowCoinOrderService borrowCoinOrderService;
 
+    @Autowired
+    private RedissonClient redissonClient;
+
     /**
      * 借币主页面
      */
     @GetMapping("/main/page")
-    @NoRepeatSubmit
-    public Result main() throws InterruptedException {
+    public Result main() {
         BorrowCoinMainPageVO borrowCoinMainPageVO = borrowCoinOrderService.mainPage();
         return Result.success(borrowCoinMainPageVO);
     }
@@ -88,7 +92,6 @@ public class BorrowCoinOrderController {
      * 借币
      */
     @PostMapping("/order")
-    @NoRepeatSubmit
     public Result order(@RequestBody @Valid BorrowOrderBO bo){
         borrowCoinOrderService.borrowCoin(bo);
         return Result.success();
@@ -155,9 +158,14 @@ public class BorrowCoinOrderController {
      */
     @PostMapping("/order/repay")
     @NoOperation
-    @NoRepeatSubmit
     public Result orderRepay(@RequestBody @Valid BorrowOrderRepayBO bo){
-        borrowCoinOrderService.orderRepay(bo);
+        RLock lock = redissonClient.getLock(RedisLockConstants.BORROW_ORDER_UPDATE_LOCK + bo.getOrderId());
+        try {
+            lock.lock();
+            borrowCoinOrderService.orderRepay(bo);
+        }finally {
+            lock.unlock();
+        }
         return Result.success();
     }
 
@@ -177,9 +185,14 @@ public class BorrowCoinOrderController {
      * 调整质押率
      */
     @PostMapping("/order/adjust/pledge")
-    @NoRepeatSubmit
     public Result adjustPledge(@RequestBody @Valid AdjustPledgeBO bo){
-        borrowCoinOrderService.adjustPledge(bo);
+        RLock lock = redissonClient.getLock(RedisLockConstants.BORROW_ORDER_UPDATE_LOCK + bo.getOrderId());
+        try {
+            lock.lock();
+            borrowCoinOrderService.adjustPledge(bo);
+        } finally {
+            lock.unlock();
+        }
         return Result.success();
     }
 
