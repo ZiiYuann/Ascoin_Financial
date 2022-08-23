@@ -13,9 +13,12 @@ import com.tianli.borrow.query.BorrowRepayQuery;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
+import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.Result;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,13 +31,22 @@ public class BorrowCoinOrderManageController {
 
     @Autowired
     private IBorrowCoinOrderService borrowCoinOrderService;
+
+    @Autowired
+    private RedissonClient redissonClient;
     /**
      * 强制平仓
      */
     @PostMapping("/order/liquidation/{orderId}")
     @AdminPrivilege(and = Privilege.借币订单管理)
     public Result liquidation(@PathVariable Long orderId){
-        borrowCoinOrderService.forcedLiquidation(orderId);
+        RLock lock = redissonClient.getLock(RedisLockConstants.BORROW_ORDER_UPDATE_LOCK + orderId);
+        try {
+            lock.lock();
+            borrowCoinOrderService.forcedLiquidation(orderId);
+        } finally {
+            lock.unlock();
+        }
         return Result.success();
     }
 

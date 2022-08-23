@@ -18,7 +18,12 @@ import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.service.IBorrowInterestRecordService;
 import com.tianli.borrow.service.IBorrowPledgeCoinConfigService;
 import com.tianli.common.RedisLockConstants;
+import com.tianli.config.redisson.RedissonConfig;
 import lombok.extern.log4j.Log4j2;
+import org.redisson.api.RAtomicLong;
+import org.redisson.api.RBucket;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -30,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +61,7 @@ public class BorrowInterestTask {
     private IBorrowInterestRecordService borrowInterestRecordService;
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedissonClient redissonClient;
 
     /**
      * 补偿数据
@@ -65,8 +71,8 @@ public class BorrowInterestTask {
         LocalDateTime now = LocalDateTime.now();
         String hour = String.format("%s_%s_%s", now.getMonthValue(), now.getDayOfMonth(),now.getHour());
         String redisKey = RedisLockConstants.BORROW_INCOME_TASK + hour;
-        Boolean hasKey = redisTemplate.hasKey(redisKey);
-        if(Boolean.FALSE.equals(hasKey)){
+        RBucket<Object> bucket = redissonClient.getBucket(redisKey);
+        if(Boolean.FALSE.equals(bucket.isExists())){
             log.info("======借币计算利息补偿数据======");
             interestTasks(now);
         }
@@ -91,13 +97,21 @@ public class BorrowInterestTask {
         log.info("========执行计算利息定时任务========");
         while (true){
             long page = incr(redisKey,61L);
-            List<BorrowCoinOrder> records = borrowCoinOrderService.page(new Page<>(page+1, 100),
+            List<BorrowCoinOrder> records = borrowCoinOrderService.page(new Page<>(page, 100),
                     new QueryWrapper<BorrowCoinOrder>().lambda()
                             .eq(BorrowCoinOrder::getStatus, BorrowOrderStatus.INTEREST_ACCRUAL)).getRecords();
             if(CollUtil.isEmpty(records)){
                 break;
             }
-            records.forEach(record -> calculateInterest(record,coinInterestRateMap,coinWarnPledgeRateMap,coinLiquidationPledgeRateMap,dateTime));
+            records.forEach(record -> {
+                RLock lock = redissonClient.getLock(RedisLockConstants.BORROW_ORDER_UPDATE_LOCK + record.getId());
+                try {
+                    lock.lock();
+                    calculateInterest(record, coinInterestRateMap, coinWarnPledgeRateMap, coinLiquidationPledgeRateMap, dateTime);
+                }finally {
+                    lock.unlock();
+                }
+            });
         }
     }
 
@@ -148,10 +162,10 @@ public class BorrowInterestTask {
     }
 
     public Long incr(String key, long liveTime) {
-        RedisAtomicLong entityIdCounter = new RedisAtomicLong(key, Objects.requireNonNull(redisTemplate.getConnectionFactory()));
-        long increment = entityIdCounter.getAndIncrement();
-        if ( increment == 0 && liveTime > 0) {//初始设置过期时间
-            entityIdCounter.expire(liveTime, TimeUnit.MINUTES);
+        RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
+        long increment = atomicLong.incrementAndGet();
+        if ( increment == 1 && liveTime > 0) {//初始设置过期时间
+            atomicLong.expire(Duration.ofMinutes(liveTime));
         }
         return increment;
     }
