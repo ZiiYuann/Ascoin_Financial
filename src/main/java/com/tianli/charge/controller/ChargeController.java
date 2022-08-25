@@ -11,6 +11,7 @@ import com.tianli.charge.query.WithdrawQuery;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.common.PageQuery;
+import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.financial.enums.ProductType;
@@ -22,6 +23,8 @@ import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.crypto.Crypto;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.crypto.util.DigestFactory;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -49,6 +52,8 @@ public class ChargeController {
     private FinancialService financialService;
     @Resource
     private ChainCallbackLogService chainCallbackLogService;
+    @Resource
+    private RedissonClient redissonClient;
 
     /**
      * 充值回调
@@ -141,10 +146,16 @@ public class ChargeController {
     @PostMapping("/redeem")
     public Result redeem(@RequestBody @Valid RedeemQuery query) {
         Long uid = requestInitService.uid();
-        String orderNo = chargeService.redeem(uid, query);
-        HashMap<Object, Object> result = MapUtil.newHashMap();
-        result.put("orderNo", orderNo);
-        return Result.instance().setData(result);
+        RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_REDEEM + uid + ":" + query.getRecordId());
+        try {
+            lock.lock();
+            String orderNo = chargeService.redeem(uid, query);
+            HashMap<Object, Object> result = MapUtil.newHashMap();
+            result.put("orderNo", orderNo);
+            return Result.instance().setData(result);
+        }finally {
+            lock.unlock();
+        }
     }
 
     /**
