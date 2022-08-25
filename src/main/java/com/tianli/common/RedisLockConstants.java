@@ -22,7 +22,10 @@ public class RedisLockConstants {
     public static String BORROW_ORDER_CREATE_LOCK = "BorrowOrder:create:lock";
 
     public static String BORROW_ORDER_NUM_TASK = "BorrowOrderNumTask#statisticalOrderNum:lock:";
+
     public static String RECYCLE_LOCK = "recharge:recycle:";
+
+    public static String PRODUCT_REDEEM = "product:redeem:";
 
 
 }
