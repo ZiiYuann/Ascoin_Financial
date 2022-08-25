@@ -136,8 +136,15 @@ public class ChargeController {
     @PostMapping("/withdraw/apply")
     public Result withdraw(@RequestBody @Valid WithdrawQuery withdrawDTO) {
         Long uid = requestInitService.uid();
-        chargeService.withdrawApply(uid, withdrawDTO);
-        return Result.instance();
+        RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW + uid + ":" + withdrawDTO.getCoin());
+        try {
+            lock.lock();
+            chargeService.withdrawApply(uid, withdrawDTO);
+            return Result.instance();
+        }finally {
+            lock.unlock();
+        }
+
     }
 
     /**
@@ -163,7 +170,14 @@ public class ChargeController {
      */
     @PostMapping("/purchase/balance")
     public Result balancePurchase(@RequestBody @Valid PurchaseQuery purchaseQuery) {
-        return Result.instance().setData(financialService.purchase(purchaseQuery));
+        Long uid = requestInitService.uid();
+        RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_PURCHASE + uid + ":" + purchaseQuery.getProductId());
+        try {
+            lock.lock();
+            return Result.instance().setData(financialService.purchase(purchaseQuery));
+        }finally {
+            lock.unlock();
+        }
     }
 
     /**
