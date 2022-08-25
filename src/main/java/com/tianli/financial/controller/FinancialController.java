@@ -1,10 +1,7 @@
 package com.tianli.financial.controller;
 
-import cn.hutool.core.date.DateUtil;
-import com.tianli.account.service.AccountBalanceService;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
-import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
@@ -16,7 +13,6 @@ import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.ExpectIncomeVO;
-import com.tianli.financial.vo.FinancialProductVO;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.web.bind.annotation.*;
@@ -25,9 +21,6 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
 
 @RestController
 @RequestMapping("/financial")
@@ -40,11 +33,8 @@ public class FinancialController {
     @Resource
     private FinancialService financialService;
     @Resource
-    private FinancialConverter financialConverter;
-    @Resource
     private FinancialRecordService financialRecordService;
-    @Resource
-    private AccountBalanceService accountBalanceService;
+
 
     /**
      * 理财产品列表
@@ -67,24 +57,7 @@ public class FinancialController {
      */
     @GetMapping("/product/{productId}")
     public Result oneProduct(@PathVariable("productId") Long productId){
-        Long uid = requestInitService.uid();
-        FinancialProduct product = financialProductService.getById(productId);
-
-        FinancialProductVO productVO = financialConverter.toFinancialProductVO(product);
-
-        var useQuota = financialRecordService.getUseQuota(List.of(product.getId()));
-        var personUseQuota = financialRecordService.getUseQuota(List.of(product.getId()),uid);
-        var accountBalance = accountBalanceService.getAndInit(uid, product.getCoin());
-
-        LocalDateTime now = LocalDateTime.now();
-        productVO.setUseQuota(useQuota.getOrDefault(productVO.getId(),BigDecimal.ZERO));
-        productVO.setUserPersonQuota(personUseQuota.getOrDefault(productVO.getId(),BigDecimal.ZERO));
-        productVO.setAvailableBalance(accountBalance.getRemain());
-        productVO.setPurchaseTime(now);
-        LocalDateTime startIncomeTime = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(1);
-        productVO.setStartIncomeTime(startIncomeTime);
-        productVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
-        return Result.instance().setData(productVO);
+        return Result.instance().setData(financialService.productDetails(productId));
     }
 
     /**

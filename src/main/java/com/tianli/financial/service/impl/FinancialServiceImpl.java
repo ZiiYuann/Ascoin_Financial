@@ -44,7 +44,6 @@ import com.tianli.management.vo.FinancialUserInfoVO;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -52,10 +51,8 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -478,6 +475,35 @@ public class FinancialServiceImpl implements FinancialService {
         BigDecimal adjustRate = dRate.subtract(BigDecimal.valueOf(0.2f).multiply(randomRate));
 
         return limitQuota.multiply(adjustRate);
+    }
+
+    public FinancialProductVO productDetails(Long productId){
+        Long uid = requestInitService.uid();
+        FinancialProduct product = financialProductService.getById(productId);
+
+        FinancialProductVO productVO = financialConverter.toFinancialProductVO(product);
+
+        var useQuota = financialRecordService.getUseQuota(List.of(product.getId()));
+        var personUseQuota = financialRecordService.getUseQuota(List.of(product.getId()),uid);
+        var accountBalance = accountBalanceService.getAndInit(uid, product.getCoin());
+
+        LocalDateTime now = LocalDateTime.now();
+        productVO.setUseQuota(useQuota.getOrDefault(productVO.getId(),BigDecimal.ZERO));
+        productVO.setUserPersonQuota(personUseQuota.getOrDefault(productVO.getId(),BigDecimal.ZERO));
+        productVO.setAvailableBalance(accountBalance.getRemain());
+        productVO.setPurchaseTime(now);
+
+        // 设置假数据
+        BigDecimal baseDataAmount = getBaseDataAmount(product.getTotalQuota(), useQuota.get(productVO.getId()));
+        if(Objects.nonNull(baseDataAmount)){
+            productVO.setUseQuota(useQuota.get(productVO.getId()).add(baseDataAmount));
+            productVO.setBaseUseQuota(baseDataAmount);
+        }
+
+        LocalDateTime startIncomeTime = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(1);
+        productVO.setStartIncomeTime(startIncomeTime);
+        productVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
+        return productVO;
     }
 
     @Resource

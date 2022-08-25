@@ -104,4 +104,6 @@ public interface FinancialService {
     FinancialSummaryDataVO userData(String uid);
 
     void boardManual(TimeQuery query);
+
+    FinancialProductVO productDetails(Long productId);
 }
