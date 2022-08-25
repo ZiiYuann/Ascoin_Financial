@@ -9,7 +9,7 @@
         SET redeem_time =#{now},
             update_time = #{now},
             hold_amount = hold_amount - #{amount}
-        where id = #{recordId}
+        WHERE id = #{recordId} and hold_amount  >= #{amount} AND `status` = 'PROCESS'
     </update>
 
     <select id="countProcess" resultType="com.tianli.management.dto.AmountDto">
