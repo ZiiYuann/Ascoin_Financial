@@ -89,6 +89,11 @@ public class FinancialProductVO {
     private LocalDateTime purchaseTime;
 
     /**
+     * 已经使用基础额度（假数据）
+     */
+    private BigDecimal baseUseQuota;
+
+    /**
      * 记息时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
