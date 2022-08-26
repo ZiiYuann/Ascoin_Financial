@@ -3,6 +3,7 @@ package com.tianli.chain.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.converter.ChainConverter;
 import com.tianli.chain.dto.TRONTokenReq;
@@ -20,8 +21,11 @@ import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.management.entity.HotWalletDetailed;
+import com.tianli.management.enums.HotWalletOperationType;
 import com.tianli.management.query.WalletImputationManualQuery;
 import com.tianli.management.query.WalletImputationQuery;
+import com.tianli.management.service.HotWalletDetailedService;
 import com.tianli.task.RetryScheduledExecutor;
 import com.tianli.task.RetryTaskInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +58,11 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     private WalletImputationLogAppendixService walletImputationLogAppendixService;
     @Resource
     private RedisLock redisLock;
+    @Resource
+    private HotWalletDetailedService hotWalletDetailedService;
+    @Resource
+    private AddressService addressService;
+
 
     /**
      * 通过订单插入或修改归集信息
@@ -280,6 +289,34 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
             walletImputation.setUpdateTime(now);
         });
         this.updateBatchById(walletImputations);
+
+
+        if( !ImputationStatus.success.equals(status)){
+            return;
+        }
+
+        Address configAddress = addressService.getConfigAddress();
+        String toAddress = null;
+        switch (network){
+            case bep20: toAddress = configAddress.getBsc(); break;
+            case erc20: toAddress = configAddress.getEth(); break;
+            case trc20: toAddress = configAddress.getTron(); break;
+            default: break;
+        }
+
+        // 插入热钱包操作数据表
+        HotWalletDetailed hotWalletDetailed = HotWalletDetailed.builder()
+                .id(CommonFunction.generalId())
+                .uid("0")
+                .amount(walletImputationLog.getAmount())
+                .coin(walletImputationLog.getCoin())
+                .chain(network.getChainType())
+                .fromAddress(walletImputationLog.getFromAddress())
+                .toAddress(toAddress)
+                .hash(txid)
+                .type(HotWalletOperationType.imputation)
+                .createTime(walletImputationLog.getFinishTime()).build();
+        hotWalletDetailedService.insert(hotWalletDetailed);
     }
 
 }

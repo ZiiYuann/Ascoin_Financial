@@ -3,7 +3,10 @@ package com.tianli.management.entity;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.management.enums.HotWalletOperationType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,6 +17,9 @@ import java.time.LocalDateTime;
  * @since 2022-08-17
  **/
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class HotWalletDetailed {
 
     /**
