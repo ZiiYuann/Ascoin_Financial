@@ -43,15 +43,20 @@ public class AdminOssService {
     }
 
     private void ossServiceVerify(String cookie) {
-        Result res = ssoService.ossServiceVerify(cookie, LoginTokenType.ADMIN);
+        AdminInfo adminInfo = AdminContent.get();
+        String api = adminInfo.getApi();
+        Result res = ssoService.ossServiceVerify(cookie, LoginTokenType.ADMIN,  StringUtils.isBlank(api) ? "" : "/sapi".concat(api));
         Object data = null;
         if (Objects.isNull(res)
                 || !StringUtils.equals(res.getCode(), "0")
                 || Objects.isNull(data = res.getData()) ) {
+            //     ACCESS_DENY(103, "无权限"),
+            if (StringUtils.equals(res.getCode(), "103")) {
+                ErrorCodeEnum.ACCESS_DENY.throwException();
+            }
             ErrorCodeEnum.UNLOIGN.throwException();
         }
         JsonObject dataJsonObj = Constants.GSON.fromJson(data.toString(), JsonObject.class);
-        AdminInfo adminInfo = AdminContent.get();
         adminInfo.setAid(JsonObjectTool.getAsLong(dataJsonObj, "uid"))
                 .setPhone(JsonObjectTool.getAsString(dataJsonObj, "phone"))
                 .setUsername(JsonObjectTool.getAsString(dataJsonObj, "username"))

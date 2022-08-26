@@ -1,6 +1,10 @@
 package com.tianli.sso.permission;
 
+import com.tianli.sso.permission.admin.AdminContent;
+import com.tianli.sso.permission.admin.AdminInfo;
 import com.tianli.sso.service.AdminOssService;
+import org.apache.commons.lang3.StringUtils;
+import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.stereotype.Component;
@@ -28,6 +32,17 @@ public class PermissionAspect {
         if(url.contains("127.0.0.1")||url.contains("localhost")){
             return;
         }
+        String contextPath = privilege.api();
+        if (StringUtils.isBlank(contextPath)) {
+            contextPath = request.getServletPath();
+        }
+        AdminInfo adminInfo = AdminContent.get();
+        adminInfo.setApi(contextPath);
         adminOssService.loginStatus();
+    }
+
+    @After(value = "@annotation(privilege)")
+    public void removeActiveAdmin(AdminPrivilege privilege){
+        AdminContent.remove();
     }
 }

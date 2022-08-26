@@ -107,7 +107,7 @@ public class FinancialWalletController {
      * 【云钱包提币管理】上方统计
      */
     @GetMapping("/order/withdraw/data")
-    @AdminPrivilege(and = Privilege.理财管理)
+    @AdminPrivilege
     public Result withdrawOrderData(FinancialChargeQuery query) {
         query.setChargeType(ChargeType.withdraw);
         return Result.success()
@@ -118,7 +118,7 @@ public class FinancialWalletController {
      * 【云钱包提币管理】审核详情信息
      */
     @GetMapping("/order/withdraw/review/{orderNo}")
-    @AdminPrivilege(and = Privilege.理财管理)
+    @AdminPrivilege(api = "/management/financial/wallet/order/withdraw/review/orderNo")
     public Result orderReview(@PathVariable String orderNo) {
         return Result.success().setData(orderReviewService.getVOByOrderNo(orderNo));
     }
@@ -127,7 +127,7 @@ public class FinancialWalletController {
      * 【云钱包提币管理】审核
      */
     @PostMapping("/order/withdraw/review")
-    @AdminPrivilege(and = Privilege.理财管理)
+    @AdminPrivilege
     public Result orderReview(@RequestBody @Valid OrderReviewQuery query) {
         orderReviewService.review(query);
         return Result.success();
