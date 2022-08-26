@@ -27,7 +27,7 @@
         SELECT
                product_id ,
                sum(hold_amount) as use_quota,
-               count(1) as hold_user_count
+               count(distinct uid) as hold_user_count
         FROM financial_record
         WHERE  product_id in
         <foreach collection="productIds" item="item" open="(" close=")" separator=",">
