@@ -7,6 +7,7 @@
         SELECT * FROM hot_wallet_detailed
         WHERE 1=1
         <include refid="query"/>
+        order by create_time desc
     </select>
 
     <select id="summaryDataByQuery" resultType="com.tianli.management.dto.AmountDto">
@@ -30,6 +31,7 @@
         <if test="query.startTime != null and query.endTime != null">
             AND create_time BETWEEN #{query.startTime} and #{query.endTime}
         </if>
+
 
     </sql>
 </mapper>
