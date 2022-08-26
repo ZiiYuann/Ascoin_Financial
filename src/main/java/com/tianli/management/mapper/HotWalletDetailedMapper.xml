@@ -22,6 +22,9 @@
         <if test="query.hash != null">
             AND hash  LIKE CONCAT('%', #{query.hash},'%')
         </if>
+        <if test="query.chain != null">
+            AND   `chain` = #{query.coin.chain}
+        </if>
         <if test="query.coin != null">
             AND coin = #{query.coin}
         </if>
