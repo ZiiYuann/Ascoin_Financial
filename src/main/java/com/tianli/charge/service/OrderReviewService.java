@@ -13,10 +13,12 @@ import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.vo.OrderReviewVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.management.entity.HotWalletDetailed;
+import com.tianli.management.enums.HotWalletOperationType;
+import com.tianli.management.service.HotWalletDetailedService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -80,7 +82,22 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
             accountBalanceService.reduce(order.getUid(), ChargeType.withdraw, order.getCoin()
                     , orderChargeInfo.getNetwork(), orderChargeInfo.getFee(), order.getOrderNo(), "提现成功扣除");
             order.setStatus(ChargeStatus.chain_success);
+
+            // 插入热钱包操作数据表
+            HotWalletDetailed hotWalletDetailed = HotWalletDetailed.builder()
+                    .id(CommonFunction.generalId())
+                    .uid("0")
+                    .amount(orderChargeInfo.getFee())
+                    .coin(orderChargeInfo.getCoin())
+                    .chain(orderChargeInfo.getNetwork().getChainType())
+                    .fromAddress(orderChargeInfo.getFromAddress())
+                    .toAddress(orderChargeInfo.getToAddress())
+                    .hash(orderChargeInfo.getTxid())
+                    .type(HotWalletOperationType.user_withdraw)
+                    .createTime(LocalDateTime.now()).build();
+            hotWalletDetailedService.insert(hotWalletDetailed);
         }
+
         // 审核不通过需要解冻金额
         if (!query.isPass()) {
             order.setStatus(ChargeStatus.review_fail);
@@ -101,5 +118,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
     private AccountBalanceService accountBalanceService;
     @Resource
     private OrderChargeInfoService orderChargeInfoService;
+    @Resource
+    private HotWalletDetailedService hotWalletDetailedService;
 
 }

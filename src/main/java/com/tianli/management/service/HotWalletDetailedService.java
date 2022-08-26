@@ -65,8 +65,16 @@ public class HotWalletDetailedService extends ServiceImpl<HotWalletDetailedMappe
         if (Objects.nonNull(hotWalletDetailed.getId())) {
             baseMapper.updateById(hotWalletDetailed);
         }
-
     }
+
+    /**
+     * 插入数据
+     */
+    @Transactional
+    public void insert(HotWalletDetailed hotWalletDetailed) {
+        baseMapper.insert(hotWalletDetailed);
+    }
+
 
     @Transactional
     public void delete(Long id) {
