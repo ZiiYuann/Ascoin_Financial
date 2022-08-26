@@ -29,4 +29,9 @@ public class AdminInfo {
      * 手机号
      */
     private String phone;
+
+    /**
+     * 当前请求的api路径
+     */
+    private String api;
 }

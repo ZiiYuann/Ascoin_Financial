@@ -38,7 +38,7 @@ public class BorrowCoinOrderManageController {
      * 强制平仓
      */
     @PostMapping("/order/liquidation/{orderId}")
-    @AdminPrivilege(and = Privilege.借币订单管理)
+    @AdminPrivilege(and = Privilege.借币订单管理, api = "/management/borrow/order/liquidation/orderId")
     public Result liquidation(@PathVariable Long orderId){
         RLock lock = redissonClient.getLock(RedisLockConstants.BORROW_ORDER_UPDATE_LOCK + orderId);
         try {
@@ -125,7 +125,7 @@ public class BorrowCoinOrderManageController {
      * 平仓记录
      */
     @GetMapping("/order/liquidation/record/{orderId}")
-    @AdminPrivilege(and = Privilege.借币订单管理)
+    @AdminPrivilege(and = Privilege.借币订单管理, api = "/management/borrow/order/liquidation/record/orderId")
     public Result liquidationRecord(@PathVariable Long orderId){
         BorrowLiquidationRecordVO borrowLiquidationRecordVO = borrowCoinOrderService.liquidationRecord(orderId);
         return Result.success(borrowLiquidationRecordVO);

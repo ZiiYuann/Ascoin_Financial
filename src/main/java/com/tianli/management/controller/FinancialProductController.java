@@ -60,7 +60,7 @@ public class FinancialProductController {
      * 删除
      */
     @DeleteMapping("/product/{productId}")
-    @AdminPrivilege(and = Privilege.理财配置)
+    @AdminPrivilege(and = Privilege.理财配置, api = "/management/financial/product/productId")
     public Result delete(@PathVariable Long productId) {
         financialProductService.delete(productId);
         return Result.success();

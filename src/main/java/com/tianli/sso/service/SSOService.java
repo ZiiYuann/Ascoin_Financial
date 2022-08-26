@@ -23,13 +23,18 @@ public class SSOService {
     public static final String WALLET_NEWS_OSS_VERIFY_PATH = "wallet_news_oss_verify_path";
 
     public Result ossServiceVerify(String cookie, LoginTokenType tokenType) {
+        return ossServiceVerify(cookie, tokenType, "");
+    }
+
+    public Result ossServiceVerify(String cookie, LoginTokenType tokenType, String apiPath) {
         if (StringUtils.isBlank(cookie)) return null;
         // wallet_news校验管理员登录状态
         String walletNewsServerUrl = configService.getOrDefault(WALLET_NEWS_SERVER_URL, "https://wallet-news.giantdt.com");
         String walletNewsOssVerifyPath = configService.getOrDefault(WALLET_NEWS_OSS_VERIFY_PATH, "/api/sso/verify");
         String result = HttpUtil.post(walletNewsServerUrl + walletNewsOssVerifyPath, JSONUtil.toJsonStr(MapTool.Map()
                 .put("token", cookie)
-                .put("type", tokenType)));
+                .put("type", tokenType)
+                .put("api", apiPath)));
         return Constants.GSON.fromJson(result, Result.class);
     }
 
