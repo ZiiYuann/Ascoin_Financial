@@ -7,7 +7,10 @@ import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.entity.HotWalletDetailed;
 import com.tianli.management.query.HotWalletDetailedIoUQuery;
 import com.tianli.management.vo.*;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface ManagementConverter {
@@ -22,6 +25,7 @@ public interface ManagementConverter {
 
     MFinancialProductVO toMFinancialProductVO(FinancialProduct financialProduct);
 
+    @BeanMapping(builder = @Builder(disableBuilder = true))
     HotWalletDetailed toDO(HotWalletDetailedIoUQuery HotWalletDetailed);
 
     HotWalletDetailedVO toHotWalletDetailedVO(HotWalletDetailed hotWalletDetailed);
