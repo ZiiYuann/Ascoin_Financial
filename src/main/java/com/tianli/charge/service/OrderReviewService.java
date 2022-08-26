@@ -86,7 +86,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
             // 插入热钱包操作数据表
             HotWalletDetailed hotWalletDetailed = HotWalletDetailed.builder()
                     .id(CommonFunction.generalId())
-                    .uid("0")
+                    .uid(orderChargeInfo.getUid() + "")
                     .amount(orderChargeInfo.getFee())
                     .coin(orderChargeInfo.getCoin())
                     .chain(orderChargeInfo.getNetwork().getChainType())
