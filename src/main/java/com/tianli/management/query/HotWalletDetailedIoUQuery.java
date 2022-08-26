@@ -4,10 +4,7 @@ import com.tianli.chain.enums.ChainType;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.query.IoUQuery;
 import com.tianli.management.enums.HotWalletOperationType;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
@@ -22,6 +19,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @EqualsAndHashCode(callSuper = true)
 public class HotWalletDetailedIoUQuery extends IoUQuery {
 
