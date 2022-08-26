@@ -52,8 +52,8 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -355,15 +355,15 @@ public class FinancialServiceImpl implements FinancialService {
         LocalDateTime time = query.getTime();
         LocalDateTime dateTime = TimeTool.minDay(time);
         FinancialBoardProduct financialBoardProduct =
-                financialBoardProductService.getFinancialBoardProduct(dateTime,dateTime.plusDays(1), null);
+                financialBoardProductService.getFinancialBoardProduct(dateTime, dateTime.plusDays(1), null);
         FinancialBoardWallet financialBoardWallet =
                 financialBoardWalletService.getFinancialBoardWallet(dateTime, dateTime.plusDays(1), null);
         financialBoardProduct.setCreateTime(dateTime.toLocalDate());
         financialBoardWallet.setCreateTime(dateTime.toLocalDate());
-        financialBoardProductService.update(financialBoardProduct,new LambdaQueryWrapper<FinancialBoardProduct>()
-                .eq(FinancialBoardProduct :: getCreateTime,dateTime));
-        financialBoardWalletService.update(financialBoardWallet,new LambdaQueryWrapper<FinancialBoardWallet>()
-                .eq(FinancialBoardWallet :: getCreateTime,dateTime));
+        financialBoardProductService.update(financialBoardProduct, new LambdaQueryWrapper<FinancialBoardProduct>()
+                .eq(FinancialBoardProduct::getCreateTime, dateTime));
+        financialBoardWalletService.update(financialBoardWallet, new LambdaQueryWrapper<FinancialBoardWallet>()
+                .eq(FinancialBoardWallet::getCreateTime, dateTime));
     }
 
     private IPage<FinancialProductVO> getFinancialProductVOIPage(Page<FinancialProduct> page, ProductType type, LambdaQueryWrapper<FinancialProduct> query) {
@@ -382,30 +382,128 @@ public class FinancialServiceImpl implements FinancialService {
         return list.convert(product -> {
             BigDecimal useQuota = useQuotaMap.getOrDefault(product.getId(), BigDecimal.ZERO);
             BigDecimal usePersonQuota = usePersonQuotaMap.getOrDefault(product.getId(), BigDecimal.ZERO);
+            BigDecimal totalQuota = product.getTotalQuota();
+            BigDecimal personQuota = product.getPersonQuota();
 
+            // 设置额度信息
             FinancialProductVO financialProductVO = financialConverter.toFinancialProductVO(product);
             financialProductVO.setUseQuota(useQuota);
             financialProductVO.setUserPersonQuota(usePersonQuota);
-            if (Objects.isNull(product.getPersonQuota()) && Objects.isNull(product.getTotalQuota())) {
-                financialProductVO.setAllowPurchase(true);
+            // 设置是否可以申购
+            boolean allowPurchase =
+                    checkAllowPurchase(usePersonQuota, useQuota, personQuota, totalQuota, product.getBusinessType(), isNewUser);
+            financialProductVO.setAllowPurchase(allowPurchase);
+
+            // 设置假数据
+            BigDecimal baseDataAmount = getBaseDataAmount(totalQuota, useQuota);
+            if(Objects.nonNull(baseDataAmount)){
+                financialProductVO.setUseQuota(useQuota.add(baseDataAmount));
+                financialProductVO.setBaseUseQuota(baseDataAmount);
             }
 
-            if (Objects.nonNull(product.getPersonQuota()) && Objects.nonNull(product.getTotalQuota())) {
-                financialProductVO.setAllowPurchase(usePersonQuota.compareTo(product.getPersonQuota()) < 0 && useQuota.compareTo(product.getTotalQuota()) < 0);
-            }
-
-            if (Objects.nonNull(product.getPersonQuota()) && Objects.isNull(product.getTotalQuota())) {
-                financialProductVO.setAllowPurchase(usePersonQuota.compareTo(product.getPersonQuota()) < 0);
-            }
-            if (Objects.isNull(product.getPersonQuota()) && Objects.nonNull(product.getTotalQuota())) {
-                financialProductVO.setAllowPurchase(useQuota.compareTo(product.getTotalQuota()) < 0);
-            }
-            if (BusinessType.benefits.equals(product.getBusinessType()) && !isNewUser ){
-                financialProductVO.setAllowPurchase(false);
-            }
-
-                return financialProductVO;
+            return financialProductVO;
         });
+    }
+
+    /**
+     * 判断是否可以申购
+     *
+     * @param usePersonQuota 个人使用额度
+     * @param useQuota       总使用额度
+     * @param personQuota    限度个人额度
+     * @param totalQuota     限定使用额度
+     * @return true or false
+     */
+    private boolean checkAllowPurchase(BigDecimal usePersonQuota,
+                                       BigDecimal useQuota,
+                                       BigDecimal personQuota,
+                                       BigDecimal totalQuota,
+                                       BusinessType businessType,
+                                       boolean isNewUser) {
+
+        // 如果是新用户福利产品，仅限新用户
+        if (BusinessType.benefits.equals(businessType) && !isNewUser) {
+            return false;
+        }
+
+        // 如果个人额度和总额度都不存在，直接可以购买
+        if (Objects.isNull(personQuota) && Objects.isNull(totalQuota)) {
+            return true;
+        }
+
+        // 如果存在个人额度不存在总额度 比较个人额度
+        if (Objects.nonNull(personQuota) && Objects.isNull(totalQuota)) {
+            return usePersonQuota.compareTo(personQuota) < 0;
+        }
+
+        // 如果存在总额度不存在个人额度 比较总额度
+        if (Objects.isNull(personQuota)) {
+            return useQuota.compareTo(totalQuota) < 0;
+        }
+
+        // 如果个人额度和总额度都存在 比较两者
+        return usePersonQuota.compareTo(personQuota) < 0 && useQuota.compareTo(totalQuota) < 0;
+
+    }
+
+    /**
+     * 获取假数据基础数据
+     */
+    private BigDecimal getBaseDataAmount(BigDecimal limitQuota, BigDecimal useQuota) {
+        if (Objects.isNull(limitQuota) || Objects.isNull(useQuota)) {
+            return null;
+        }
+        // 实际比例
+        BigDecimal realRate = useQuota.divide(limitQuota, 4, RoundingMode.HALF_UP);
+        BigDecimal expectRate = BigDecimal.valueOf(0.8f);
+
+        if (realRate.compareTo(expectRate) >= 0) {
+            return null;
+        }
+        // 差值比例 = （期望比例 - 实际比例)
+        BigDecimal dRate = expectRate.subtract(realRate);
+
+        LocalDateTime now = LocalDateTime.now();
+        int dayOfMonth = now.getDayOfMonth();
+        int month = now.getMonthValue();
+        String monthAndDay = now.format(DateTimeFormatter.ofPattern("MMdd"));
+        int randomNum = (Integer.parseInt(monthAndDay) + dayOfMonth * 100 + month * 100) % 365;
+        // 获取一个每天固定的随机比例 365 以内
+        BigDecimal randomRate = BigDecimal.valueOf(randomNum).divide(BigDecimal.valueOf(365L), 4, RoundingMode.HALF_DOWN);
+
+        // 调整比例 = 差值比例 - 差值比例 * 0.2 * 每天固定随机比例
+        BigDecimal adjustRate = dRate.subtract(BigDecimal.valueOf(0.2f).multiply(randomRate));
+
+        return limitQuota.multiply(adjustRate);
+    }
+
+    public FinancialProductVO productDetails(Long productId){
+        Long uid = requestInitService.uid();
+        FinancialProduct product = financialProductService.getById(productId);
+
+        FinancialProductVO productVO = financialConverter.toFinancialProductVO(product);
+
+        var useQuota = financialRecordService.getUseQuota(List.of(product.getId()));
+        var personUseQuota = financialRecordService.getUseQuota(List.of(product.getId()),uid);
+        var accountBalance = accountBalanceService.getAndInit(uid, product.getCoin());
+
+        LocalDateTime now = LocalDateTime.now();
+        productVO.setUseQuota(useQuota.getOrDefault(productVO.getId(),BigDecimal.ZERO));
+        productVO.setUserPersonQuota(personUseQuota.getOrDefault(productVO.getId(),BigDecimal.ZERO));
+        productVO.setAvailableBalance(accountBalance.getRemain());
+        productVO.setPurchaseTime(now);
+
+        // 设置假数据
+        BigDecimal baseDataAmount = getBaseDataAmount(product.getTotalQuota(), useQuota.get(productVO.getId()));
+        if(Objects.nonNull(baseDataAmount)){
+            productVO.setUseQuota(useQuota.get(productVO.getId()).add(baseDataAmount));
+            productVO.setBaseUseQuota(baseDataAmount);
+        }
+
+        LocalDateTime startIncomeTime = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(1);
+        productVO.setStartIncomeTime(startIncomeTime);
+        productVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
+        return productVO;
     }
 
     @Resource

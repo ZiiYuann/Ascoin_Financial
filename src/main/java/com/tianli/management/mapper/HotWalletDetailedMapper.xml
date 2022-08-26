@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tianli.management.mapper.HotWalletDetailedMapper">
+
+
+    <select id="pageByQuery" resultType="com.tianli.management.entity.HotWalletDetailed">
+        SELECT * FROM hot_wallet_detailed
+        WHERE 1=1
+        <include refid="query"/>
+    </select>
+
+    <select id="summaryDataByQuery" resultType="com.tianli.management.dto.AmountDto">
+        select sum(amount) as amount ,coin FROM hot_wallet_detailed
+        WHERE 1=1
+        <include refid="query"/>
+        GROUP BY coin
+    </select>
+
+
+    <sql id="query">
+        <if test="query.hash != null">
+            AND hash  LIKE CONCAT('%', #{query.hash},'%')
+        </if>
+        <if test="query.coin != null">
+            AND coin = #{query.coin}
+        </if>
+        <if test="query.type != null">
+            AND `type` = #{query.type}
+        </if>
+        <if test="query.startTime != null and query.endTime != null">
+            AND create_time BETWEEN #{query.startTime} and #{query.endTime}
+        </if>
+
+    </sql>
+</mapper>

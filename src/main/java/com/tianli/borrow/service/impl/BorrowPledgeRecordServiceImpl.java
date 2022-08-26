@@ -68,8 +68,6 @@ public class BorrowPledgeRecordServiceImpl extends ServiceImpl<BorrowPledgeRecor
             queryWrapper.le(BorrowPledgeRecord::getPledgeTime,query.getEndTime());
         }
 
-        queryWrapper.ne(BorrowPledgeRecord::getType, BorrowPledgeType.LIQUIDATION);
-
         queryWrapper.orderByDesc(BorrowPledgeRecord::getPledgeTime);
 
         return this.page(pageQuery.page(), queryWrapper).convert(borrowConverter::toPledgeVO);

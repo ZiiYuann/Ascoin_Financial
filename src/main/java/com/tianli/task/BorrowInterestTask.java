@@ -89,8 +89,8 @@ public class BorrowInterestTask {
         LocalDateTime dateTime = LocalDateTime.of(now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), 0);
         String hour = String.format("%s_%s_%s", now.getMonthValue(), now.getDayOfMonth(),now.getHour());
         String redisKey = RedisLockConstants.BORROW_INCOME_TASK + hour;
-        List<BorrowCoinConfig> borrowCoinConfigs = borrowCoinConfigService.list(null);
-        List<BorrowPledgeCoinConfig> borrowPledgeCoinConfigs = borrowPledgeCoinConfigService.list(null);
+        List<BorrowCoinConfig> borrowCoinConfigs = borrowCoinConfigService.list();
+        List<BorrowPledgeCoinConfig> borrowPledgeCoinConfigs = borrowPledgeCoinConfigService.list();
         Map<String, BigDecimal> coinInterestRateMap = borrowCoinConfigs.stream().collect(Collectors.toMap(BorrowCoinConfig::getCoin, BorrowCoinConfig::getAnnualInterestRate));
         Map<String, BigDecimal> coinWarnPledgeRateMap = borrowPledgeCoinConfigs.stream().collect(Collectors.toMap(BorrowPledgeCoinConfig::getCoin, BorrowPledgeCoinConfig::getWarnPledgeRate));
         Map<String, BigDecimal> coinLiquidationPledgeRateMap = borrowPledgeCoinConfigs.stream().collect(Collectors.toMap(BorrowPledgeCoinConfig::getCoin, BorrowPledgeCoinConfig::getLiquidationPledgeRate));
@@ -161,12 +161,6 @@ public class BorrowInterestTask {
         borrowInterestRecordService.save(interestRecord);
     }
 
-    /**
-     *
-     * @param key
-     * @param liveTime
-     * @return
-     */
     public Long incr(String key, long liveTime) {
         RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
         long increment = atomicLong.incrementAndGet();

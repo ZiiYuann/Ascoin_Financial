@@ -15,7 +15,6 @@ import org.bouncycastle.util.encoders.Hex;
 import org.springframework.stereotype.Component;
 import org.tron.api.GrpcAPI;
 import org.tron.api.WalletGrpc;
-import org.tron.common.crypto.Sha256Sm3Hash;
 import org.tron.common.utils.Base58Utils;
 import org.tron.common.utils.ByteArray;
 import org.tron.protos.Protocol;
@@ -32,14 +31,13 @@ import org.tron.tronj.crypto.tuweniTypes.Bytes32;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @Author cs
- * @Date 2022-01-06 2:27 下午
+ * @author  cs
+ * @since  2022-01-06 2:27 下午
  */
 @Component
 public class TronTriggerContract extends AbstractContractOperation {
@@ -164,68 +162,6 @@ public class TronTriggerContract extends AbstractContractOperation {
         return bytes;
     }
 
-    public BigDecimal trc20Balance(String ownerAddress, String contractAddrStr) {
-        byte[] ownerAddresses = null;
-        ownerAddresses = Base58Utils.decodeFromBase58Check(ownerAddress);
-        if (ownerAddresses == null) ErrorCodeEnum.ADDRESS_ERROR.throwException();
-
-        String methodStr = "balanceOf(address)";
-        String argsStr = "\"" + ownerAddress + "\"";
-        boolean isHex = false;
-        byte[] input = Hex.decode(Base58Utils.parseMethod(methodStr, argsStr, isHex));
-        byte[] contractAddress = Base58Utils.decodeFromBase58Check(contractAddrStr);
-        if (contractAddress == null) ErrorCodeEnum.throwException("合约地址错误");
-
-        SmartContractOuterClass.TriggerSmartContract.Builder builder = SmartContractOuterClass.TriggerSmartContract.newBuilder();
-        builder.setOwnerAddress(ByteString.copyFrom(ownerAddresses));
-        builder.setContractAddress(ByteString.copyFrom(contractAddress));
-        builder.setData(ByteString.copyFrom(input));
-        builder.setCallValue(0);
-
-        SmartContractOuterClass.TriggerSmartContract triggerContract = builder.build();
-        GrpcAPI.TransactionExtention transactionExtention;
-        transactionExtention = blockingStub.triggerConstantContract(triggerContract);
-
-        if (transactionExtention == null || !transactionExtention.getResult().getResult()) {
-            ErrorCodeEnum.throwException("获取trc20代币余额失败");
-        }
-        Protocol.Transaction transaction = transactionExtention.getTransaction();
-        if (transaction.getRetCount() != 0
-                && transactionExtention.getConstantResult(0) != null
-                && transactionExtention.getResult() != null) {
-            byte[] result = transactionExtention.getConstantResult(0).toByteArray();
-            String amount = org.spongycastle.util.encoders.Hex.toHexString(result);
-            return new BigDecimal(new BigInteger(amount, 16));
-
-        }
-        return BigDecimal.ZERO;
-    }
-
-    public BigDecimal trxBalance(String ownerAddress) {
-        if (StringUtils.isBlank(ownerAddress)) ErrorCodeEnum.throwException("请输入地址");
-        Protocol.Account account;
-        byte[] addressBytes = Base58Utils.decodeFromBase58Check(ownerAddress);
-        if (addressBytes == null) {
-            ErrorCodeEnum.throwException("地址解析异常");
-        }
-        ByteString addressBS = ByteString.copyFrom(addressBytes);
-        Protocol.Account request = Protocol.Account.newBuilder().setAddress(addressBS).build();
-        account = blockingStub.getAccount(request);
-        if (account == null) {
-            ErrorCodeEnum.throwException("暂无trx余额信息");
-            return BigDecimal.ZERO;
-        } else {
-            return new BigDecimal(account.getBalance());
-        }
-    }
-
-    public String transferTrx(String to, long amount) {
-        String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
-        BalanceContract.TransferContract contract = createTransferContract(to, ownerAddress, amount);
-        GrpcAPI.TransactionExtention transactionExtention = blockingStub.createTransaction2(contract);
-        return processTransactionExtention(transactionExtention);
-    }
-
     public BalanceContract.TransferContract createTransferContract(String to, String owner, long amount) {
         BalanceContract.TransferContract.Builder builder = BalanceContract.TransferContract.newBuilder();
         ByteString bsTo = address2ByteString(to);
@@ -234,35 +170,6 @@ public class TronTriggerContract extends AbstractContractOperation {
         builder.setOwnerAddress(bsOwner);
         builder.setAmount(amount);
         return builder.build();
-    }
-
-    private String processTransactionExtention(GrpcAPI.TransactionExtention transactionExtention) {
-        if (transactionExtention == null) {
-            return null;
-        }
-        GrpcAPI.Return ret = transactionExtention.getResult();
-        if (!ret.getResult()) {
-            System.out.println("Code = " + ret.getCode());
-            System.out.println("Message = " + ret.getMessage().toStringUtf8());
-            return null;
-        }
-        Protocol.Transaction transaction = transactionExtention.getTransaction();
-        if (transaction.getRawData().getContractCount() == 0) {
-            System.out.println("Transaction is empty");
-            return null;
-        }
-
-        if (transaction.getRawData().getContract(0).getType()
-                == Protocol.Transaction.Contract.ContractType.ShieldedTransferContract) {
-            return null;
-        }
-        System.out.println("before sign transaction hex string is " +
-                ByteArray.toHexString(transaction.toByteArray()));
-        transaction = signTransaction(transactionExtention, getKeyPair());
-//        showTransactionAfterSign(transaction);
-        GrpcAPI.Return ret2 = blockingStub.broadcastTransaction(transaction);
-        if (!ret2.getResult()) return null;
-        return ByteArray.toHexString(Sha256Sm3Hash.hash(transaction.getRawData().toByteArray()));
     }
 
     @Override
@@ -276,12 +183,63 @@ public class TronTriggerContract extends AbstractContractOperation {
         byte[] decode = Hex.decode(hash);
         Protocol.Transaction transaction =
                 blockingStub.getTransactionById(GrpcAPI.BytesMessage.newBuilder().setValue(ByteString.copyFrom(decode)).build());
-        List<Protocol.Transaction.Result.code> codes = transaction.getRetList().stream().map(result -> result.getRet()).distinct().collect(Collectors.toList());
+        List<Protocol.Transaction.Result.code> codes = transaction.getRetList().stream().map(Protocol.Transaction.Result::getRet).distinct().collect(Collectors.toList());
 
-        if (CollectionUtils.isNotEmpty(codes) && codes.size() > 1) {
-            return false;
+        return !CollectionUtils.isNotEmpty(codes) || codes.size() <= 1;
+    }
+
+    @Override
+    public BigDecimal mainBalance(String address) {
+        if (StringUtils.isBlank(address)) ErrorCodeEnum.throwException("请输入地址");
+        Protocol.Account account;
+        byte[] addressBytes = Base58Utils.decodeFromBase58Check(address);
+        if (addressBytes == null) {
+            ErrorCodeEnum.throwException("地址解析异常");
         }
-        return true;
+        Protocol.Account request = Protocol.Account.newBuilder().setAddress(ByteString.copyFrom(addressBytes)).build();
+        account = blockingStub.getAccount(request);
+        if (account == null) {
+            ErrorCodeEnum.throwException("暂无trx余额信息");
+            return BigDecimal.ZERO;
+        } else {
+            return new BigDecimal(account.getBalance());
+        }
+    }
+
+    @Override
+    public BigDecimal tokenBalance(String address, TokenAdapter tokenAdapter) {
+        byte[] ownerAddresses ;
+        ownerAddresses = Base58Utils.decodeFromBase58Check(address);
+        if (ownerAddresses == null) ErrorCodeEnum.ADDRESS_ERROR.throwException();
+
+        String methodStr = "balanceOf(address)";
+        String argsStr = "\"" + address + "\"";
+        boolean isHex = false;
+        byte[] input = Hex.decode(Base58Utils.parseMethod(methodStr, argsStr, isHex));
+        byte[] contractAddress = Base58Utils.decodeFromBase58Check(tokenAdapter.getContractAddress());
+        if (contractAddress == null) ErrorCodeEnum.throwException("合约地址错误");
+
+        SmartContractOuterClass.TriggerSmartContract.Builder builder = SmartContractOuterClass.TriggerSmartContract.newBuilder();
+        builder.setOwnerAddress(ByteString.copyFrom(ownerAddresses));
+        builder.setContractAddress(ByteString.copyFrom(contractAddress));
+        builder.setData(ByteString.copyFrom(input));
+        builder.setCallValue(0);
+
+        SmartContractOuterClass.TriggerSmartContract triggerContract = builder.build();
+        GrpcAPI.TransactionExtention transactionExtention;
+        transactionExtention = blockingStub.triggerConstantContract(triggerContract);
+
+        if (transactionExtention == null || !transactionExtention.getResult().getResult()) {
+            ErrorCodeEnum.throwException(String.format("[%s]获取%s代币余额失败", "tron", tokenAdapter.getCurrencyCoin().name()));
+        }
+        Protocol.Transaction transaction = transactionExtention.getTransaction();
+        if (transaction.getRetCount() != 0) {
+            byte[] result = transactionExtention.getConstantResult(0).toByteArray();
+            String amount = org.spongycastle.util.encoders.Hex.toHexString(result);
+            return new BigDecimal(new BigInteger(amount, 16));
+
+        }
+        return BigDecimal.ZERO;
     }
 
 

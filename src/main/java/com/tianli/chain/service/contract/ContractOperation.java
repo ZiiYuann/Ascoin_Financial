@@ -4,6 +4,7 @@ import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.Result;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -53,4 +54,18 @@ public interface ContractOperation {
     boolean successByHash(String hash);
 
 
+    /**
+     * 主币余额
+     * @param address 钱包地址
+     * @return 余额
+     */
+    BigDecimal mainBalance(String address);
+
+    /**
+     * 代币余额
+     * @param address 钱包地址
+     * @param tokenAdapter 代币合约
+     * @return 余额
+     */
+    BigDecimal tokenBalance(String address,TokenAdapter tokenAdapter);
 }

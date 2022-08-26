@@ -27,6 +27,6 @@ public interface BorrowInterestRecordMapper extends BaseMapper<BorrowInterestRec
 
     @Select("SELECT DATE_FORMAT(interest_accrual_time,'%Y-%m-%d') time,SUM(interest_accrual)amount FROM borrow_interest_record\n" +
             "WHERE interest_accrual_time >= #{startTime}\n" +
-            "GROUP BY DATE_FORMAT(interest_accrual_time,'%Y-%m-%d');")
+            "GROUP BY time")
     List<BorrowOrderStatisticsChartVO> selectInterestChartByTime(@Param("startTime")Date startTime);
 }
