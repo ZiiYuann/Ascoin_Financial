@@ -44,4 +44,6 @@ public class HotWalletDetailedVO {
 
     private String remarks;
 
+    private LocalDateTime createTime;
+
 }
