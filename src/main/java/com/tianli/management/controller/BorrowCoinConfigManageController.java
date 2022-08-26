@@ -43,7 +43,7 @@ public class BorrowCoinConfigManageController {
      * 删除配置
      */
     @DeleteMapping("/{ids}")
-    @AdminPrivilege(and = Privilege.借币配置)
+    @AdminPrivilege(and = Privilege.借币配置, api = "/management/borrow/coin/config/ids")
     public Result delete(@PathVariable Long[] ids){
         borrowCoinConfigService.delConfig(ids);
         return Result.success();
