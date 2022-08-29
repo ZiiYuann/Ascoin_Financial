@@ -457,7 +457,7 @@ public class FinancialServiceImpl implements FinancialService {
         BigDecimal realRate = useQuota.divide(limitQuota, 4, RoundingMode.HALF_UP);
         // 期望比例
         BigDecimal expectRate = BigDecimal.valueOf(0.5f);
-        var baseRate = BigDecimal.valueOf(productId % 20).subtract(BigDecimal.valueOf(0.01f));
+        var baseRate = BigDecimal.valueOf(productId % 20).multiply(BigDecimal.valueOf(0.01f));
         if (realRate.compareTo(expectRate) >= 0) {
             return null;
         }
