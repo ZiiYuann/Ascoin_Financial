@@ -38,6 +38,7 @@ public class PermissionAspect {
         }
         AdminInfo adminInfo = AdminContent.get();
         adminInfo.setApi(contextPath);
+        adminInfo.setApi_method(request.getMethod());
         adminOssService.loginStatus();
     }
 
