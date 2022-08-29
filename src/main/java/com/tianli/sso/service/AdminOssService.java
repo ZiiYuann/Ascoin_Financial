@@ -46,7 +46,7 @@ public class AdminOssService {
         AdminInfo adminInfo = AdminContent.get();
         String api = adminInfo.getApi();
         String api_method = adminInfo.getApi_method();
-        Result res = ssoService.ossServiceVerify(cookie, LoginTokenType.ADMIN, StringUtils.isBlank(api) ? "" : "/sapi".concat(api), api_method);
+        Result res = ssoService.ossServiceVerify(cookie, LoginTokenType.ADMIN, StringUtils.isBlank(api) ? "" : "/fapi".concat(api), api_method);
         Object data = null;
         if (Objects.isNull(res)
                 || !StringUtils.equals(res.getCode(), "0")
