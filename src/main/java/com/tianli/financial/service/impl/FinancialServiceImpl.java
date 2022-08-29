@@ -395,7 +395,7 @@ public class FinancialServiceImpl implements FinancialService {
             financialProductVO.setAllowPurchase(allowPurchase);
 
             // 设置假数据
-            BigDecimal baseDataAmount = getBaseDataAmount(totalQuota, useQuota);
+            BigDecimal baseDataAmount = getBaseDataAmount(product.getId(),totalQuota, useQuota);
             if(Objects.nonNull(baseDataAmount)){
                 financialProductVO.setUseQuota(useQuota.add(baseDataAmount));
                 financialProductVO.setBaseUseQuota(baseDataAmount);
@@ -449,7 +449,7 @@ public class FinancialServiceImpl implements FinancialService {
     /**
      * 获取假数据基础数据
      */
-    private BigDecimal getBaseDataAmount(BigDecimal limitQuota, BigDecimal useQuota) {
+    private BigDecimal getBaseDataAmount(Long productId,BigDecimal limitQuota, BigDecimal useQuota) {
         if (Objects.isNull(limitQuota) || Objects.isNull(useQuota)) {
             return null;
         }
@@ -457,11 +457,10 @@ public class FinancialServiceImpl implements FinancialService {
         BigDecimal realRate = useQuota.divide(limitQuota, 4, RoundingMode.HALF_UP);
         // 期望比例
         BigDecimal expectRate = BigDecimal.valueOf(0.5f);
-
+        var baseRate = BigDecimal.valueOf(productId % 20).subtract(BigDecimal.valueOf(0.01f));
         if (realRate.compareTo(expectRate) >= 0) {
             return null;
         }
-
 
         LocalDateTime now = LocalDateTime.now();
         int dayOfMonth = now.getDayOfMonth();
@@ -472,7 +471,10 @@ public class FinancialServiceImpl implements FinancialService {
         BigDecimal randomRate = BigDecimal.valueOf(randomNum).divide(BigDecimal.valueOf(365L), 4, RoundingMode.HALF_DOWN);
 
         // 调整比例 = 差值比例 - 差值比例 * 0.2 * 每天固定随机比例
-        BigDecimal adjustRate = expectRate.subtract(BigDecimal.valueOf(0.8f).multiply(randomRate));
+        BigDecimal adjustRate = expectRate.subtract(BigDecimal.valueOf(0.8f).multiply(randomRate).add(baseRate));
+        if(adjustRate.compareTo(BigDecimal.valueOf(0.2f)) < 0){
+            adjustRate = adjustRate.add(BigDecimal.valueOf(0.2f));
+        }
 
         return limitQuota.multiply(adjustRate);
     }
@@ -494,7 +496,7 @@ public class FinancialServiceImpl implements FinancialService {
         productVO.setPurchaseTime(now);
 
         // 设置假数据
-        BigDecimal baseDataAmount = getBaseDataAmount(product.getTotalQuota(), useQuota.get(productVO.getId()));
+        BigDecimal baseDataAmount = getBaseDataAmount(product.getId(),product.getTotalQuota(), useQuota.get(productVO.getId()));
         if(Objects.nonNull(baseDataAmount)){
             productVO.setUseQuota(useQuota.get(productVO.getId()).add(baseDataAmount));
             productVO.setBaseUseQuota(baseDataAmount);
