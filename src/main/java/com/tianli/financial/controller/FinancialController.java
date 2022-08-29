@@ -37,11 +37,11 @@ public class FinancialController {
 
 
     /**
-     * 理财产品列表
+     * 理财产品汇总格式列表
      */
-    @GetMapping("/products/summary")
+    @GetMapping("/summary/products")
     public Result productSummary(PageQuery<FinancialProduct> pageQuery,ProductType productType){
-        return Result.instance().setData(financialService.products(pageQuery.page(),productType));
+        return Result.instance().setData(financialService.summaryProducts(pageQuery.page(),productType));
     }
 
     /**

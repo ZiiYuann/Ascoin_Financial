@@ -20,6 +20,7 @@ import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.FinancialUserInfoVO;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 
 /**
@@ -82,6 +83,11 @@ public interface FinancialService {
      *
      */
     FinancialSummaryDataVO summaryIncomeByQuery(FinancialProductIncomeQuery query);
+
+    /**
+     * 汇总产品列表
+     */
+    List<FinancialProductVO> summaryProducts(Page<FinancialProduct> page, ProductType type);
 
     /**
      * 产品列表

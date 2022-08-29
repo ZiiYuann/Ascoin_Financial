@@ -21,6 +21,7 @@ import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
+import com.tianli.financial.dto.ProductRateDTO;
 import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
@@ -273,10 +274,34 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
+    public List<FinancialProductVO> summaryProducts(Page<FinancialProduct> page, ProductType type) {
+
+        List<ProductRateDTO> productRateDTOS = Optional.ofNullable(financialProductService.listProductRateDTO())
+                .orElse(new ArrayList<>());
+
+        return productRateDTOS.stream().map(productRateDTO -> {
+            if(productRateDTO.getProductCount() == 1){
+                return getFinancialProductVOIPage(productRateDTO.getId());
+            }
+
+            FinancialProductRateVO financialProductVO = new FinancialProductRateVO();
+            financialProductVO.setCoin(productRateDTO.getCoin());
+            financialProductVO.setLogo(productRateDTO.getCoin().getLogoPath());
+            financialProductVO.setMaxRate(productRateDTO.getMaxRate());
+            financialProductVO.setMinRate(productRateDTO.getMinRate());
+
+            return financialProductVO;
+        }).collect(Collectors.toList());
+
+    }
+
+    @Override
     public IPage<FinancialProductVO> products(Page<FinancialProduct> page, ProductType type) {
+
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
                 .eq(FinancialProduct::getStatus, ProductStatus.open)
-                .orderByDesc(FinancialProduct::getRate);
+                .orderByAsc(FinancialProduct :: getType) // 活期优先
+                .orderByDesc(FinancialProduct::getRate); // 年化利率降序
 
         return getFinancialProductVOIPage(page, type, query);
 
@@ -366,6 +391,12 @@ public class FinancialServiceImpl implements FinancialService {
                 .eq(FinancialBoardWallet::getCreateTime, dateTime));
     }
 
+    private FinancialProductVO getFinancialProductVOIPage(Long productId) {
+        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
+                .eq(FinancialProduct::getId, productId);
+        return getFinancialProductVOIPage(new Page<>(1,1),null,query).getRecords().get(0);
+    }
+
     private IPage<FinancialProductVO> getFinancialProductVOIPage(Page<FinancialProduct> page, ProductType type, LambdaQueryWrapper<FinancialProduct> query) {
         if (Objects.nonNull(type)) {
             query.eq(FinancialProduct::getType, type);
@@ -450,9 +481,10 @@ public class FinancialServiceImpl implements FinancialService {
      * 获取假数据基础数据
      */
     private BigDecimal getBaseDataAmount(Long productId,BigDecimal limitQuota, BigDecimal useQuota) {
-        if (Objects.isNull(limitQuota) || Objects.isNull(useQuota)) {
+        if (Objects.isNull(limitQuota)) {
             return null;
         }
+        useQuota = Optional.ofNullable(useQuota).orElse(BigDecimal.ZERO);
         // 实际比例
         BigDecimal realRate = useQuota.divide(limitQuota, 4, RoundingMode.HALF_UP);
         // 期望比例

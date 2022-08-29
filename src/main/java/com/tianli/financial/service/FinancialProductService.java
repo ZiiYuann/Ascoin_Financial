@@ -9,6 +9,7 @@ import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.convert.FinancialConverter;
+import com.tianli.financial.dto.ProductRateDTO;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductStatus;
@@ -158,5 +159,9 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             mFinancialProductVO.setHoldUserCount(Optional.ofNullable(productSummaryDataDto.getHoldUserCount()).orElse(BigInteger.ZERO));
             return mFinancialProductVO;
         });
+    }
+
+    public List<ProductRateDTO> listProductRateDTO(){
+        return financialProductMapper.listProductRateDTO();
     }
 }
