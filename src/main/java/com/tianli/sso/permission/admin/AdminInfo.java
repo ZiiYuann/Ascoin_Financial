@@ -34,4 +34,9 @@ public class AdminInfo {
      * 当前请求的api路径
      */
     private String api;
+
+    /**
+     * 当前请求的api的方法
+     */
+    private String api_method;
 }
