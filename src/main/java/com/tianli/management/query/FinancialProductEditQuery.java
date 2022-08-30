@@ -10,6 +10,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author chenb
@@ -106,4 +107,14 @@ public class FinancialProductEditQuery {
      * 最小申购限额
      */
     private BigDecimal limitPurchaseQuota;
+
+    /**
+     * 利率类型
+     */
+    private byte rateType;
+
+    /**
+     * 阶梯汇率
+     */
+    private List<FinancialProductLadderRateIoUQuery> ladderRates;
 }

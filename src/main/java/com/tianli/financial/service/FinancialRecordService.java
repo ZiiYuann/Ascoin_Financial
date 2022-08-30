@@ -54,7 +54,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         // 如果存在待记利息金额，优先扣除
         if (record.getWaitAmount().compareTo(BigDecimal.ZERO) > 0){
             BigDecimal reduceIncomeAmount = BigDecimal.ZERO;
-            BigDecimal reduceWaitAmount = BigDecimal.ZERO;
+            BigDecimal reduceWaitAmount;
 
             if(record.getWaitAmount().compareTo(redeemAmount) > 0){
                 reduceWaitAmount = redeemAmount;

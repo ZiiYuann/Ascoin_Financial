@@ -102,4 +102,9 @@ public class FinancialProduct {
      */
     private BigDecimal useQuota;
 
+    /**
+     * 利率类型 0 正常 1阶梯
+     */
+    private byte rateType;
+
 }

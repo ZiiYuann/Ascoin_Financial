@@ -1,4 +1,5 @@
 ALTER TABLE `financial`.`financial_product`
+    ADD COLUMN `rate_type` tinyint(1) NULL DEFAULT 0 COMMENT '利率类型' AFTER `deleted`,
     ADD COLUMN `use_quota` decimal(20, 8) NULL DEFAULT 0  COMMENT '已经使用申购金额' AFTER `deleted`;
 
 ALTER TABLE `financial`.`financial_record`
@@ -11,3 +12,12 @@ UPDATE financial_record a, (SELECT id,hold_amount FROM financial_record )
 UPDATE financial_product a ,
     (SELECT product_id,sum(hold_amount) as amount FROM financial_record WHERE `status` = 'PROCESS' GROUP BY product_id) b
 SET a.use_quota = b.amount WHERE a.id = b.product_id;
+
+CREATE TABLE `financial_product_ladder_rate` (
+                                                 `id` bigint DEFAULT NULL,
+                                                 `product_id` bigint DEFAULT NULL,
+                                                 `start_point` decimal(20,8) DEFAULT NULL,
+                                                 `end_point` decimal(20,8) DEFAULT NULL,
+                                                 `rate` decimal(3,2) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='产品阶梯配置表';
+

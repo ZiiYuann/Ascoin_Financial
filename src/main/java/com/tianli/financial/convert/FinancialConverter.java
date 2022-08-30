@@ -1,11 +1,13 @@
 package com.tianli.financial.convert;
 
+import com.tianli.financial.entity.FinancialProductLadderRate;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.vo.FinancialProductVO;
 import com.tianli.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.financial.vo.IncomeByRecordIdVO;
 import com.tianli.management.query.FinancialProductEditQuery;
+import com.tianli.management.query.FinancialProductLadderRateIoUQuery;
 import org.mapstruct.Mapper;
 
 /**
@@ -23,4 +25,6 @@ public interface FinancialConverter {
     FinancialProduct toDO(FinancialProductEditQuery financialProductQuery);
 
     IncomeByRecordIdVO toIncomeByRecordIdVO(FinancialRecord financialRecord);
+
+    FinancialProductLadderRate toDO(FinancialProductLadderRateIoUQuery financialProductLadderRateIoUQuery);
 }

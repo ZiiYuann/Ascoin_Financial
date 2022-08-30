@@ -55,6 +55,8 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
     private ConfigService configService;
     @Resource
     private RedisLock redisLock;
+    @Resource
+    private FinancialProductLadderRateService financialProductLadderRateService;
 
     /**
      * 删除产品
@@ -90,17 +92,23 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             return;
         }
 
-        FinancialProduct product = super.getById(productDO.getId());
-        if (ProductStatus.open.equals(product.getStatus())) {
-            ErrorCodeEnum.PRODUCT_CAN_NOT_EDIT.throwException();
-        }
-        // 如果年化利率修改，需要更新持有记录表
-        if (!product.getRate().equals(productDO.getRate())) {
-            financialRecordService.updateRateByProductId(product.getId(), productDO.getRate());
+        if (Objects.nonNull(productDO.getId())){
+            FinancialProduct product = super.getById(productDO.getId());
+            if (ProductStatus.open.equals(product.getStatus())) {
+                ErrorCodeEnum.PRODUCT_CAN_NOT_EDIT.throwException();
+            }
+            // 如果年化利率修改，需要更新持有记录表
+            if (!product.getRate().equals(productDO.getRate())) {
+                financialRecordService.updateRateByProductId(product.getId(), productDO.getRate());
+            }
+
+            product.setUpdateTime(LocalDateTime.now());
+            super.saveOrUpdate(productDO);
         }
 
-        product.setUpdateTime(LocalDateTime.now());
-        super.saveOrUpdate(productDO);
+        if(productDO.getRateType() == 1){
+            financialProductLadderRateService.insert(productDO.getId(),financialProductQuery.getLadderRates());
+        }
     }
 
     /**
