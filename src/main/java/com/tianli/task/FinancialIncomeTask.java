@@ -23,10 +23,7 @@ import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
-import com.tianli.financial.service.FinancialIncomeAccrueService;
-import com.tianli.financial.service.FinancialIncomeDailyService;
-import com.tianli.financial.service.FinancialProductService;
-import com.tianli.financial.service.FinancialRecordService;
+import com.tianli.financial.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -69,10 +66,12 @@ public class FinancialIncomeTask {
     private AsyncService asyncService;
     @Resource
     private FinancialProductService financialProductService;
+    @Resource
+    private FinancialProductLadderRateService financialProductLadderRateService;
 
     private static final ConcurrentHashMap<String, AtomicInteger> FAIL_COUNT_CACHE = new ConcurrentHashMap<>();
 
-//        @Scheduled(cron = "0 0/1 * * * ?")
+    //        @Scheduled(cron = "0 0/1 * * * ?")
     public void calIncomeTest() {
         log.info("========执行计算每日利息定时任务========");
         asyncService.async(() -> {
@@ -173,7 +172,7 @@ public class FinancialIncomeTask {
         if (ProductType.fixed.equals(type) && endTime.compareTo(todayZero) == 0) {
             var incomeOrder = incomeOperation(financialRecord, now);
             var settleOrder = settleOperation(financialRecord, now);
-            renewalOperation(financialRecord, incomeOrder, settleOrder,now);
+            renewalOperation(financialRecord, incomeOrder, settleOrder, now);
         }
 
         // 如果是活期产品需要当前时间 >= 收益发放时间
@@ -185,7 +184,7 @@ public class FinancialIncomeTask {
     /**
      * 自动续费操作
      */
-    private void renewalOperation(FinancialRecord financialRecord, Order incomeOrder, Order settleOrder,LocalDateTime now) {
+    private void renewalOperation(FinancialRecord financialRecord, Order incomeOrder, Order settleOrder, LocalDateTime now) {
         if (!financialRecord.isAutoRenewal()) {
             return;
         }
@@ -268,10 +267,22 @@ public class FinancialIncomeTask {
      * 收益操作
      */
     private Order incomeOperation(FinancialRecord financialRecord, LocalDateTime now) {
-        BigDecimal income = financialRecord.getIncomeAmount()
-                .multiply(financialRecord.getRate()) // 乘年化利率
-                .multiply(BigDecimal.valueOf(financialRecord.getProductTerm().getDay())) // 乘计息周期，活期默认为1
-                .divide(BigDecimal.valueOf(365), 8, RoundingMode.DOWN);
+
+        FinancialProduct product = financialProductService.getById(financialRecord.getProductId());
+        BigDecimal income = BigDecimal.ZERO;
+
+        if (product.getRateType() == 0) {
+            income = financialRecord.getIncomeAmount()
+                    .multiply(financialRecord.getRate()) // 乘年化利率
+                    .multiply(BigDecimal.valueOf(financialRecord.getProductTerm().getDay())) // 乘计息周期，活期默认为1
+                    .divide(BigDecimal.valueOf(365), 8, RoundingMode.DOWN);
+        }
+
+        if (product.getRateType() == 1) {
+            income = financialProductLadderRateService.calLadderIncome(financialRecord);
+        }
+
+
         Long uid = financialRecord.getUid();
         // 记录利息汇总
         financialIncomeAccrueService.insertIncomeAccrue(uid, financialRecord.getId()
@@ -298,9 +309,9 @@ public class FinancialIncomeTask {
         accountBalanceService.increase(uid, ChargeType.income, financialRecord.getCoin()
                 , income, order.getOrderNo(), CurrencyLogDes.收益.name());
         // 如果等待记息金额 大于 0 ，则计算完利息之后添加到 记息金额中
-        if(financialRecord.getWaitAmount().compareTo(BigDecimal.ZERO) > 0){
-            financialRecordService.increaseIncomeAmount(financialRecord.getId(),financialRecord.getWaitAmount()
-                    ,financialRecord.getIncomeAmount());
+        if (financialRecord.getWaitAmount().compareTo(BigDecimal.ZERO) > 0) {
+            financialRecordService.increaseIncomeAmount(financialRecord.getId(), financialRecord.getWaitAmount()
+                    , financialRecord.getIncomeAmount());
         }
         return order;
     }

@@ -21,3 +21,6 @@ CREATE TABLE `financial_product_ladder_rate` (
                                                  `rate` decimal(3,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='产品阶梯配置表';
 
+ALTER TABLE `financial_product_ladder_rate`
+    ADD INDEX `default`(`product_id`, `start_point` ASC);
+
