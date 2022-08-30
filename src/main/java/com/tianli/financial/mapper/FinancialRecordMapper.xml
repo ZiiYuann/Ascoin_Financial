@@ -6,13 +6,27 @@
 
     <update id="reduce">
         UPDATE financial_record
-        SET redeem_time =#{now},
-            update_time = #{now},
-            hold_amount = hold_amount - #{amount}
+        SET redeem_time   = now(),
+            update_time   = now(),
+            hold_amount   = hold_amount - #{amount},
+            income_amount = income_amount - #{amount}
         WHERE id = #{recordId}
-          and hold_amount >= #{amount}
+          AND hold_amount = #{originalHoldAmount}
           AND `status` = 'PROCESS'
     </update>
+
+    <update id="reduce2">
+        UPDATE financial_record
+        SET redeem_time   = now(),
+            update_time   = now(),
+            hold_amount   = hold_amount - (#{incomeAmount} + #{waitAmount}),
+            income_amount = income_amount - #{incomeAmount},
+            wait_amount   = wait_amount - #{waitAmount}
+        WHERE id = #{recordId}
+          AND hold_amount = #{originalHoldAmount}
+          AND `status` = 'PROCESS'
+    </update>
+
     <update id="increase">
         UPDATE financial_record
         SET hold_amount = hold_amount + #{amount},
@@ -33,8 +47,8 @@
     <update id="increaseIncomeAmount">
         UPDATE financial_record
         SET income_amount = income_amount + #{amount},
-            hold_amount = hold_amount + #{amount},
-            wait_amount = 0,
+            hold_amount   = hold_amount + #{amount},
+            wait_amount   = 0,
             update_time   = #{now}
         WHERE id = #{recordId}
           AND income_amount = #{originalAmount}

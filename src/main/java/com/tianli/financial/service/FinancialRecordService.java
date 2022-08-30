@@ -48,10 +48,31 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      * 赎回金额
      */
     @Transactional
-    public void redeem(Long recordId, BigDecimal redeemAmount) {
-        if (financialRecordMapper.reduce(recordId, redeemAmount, LocalDateTime.now()) < 0) {
+    public void redeem(Long recordId, BigDecimal redeemAmount,BigDecimal originalHoldAmount) {
+
+        FinancialRecord record = financialRecordMapper.selectById(recordId);
+        // 如果存在待记利息金额，优先扣除
+        if (record.getWaitAmount().compareTo(BigDecimal.ZERO) > 0){
+            BigDecimal reduceIncomeAmount = BigDecimal.ZERO;
+            BigDecimal reduceWaitAmount = BigDecimal.ZERO;
+
+            if(record.getWaitAmount().compareTo(redeemAmount) > 0){
+                reduceWaitAmount = redeemAmount;
+            }else {
+                reduceWaitAmount = record.getWaitAmount();
+                reduceWaitAmount = redeemAmount.subtract(reduceWaitAmount);
+            }
+
+            if (financialRecordMapper.reduce2(recordId, reduceIncomeAmount,reduceWaitAmount,originalHoldAmount) < 0) {
+                log.error("赎回异常，recordId:{},amount:{}", recordId, redeemAmount);
+                ErrorCodeEnum.throwException("用户申购记录金额发生变化，请重试");
+            }
+            return;
+        }
+
+        if (financialRecordMapper.reduce(recordId, redeemAmount,originalHoldAmount) < 0) {
             log.error("赎回异常，recordId:{},amount:{}", recordId, redeemAmount);
-            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
+            ErrorCodeEnum.throwException("用户申购记录金额发生变化，请重试");
         }
     }
 

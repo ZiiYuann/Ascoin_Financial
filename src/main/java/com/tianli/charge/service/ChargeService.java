@@ -303,7 +303,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         accountBalanceService.increase(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount(), order.getOrderNo(), CurrencyLogDes.赎回.name());
 
         // 减少产品持有
-        financialRecordService.redeem(record.getId(), query.getRedeemAmount());
+        financialRecordService.redeem(record.getId(), query.getRedeemAmount(),record.getHoldAmount());
 
         // 更新记录状态
         FinancialRecord recordLatest = financialRecordService.selectById(recordId, uid);
