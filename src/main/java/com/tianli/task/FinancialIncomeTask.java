@@ -268,7 +268,7 @@ public class FinancialIncomeTask {
      * 收益操作
      */
     private Order incomeOperation(FinancialRecord financialRecord, LocalDateTime now) {
-        BigDecimal income = financialRecord.getHoldAmount()
+        BigDecimal income = financialRecord.getIncomeAmount()
                 .multiply(financialRecord.getRate()) // 乘年化利率
                 .multiply(BigDecimal.valueOf(financialRecord.getProductTerm().getDay())) // 乘计息周期，活期默认为1
                 .divide(BigDecimal.valueOf(365), 8, RoundingMode.DOWN);
@@ -297,6 +297,11 @@ public class FinancialIncomeTask {
         // 操作余额
         accountBalanceService.increase(uid, ChargeType.income, financialRecord.getCoin()
                 , income, order.getOrderNo(), CurrencyLogDes.收益.name());
+        // 如果等待记息金额 大于 0 ，则计算完利息之后添加到 记息金额中
+        if(financialRecord.getWaitAmount().compareTo(BigDecimal.ZERO) > 0){
+            financialRecordService.increaseIncomeAmount(financialRecord.getId(),financialRecord.getWaitAmount()
+                    ,financialRecord.getIncomeAmount());
+        }
         return order;
     }
 

@@ -14,14 +14,14 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     default-property-inclusion: non_null
+  flyway:
+    enabled: false
 server:
   servlet:
     context-path: /api
 mybatis-plus:
   configuration:
     mapUnderscoreToCamelCase: true
-
-
 
 # cookie age
 cookie:

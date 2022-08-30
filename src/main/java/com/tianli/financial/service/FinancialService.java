@@ -69,6 +69,13 @@ public interface FinancialService {
      */
     void validRemainAmount(Long uid, CurrencyCoin currencyCoin, BigDecimal amount);
 
+
+    /**
+     * 校验申购限额
+     * @param amount 申购金额
+     */
+    void validPurchaseAmount(Long uid, FinancialProduct product, BigDecimal amount);
+
     /**
      * 获取订单记录信息
      */

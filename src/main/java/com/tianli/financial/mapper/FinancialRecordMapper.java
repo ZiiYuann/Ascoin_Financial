@@ -20,7 +20,19 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
     /**
      * 减少持有的金额
      */
-    int reduce(@Param("recordId") Long recordId, @Param("amount") BigDecimal amount,@Param("now") LocalDateTime now);
+    int reduce(@Param("recordId") Long recordId, @Param("amount") BigDecimal amount, @Param("now") LocalDateTime now);
+
+    /**
+     * 增加持有金额
+     */
+    @Deprecated
+    int increase(@Param("recordId") Long recordId, @Param("amount") BigDecimal amount, @Param("originalAmount") BigDecimal originalAmount);
+
+    int increaseWaitAmount(@Param("recordId") Long recordId, @Param("amount") BigDecimal amount, @Param("originalAmount") BigDecimal originalAmount);
+
+    int increaseIncomeAmount(@Param("recordId") Long recordId, @Param("amount") BigDecimal amount, @Param("originalAmount") BigDecimal originalAmount);
+
+    int updateRateByProductId(@Param("productId") Long productId, @Param("rate") BigDecimal rate);
 
     /**
      * 用户还持用产品的数量
@@ -34,4 +46,6 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
     BigInteger countUid();
 
     List<ProductSummaryDataDto> listProductSummaryDataDto(List<Long> productIds);
+
+
 }

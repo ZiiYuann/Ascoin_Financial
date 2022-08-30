@@ -52,6 +52,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -64,58 +65,48 @@ public class FinancialServiceImpl implements FinancialService {
     @Override
     @Transactional
     public FinancialPurchaseResultVO purchase(PurchaseQuery purchaseQuery) {
-        // 如果产品处于要下线的情况，不允许购买
-        Long productId = purchaseQuery.getProductId();
-        boolean exists = redisService.exists(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + productId);
-        if (exists) {
-            ErrorCodeEnum.PRODUCT_CAN_NOT_BUY.throwException();
-        }
 
         Long uid = requestInitService.uid();
-
-        FinancialProduct product = financialProductService.getById(productId);
-        validProduct(product, purchaseQuery.getAmount());
-
+        FinancialProduct product = financialProductService.getById(purchaseQuery.getProductId());
         BigDecimal amount = purchaseQuery.getAmount();
+
+        // 校验操作
+        validProduct(product, amount);
         validRemainAmount(uid, purchaseQuery.getCoin(), amount);
+        validPurchaseAmount(uid,product,amount);
 
-
-        BigDecimal totalUse = financialRecordService.getUseQuota(List.of(productId)).getOrDefault(productId, BigDecimal.ZERO);
-        BigDecimal personUse = financialRecordService.getUseQuota(List.of(productId), uid).getOrDefault(productId, BigDecimal.ZERO);
-
-
-        if (product.getPersonQuota() != null && product.getPersonQuota().compareTo(BigDecimal.ZERO) > 0 &&
-                purchaseQuery.getAmount().add(personUse).compareTo(product.getPersonQuota()) > 0) {
-            ErrorCodeEnum.throwException("用户申购金额超过个人限额");
+        // 如果是活期，判断是否已经存在申购记录，如果有的话，额外添加待记息金额不生成新的记录
+        FinancialRecord financialRecord;
+        Optional<FinancialRecord> recordOptional = Optional.empty();
+        if (ProductType.current.equals(product.getType())) {
+            recordOptional = financialRecordService.selectByProductId(purchaseQuery.getProductId())
+                    .stream()
+                    .sorted(Comparator.comparing(FinancialRecord::getEndTime).reversed())
+                    .filter(index -> RecordStatus.PROCESS.equals(index.getStatus())).findFirst();
         }
+        // 如果存在申购记录，如果是当天继续申购，则累加金额，否则累加待记利息金额
+        recordOptional.ifPresent(record -> financialRecordService.increaseWaitAmount(record.getId(),amount,record.getWaitAmount()));
+        financialRecord = recordOptional.orElse(financialRecordService.generateFinancialRecord(uid, product, amount, purchaseQuery.isAutoCurrent()));
 
-        if (product.getTotalQuota() != null && product.getTotalQuota().compareTo(BigDecimal.ZERO) > 0 &&
-                purchaseQuery.getAmount().add(totalUse).compareTo(product.getTotalQuota()) > 0) {
-            ErrorCodeEnum.throwException("用户申购金额超过总限购额");
-        }
-
-
-        // 生成一笔订单记录(进行中)
+        // 生成一笔订单记录
         Order order = Order.builder()
                 .uid(uid)
                 .coin(product.getCoin())
-                .relatedId(null)
                 .orderNo(AccountChangeType.purchase.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
                 .amount(amount)
                 .type(ChargeType.purchase)
                 .status(ChargeStatus.created)
                 .createTime(LocalDateTime.now())
                 .completeTime(LocalDateTime.now())
+                .status(ChargeStatus.chain_success)
+                .relatedId(financialRecord.getId())
                 .build();
         orderService.save(order);
+
         // 减少余额
         accountBalanceService.decrease(uid, ChargeType.purchase, product.getCoin(), amount, order.getOrderNo(), CurrencyLogDes.申购.name());
-        // 确认完毕后生成申购记录
-        FinancialRecord financialRecord = financialRecordService.generateFinancialRecord(uid, product, amount, purchaseQuery.isAutoCurrent());
-        // 修改订单状态
-        order.setStatus(ChargeStatus.chain_success);
-        order.setRelatedId(financialRecord.getId());
-        orderService.saveOrUpdate(order);
+        // 增加已经使用申购额度
+        financialProductService.increaseUseQuota(product.getId(),amount,product.getUseQuota());
 
         FinancialPurchaseResultVO financialPurchaseResultVO = financialConverter.toFinancialPurchaseResultVO(financialRecord);
         financialPurchaseResultVO.setName(product.getName());
@@ -239,7 +230,17 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     public void validProduct(FinancialProduct financialProduct, BigDecimal purchaseAmount) {
-        if (Objects.isNull(financialProduct) || ProductStatus.open != financialProduct.getStatus()) {
+        if (Objects.isNull(financialProduct)){
+            ErrorCodeEnum.throwException("产品不存在");
+        }
+
+        Long productId = financialProduct.getId();
+        boolean exists = redisService.exists(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + productId);
+        if (exists) {
+            ErrorCodeEnum.PRODUCT_CAN_NOT_BUY.throwException();
+        }
+
+        if (ProductStatus.open != financialProduct.getStatus()) {
             ErrorCodeEnum.NOT_OPEN.throwException();
         }
 
@@ -253,6 +254,24 @@ public class FinancialServiceImpl implements FinancialService {
         AccountBalance accountBalanceBalance = accountBalanceService.getAndInit(uid, currencyCoin);
         if (accountBalanceBalance.getRemain().compareTo(amount) < 0) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
+        }
+    }
+
+    @Override
+    public void validPurchaseAmount(Long uid, FinancialProduct product, BigDecimal amount) {
+        var productId = product.getId();
+
+        BigDecimal totalUse = financialRecordService.getUseQuota(List.of(productId)).getOrDefault(productId, BigDecimal.ZERO);
+        BigDecimal personUse = financialRecordService.getUseQuota(List.of(productId), uid).getOrDefault(productId, BigDecimal.ZERO);
+
+        if (product.getPersonQuota() != null && product.getPersonQuota().compareTo(BigDecimal.ZERO) > 0 &&
+                amount.add(personUse).compareTo(product.getPersonQuota()) > 0) {
+            ErrorCodeEnum.throwException("用户申购金额超过个人限额");
+        }
+
+        if (product.getTotalQuota() != null && product.getTotalQuota().compareTo(BigDecimal.ZERO) > 0 &&
+                amount.add(totalUse).compareTo(product.getTotalQuota()) > 0) {
+            ErrorCodeEnum.throwException("用户申购金额超过总限购额");
         }
     }
 
@@ -280,7 +299,7 @@ public class FinancialServiceImpl implements FinancialService {
                 .orElse(new ArrayList<>());
 
         return productRateDTOS.stream().map(productRateDTO -> {
-            if(productRateDTO.getProductCount() == 1){
+            if (productRateDTO.getProductCount() == 1) {
                 return getFinancialProductVOIPage(productRateDTO.getId());
             }
 
@@ -300,7 +319,7 @@ public class FinancialServiceImpl implements FinancialService {
 
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
                 .eq(FinancialProduct::getStatus, ProductStatus.open)
-                .orderByAsc(FinancialProduct :: getType) // 活期优先
+                .orderByAsc(FinancialProduct::getType) // 活期优先
                 .orderByDesc(FinancialProduct::getRate); // 年化利率降序
 
         return getFinancialProductVOIPage(page, type, query);
@@ -394,7 +413,7 @@ public class FinancialServiceImpl implements FinancialService {
     private FinancialProductVO getFinancialProductVOIPage(Long productId) {
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
                 .eq(FinancialProduct::getId, productId);
-        return getFinancialProductVOIPage(new Page<>(1,1),null,query).getRecords().get(0);
+        return getFinancialProductVOIPage(new Page<>(1, 1), null, query).getRecords().get(0);
     }
 
     private IPage<FinancialProductVO> getFinancialProductVOIPage(Page<FinancialProduct> page, ProductType type, LambdaQueryWrapper<FinancialProduct> query) {
@@ -426,8 +445,8 @@ public class FinancialServiceImpl implements FinancialService {
             financialProductVO.setAllowPurchase(allowPurchase);
 
             // 设置假数据
-            BigDecimal baseDataAmount = getBaseDataAmount(product.getId(),totalQuota, useQuota);
-            if(Objects.nonNull(baseDataAmount)){
+            BigDecimal baseDataAmount = getBaseDataAmount(product.getId(), totalQuota, useQuota);
+            if (Objects.nonNull(baseDataAmount)) {
                 financialProductVO.setUseQuota(useQuota.add(baseDataAmount));
                 financialProductVO.setBaseUseQuota(baseDataAmount);
             }
@@ -480,7 +499,7 @@ public class FinancialServiceImpl implements FinancialService {
     /**
      * 获取假数据基础数据
      */
-    private BigDecimal getBaseDataAmount(Long productId,BigDecimal limitQuota, BigDecimal useQuota) {
+    private BigDecimal getBaseDataAmount(Long productId, BigDecimal limitQuota, BigDecimal useQuota) {
         if (Objects.isNull(limitQuota)) {
             return null;
         }
@@ -508,25 +527,25 @@ public class FinancialServiceImpl implements FinancialService {
         return limitQuota.multiply(adjustRate);
     }
 
-    public FinancialProductVO productDetails(Long productId){
+    public FinancialProductVO productDetails(Long productId) {
         Long uid = requestInitService.uid();
         FinancialProduct product = financialProductService.getById(productId);
 
         FinancialProductVO productVO = financialConverter.toFinancialProductVO(product);
 
         var useQuota = financialRecordService.getUseQuota(List.of(product.getId()));
-        var personUseQuota = financialRecordService.getUseQuota(List.of(product.getId()),uid);
+        var personUseQuota = financialRecordService.getUseQuota(List.of(product.getId()), uid);
         var accountBalance = accountBalanceService.getAndInit(uid, product.getCoin());
 
         LocalDateTime now = LocalDateTime.now();
-        productVO.setUseQuota(useQuota.getOrDefault(productVO.getId(),BigDecimal.ZERO));
-        productVO.setUserPersonQuota(personUseQuota.getOrDefault(productVO.getId(),BigDecimal.ZERO));
+        productVO.setUseQuota(useQuota.getOrDefault(productVO.getId(), BigDecimal.ZERO));
+        productVO.setUserPersonQuota(personUseQuota.getOrDefault(productVO.getId(), BigDecimal.ZERO));
         productVO.setAvailableBalance(accountBalance.getRemain());
         productVO.setPurchaseTime(now);
 
         // 设置假数据
-        BigDecimal baseDataAmount = getBaseDataAmount(product.getId(),product.getTotalQuota(), useQuota.get(productVO.getId()));
-        if(Objects.nonNull(baseDataAmount)){
+        BigDecimal baseDataAmount = getBaseDataAmount(product.getId(), product.getTotalQuota(), useQuota.get(productVO.getId()));
+        if (Objects.nonNull(baseDataAmount)) {
             productVO.setUseQuota(useQuota.get(productVO.getId()).add(baseDataAmount));
             productVO.setBaseUseQuota(baseDataAmount);
         }

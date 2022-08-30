@@ -9,7 +9,6 @@ import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -64,6 +63,16 @@ public class FinancialRecord {
     private RecordStatus status;
 
     private BigDecimal holdAmount;
+
+    /**
+     * 待记利息金额
+     */
+    private BigDecimal waitAmount;
+
+    /**
+     * 利息金额
+     */
+    private BigDecimal incomeAmount;
 
     /**
      * 参考年化

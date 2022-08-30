@@ -97,4 +97,9 @@ public class FinancialProduct {
      */
     private boolean deleted;
 
+    /**
+     * 总使用额度
+     */
+    private BigDecimal useQuota;
+
 }

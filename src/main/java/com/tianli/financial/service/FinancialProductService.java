@@ -32,7 +32,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -61,12 +60,12 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
      * 删除产品
      */
     @Transactional
-    public boolean delete(Long productId){
+    public boolean delete(Long productId) {
         List<FinancialRecord> financialRecords = financialRecordService.selectByProductId(productId);
         Optional<FinancialRecord> match = financialRecords.stream()
                 .filter(financialRecord -> RecordStatus.PROCESS.equals(financialRecord.getStatus())).findAny();
-        if(match.isPresent()){
-            log.info("productId ：{} , 用户持有中不允许删除 ",productId);
+        if (match.isPresent()) {
+            log.info("productId ：{} , 用户持有中不允许删除 ", productId);
             ErrorCodeEnum.PRODUCT_USER_HOLD.throwException();
         }
         return financialProductMapper.deleteById(productId) > 0;
@@ -78,7 +77,7 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
     @Transactional
     public void saveOrUpdate(FinancialProductEditQuery financialProductQuery) {
         FinancialProduct productDO = financialConverter.toDO(financialProductQuery);
-        if(Objects.isNull(financialProductQuery.getLimitPurchaseQuota())){
+        if (Objects.isNull(financialProductQuery.getLimitPurchaseQuota())) {
             String sysPurchaseMinAmount = configService.get(SYSTEM_PURCHASE_MIN_AMOUNT);
             productDO.setLimitPurchaseQuota(BigDecimal.valueOf(Double.parseDouble(sysPurchaseMinAmount)));
         }
@@ -86,14 +85,20 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
         if (ObjectUtil.isNull(productDO.getId())) {
             productDO.setCreateTime(LocalDateTime.now());
             productDO.setId(CommonFunction.generalId());
+            productDO.setUseQuota(BigDecimal.ZERO);
             super.saveOrUpdate(productDO);
             return;
         }
 
         FinancialProduct product = super.getById(productDO.getId());
-        if( ProductStatus.open.equals(product.getStatus())){
+        if (ProductStatus.open.equals(product.getStatus())) {
             ErrorCodeEnum.PRODUCT_CAN_NOT_EDIT.throwException();
         }
+        // 如果年化利率修改，需要更新持有记录表
+        if (!product.getRate().equals(productDO.getRate())) {
+            financialRecordService.updateRateByProductId(product.getId(), productDO.getRate());
+        }
+
         product.setUpdateTime(LocalDateTime.now());
         super.saveOrUpdate(productDO);
     }
@@ -102,25 +107,25 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
      * 修改产品状态
      */
     @Transactional
-    public void editProductStatus(FinancialProductEditStatusQuery query){
+    public void editProductStatus(FinancialProductEditStatusQuery query) {
         try {
 
             FinancialProduct product = financialProductMapper.selectById(query.getProductId());
             product = Optional.ofNullable(product).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
 
-            if(ProductStatus.close.equals(query.getStatus())){
-                redisLock.lock(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + query.getProductId(),5L, TimeUnit.SECONDS);
+            if (ProductStatus.close.equals(query.getStatus())) {
+                redisLock.lock(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + query.getProductId(), 5L, TimeUnit.SECONDS);
             }
 
             product.setUpdateTime(LocalDateTime.now());
             product.setStatus(query.getStatus());
-            if( financialProductMapper.updateById(product) <= 0){
+            if (financialProductMapper.updateById(product) <= 0) {
                 ErrorCodeEnum.SYSTEM_ERROR.throwException();
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             throw e;
-        }finally {
+        } finally {
             redisLock.unlock(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + query.getProductId());
         }
 
@@ -129,30 +134,30 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
     /**
      * 查询产品列表数据
      */
-    public IPage<MFinancialProductVO> mSelectListByQuery(IPage<FinancialProduct> page, FinancialProductsQuery query){
+    public IPage<MFinancialProductVO> mSelectListByQuery(IPage<FinancialProduct> page, FinancialProductsQuery query) {
         LambdaQueryWrapper<FinancialProduct> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper = queryWrapper.eq(FinancialProduct :: isDeleted,false);
-        if(StringUtils.isNotBlank(query.getName())){
-            queryWrapper = queryWrapper.like(FinancialProduct :: getName,query.getName());
+        queryWrapper = queryWrapper.eq(FinancialProduct::isDeleted, false);
+        if (StringUtils.isNotBlank(query.getName())) {
+            queryWrapper = queryWrapper.like(FinancialProduct::getName, query.getName());
         }
-        if(Objects.nonNull(query.getType())){
-            queryWrapper = queryWrapper.eq(FinancialProduct :: getType,query.getType());
+        if (Objects.nonNull(query.getType())) {
+            queryWrapper = queryWrapper.eq(FinancialProduct::getType, query.getType());
         }
-        if(Objects.nonNull(query.getStatus())){
-            queryWrapper = queryWrapper.eq(FinancialProduct :: getStatus,query.getStatus());
-        }
-
-        if(Objects.nonNull(query.getCoin())){
-            queryWrapper = queryWrapper.eq(FinancialProduct :: getCoin,query.getCoin());
+        if (Objects.nonNull(query.getStatus())) {
+            queryWrapper = queryWrapper.eq(FinancialProduct::getStatus, query.getStatus());
         }
 
-        queryWrapper = queryWrapper.orderByDesc(FinancialProduct :: getCreateTime);
+        if (Objects.nonNull(query.getCoin())) {
+            queryWrapper = queryWrapper.eq(FinancialProduct::getCoin, query.getCoin());
+        }
+
+        queryWrapper = queryWrapper.orderByDesc(FinancialProduct::getCreateTime);
 
         IPage<FinancialProduct> financialProductIPage = financialProductMapper.selectPage(page, queryWrapper);
 
         List<Long> productIds = financialProductIPage.getRecords().stream().map(FinancialProduct::getId).collect(Collectors.toList());
         var productSummaryDataDtoMap = financialRecordService.getProductSummaryDataDtoMap(productIds);
-        return financialProductIPage.convert( index -> {
+        return financialProductIPage.convert(index -> {
             var mFinancialProductVO = managementConverter.toMFinancialProductVO(index);
             var productSummaryDataDto = productSummaryDataDtoMap.getOrDefault(index.getId(), new ProductSummaryDataDto());
             mFinancialProductVO.setUseQuota(Optional.ofNullable(productSummaryDataDto.getUseQuota()).orElse(BigDecimal.ZERO));
@@ -161,7 +166,18 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
         });
     }
 
-    public List<ProductRateDTO> listProductRateDTO(){
+    public List<ProductRateDTO> listProductRateDTO() {
         return financialProductMapper.listProductRateDTO();
+    }
+
+    /**
+     * 增加额度
+     */
+    @Transactional
+    public void increaseUseQuota(Long productId, BigDecimal increaseAmount, BigDecimal expectAmount) {
+        int i = financialProductMapper.increaseUseQuota(productId, increaseAmount, expectAmount);
+        if (i <= 0) {
+            ErrorCodeEnum.throwException("申购额度发生变化，请重新申购");
+        }
     }
 }
