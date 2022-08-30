@@ -46,4 +46,6 @@ public interface OrderMapper extends BaseMapper<Order> {
                                        @Param("endTime") LocalDateTime endTime);
 
     List<AmountDto> serviceAmountSumByCompleteTime(@Param("query") ServiceAmountQuery query);
+
+    List<AmountDto> amountSumByUidAndChargeType(@Param("uid") Long uid ,@Param("chargeType") ChargeType chargeType);
 }

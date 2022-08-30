@@ -93,7 +93,8 @@ public class BorrowCoinOrderController {
      */
     @PostMapping("/order")
     public Result order(@RequestBody @Valid BorrowOrderBO bo){
-        RLock lock = redissonClient.getLock(RedisLockConstants.BORROW_ORDER_CREATE_LOCK);
+        Long uid = requestInitService.uid();
+        RLock lock = redissonClient.getLock(RedisLockConstants.BORROW_ORDER_CREATE_LOCK+uid);
         try {
             lock.lock();
             borrowCoinOrderService.borrowCoin(bo);

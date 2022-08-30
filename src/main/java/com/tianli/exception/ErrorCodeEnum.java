@@ -97,8 +97,17 @@ public enum ErrorCodeEnum {
     ADJUST_GT_AVAILABLE_ERROR(3511,"调整金额大于可用金额"),
     PLEDGE_RATE_RANGE_ERROR(3512,"质押率范围错误"),
     PLEDGE_LT_LIQUIDATION_ERROR(3513,"质押率小于平仓率"),
-    NO_OPERATION(3514,"整点计息，请稍后进行操作")
-    ;
+    NO_OPERATION(3514,"整点计息，请稍后进行操作"),
+
+    /*** －－－－－－业务错误码-基金相关－－－－－－*/
+    AGENT_ALREADY_BIND(3601,"用户已有代理信息"),
+    AGENT_PRODUCT_NOT_EXIST(3602,"产品不存在"),
+    AGENT_PRODUCT_ALREADY_BIND(3603,"产品已经绑定"),
+
+    AGENT_NOT_EXIST(3604,"代理信息不存在"),
+
+
+        ;
     private int errorNo;
 
     private String errorMsg;
