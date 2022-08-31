@@ -2,9 +2,9 @@ name: financial
 
 on:
   push:
-    branches: [ main_pre ]
+    branches: [ dev ]
   pull_request:
-    branches: [ main_pre ]
+    branches: [ dev ]
 
 jobs:
   build:
