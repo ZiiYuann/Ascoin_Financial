@@ -106,7 +106,11 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                     , tokenAdapter.getNetwork(), finalAmount, orderNo, CurrencyLogDes.充值.name());
             // 操作归集信息
             walletImputationService.insert(uid, address, tokenAdapter, req, finalAmount);
+
+            // 判断是否有预先订单需要处理
+            orderAdvanceService.handlerRechargeEvent(uid,req,finalAmount,tokenAdapter);
         }
+
     }
 
     /**
@@ -529,5 +533,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     private ContractAdapter contractAdapter;
     @Resource
     private ChainService chainService;
+    @Resource
+    private OrderAdvanceService orderAdvanceService;
 
 }

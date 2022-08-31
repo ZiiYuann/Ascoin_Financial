@@ -238,13 +238,19 @@ public class ChargeController {
     }
 
     /**
-     * 生成预先订单
+     * 生成预订单
      */
-    @PostMapping("/generate/order/advance")
+    @PutMapping("/order/advance")
     public Result generateOrderAdvance(@RequestBody GenerateOrderAdvanceQuery query) {
-
         return Result.instance().setData(orderAdvanceService.generateOrderAdvance(query));
-
     }
 
+    /**
+     * 更新预订单
+     */
+    @PostMapping("/order/advance")
+    public Result updateOrderAdvance(@RequestBody GenerateOrderAdvanceQuery query) {
+        orderAdvanceService.updateOrderAdvance(query);
+        return Result.success();
+    }
 }

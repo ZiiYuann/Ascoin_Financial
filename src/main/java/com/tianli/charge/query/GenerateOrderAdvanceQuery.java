@@ -19,4 +19,8 @@ public class GenerateOrderAdvanceQuery {
     private BigDecimal amount;
 
     private Long productId;
+
+    private Long id;
+
+    private String txid;
 }
