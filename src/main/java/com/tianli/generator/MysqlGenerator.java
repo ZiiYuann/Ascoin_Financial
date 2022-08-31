@@ -30,7 +30,7 @@ public class MysqlGenerator {
     /**
      * 需生成数据库表
      */
-    private static final String[] TABLE_ARR = new String[]{"financial_pledge_info"};
+    private static final String[] TABLE_ARR = new String[]{"fund_record","fund_income_record","fund_transaction_record"};
 
     public static void main(String[] args) {
         generator();
@@ -103,7 +103,7 @@ public class MysqlGenerator {
 
         // 包配置
         PackageConfig pc = new PackageConfig();
-        pc.setParent("com.tianli.borrow");
+        pc.setParent("com.tianli.fund");
         pc.setController("controller");
         pc.setEntity("entity");
         pc.setMapper("dao");

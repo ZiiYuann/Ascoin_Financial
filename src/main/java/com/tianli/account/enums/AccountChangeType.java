@@ -11,6 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 public enum AccountChangeType {
     //理财
     purchase("PU"),
+    //基金理财
+    fund_purchase("FP"),
     //赎回
     redeem("RE"),
     //提现
@@ -31,7 +33,9 @@ public enum AccountChangeType {
     //还币释放冻结
     release("RE"),
     //还币
-    repay("RP")
+    repay("RP"),
+    //基金销售
+    fund_sale("FS")
     ;
 
 

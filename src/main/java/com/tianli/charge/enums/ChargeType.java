@@ -21,6 +21,8 @@ public enum ChargeType {
     income   ("Earning","收益"),
     // 申购
     purchase ("Subscription","申购"),
+    // 基金申购
+    fund_purchase ("FundSubscription","申购"),
     // 赎回
     redeem ("Redemption","赎回"),
     // 结算
@@ -34,7 +36,8 @@ public enum ChargeType {
     //借币冻结质押
     pledge("BorrowPledge","质押"),
     //还币释放质押
-    release("RepayPledge","释放质押"),;
+    release("RepayPledge","释放质押"),
+    fund_sale("FundSale","基金销售" );
 
 
     ChargeType(String nameEn,String nameZn){

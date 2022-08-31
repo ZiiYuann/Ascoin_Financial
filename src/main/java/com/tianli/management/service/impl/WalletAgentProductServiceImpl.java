@@ -32,4 +32,10 @@ public class WalletAgentProductServiceImpl extends ServiceImpl<WalletAgentProduc
     public void deleteByAgentId(Long agentId) {
         walletAgentProductMapper.deleteByAgentId(agentId);
     }
+
+    @Override
+    public WalletAgentProduct getByProductId(Long productId) {
+        return walletAgentProductMapper.selectOne(new QueryWrapper<WalletAgentProduct>().lambda()
+                .eq(WalletAgentProduct::getProductId, productId));
+    }
 }

@@ -103,8 +103,11 @@ public enum ErrorCodeEnum {
     AGENT_ALREADY_BIND(3601,"用户已有代理信息"),
     AGENT_PRODUCT_NOT_EXIST(3602,"产品不存在"),
     AGENT_PRODUCT_ALREADY_BIND(3603,"产品已经绑定"),
-
     AGENT_NOT_EXIST(3604,"代理信息不存在"),
+    PURCHASE_GT_PERSON_QUOTA(3605,"申购金额大于个人限额"),
+    PURCHASE_GT_TOTAL_QUOTA(3606,"申购金额大于总限额"),
+    REFERRAL_CODE_ERROR(3604,"推荐码错误"),
+    FUND_NOT_EXIST(3606,"基金不存在"),
 
 
         ;

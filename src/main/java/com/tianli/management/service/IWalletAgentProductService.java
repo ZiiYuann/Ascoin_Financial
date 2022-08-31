@@ -15,4 +15,6 @@ public interface IWalletAgentProductService extends IService<WalletAgentProduct>
     boolean exist(Long productId);
 
     void deleteByAgentId(Long agentId);
+
+    WalletAgentProduct getByProductId(Long productId);
 }
