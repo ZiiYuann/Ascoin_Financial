@@ -3,9 +3,6 @@ package com.tianli.fund.service;
 import com.tianli.fund.entity.FundIncomeRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.management.dto.AmountDto;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
-
 import java.util.List;
 
 /**
@@ -18,7 +15,6 @@ import java.util.List;
  */
 public interface IFundIncomeRecordService extends IService<FundIncomeRecord> {
 
-    @Select("select sum(interest_amount) from fund_income_record where uid = #{uid} and status = #{status}")
-    List<AmountDto> amountSumByUid(@Param("uid")Long uid, @Param("status")Integer status);
+    List<AmountDto> amountSumByUid(Long uid, Integer status);
 
 }

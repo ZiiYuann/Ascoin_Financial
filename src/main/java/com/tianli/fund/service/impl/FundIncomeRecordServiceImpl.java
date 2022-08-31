@@ -4,8 +4,12 @@ import com.tianli.fund.dao.FundIncomeRecordMapper;
 import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.service.IFundIncomeRecordService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.management.dto.AmountDto;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * <p>
@@ -19,8 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMapper, FundIncomeRecord> implements IFundIncomeRecordService {
 
+    @Autowired
+    private FundIncomeRecordMapper fundIncomeRecordMapper;
 
-
-
-
+    @Override
+    public List<AmountDto> amountSumByUid(Long uid, Integer status) {
+        return fundIncomeRecordMapper.amountSumByUid(uid,status);
+    }
 }

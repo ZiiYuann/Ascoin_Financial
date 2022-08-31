@@ -48,14 +48,4 @@ public class BorrowCoinConfig extends Model<BorrowCoinConfig> {
      */
     private LocalDateTime createTime;
 
-    /**
-     * 是否为折扣
-     */
-    private Boolean discount;
-
-    /**
-     * 折扣额度
-     */
-    private BigDecimal discountAmount;
-
 }
