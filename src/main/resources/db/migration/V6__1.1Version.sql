@@ -24,3 +24,15 @@ CREATE TABLE `financial_product_ladder_rate` (
 ALTER TABLE `financial_product_ladder_rate`
     ADD INDEX `default`(`product_id`, `start_point` ASC);
 
+CREATE TABLE `financial`.`order_advance`  (
+                                              `id` bigint NOT NULL,
+                                              `uid` bigint NOT NULL COMMENT '用户id',
+                                              `product_id` bigint NOT NULL COMMENT '产品id',
+                                              `txid` varchar(255) NULL COMMENT '交易hash',
+                                              `amount` decimal(20, 8) NOT NULL COMMENT '申购数额',
+                                              `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                              PRIMARY KEY (`id`)
+) COMMENT = '预订单表';
+
+
+

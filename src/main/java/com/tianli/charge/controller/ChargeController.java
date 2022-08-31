@@ -6,9 +6,11 @@ import com.tianli.chain.entity.ChainCallbackLog;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.ChainCallbackLogService;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.query.GenerateOrderAdvanceQuery;
 import com.tianli.charge.query.RedeemQuery;
 import com.tianli.charge.query.WithdrawQuery;
 import com.tianli.charge.service.ChargeService;
+import com.tianli.charge.service.OrderAdvanceService;
 import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
@@ -54,6 +56,8 @@ public class ChargeController {
     private ChainCallbackLogService chainCallbackLogService;
     @Resource
     private RedissonClient redissonClient;
+    @Resource
+    private OrderAdvanceService orderAdvanceService;
 
     /**
      * 充值回调
@@ -79,7 +83,7 @@ public class ChargeController {
 
         ChainCallbackLog chainCallbackLog = chainCallbackLogService.insert(ChargeType.recharge, chain, str);
         try {
-            chargeService.rechargeCallback(chain,str);
+            chargeService.rechargeCallback(chain, str);
             chainCallbackLog.setStatus("success");
         } catch (Exception e) {
             chainCallbackLog.setMsg(ExceptionUtil.getMessage(e));
@@ -117,7 +121,7 @@ public class ChargeController {
 
         ChainCallbackLog chainCallbackLog = chainCallbackLogService.insert(ChargeType.withdraw, chain, str);
         try {
-            chargeService.withdrawCallback(chain,str);
+            chargeService.withdrawCallback(chain, str);
             chainCallbackLog.setStatus("success");
         } catch (Exception e) {
             chainCallbackLog.setMsg(ExceptionUtil.getMessage(e));
@@ -141,7 +145,7 @@ public class ChargeController {
             lock.lock();
             chargeService.withdrawApply(uid, withdrawDTO);
             return Result.instance();
-        }finally {
+        } finally {
             lock.unlock();
         }
 
@@ -160,7 +164,7 @@ public class ChargeController {
             HashMap<Object, Object> result = MapUtil.newHashMap();
             result.put("orderNo", orderNo);
             return Result.instance().setData(result);
-        }finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -175,7 +179,7 @@ public class ChargeController {
         try {
             lock.lock();
             return Result.instance().setData(financialService.purchase(purchaseQuery));
-        }finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -232,4 +236,15 @@ public class ChargeController {
     public Result orderStatus(ChargeType chargeType) {
         return Result.instance().setData(ChargeType.orderStatusPull(chargeType));
     }
+
+    /**
+     * 生成预先订单
+     */
+    @PostMapping("/generate/order/advance")
+    public Result generateOrderAdvance(@RequestBody GenerateOrderAdvanceQuery query) {
+
+        return Result.instance().setData(orderAdvanceService.generateOrderAdvance(query));
+
+    }
+
 }

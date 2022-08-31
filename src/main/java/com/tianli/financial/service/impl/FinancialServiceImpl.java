@@ -522,7 +522,7 @@ public class FinancialServiceImpl implements FinancialService {
         BigDecimal randomRate = BigDecimal.valueOf(randomNum).divide(BigDecimal.valueOf(365L), 4, RoundingMode.HALF_DOWN);
 
         // 调整比例 = 差值比例 - 差值比例 * 0.2 * 每天固定随机比例
-        BigDecimal adjustRate = expectRate.subtract(BigDecimal.valueOf(0.8f).multiply(randomRate).add(baseRate));
+        BigDecimal adjustRate = expectRate.multiply(BigDecimal.valueOf(0.8f).multiply(randomRate).add(baseRate));
 
         return limitQuota.multiply(adjustRate);
     }
