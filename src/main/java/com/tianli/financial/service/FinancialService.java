@@ -34,7 +34,7 @@ public interface FinancialService {
      * 申购理财产品
      * @param purchaseQuery 申购请求
      */
-    FinancialPurchaseResultVO purchase(PurchaseQuery purchaseQuery);
+    FinancialPurchaseResultVO purchase(Long uid,PurchaseQuery purchaseQuery);
 
     /**
      * 统计利息

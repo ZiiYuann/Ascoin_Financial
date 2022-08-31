@@ -43,6 +43,8 @@ import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
+import com.tianli.task.RetryScheduledExecutor;
+import com.tianli.task.RetryTaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -57,6 +59,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author wangqiyun
@@ -79,13 +82,13 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         List<TRONTokenReq> tokenReqs = JSONUtil.toList(jsonArray, TRONTokenReq.class);
         List<TRONTokenReq> mainTokenReqs = JSONUtil.toList(standardCurrencyArray, TRONTokenReq.class);
-        rechargeOperation(tokenReqs,chainType,false);
-        rechargeOperation(mainTokenReqs,chainType,true);
+        rechargeOperation(tokenReqs, chainType, false);
+        rechargeOperation(mainTokenReqs, chainType, true);
 
     }
 
-    private void rechargeOperation(List<TRONTokenReq> tronTokenReqs,ChainType chainType,boolean mainToken) {
-        if(CollectionUtils.isEmpty(tronTokenReqs)){
+    private void rechargeOperation(List<TRONTokenReq> tronTokenReqs, ChainType chainType, boolean mainToken) {
+        if (CollectionUtils.isEmpty(tronTokenReqs)) {
             return;
         }
         for (TRONTokenReq req : tronTokenReqs) {
@@ -108,7 +111,12 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             walletImputationService.insert(uid, address, tokenAdapter, req, finalAmount);
 
             // 判断是否有预先订单需要处理
-            orderAdvanceService.handlerRechargeEvent(uid,req,finalAmount,tokenAdapter);
+            RetryScheduledExecutor.DEFAULT_EXECUTOR.schedule(
+                    () -> orderAdvanceService.handlerRechargeEvent(uid, req, finalAmount, tokenAdapter),
+                    1,
+                    TimeUnit.MINUTES,
+                    new RetryTaskInfo<>("异步处理预订单操作", "异步处理预订单操作hash:"+req.getHash(), null)
+            );
         }
 
     }
@@ -119,18 +127,18 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      * @param str 提现信息
      */
     @Transactional
-    public void withdrawCallback(ChainType chainType,String str) {
+    public void withdrawCallback(ChainType chainType, String str) {
         var jsonArray = JSONUtil.parseObj(str).getJSONArray("token");
         var standardCurrencyArray = JSONUtil.parseObj(str).getJSONArray("standardCurrency");
 
         List<TRONTokenReq> tokenReqs = JSONUtil.toList(jsonArray, TRONTokenReq.class);
         List<TRONTokenReq> mainTokenReqs = JSONUtil.toList(standardCurrencyArray, TRONTokenReq.class);
-        withdrawOperation(tokenReqs,chainType,false);
-        withdrawOperation(mainTokenReqs,chainType,true);
+        withdrawOperation(tokenReqs, chainType, false);
+        withdrawOperation(mainTokenReqs, chainType, true);
     }
 
-    private void withdrawOperation(List<TRONTokenReq> tronTokenReqs,ChainType chainType,boolean mainToken) {
-        if(CollectionUtils.isEmpty(tronTokenReqs)){
+    private void withdrawOperation(List<TRONTokenReq> tronTokenReqs, ChainType chainType, boolean mainToken) {
+        if (CollectionUtils.isEmpty(tronTokenReqs)) {
             return;
         }
         for (TRONTokenReq req : tronTokenReqs) {
@@ -157,7 +165,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         TokenAdapter tokenAdapter = TokenAdapter.get(query.getCoin(), query.getNetwork());
 
         boolean validAddress = contractAdapter.getOne(tokenAdapter.getNetwork()).isValidAddress(query.getTo());
-        if(!validAddress){
+        if (!validAddress) {
             ErrorCodeEnum.throwException("地址校验失败");
         }
         // 计算手续费  实际手续费 = 提现数额 * 手续费率 + 固定手续费数额
@@ -307,7 +315,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         accountBalanceService.increase(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount(), order.getOrderNo(), CurrencyLogDes.赎回.name());
 
         // 减少产品持有
-        financialRecordService.redeem(record.getId(), query.getRedeemAmount(),record.getHoldAmount());
+        financialRecordService.redeem(record.getId(), query.getRedeemAmount(), record.getHoldAmount());
 
         // 更新记录状态
         FinancialRecord recordLatest = financialRecordService.selectById(recordId, uid);
@@ -480,7 +488,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .eq(Order::getUid, uid)
                 .eq(Order::getCoin, currencyCoin)
                 .orderByDesc(Order::getCreateTime)
-                .eq(false,Order ::getStatus,ChargeStatus.chain_fail);
+                .eq(false, Order::getStatus, ChargeStatus.chain_fail);
         if (Objects.nonNull(chargeGroup)) {
             wrapper = wrapper.in(Order::getType, chargeGroup.getChargeTypes());
         }

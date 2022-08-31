@@ -2,6 +2,7 @@ package com.tianli.financial.query;
 
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.PurchaseTerm;
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 
@@ -15,6 +16,7 @@ import java.math.BigDecimal;
  **/
 @Getter
 @Data
+@Builder
 public class PurchaseQuery {
 
    /**

@@ -1,5 +1,7 @@
 package com.tianli.charge.entity;
 
+import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.financial.enums.PurchaseTerm;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,9 +29,15 @@ public class OrderAdvance {
 
     private Long productId;
 
+    private CurrencyCoin coin;
+
+    private PurchaseTerm term;
+
     private String txid;
 
     private BigDecimal amount;
+
+    private boolean autoCurrent;
 
     private LocalDateTime createTime;
 }

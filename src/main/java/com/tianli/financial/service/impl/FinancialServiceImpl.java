@@ -52,7 +52,6 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -64,9 +63,7 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     @Transactional
-    public FinancialPurchaseResultVO purchase(PurchaseQuery purchaseQuery) {
-
-        Long uid = requestInitService.uid();
+    public FinancialPurchaseResultVO purchase(Long uid,PurchaseQuery purchaseQuery) {
         FinancialProduct product = financialProductService.getById(purchaseQuery.getProductId());
         BigDecimal amount = purchaseQuery.getAmount();
 
