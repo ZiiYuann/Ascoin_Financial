@@ -150,6 +150,11 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
         return calDollarAmount(amountDtos);
     }
 
+    public BigDecimal amountDollarSumByChargeType(Long uid,ChargeType chargeType){
+        List<AmountDto> amountDtos = orderMapper.amountSumByUidAndChargeType(uid, chargeType);
+        return calDollarAmount(amountDtos);
+    }
+
     public Order getOrderNo(String orderNo) {
         LambdaQueryWrapper<Order> query = new LambdaQueryWrapper<Order>().eq(Order::getOrderNo, orderNo);
         return orderMapper.selectOne(query);

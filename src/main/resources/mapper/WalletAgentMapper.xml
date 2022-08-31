@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianli.management.dao.WalletAgentMapper">
+
+    <resultMap id="voMap" type="com.tianli.management.vo.WalletAgentVO">
+        <result column="id" property="id"/>
+        <result column="uid" property="uid"/>
+        <result column="agent_name" property="agentName"/>
+        <result column="remark" property="remark"/>
+    </resultMap>
+
+    <select id="selectPageByQuery" resultMap="voMap">
+        select
+            t.`id`,
+            t.`uid`,
+            t.`agent_name`,
+            t.`remark`,
+            t.`create_time`
+        from
+            wallet_agent t
+        <where>
+            <if test="query.uid != null and query.uid != ''">
+                t.uid like concat('%',#{query.uid},'%')
+            </if>
+            <if test="query.productId != null and query.productId != ''">
+                and EXISTS(select * from wallet_agent_product t1 where t1.agent_id = t.id and t1.product_id like concat('%',#{query.productId},'%'))
+            </if>
+            and t.deleted = 0
+        </where>
+    </select>
+
+</mapper>
