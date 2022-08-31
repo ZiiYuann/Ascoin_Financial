@@ -1,8 +1,9 @@
-package com.tianli.currency;
+package com.tianli.currency.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.tianli.currency.enums.TokenAdapter;
+import com.tianli.currency.service.DigitalCurrencyExchangeService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.tool.ApplicationContextTool;
 import lombok.Data;

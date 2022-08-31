@@ -9,10 +9,8 @@ import com.tianli.account.mapper.AccountBalanceMapper;
 import com.tianli.account.vo.AccountBalanceMainPageVO;
 import com.tianli.account.vo.AccountBalanceSimpleVO;
 import com.tianli.account.vo.AccountBalanceVO;
-import com.tianli.address.AddressService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.CommonFunction;
-import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.TokenAdapter;
@@ -251,8 +249,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
                 .collect(Collectors.toMap(o -> o, currencyService::getDollarRate));
 
         List<AccountBalanceVO> accountBalanceVOS = new ArrayList<>(accountBalances.size());
-        accountBalances.stream()
-                .forEach(accountBalance -> {
+        accountBalances.forEach(accountBalance -> {
                     CurrencyCoin currencyCoin = accountBalance.getCoin();
                     BigDecimal rate = currencyDollarRateMap.getOrDefault(currencyCoin, BigDecimal.ONE);
 
@@ -310,7 +307,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     public List<AccountBalanceSimpleVO> getTotalSummaryData() {
         EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
         List<AccountBalanceSimpleVO> accountBalanceSimpleVOS = baseMapper.listAccountBalanceSimpleVO();
-        accountBalanceSimpleVOS.stream().forEach(accountBalanceSimpleVO -> {
+        accountBalanceSimpleVOS.forEach(accountBalanceSimpleVO -> {
             BigDecimal rate = dollarRateMap.get(accountBalanceSimpleVO.getCoin());
             accountBalanceSimpleVO.setDollarRate(rate);
             accountBalanceSimpleVO.setBalanceDollarAmount(accountBalanceSimpleVO.getBalanceAmount().multiply(rate));
@@ -324,12 +321,9 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     @Resource
     private AccountBalanceOperationLogService accountBalanceOperationLogService;
     @Resource
-    private AsyncService asyncService;
-    @Resource
     private AccountConverter accountConverter;
     @Resource
     private CurrencyService currencyService;
-    @Resource
-    private AddressService addressService;
+
 
 }

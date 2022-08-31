@@ -1,4 +1,4 @@
-package com.tianli.currency;
+package com.tianli.currency.enums;
 
 import lombok.Getter;
 

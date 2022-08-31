@@ -1,6 +1,7 @@
-package com.tianli.currency;
+package com.tianli.currency.service;
 
 import com.tianli.currency.enums.TokenAdapter;
+import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.ErrorCodeEnum;
 import org.springframework.stereotype.Service;
 

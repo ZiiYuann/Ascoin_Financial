@@ -1,8 +1,8 @@
 package com.tianli.currency.service.impl;
 
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.currency.DigitalCurrencyExchange;
-import com.tianli.currency.NationalCurrencyEnum;
+import com.tianli.currency.service.DigitalCurrencyExchange;
+import com.tianli.currency.enums.NationalCurrencyEnum;
 import com.tianli.currency.dto.DollarAmountDTO;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.service.CurrencyService;

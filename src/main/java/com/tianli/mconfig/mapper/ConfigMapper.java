@@ -6,8 +6,8 @@ import org.apache.ibatis.annotations.*;
 import java.util.List;
 
 /**
- * @Author wangqiyun
- * @Date 2019-11-13 17:33
+ * @author  wangqiyun
+ * @since  2019-11-13 17:33
  */
 
 @Mapper
