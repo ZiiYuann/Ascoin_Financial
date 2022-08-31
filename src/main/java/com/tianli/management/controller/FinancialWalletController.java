@@ -175,7 +175,7 @@ public class FinancialWalletController {
 
     @GetMapping("/callback/logs")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result chainCallbackLogs(PageQuery<ChainCallbackLog> page){
+    public Result chainCallbackLogs(PageQuery<ChainCallbackLog> page) {
         return Result.instance().setData(chainCallbackLogService.page(page.page()));
     }
 
@@ -185,10 +185,10 @@ public class FinancialWalletController {
     @PutMapping("/imputation/compensate/")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result imputationCompensate(Long imputationId, ImputationStatus status) {
-        if(Objects.isNull(status)){
+        if (Objects.isNull(status)) {
             status = ImputationStatus.success;
         }
-        walletImputationService.imputationCompensate(imputationId,status);
+        walletImputationService.imputationCompensate(imputationId, status);
         return Result.success();
     }
 
@@ -197,8 +197,8 @@ public class FinancialWalletController {
      */
     @PostMapping("/imputation/compensate/manual")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result imputationCompensateManual(NetworkType network, TokenAdapter tokenAdapter, List<String> addresses) {
-        walletImputationService.imputationOperationManual(network,tokenAdapter,addresses);
+    public Result imputationCompensateManual(@RequestBody ImputationCompensateManualQuery query) {
+        walletImputationService.imputationOperationManual(query.getNetwork(), query.getTokenAdapter(), query.getAddresses());
         return Result.success();
     }
 
