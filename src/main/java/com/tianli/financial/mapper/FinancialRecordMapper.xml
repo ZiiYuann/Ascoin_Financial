@@ -39,7 +39,7 @@
         UPDATE financial_record
         SET wait_amount = wait_amount + #{amount},
             hold_amount = hold_amount + #{amount},
-            update_time = #{now}
+            update_time = now()
         WHERE id = #{recordId}
           AND wait_amount = #{originalAmount}
           AND `status` = 'PROCESS'

@@ -157,7 +157,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
         AccountBalance accountBalance = accountBalanceService.getAndInit(uid, financialProduct.getCoin());
         if(accountBalance.getRemain().compareTo(purchaseAmount) < 0)ErrorCodeEnum.INSUFFICIENT_BALANCE.throwException();
         //校验限额
-        BigDecimal totalUse = financialRecordService.getUseQuota(List.of(productId)).getOrDefault(productId, BigDecimal.ZERO);
+        BigDecimal totalUse = financialProduct.getUseQuota();
         BigDecimal personUse = financialRecordService.getUseQuota(List.of(productId), uid).getOrDefault(productId, BigDecimal.ZERO);
         if (financialProduct.getPersonQuota() != null && financialProduct.getPersonQuota().compareTo(BigDecimal.ZERO) > 0 &&
                 purchaseAmount.add(personUse).compareTo(financialProduct.getPersonQuota()) > 0) {

@@ -50,33 +50,16 @@ import java.util.Optional;
 public class ChainService {
 
     private static final String RECHARGE_ADDRESS = "/api/charge/recharge";
-    private static final String WITHDRAW_ADDRESS = "/api/charge/withdraw";
+//    private static final String WITHDRAW_ADDRESS = "/api/charge/withdraw";
+
     @PostConstruct
     public void pushConditionInit() {
         HttpClient client = HttpClientBuilder.create().build();
         String dataCenterCallBackRegisterPath = configService.get(ConfigConstants.DATA_CENTER_URL_REGISTER_PATH);
         String pre = configService.get(ConfigConstants.SYSTEM_URL_PATH_PREFIX);
 
-        try {
-            var rechargeUriBuilder = new URIBuilder(dataCenterCallBackRegisterPath);
-            rechargeUriBuilder.setParameter("callbackAddress",pre + RECHARGE_ADDRESS);
-            HttpPost rechargeRegisterPost = new HttpPost(rechargeUriBuilder.build());
-            rechargeRegisterPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
-            log.info("推送钱包注册地址信息为: 【{}】", pre + RECHARGE_ADDRESS);
-            HttpResponse rechargeRegisterRep = client.execute(rechargeRegisterPost);
-            this.handlerRep(rechargeRegisterRep.getEntity());
+        boolean pushRegister = false;
 
-            var withdrawUriBuilder = new URIBuilder(dataCenterCallBackRegisterPath);
-            withdrawUriBuilder.setParameter("callbackAddress", pre + WITHDRAW_ADDRESS);
-            HttpPost withdrawRegisterPost = new HttpPost(withdrawUriBuilder.build());
-            withdrawRegisterPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
-            log.info("推送钱包注册地址信息为: 【{}】", pre + WITHDRAW_ADDRESS);
-            HttpResponse withdrawRegisterRep = client.execute(withdrawRegisterPost);
-            this.handlerRep(withdrawRegisterRep.getEntity());
-
-        }catch (Exception ignored){
-            ErrorCodeEnum.throwException("推送回调地址失败");
-        }
 
         List<Address> addresses = null;
         for (TokenAdapter token : TokenAdapter.values()) {
@@ -85,23 +68,46 @@ public class ChainService {
                 continue;
             }
 
+            if (!pushRegister) {
+                try {
+                    var rechargeUriBuilder = new URIBuilder(dataCenterCallBackRegisterPath);
+                    rechargeUriBuilder.setParameter("callbackAddress", pre + RECHARGE_ADDRESS);
+                    HttpPost rechargeRegisterPost = new HttpPost(rechargeUriBuilder.build());
+                    rechargeRegisterPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+                    log.info("推送钱包【充值回调】注册地址信息为: 【{}】", pre + RECHARGE_ADDRESS);
+                    HttpResponse rechargeRegisterRep = client.execute(rechargeRegisterPost);
+                    this.handlerRep(rechargeRegisterRep.getEntity());
+
+//            var withdrawUriBuilder = new URIBuilder(dataCenterCallBackRegisterPath);
+//            withdrawUriBuilder.setParameter("callbackAddress", pre + WITHDRAW_ADDRESS);
+//            HttpPost withdrawRegisterPost = new HttpPost(withdrawUriBuilder.build());
+//            withdrawRegisterPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+//            log.info("推送钱包注册地址信息为: 【{}】", pre + WITHDRAW_ADDRESS);
+//            HttpResponse withdrawRegisterRep = client.execute(withdrawRegisterPost);
+//            this.handlerRep(withdrawRegisterRep.getEntity());
+                    pushRegister = true;
+                } catch (Exception ignored) {
+                    ErrorCodeEnum.throwException("推送回调地址失败");
+                }
+            }
+
             // todo address表数据量大考虑流式
             addresses = Optional.ofNullable(addresses).orElse(addressMapper.selectList(new LambdaQueryWrapper<>()));
-            addresses.forEach(address -> pushCondition(address, token,pre + "/api/charge/recharge"));
-            configService.remove(new LambdaQueryWrapper<Config>().eq(Config :: getName, token.name() + ConfigConstants.PUSH_RECHARGE_CONDITION));
+            addresses.forEach(address -> pushCondition(address, token, pre + "/api/charge/recharge"));
+            configService.remove(new LambdaQueryWrapper<Config>().eq(Config::getName, token.name() + ConfigConstants.PUSH_RECHARGE_CONDITION));
         }
     }
 
 
     @Transactional
-    public void conditionPushConfigAdd(TokenAdapter tokenAdapter){
+    public void conditionPushConfigAdd(TokenAdapter tokenAdapter) {
         Config config = new Config();
         config.setName(tokenAdapter + ConfigConstants.PUSH_RECHARGE_CONDITION);
         config.setValue("666666"); //无所谓
         configService.insert(config);
     }
 
-    public void pushCondition(Address address, TokenAdapter tokenAdapter,String url) {
+    public void pushCondition(Address address, TokenAdapter tokenAdapter, String url) {
         String needPushAddress = null;
         ChainType chainType = null;
         switch (tokenAdapter.getNetwork()) {
@@ -124,7 +130,7 @@ public class ChainService {
         TxConditionReq bscTxConditionReqUsdt = TxConditionReq.builder().contractAddress(tokenAdapter.getContractAddress())
                 .to(needPushAddress)
                 .chain(chainType).build();
-        httpPush(List.of(bscTxConditionReqUsdt),url);
+        httpPush(List.of(bscTxConditionReqUsdt), url);
     }
 
     public void pushCondition(Address address, CallbackPathDTO urlPath) {

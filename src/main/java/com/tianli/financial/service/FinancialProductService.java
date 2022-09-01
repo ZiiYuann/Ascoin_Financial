@@ -32,7 +32,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -71,7 +70,7 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             log.info("productId ：{} , 用户持有中不允许删除 ", productId);
             ErrorCodeEnum.PRODUCT_USER_HOLD.throwException();
         }
-        return financialProductMapper.deleteById(productId) > 0;
+        return financialProductMapper.softDeleteById(productId) > 0;
     }
 
     /**
@@ -186,7 +185,18 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
     public void increaseUseQuota(Long productId, BigDecimal increaseAmount, BigDecimal expectAmount) {
         int i = financialProductMapper.increaseUseQuota(productId, increaseAmount, expectAmount);
         if (i <= 0) {
-            ErrorCodeEnum.throwException("申购额度发生变化，请重新申购");
+            ErrorCodeEnum.throwException("产品申购额度发生变化，请重新操作");
+        }
+    }
+
+    /**
+     * 减少额度
+     */
+    @Transactional
+    public void reduceUseQuota(Long productId, BigDecimal reduceAmount) {
+        int i = financialProductMapper.reduceUseQuota(productId, reduceAmount);
+        if (i <= 0) {
+            ErrorCodeEnum.throwException("产品申购额度发生变化，请重新操作");
         }
     }
 }

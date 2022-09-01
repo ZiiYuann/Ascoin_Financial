@@ -63,14 +63,14 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     @Transactional
-    public FinancialPurchaseResultVO purchase(Long uid,PurchaseQuery purchaseQuery) {
+    public FinancialPurchaseResultVO purchase(Long uid, PurchaseQuery purchaseQuery) {
         FinancialProduct product = financialProductService.getById(purchaseQuery.getProductId());
         BigDecimal amount = purchaseQuery.getAmount();
 
         // 校验操作
         validProduct(product, amount);
         validRemainAmount(uid, purchaseQuery.getCoin(), amount);
-        validPurchaseAmount(uid,product,amount);
+        validPurchaseAmount(uid, product, amount);
 
         // 如果是活期，判断是否已经存在申购记录，如果有的话，额外添加待记息金额不生成新的记录
         FinancialRecord financialRecord;
@@ -82,7 +82,7 @@ public class FinancialServiceImpl implements FinancialService {
                     .filter(index -> RecordStatus.PROCESS.equals(index.getStatus())).findFirst();
         }
         // 如果存在申购记录，如果是当天继续申购，则累加金额，否则累加待记利息金额
-        recordOptional.ifPresent(record -> financialRecordService.increaseWaitAmount(record.getId(),amount,record.getWaitAmount()));
+        recordOptional.ifPresent(record -> financialRecordService.increaseWaitAmount(record.getId(), amount, record.getWaitAmount()));
         financialRecord = recordOptional.orElse(financialRecordService.generateFinancialRecord(uid, product, amount, purchaseQuery.isAutoCurrent()));
 
         // 生成一笔订单记录
@@ -103,7 +103,7 @@ public class FinancialServiceImpl implements FinancialService {
         // 减少余额
         accountBalanceService.decrease(uid, ChargeType.purchase, product.getCoin(), amount, order.getOrderNo(), CurrencyLogDes.申购.name());
         // 增加已经使用申购额度
-        financialProductService.increaseUseQuota(product.getId(),amount,product.getUseQuota());
+        financialProductService.increaseUseQuota(product.getId(), amount, product.getUseQuota());
 
         FinancialPurchaseResultVO financialPurchaseResultVO = financialConverter.toFinancialPurchaseResultVO(financialRecord);
         financialPurchaseResultVO.setName(product.getName());
@@ -227,7 +227,7 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     public void validProduct(FinancialProduct financialProduct, BigDecimal purchaseAmount) {
-        if (Objects.isNull(financialProduct)){
+        if (Objects.isNull(financialProduct)) {
             ErrorCodeEnum.throwException("产品不存在");
         }
 
@@ -258,7 +258,6 @@ public class FinancialServiceImpl implements FinancialService {
     public void validPurchaseAmount(Long uid, FinancialProduct product, BigDecimal amount) {
         var productId = product.getId();
 
-        BigDecimal totalUse = financialRecordService.getUseQuota(List.of(productId)).getOrDefault(productId, BigDecimal.ZERO);
         BigDecimal personUse = financialRecordService.getUseQuota(List.of(productId), uid).getOrDefault(productId, BigDecimal.ZERO);
 
         if (product.getPersonQuota() != null && product.getPersonQuota().compareTo(BigDecimal.ZERO) > 0 &&
@@ -267,7 +266,7 @@ public class FinancialServiceImpl implements FinancialService {
         }
 
         if (product.getTotalQuota() != null && product.getTotalQuota().compareTo(BigDecimal.ZERO) > 0 &&
-                amount.add(totalUse).compareTo(product.getTotalQuota()) > 0) {
+                amount.add(product.getUseQuota()).compareTo(product.getTotalQuota()) > 0) {
             ErrorCodeEnum.throwException("用户申购金额超过总限购额");
         }
     }
@@ -424,17 +423,15 @@ public class FinancialServiceImpl implements FinancialService {
 
         Boolean isNewUser = financialRecordService.isNewUser(requestInitService.uid());
 
-        Map<Long, BigDecimal> useQuotaMap = financialRecordService.getUseQuota(productId);
         Map<Long, BigDecimal> usePersonQuotaMap = financialRecordService.getUseQuota(productId, requestInitService.uid());
         return list.convert(product -> {
-            BigDecimal useQuota = useQuotaMap.getOrDefault(product.getId(), BigDecimal.ZERO);
             BigDecimal usePersonQuota = usePersonQuotaMap.getOrDefault(product.getId(), BigDecimal.ZERO);
             BigDecimal totalQuota = product.getTotalQuota();
             BigDecimal personQuota = product.getPersonQuota();
+            BigDecimal useQuota = product.getUseQuota();
 
             // 设置额度信息
             FinancialProductVO financialProductVO = financialConverter.toFinancialProductVO(product);
-            financialProductVO.setUseQuota(useQuota);
             financialProductVO.setUserPersonQuota(usePersonQuota);
             // 设置是否可以申购
             boolean allowPurchase =
@@ -530,20 +527,19 @@ public class FinancialServiceImpl implements FinancialService {
 
         FinancialProductVO productVO = financialConverter.toFinancialProductVO(product);
 
-        var useQuota = financialRecordService.getUseQuota(List.of(product.getId()));
         var personUseQuota = financialRecordService.getUseQuota(List.of(product.getId()), uid);
         var accountBalance = accountBalanceService.getAndInit(uid, product.getCoin());
+        var useQuota = product.getUseQuota();
 
         LocalDateTime now = LocalDateTime.now();
-        productVO.setUseQuota(useQuota.getOrDefault(productVO.getId(), BigDecimal.ZERO));
         productVO.setUserPersonQuota(personUseQuota.getOrDefault(productVO.getId(), BigDecimal.ZERO));
         productVO.setAvailableBalance(accountBalance.getRemain());
         productVO.setPurchaseTime(now);
 
         // 设置假数据
-        BigDecimal baseDataAmount = getBaseDataAmount(product.getId(), product.getTotalQuota(), useQuota.get(productVO.getId()));
+        BigDecimal baseDataAmount = getBaseDataAmount(product.getId(), product.getTotalQuota(), useQuota);
         if (Objects.nonNull(baseDataAmount)) {
-            productVO.setUseQuota(useQuota.getOrDefault(productVO.getId(),BigDecimal.ZERO).add(baseDataAmount));
+            productVO.setUseQuota(useQuota.add(baseDataAmount));
             productVO.setBaseUseQuota(baseDataAmount);
         }
 

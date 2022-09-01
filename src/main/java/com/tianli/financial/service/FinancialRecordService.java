@@ -43,6 +43,8 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     private CurrencyService currencyService;
     @Resource
     private OrderService orderService;
+    @Resource
+    private FinancialProductService financialProductService;
 
     /**
      * 赎回金额
@@ -51,6 +53,10 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     public void redeem(Long recordId, BigDecimal redeemAmount,BigDecimal originalHoldAmount) {
 
         FinancialRecord record = financialRecordMapper.selectById(recordId);
+
+        // 减少产品额度
+        financialProductService.reduceUseQuota(record.getProductId(),redeemAmount);
+
         // 如果存在待记利息金额，优先扣除
         if (record.getWaitAmount().compareTo(BigDecimal.ZERO) > 0){
             BigDecimal reduceIncomeAmount = BigDecimal.ZERO;
@@ -60,7 +66,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
                 reduceWaitAmount = redeemAmount;
             }else {
                 reduceWaitAmount = record.getWaitAmount();
-                reduceWaitAmount = redeemAmount.subtract(reduceWaitAmount);
+                reduceIncomeAmount = redeemAmount.subtract(reduceWaitAmount);
             }
 
             if (financialRecordMapper.reduce2(recordId, reduceIncomeAmount,reduceWaitAmount,originalHoldAmount) < 0) {
@@ -74,6 +80,8 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
             log.error("赎回异常，recordId:{},amount:{}", recordId, redeemAmount);
             ErrorCodeEnum.throwException("用户申购记录金额发生变化，请重试");
         }
+
+
     }
 
     /**
@@ -105,13 +113,6 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         FinancialRecord record = financialRecordMapper
                 .selectOne(new LambdaQueryWrapper<FinancialRecord>().eq(FinancialRecord::getUid, uid).last("limit 1"));
         return Objects.isNull(record);
-    }
-
-    /**
-     * 获取不同产品已经使用的总额度
-     */
-    public Map<Long, BigDecimal> getUseQuota(List<Long> productIds) {
-        return getUseQuota(productIds, null);
     }
 
     public Map<Long, BigDecimal> getUseQuota(List<Long> productIds, Long uid) {
@@ -153,7 +154,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
                 .riskType(product.getRiskType())
                 .businessType(product.getBusinessType())
                 .uid(uid).productType(product.getType())
-                .holdAmount(BigDecimal.ZERO)
+                .holdAmount(amount)
                 .purchaseTime(requestInitService.now())
                 .productTerm(product.getTerm())
                 .startIncomeTime(startIncomeTime)
