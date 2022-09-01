@@ -6,6 +6,7 @@ import com.tianli.common.ConfigConstants;
 import com.tianli.common.Constants;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
+import com.tianli.sso.init.RequestInitService;
 import com.tianli.sso.permission.LoginTokenType;
 import com.tianli.tool.MapTool;
 import lombok.extern.slf4j.Slf4j;
@@ -35,10 +36,14 @@ public class SSOService {
                 .put("token", cookie)
                 .put("type", tokenType)
                 .put("api", apiPath)
-                .put("api_method", api_method)));
+                .put("api_method", api_method)
+                .put("trace_id", requestInitService.requestId())
+        ));
         return Constants.GSON.fromJson(result, Result.class);
     }
 
     @Resource
     private ConfigService configService;
+    @Resource
+    private RequestInitService requestInitService;
 }
