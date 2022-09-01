@@ -502,7 +502,7 @@ public class FinancialServiceImpl implements FinancialService {
         BigDecimal realRate = useQuota.divide(limitQuota, 4, RoundingMode.HALF_UP);
         // 期望比例
         BigDecimal expectRate = BigDecimal.valueOf(0.5f);
-        var baseRate = BigDecimal.valueOf(productId % 20).multiply(BigDecimal.valueOf(0.01f));
+        var baseRate = BigDecimal.valueOf(productId % 4).multiply(BigDecimal.valueOf(0.05f));
         if (realRate.compareTo(expectRate) >= 0) {
             return null;
         }
@@ -512,11 +512,14 @@ public class FinancialServiceImpl implements FinancialService {
         int month = now.getMonthValue();
         String monthAndDay = now.format(DateTimeFormatter.ofPattern("MMdd"));
         int randomNum = (Integer.parseInt(monthAndDay) + dayOfMonth * 100 + month * 100) % 365;
+        if (randomNum < 300){
+            randomNum = randomNum + 50;
+        }
         // 获取一个每天固定的随机比例 365 以内
         BigDecimal randomRate = BigDecimal.valueOf(randomNum).divide(BigDecimal.valueOf(365L), 4, RoundingMode.HALF_DOWN);
 
         // 调整比例 = 差值比例 - 差值比例 * 0.2 * 每天固定随机比例
-        BigDecimal adjustRate = expectRate.multiply(BigDecimal.valueOf(0.8f).multiply(randomRate).add(baseRate));
+        BigDecimal adjustRate = expectRate.multiply(BigDecimal.valueOf(0.6f).multiply(randomRate).add(baseRate));
 
         return limitQuota.multiply(adjustRate);
     }
