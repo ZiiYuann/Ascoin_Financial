@@ -25,6 +25,13 @@ public class TimeTool {
     }
 
     /**
+     * 格式化时间(yyyy-MM-dd HH:mm:ss)
+     * 当前时间
+     */
+    public static String getNowDateTimeDisplayString() {
+        return getDateTimeDisplayString(LocalDateTime.now(), "yyyy-MM-dd HH:mm:ss");
+    }
+    /**
      * day本月开始时间
      */
     public static LocalDateTime minMonthTime(LocalDateTime day){

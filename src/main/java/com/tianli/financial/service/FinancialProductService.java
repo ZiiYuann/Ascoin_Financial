@@ -32,6 +32,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +46,8 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
 
     @Resource
     private FinancialConverter financialConverter;
+    @Resource
+    private ManagementConverter managementConverter;
     @Resource
     private ManagementConverter managementConverter;
     @Resource

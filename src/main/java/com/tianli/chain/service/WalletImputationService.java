@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -201,6 +202,21 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         // 异步检测数据
         asynCheckImputationStatus();
 
+    }
+
+    /**
+     * 手动执行归集操作
+     */
+    public String imputationOperationManual(NetworkType network,TokenAdapter tokenAdapter,List<String> addresses) {
+        LambdaQueryWrapper<Address> query;
+        if(NetworkType.trc20.equals(network)){
+            query = new LambdaQueryWrapper<Address>().in(Address :: getTron,addresses);
+        }else {
+            query = new LambdaQueryWrapper<Address>().in(Address :: getBsc,addresses);
+        }
+        List<Long> addressIds = Optional.ofNullable(addressService.list(query)).orElse(new ArrayList<>())
+                .stream().map(Address :: getId).collect(Collectors.toList());
+        return baseContractService.getOne(network).recycle(null, addressIds, tokenAdapter.getContractAddressList());
     }
 
     /**
