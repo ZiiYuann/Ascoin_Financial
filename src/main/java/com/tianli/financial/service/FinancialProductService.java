@@ -49,8 +49,6 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
     @Resource
     private ManagementConverter managementConverter;
     @Resource
-    private ManagementConverter managementConverter;
-    @Resource
     private FinancialProductMapper financialProductMapper;
     @Resource
     private FinancialRecordService financialRecordService;
