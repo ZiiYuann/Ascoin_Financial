@@ -1,9 +1,12 @@
 package com.tianli.fund.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.common.PageQuery;
 import com.tianli.fund.entity.FundTransactionRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
-
-import java.math.BigDecimal;
+import com.tianli.fund.query.FundTransactionQuery;
+import com.tianli.fund.vo.FundTransactionRecordVO;
+import com.tianli.management.vo.FundTransactionAmountVO;
 
 /**
  * <p>
@@ -15,6 +18,9 @@ import java.math.BigDecimal;
  */
 public interface IFundTransactionRecordService extends IService<FundTransactionRecord> {
 
-    BigDecimal getWaitRedemptionAmount(Long fundId);
+    IPage<FundTransactionRecordVO> getTransactionPage(PageQuery<FundTransactionRecord> page, FundTransactionQuery query);
+
+    FundTransactionAmountVO getTransactionAmount(FundTransactionQuery query);
+
 
 }

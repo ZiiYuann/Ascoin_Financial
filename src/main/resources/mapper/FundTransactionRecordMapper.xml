@@ -2,4 +2,36 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tianli.fund.dao.FundTransactionRecordMapper">
 
+    <select id="getTransactionAmount" resultType="com.tianli.management.dto.AmountDto">
+        select
+            sum(transaction_amount) amount,
+            coin
+        from
+            fund_transaction_record
+        <where>
+            <if test="queryUid != null and queryUid != ''">
+                uid like concat('%',#{queryUid},'%')
+            </if>
+            <if test="queryFundId != null and queryFundId != ''">
+                fund_id like concat('%',#{queryFundId},'%')
+            </if>
+            <if test="queryProductId != null and queryProductId != ''">
+                product_id like concat('%',#{queryProductId},'%')
+            </if>
+            <if test="type != null and type != ''">
+                type = #{type}
+            </if>
+            <if test="status != null">
+                status = #{status}
+            </if>
+            <if test="startTime != null ">
+                create_time >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                create_time &lt;= #{endTime}
+            </if>
+        </where>
+        group by coin
+    </select>
+
 </mapper>

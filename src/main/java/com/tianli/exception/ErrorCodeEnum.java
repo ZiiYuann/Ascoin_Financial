@@ -108,6 +108,7 @@ public enum ErrorCodeEnum {
     PURCHASE_GT_TOTAL_QUOTA(3606,"申购金额大于总限额"),
     REFERRAL_CODE_ERROR(3604,"推荐码错误"),
     FUND_NOT_EXIST(3606,"基金不存在"),
+    REDEMPTION_GT_HOLD(3607,"赎回金额大于持有金额")
 
 
         ;

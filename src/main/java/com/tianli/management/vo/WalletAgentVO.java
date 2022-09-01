@@ -47,22 +47,22 @@ public class WalletAgentVO {
     /**
      * 持仓金额
      */
-    private BigDecimal HoldAmount;
+    private BigDecimal holdAmount;
 
     /**
      * 待赎回金额
      */
-    private BigDecimal redeemAmount;
+    private BigDecimal redemptionAmount;
 
     /**
      * 已发利息
      */
-    private BigDecimal payInterestAmount;
+    private BigDecimal interestAmount;
 
     /**
      * 待发利息
      */
-    private BigDecimal waitPayInterestAmount;
+    private BigDecimal waitInterestAmount;
 
 
     /**

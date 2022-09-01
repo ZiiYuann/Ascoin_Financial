@@ -29,6 +29,9 @@ import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.entity.FundTransactionRecord;
 import com.tianli.fund.enums.FundTransactionType;
+import com.tianli.fund.query.FundIncomeQuery;
+import com.tianli.fund.query.FundRecordQuery;
+import com.tianli.fund.query.FundTransactionQuery;
 import com.tianli.fund.service.IFundTransactionRecordService;
 import com.tianli.fund.vo.*;
 import com.tianli.fund.service.IFundIncomeRecordService;
@@ -37,6 +40,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.service.IWalletAgentProductService;
+import com.tianli.management.vo.FundUserRecordVO;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -104,7 +108,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
 
     @Override
     public IPage<FundProductVO> productPage(PageQuery<FinancialProduct> page) {
-        return financialProductService.page(new Page<>(page.getPage(),page.getPageSize()),
+        return financialProductService.page(page.page(),
                         new QueryWrapper<FinancialProduct>().lambda().eq(FinancialProduct::getType, ProductType.fund)
                                 .eq(FinancialProduct::getStatus, ProductStatus.open)
                                 .eq(FinancialProduct::isDeleted,0))
@@ -167,25 +171,21 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
                 purchaseAmount.add(totalUse).compareTo(financialProduct.getTotalQuota()) > 0) {
             ErrorCodeEnum.PURCHASE_GT_TOTAL_QUOTA.throwException();
         }
-        FundRecord fundRecord = getOneByUid(uid, productId);
-        if(Objects.isNull(fundRecord)) {
-            fundRecord = FundRecord.builder()
-                    .uid(uid)
-                    .productId(productId)
-                    .productName(financialProduct.getName())
-                    .productNameEn(financialProduct.getNameEn())
-                    .coin(financialProduct.getCoin())
-                    .logo(financialProduct.getLogo())
-                    .holdAmount(purchaseAmount)
-                    .riskType(financialProduct.getRiskType())
-                    .businessType(financialProduct.getBusinessType())
-                    .rate(financialProduct.getRate())
-                    .build();
-            this.save(fundRecord);
-        }else {
-            fundRecord.setHoldAmount(fundRecord.getHoldAmount().add(purchaseAmount));
-            this.updateById(fundRecord);
-        }
+        //持有记录
+        FundRecord fundRecord = FundRecord.builder()
+                .uid(uid)
+                .productId(productId)
+                .productName(financialProduct.getName())
+                .productNameEn(financialProduct.getNameEn())
+                .coin(financialProduct.getCoin())
+                .logo(financialProduct.getLogo())
+                .holdAmount(purchaseAmount)
+                .riskType(financialProduct.getRiskType())
+                .businessType(financialProduct.getBusinessType())
+                .rate(financialProduct.getRate())
+                .build();
+        this.save(fundRecord);
+
         //生成一笔订单
         Order order = Order.builder()
                 .uid(uid)
@@ -239,11 +239,10 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     }
 
     @Override
-    public IPage<FundIncomeRecordVO> incomeRecord(PageQuery<FundIncomeRecord> page , Long fundId) {
-        return fundIncomeRecordService.page(new Page<>(page.getPage(), page.getPageSize()),
-                new QueryWrapper<FundIncomeRecord>().lambda().eq(FundIncomeRecord::getFundId, fundId)
-                        .orderByDesc(FundIncomeRecord::getCreateTime))
-                .convert(fundRecordConvert::toFundIncomeVO);
+    public IPage<FundIncomeRecordVO> incomeRecord(PageQuery<FundIncomeRecord> page ,  FundIncomeQuery query) {
+        Long uid = requestInitService.uid();
+        query.setUid(uid);
+        return fundIncomeRecordService.getPage(page,query);
     }
 
     @Override
@@ -261,28 +260,70 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     }
 
     @Override
-    public void applyRedemption(FundRedemptionBO bo) {
+    public IPage<FundTransactionRecordVO> transactionRecord(PageQuery<FundTransactionRecord> page, FundTransactionQuery query) {
+        return fundTransactionRecordService.getTransactionPage(page, query);
+    }
+
+    @Override
+    public FundTransactionRecordVO transactionDetail(Long transactionId) {
+        FundTransactionRecord transactionRecord = fundTransactionRecordService.getById(transactionId);
+        return fundRecordConvert.toFundTransactionVO(transactionRecord);
+    }
+
+    @Override
+    public IPage<FundUserRecordVO> fundUserRecordPage(PageQuery<FundRecord> pageQuery, FundRecordQuery query) {
+        IPage<FundUserRecordVO> fundUserRecordPage = fundRecordMapper.selectDistinctUidPage(pageQuery.page(), query);
+        return fundUserRecordPage.convert(fundUserRecordVO -> {
+            Long uid = fundUserRecordVO.getUid();
+            List<AmountDto> amountDtos = fundRecordMapper.holdAmountSumByUid(uid);
+            fundUserRecordVO.setHoldAmount(orderService.calDollarAmount(amountDtos));
+            List<AmountDto> interestAmount = fundIncomeRecordService.amountSumByUid(uid, null);
+            fundUserRecordVO.setInterestAmount(orderService.calDollarAmount(interestAmount));
+            List<AmountDto> payInterestAmount = fundIncomeRecordService.amountSumByUid(uid, FundIncomeStatus.audit_success);
+            fundUserRecordVO.setPayInterestAmount(orderService.calDollarAmount(payInterestAmount));
+            List<AmountDto> waitPayInterestAmount = fundIncomeRecordService.amountSumByUid(uid, FundIncomeStatus.wait_audit);
+            fundUserRecordVO.setWaitPayInterestAmount(orderService.calDollarAmount(waitPayInterestAmount));
+            return fundUserRecordVO;
+        });
+    }
+
+    @Override
+    public FundTransactionRecordVO applyRedemption(FundRedemptionBO bo) {
         Long id = bo.getId();
         BigDecimal redemptionAmount = bo.getRedemptionAmount();
         FundRecord fundRecord = this.getById(id);
         if(Objects.isNull(fundRecord))ErrorCodeEnum.FUND_NOT_EXIST.throwException();
-        BigDecimal waitRedemptionAmount = fundTransactionRecordService.getWaitRedemptionAmount(id);
+        if(redemptionAmount.compareTo(fundRecord.getHoldAmount()) > 0)ErrorCodeEnum.REDEMPTION_GT_HOLD.throwException();
 
+        //扣除余额
+        fundRecordMapper.reduceAmount(id,redemptionAmount);
 
+        //添加交易记录
+        FundTransactionRecord transactionRecord = FundTransactionRecord.builder()
+                .uid(fundRecord.getUid())
+                .fundId(fundRecord.getId())
+                .productId(fundRecord.getProductId())
+                .productName(fundRecord.getProductName())
+                .coin(fundRecord.getCoin())
+                .rate(fundRecord.getRate())
+                .type(FundTransactionType.redemption)
+                .status(FundTransactionStatus.wait_audit)
+                .transactionAmount(redemptionAmount)
+                .createTime(LocalDateTime.now()).build();
+        fundTransactionRecordService.save(transactionRecord);
 
+        return FundTransactionRecordVO.builder()
+                .id(transactionRecord.getId())
+                .productName(transactionRecord.getProductName())
+                .coin(transactionRecord.getCoin())
+                .transactionAmount(redemptionAmount)
+                .createTime(LocalDateTime.now())
+                .build();
     }
 
     @Override
     public BigDecimal dailyIncome(BigDecimal holdAmount, BigDecimal rate) {
         return holdAmount.multiply(rate).divide(new BigDecimal(365 ), 8, RoundingMode.DOWN);
     }
-
-    @Override
-    public FundRecord getOneByUid(Long uid,Long productId) {
-        return this.getOne(new QueryWrapper<FundRecord>().lambda()
-                .eq(FundRecord::getUid,uid)
-                .eq(FundRecord::getProductId,productId));
-    }
-
 
 }

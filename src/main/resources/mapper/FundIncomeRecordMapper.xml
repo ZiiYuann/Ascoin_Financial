@@ -2,5 +2,32 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tianli.fund.dao.FundIncomeRecordMapper">
 
+    <select id="selectAmount" resultType="com.tianli.management.dto.AmountDto">
+        select
+            sum(interest_amount) amount,
+            coin
+        from fund_income_record
+        <where>
+            <if test="uid != null">
+                uid = #{uid}
+            </if>
+            <if test="queryUid != null and queryUid != ''">
+                and uid like concat('%',#{queryUid},'%')
+            </if>
+            <if test="queryProductId != null and queryProductId != ''">
+                and product_id like concat('%',#{queryProductId},'%')
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="startTime != null">
+                and create_time >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                and create_time &lt;= #{endTime}
+            </if>
+        </where>
+        group by coin
 
+    </select>
 </mapper>

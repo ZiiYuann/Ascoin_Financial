@@ -2,12 +2,11 @@ package com.tianli.fund.dao;
 
 import com.tianli.fund.entity.FundTransactionRecord;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tianli.fund.enums.FundTransactionType;
+import com.tianli.fund.query.FundTransactionQuery;
+import com.tianli.management.dto.AmountDto;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * <p>
@@ -19,8 +18,5 @@ import java.math.BigDecimal;
  */
 @Mapper
 public interface FundTransactionRecordMapper extends BaseMapper<FundTransactionRecord> {
-
-    @Select("select sum(transaction_amount) from fund_transaction_record where fund_id = #{fundId} and type = #{type} and status = #{status}")
-    BigDecimal TransactionAmountSum(@Param("fundId")Long fundId, @Param("type")FundTransactionType type,@Param("status") Integer status);
-
+    List<AmountDto> getTransactionAmount(FundTransactionQuery query);
 }

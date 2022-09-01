@@ -13,6 +13,9 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.service.FinancialProductService;
+import com.tianli.fund.contant.FundIncomeStatus;
+import com.tianli.fund.contant.FundTransactionStatus;
+import com.tianli.fund.enums.FundTransactionType;
 import com.tianli.management.bo.WalletAgentBO;
 import com.tianli.management.converter.WalletAgentConverter;
 import com.tianli.management.dto.AmountDto;
@@ -120,9 +123,21 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
         walletAgentMapper.selectPageByQuery(page, query);
         page.convert(walletAgentVO -> {
             Long uid = walletAgentVO.getUid();
+            Long id = walletAgentVO.getId();
+            List<WalletAgentProduct> walletAgentProductList = walletAgentProductService.getByAgentId(id);
+            List<WalletAgentVO.Product> productList = walletAgentProductList.stream().map(walletAgentProduct -> WalletAgentVO.Product.builder()
+                    .productId(walletAgentProduct.getProductId())
+                    .productName(walletAgentProduct.getProductName())
+                    .build()).collect(Collectors.toList());
+
             walletAgentVO.setWalletAmount(getWalletAmount(uid));
             walletAgentVO.setRechargeAmount(getRechargeAmount(uid));
             walletAgentVO.setWithdrawAmount(getWithdrawAmount(uid));
+            walletAgentVO.setProducts(productList);
+            walletAgentVO.setHoldAmount(getHoldAmount(uid));
+            walletAgentVO.setRedemptionAmount(getRedemptionAmount(uid));
+            walletAgentVO.setInterestAmount(getInterestAmount(uid, FundIncomeStatus.audit_success));
+            walletAgentVO.setInterestAmount(getInterestAmount(uid, FundIncomeStatus.wait_audit));
             return walletAgentVO;
         });
         return page;
@@ -162,6 +177,21 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
 
     private BigDecimal getWithdrawAmount(Long uid){
         return orderService.amountDollarSumByChargeType(uid,ChargeType.withdraw);
+    }
+
+    private BigDecimal getHoldAmount(Long uid){
+        List<AmountDto> amountDtos = walletAgentMapper.holdAmountSum(uid);
+        return orderService.calDollarAmount(amountDtos);
+    }
+
+    private BigDecimal getRedemptionAmount(Long uid){
+        List<AmountDto> amountDtos = walletAgentMapper.redemptionAmountSum(uid, FundTransactionType.redemption, FundTransactionStatus.wait_audit);
+        return orderService.calDollarAmount(amountDtos);
+    }
+
+    private BigDecimal getInterestAmount(Long uid, Integer status){
+        List<AmountDto> amountDtos = walletAgentMapper.interestAmountSum(uid, status);
+        return orderService.calDollarAmount(amountDtos);
     }
 
 }

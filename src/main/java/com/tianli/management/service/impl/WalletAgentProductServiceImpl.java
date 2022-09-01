@@ -8,6 +8,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * <p>
  * 云钱包代理人和产品关联 服务实现类
@@ -37,5 +39,11 @@ public class WalletAgentProductServiceImpl extends ServiceImpl<WalletAgentProduc
     public WalletAgentProduct getByProductId(Long productId) {
         return walletAgentProductMapper.selectOne(new QueryWrapper<WalletAgentProduct>().lambda()
                 .eq(WalletAgentProduct::getProductId, productId));
+    }
+
+    @Override
+    public List<WalletAgentProduct> getByAgentId(Long agentId) {
+        return walletAgentProductMapper.selectList(new QueryWrapper<WalletAgentProduct>().lambda()
+                .eq(WalletAgentProduct::getAgentId,agentId));
     }
 }

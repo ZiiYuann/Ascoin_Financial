@@ -2,4 +2,17 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tianli.fund.dao.FundRecordMapper">
 
+    <select id="selectDistinctUidPage" resultType="com.tianli.management.vo.FundUserRecordVO">
+        select
+            distict uid
+        from
+            fund_record
+        <where>
+            <if test="queryUid != null and queryUid != ''">
+                uid like concat('%',#{queryUid},'%')
+            </if>
+        </where>
+        order by create_time
+    </select>
+
 </mapper>

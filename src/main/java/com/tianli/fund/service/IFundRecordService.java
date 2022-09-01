@@ -1,15 +1,19 @@
 package com.tianli.fund.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.common.PageQuery;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.fund.bo.FundPurchaseBO;
 import com.tianli.fund.bo.FundRedemptionBO;
 import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.entity.FundRecord;
+import com.tianli.fund.entity.FundTransactionRecord;
+import com.tianli.fund.query.FundIncomeQuery;
+import com.tianli.fund.query.FundRecordQuery;
+import com.tianli.fund.query.FundTransactionQuery;
 import com.tianli.fund.vo.*;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tianli.management.vo.FundUserRecordVO;
 
 import java.math.BigDecimal;
 
@@ -34,13 +38,17 @@ public interface IFundRecordService extends IService<FundRecord> {
 
     FundRecordVO detail(Long id);
 
-    IPage<FundIncomeRecordVO> incomeRecord(PageQuery<FundIncomeRecord> page , Long fundId);
+    IPage<FundIncomeRecordVO> incomeRecord(PageQuery<FundIncomeRecord> page ,  FundIncomeQuery query);
 
     FundRecordVO redemptionPage(Long id);
 
-    void applyRedemption(FundRedemptionBO bo);
+    IPage<FundTransactionRecordVO> transactionRecord(PageQuery<FundTransactionRecord> page , FundTransactionQuery query);
+
+    FundTransactionRecordVO transactionDetail(Long transactionId);
+
+    IPage<FundUserRecordVO> fundUserRecordPage(PageQuery<FundRecord> pageQuery, FundRecordQuery query);
+
+    FundTransactionRecordVO applyRedemption(FundRedemptionBO bo);
 
     BigDecimal dailyIncome(BigDecimal holdAmount,BigDecimal rate);
-
-    FundRecord getOneByUid(Long uid,Long productId);
 }
