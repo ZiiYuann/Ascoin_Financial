@@ -37,5 +37,10 @@ CREATE TABLE `order_advance` (
                                  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='预订单表';
 
+CREATE TABLE `exception_msg` (
+                                 `id` bigint DEFAULT NULL,
+                                 `msg` text,
+                                 `create_time` datetime DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='异常信息表';
 
 

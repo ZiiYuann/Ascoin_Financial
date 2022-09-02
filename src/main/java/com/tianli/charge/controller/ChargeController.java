@@ -14,6 +14,7 @@ import com.tianli.charge.service.OrderAdvanceService;
 import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
+import com.tianli.common.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.financial.enums.ProductType;
@@ -58,6 +59,8 @@ public class ChargeController {
     private RedissonClient redissonClient;
     @Resource
     private OrderAdvanceService orderAdvanceService;
+    @Resource
+    private WebHookService webHookService;
 
     /**
      * 充值回调
@@ -88,6 +91,7 @@ public class ChargeController {
         } catch (Exception e) {
             chainCallbackLog.setMsg(ExceptionUtil.getMessage(e));
             chainCallbackLog.setStatus("fail");
+            webHookService.dingTalkSend("充值回调失败",e);
             throw e;
         } finally {
             chainCallbackLogService.updateById(chainCallbackLog);

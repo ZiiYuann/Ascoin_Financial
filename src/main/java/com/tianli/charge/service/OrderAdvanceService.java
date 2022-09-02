@@ -109,12 +109,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                 .amount(orderAdvance.getAmount())
                 .autoCurrent(orderAdvance.isAutoCurrent())
                 .productId(orderAdvance.getProductId()).build();
-        try {
 
-            financialService.purchase(uid,purchaseQuery);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
+        financialService.purchase(uid,purchaseQuery);
     }
 }

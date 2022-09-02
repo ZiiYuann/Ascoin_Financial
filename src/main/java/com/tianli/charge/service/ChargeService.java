@@ -1,5 +1,6 @@
 package com.tianli.charge.service;
 
+import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -43,8 +44,6 @@ import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
-import com.tianli.task.RetryScheduledExecutor;
-import com.tianli.task.RetryTaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -59,7 +58,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author wangqiyun
@@ -111,12 +109,12 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             walletImputationService.insert(uid, address, tokenAdapter, req, finalAmount);
 
             // 判断是否有预先订单需要处理
-            RetryScheduledExecutor.DEFAULT_EXECUTOR.schedule(
-                    () -> orderAdvanceService.handlerRechargeEvent(uid, req, finalAmount, tokenAdapter),
-                    1,
-                    TimeUnit.MINUTES,
-                    new RetryTaskInfo<>("异步处理预订单操作", "异步处理预订单操作hash:"+req.getHash(), null)
-            );
+            try {
+                orderAdvanceService.handlerRechargeEvent(uid, req, finalAmount, tokenAdapter);
+            }catch (Exception e){
+                log.error("申购订单失败");
+                log.error(ExceptionUtil.getMessage(e));
+            }
         }
 
     }
