@@ -92,7 +92,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             TokenAdapter tokenAdapter = mainToken ? ChainType.getTokenAdapter(chainType) : TokenAdapter.getToken(req.getContractAddress());
             Address address = getAddress(tokenAdapter.getNetwork(), req.getTo());
             Long uid = address.getUid();
-            BigDecimal finalAmount = BigDecimal.valueOf(tokenAdapter.alignment(req.getValue()));
+            BigDecimal finalAmount = tokenAdapter.alignment(req.getValue());
 
             if (orderService.getOrderChargeByTxid(req.getHash()) != null) {
                 log.error("txid {} 已经存在充值订单", req.getHash());
@@ -431,7 +431,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      */
     @Transactional
     public String insertRechargeOrder(Long uid, TRONTokenReq query, TokenAdapter tokenAdapter
-            , BigDecimal amount, BigInteger realAmount) {
+            , BigDecimal amount, BigDecimal realAmount) {
         // 链信息
         OrderChargeInfo orderChargeInfo = OrderChargeInfo.builder()
                 .id(CommonFunction.generalId())
@@ -442,7 +442,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 // 格式化后的费用
                 .fee(amount)
                 // 交易真实的费用
-                .realFee(realAmount)
+                .realFee(realAmount.toBigInteger())
                 // 手续费
                 .serviceFee(BigDecimal.ZERO)
                 .fromAddress(query.getFrom())

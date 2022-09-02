@@ -26,7 +26,7 @@ public class BaseTokenReq {
 
     private String block;
 
-    private BigInteger value;
+    private BigDecimal value;
 
     private String contractAddress;
 
