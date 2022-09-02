@@ -18,12 +18,12 @@ public class ErrMsgMappingController {
     public Result putNewMmp(@PathVariable("type") String type,
                             String key,
                             String val,
-                            String password){
-        if(StringUtils.isBlank(key) || StringUtils.isBlank(val)){
+                            String password) {
+        if (StringUtils.isBlank(key) || StringUtils.isBlank(val)) {
             return Result.success();
         }
         String password_ = "tspeculate_mmp";
-        if(StringUtils.isBlank(password) || !StringUtils.equals(password, password_)){
+        if (StringUtils.isBlank(password) || !StringUtils.equals(password, password_)) {
             return Result.success();
         }
         errMsgMappingService.putThaiMsg(type, key, val);
@@ -31,8 +31,12 @@ public class ErrMsgMappingController {
     }
 
     @GetMapping("/{id}")
-    public String exceptionMsg(@PathVariable("id") String id){
-        return exceptionMsgMapper.selectById(id).getMsg();
+    public String exceptionMsg(@PathVariable("id") String id) {
+        try {
+            return exceptionMsgMapper.selectById(id).getMsg();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 }

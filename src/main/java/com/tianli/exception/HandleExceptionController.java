@@ -1,5 +1,6 @@
 package com.tianli.exception;
 
+import com.tianli.common.WebHookService;
 import com.tianli.common.async.AsyncService;
 import com.tianli.tool.ApplicationContextTool;
 import org.springframework.validation.BindingResult;
@@ -20,6 +21,9 @@ import java.util.List;
 public class HandleExceptionController {
     @ExceptionHandler(value = {Exception.class})
     public Result resolveException(HttpServletRequest request, Exception e) {
+        if (!(e instanceof ErrCodeException)) {
+            webHookService.dingTalkSend("异常信息", e);
+        }
         Result result = Result.instance();
         if (e instanceof ErrCodeException) {
             result.setCode(((ErrCodeException) e).getErrcode());
@@ -31,7 +35,7 @@ public class HandleExceptionController {
             String message = Exceptions.getE().get(e.getClass()).getMessage();
             result.setMsg(message);
             result.setEnMsg(getEnMsg(message));
-        }else {
+        } else {
             result.setCode("100");
             result.setMsg("系统异常");
             result.setEnMsg("System exception");
@@ -46,14 +50,14 @@ public class HandleExceptionController {
     }
 
     @ExceptionHandler(value = {MethodArgumentNotValidException.class})
-    public Result paramExceptionHandler(MethodArgumentNotValidException e){
+    public Result paramExceptionHandler(MethodArgumentNotValidException e) {
         BindingResult bindingResult = e.getBindingResult();
-        if(bindingResult.hasErrors()){
+        if (bindingResult.hasErrors()) {
             List<ObjectError> errors = bindingResult.getAllErrors();
-            if(!errors.isEmpty()){
+            if (!errors.isEmpty()) {
                 FieldError fieldError = (FieldError) errors.get(0);
                 Result result = Result.instance();
-                result.setCode(ErrorCodeEnum.ARGUEMENT_ERROR.getErrorNo()+"");
+                result.setCode(ErrorCodeEnum.ARGUEMENT_ERROR.getErrorNo() + "");
                 String defaultMessage = fieldError.getDefaultMessage();
                 result.setMsg(defaultMessage);
                 result.setEnMsg(getEnMsg(defaultMessage));
@@ -63,17 +67,19 @@ public class HandleExceptionController {
         return Result.fail(ErrorCodeEnum.ARGUEMENT_ERROR);
     }
 
-    private String getEnMsg(String msg){
+    private String getEnMsg(String msg) {
         String transMsg = errMsgMappingService.getTransMsg("en", msg);
         return transMsg == null ? msg : transMsg;
     }
 
-    private String getThaiMsg(String msg){
+    private String getThaiMsg(String msg) {
         String transMsg = errMsgMappingService.getTransMsg("thai", msg);
         return transMsg == null ? msg : transMsg;
     }
 
     @Resource
     private ErrMsgMappingService errMsgMappingService;
+    @Resource
+    private WebHookService webHookService;
 
 }
