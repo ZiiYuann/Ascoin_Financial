@@ -28,6 +28,7 @@ import com.tianli.fund.dao.FundRecordMapper;
 import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.entity.FundTransactionRecord;
+import com.tianli.fund.enums.FundRecordStatus;
 import com.tianli.fund.enums.FundTransactionType;
 import com.tianli.fund.query.FundIncomeQuery;
 import com.tianli.fund.query.FundRecordQuery;
@@ -97,8 +98,8 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     public FundMainPageVO mainPage() {
         Long uid = requestInitService.uid();
         List<AmountDto> holdAmount = fundRecordMapper.holdAmountSumByUid(uid);
-        List<AmountDto> waitPayInterestAmount = fundIncomeRecordService.amountSumByUid(uid, FundIncomeStatus.calculated);
-        List<AmountDto> payInterestAmount = fundIncomeRecordService.amountSumByUid(uid, FundIncomeStatus.audit_success);
+        List<AmountDto> waitPayInterestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, FundIncomeStatus.calculated);
+        List<AmountDto> payInterestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, FundIncomeStatus.audit_success);
         return FundMainPageVO.builder()
                 .holdAmount(orderService.calDollarAmount(holdAmount))
                 .payInterestAmount(orderService.calDollarAmount(payInterestAmount))
@@ -183,6 +184,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
                 .riskType(financialProduct.getRiskType())
                 .businessType(financialProduct.getBusinessType())
                 .rate(financialProduct.getRate())
+                .status(FundRecordStatus.PROCESS)
                 .build();
         this.save(fundRecord);
 
@@ -208,15 +210,15 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
                 .uid(agentAccountBalance.getUid())
                 .coin(financialProduct.getCoin())
                 .relatedId(fundRecord.getId())
-                .orderNo(AccountChangeType.fund_sale.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
+                .orderNo(AccountChangeType.agent_fund_sale.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
                 .amount(purchaseAmount)
-                .type(ChargeType.fund_sale)
+                .type(ChargeType.agent_fund_sale)
                 .status(ChargeStatus.chain_success)
                 .createTime(LocalDateTime.now())
                 .completeTime(LocalDateTime.now())
                 .build();
         orderService.save(agentOrder);
-        accountBalanceService.increase(agentAccountBalance.getUid(), ChargeType.fund_sale, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.基金销售.name());
+        accountBalanceService.increase(agentAccountBalance.getUid(), ChargeType.agent_fund_sale, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.代理基金销售.name());
         //交易记录
         FundTransactionRecord transactionRecord = FundTransactionRecord.builder()
                 .uid(uid)
@@ -277,11 +279,11 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
             Long uid = fundUserRecordVO.getUid();
             List<AmountDto> amountDtos = fundRecordMapper.holdAmountSumByUid(uid);
             fundUserRecordVO.setHoldAmount(orderService.calDollarAmount(amountDtos));
-            List<AmountDto> interestAmount = fundIncomeRecordService.amountSumByUid(uid, null);
+            List<AmountDto> interestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, null);
             fundUserRecordVO.setInterestAmount(orderService.calDollarAmount(interestAmount));
-            List<AmountDto> payInterestAmount = fundIncomeRecordService.amountSumByUid(uid, FundIncomeStatus.audit_success);
+            List<AmountDto> payInterestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, FundIncomeStatus.audit_success);
             fundUserRecordVO.setPayInterestAmount(orderService.calDollarAmount(payInterestAmount));
-            List<AmountDto> waitPayInterestAmount = fundIncomeRecordService.amountSumByUid(uid, FundIncomeStatus.wait_audit);
+            List<AmountDto> waitPayInterestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, FundIncomeStatus.wait_audit);
             fundUserRecordVO.setWaitPayInterestAmount(orderService.calDollarAmount(waitPayInterestAmount));
             return fundUserRecordVO;
         });
@@ -324,6 +326,22 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     @Override
     public BigDecimal dailyIncome(BigDecimal holdAmount, BigDecimal rate) {
         return holdAmount.multiply(rate).divide(new BigDecimal(365 ), 8, RoundingMode.DOWN);
+    }
+
+    @Override
+    public BigDecimal getHoldAmount(FundRecordQuery query) {
+        List<AmountDto> amountDtos = fundRecordMapper.selectHoldAmount(query);
+        return orderService.calDollarAmount(amountDtos);
+    }
+
+    @Override
+    public Integer getHoldUserCount(FundRecordQuery query) {
+        return fundRecordMapper.selectHoldUserCount(query);
+    }
+
+    @Override
+    public void increaseAmount(Long id, BigDecimal amount) {
+        fundRecordMapper.increaseAmount(id,amount);
     }
 
 }

@@ -50,6 +50,7 @@
         <bitcoinj-core.version>0.14.7</bitcoinj-core.version>
         <graphql-client.version>1.2</graphql-client.version>
         <redisson.version>3.17.4</redisson.version>
+        <kaptcha.version>2.3.2</kaptcha.version>
     </properties>
 
     <dependencies>
@@ -281,6 +282,13 @@
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct-processor</artifactId>
             <version>${org.mapstruct.version}</version>
+        </dependency>
+
+        <!-- 验证码 -->
+        <dependency>
+            <groupId>com.github.penggle</groupId>
+            <artifactId>kaptcha</artifactId>
+            <version>${kaptcha.version}</version>
         </dependency>
 
     </dependencies>

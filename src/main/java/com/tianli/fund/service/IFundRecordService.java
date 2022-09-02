@@ -51,4 +51,10 @@ public interface IFundRecordService extends IService<FundRecord> {
     FundTransactionRecordVO applyRedemption(FundRedemptionBO bo);
 
     BigDecimal dailyIncome(BigDecimal holdAmount,BigDecimal rate);
+
+    BigDecimal getHoldAmount(FundRecordQuery query);
+
+    Integer getHoldUserCount(FundRecordQuery query);
+
+    void increaseAmount(Long id,BigDecimal amount);
 }

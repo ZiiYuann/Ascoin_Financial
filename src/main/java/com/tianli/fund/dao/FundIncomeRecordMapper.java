@@ -1,12 +1,13 @@
 package com.tianli.fund.dao;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.fund.dto.FundIncomeAmountDTO;
 import com.tianli.fund.entity.FundIncomeRecord;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tianli.fund.query.FundIncomeQuery;
-import com.tianli.management.dto.AmountDto;
+import com.tianli.fund.vo.FundIncomeRecordVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -21,6 +22,8 @@ import java.util.List;
 @Mapper
 public interface FundIncomeRecordMapper extends BaseMapper<FundIncomeRecord> {
 
-    List<AmountDto> selectAmount(FundIncomeQuery query);
+    List<FundIncomeAmountDTO> selectAmount(FundIncomeQuery query);
+
+    IPage<FundIncomeRecordVO> selectIncomePage(@Param("page") IPage<FundIncomeRecord> page,@Param("query") FundIncomeQuery query);
 
 }

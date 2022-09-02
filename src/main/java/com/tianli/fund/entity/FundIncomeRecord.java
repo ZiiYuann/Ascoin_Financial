@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import java.time.LocalDateTime;
 
+import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -48,7 +49,7 @@ public class FundIncomeRecord extends Model<FundIncomeRecord> {
     /**
      * 币种
      */
-    private String coin;
+    private CurrencyCoin coin;
 
     /**
      * 年利率

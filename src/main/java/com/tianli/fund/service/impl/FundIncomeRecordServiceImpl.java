@@ -8,6 +8,7 @@ import com.tianli.charge.service.OrderService;
 import com.tianli.common.PageQuery;
 import com.tianli.fund.convert.FundRecordConvert;
 import com.tianli.fund.dao.FundIncomeRecordMapper;
+import com.tianli.fund.dto.FundIncomeAmountDTO;
 import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.query.FundIncomeQuery;
 import com.tianli.fund.service.IFundIncomeRecordService;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -45,45 +47,30 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     private OrderService orderService;
 
     @Override
-    public List<AmountDto> amountSumByUid(Long uid, Integer status) {
+    public List<AmountDto> getAmountByUidAndStatus(Long uid, Integer status) {
         FundIncomeQuery query = new FundIncomeQuery();
         query.setUid(uid);
         query.setStatus(status);
-        return fundIncomeRecordMapper.selectAmount(query);
+        List<FundIncomeAmountDTO> fundIncomeAmountDTOS = getAmount(query);
+        List<AmountDto> amountDtos = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
+                new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
+        return amountDtos;
     }
 
     @Override
     public IPage<FundIncomeRecordVO> getPage(PageQuery<FundIncomeRecord> page, FundIncomeQuery query) {
-
-        LambdaQueryWrapper<FundIncomeRecord> lambda = new QueryWrapper<FundIncomeRecord>().lambda();
-        if(Objects.nonNull(query)) {
-            if (Objects.nonNull(query.getFundId())) {
-                lambda.eq(FundIncomeRecord::getFundId, query.getFundId());
-            }
-            if (Objects.nonNull(query.getUid())) {
-                lambda.eq(FundIncomeRecord::getFundId, query.getUid());
-            }
-            if(StrUtil.isNotBlank(query.getQueryUid())){
-                lambda.like(FundIncomeRecord::getUid,query.getQueryUid());
-            }
-            if(StrUtil.isNotBlank(query.getQueryProductId())){
-                lambda.like(FundIncomeRecord::getProductId,query.getQueryProductId());
-            }
-            if (Objects.nonNull(query.getStartTime())) {
-                lambda.ge(FundIncomeRecord::getCreateTime, query.getStartTime());
-            }
-            if (Objects.nonNull(query.getEndTime())) {
-                lambda.le(FundIncomeRecord::getCreateTime, query.getEndTime());
-            }
-        }
-        lambda .orderByDesc(FundIncomeRecord::getCreateTime);
-        return fundIncomeRecordMapper.selectPage(page.page(),lambda)
-                .convert(fundRecordConvert::toFundIncomeVO);
+        return fundIncomeRecordMapper.selectIncomePage(page.page(),query);
     }
 
     @Override
-    public FundIncomeAmountVO getAmount(FundIncomeQuery query) {
-        List<AmountDto> amountDtos = fundIncomeRecordMapper.selectAmount(query);
+    public List<FundIncomeAmountDTO> getAmount(FundIncomeQuery query) {
+        return fundIncomeRecordMapper.selectAmount(query);
+    }
+
+    @Override
+    public FundIncomeAmountVO getIncomeAmountVO(FundIncomeQuery query) {
+        List<FundIncomeAmountDTO> fundIncomeAmountDTOS = getAmount(query);
+        List<AmountDto> amountDtos = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO -> new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
         BigDecimal interestAmount = orderService.calDollarAmount(amountDtos);
         return FundIncomeAmountVO.builder()
                 .interestAmount(interestAmount).build();

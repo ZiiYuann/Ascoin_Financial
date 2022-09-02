@@ -28,6 +28,8 @@ public interface IWalletAgentService extends IService<WalletAgent> {
 
     IPage<WalletAgentVO> getPage(PageQuery<WalletAgent> pageQuery, WalletAgentQuery query);
 
+    WalletAgent getByAgentName(String agentName);
+
     boolean exist(Long uid);
 
 }

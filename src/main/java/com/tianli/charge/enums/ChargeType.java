@@ -22,9 +22,11 @@ public enum ChargeType {
     // 申购
     purchase ("Subscription","申购"),
     // 基金申购
-    fund_purchase ("FundSubscription","申购"),
+    fund_purchase ("FundSubscription","基金申购"),
     // 赎回
     redeem ("Redemption","赎回"),
+    fund_redeem ("FundRedemption","基金赎回"),
+    fund_interest("fundInterest", "基金利息"),
     // 结算
     settle("Settlement","结算"),
     //转存
@@ -37,7 +39,10 @@ public enum ChargeType {
     pledge("BorrowPledge","质押"),
     //还币释放质押
     release("RepayPledge","释放质押"),
-    fund_sale("FundSale","基金销售" );
+    agent_fund_sale("AgentFundSale","代理基金销售" ),
+    agent_fund_redeem("AgentFundRedemption","代理基金赎回" ),
+    agent_fund_interest("agentFundInterest", "代理基金支付利息"),
+   ;
 
 
     ChargeType(String nameEn,String nameZn){

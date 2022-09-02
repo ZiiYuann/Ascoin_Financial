@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.RiskType;
+import com.tianli.fund.enums.FundRecordStatus;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -99,6 +100,11 @@ public class FundRecord extends Model<FundRecord> {
      * 创建时间
      */
     private LocalDateTime createTime;
+
+    /**
+     * 状态
+     */
+    private FundRecordStatus status;
 
 
 }

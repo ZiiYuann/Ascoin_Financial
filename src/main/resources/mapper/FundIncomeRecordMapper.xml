@@ -2,32 +2,86 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tianli.fund.dao.FundIncomeRecordMapper">
 
-    <select id="selectAmount" resultType="com.tianli.management.dto.AmountDto">
+    <select id="selectAmount" resultType="com.tianli.fund.dto.FundIncomeAmountDTO">
         select
-            sum(interest_amount) amount,
-            coin
-        from fund_income_record
+            sum(a.interest_amount) totalAmount,
+            sum(if(a.status = 1 or a.status =2, a.interest_amount,0)) waitInterestAmount,
+            sum(if(a.status = 3, a.interest_amount,0)) payInterestAmount,
+            a.coin
+        from fund_income_record a
+        LEFT JOIN fund_record b on a.fund_id = b.id
+        left join wallet_agent_product c on b.product_id = c.product_id
         <where>
             <if test="uid != null">
-                uid = #{uid}
+                a.uid = #{uid}
             </if>
             <if test="queryUid != null and queryUid != ''">
-                and uid like concat('%',#{queryUid},'%')
+                and a.uid like concat('%',#{queryUid},'%')
             </if>
             <if test="queryProductId != null and queryProductId != ''">
-                and product_id like concat('%',#{queryProductId},'%')
+                and a.product_id like concat('%',#{queryProductId},'%')
             </if>
             <if test="status != null">
-                and status = #{status}
+                and a.status = #{status}
             </if>
             <if test="startTime != null">
-                and create_time >= #{startTime}
+                and a.create_time >= #{startTime}
             </if>
             <if test="endTime != null">
-                and create_time &lt;= #{endTime}
+                and a.create_time &lt;= #{endTime}
             </if>
+            <if test="agentId != null">
+                and b.agent_id = #{agentId}
+            </if>
+            <if test="productId != null">
+                and b.productId = #{productId}
+            </if>
+            and b.deleted = 0
         </where>
         group by coin
+    </select>
 
+    <select id="selectIncomePage" resultType="com.tianli.fund.vo.FundIncomeRecordVO">
+        select
+            a.id,
+            a.product_id productId,
+            a.product_name productName,
+            a.coin,
+            a.rate,
+            a.hold_amount holdAmount,
+            a.interest_mount interestAmount,
+            a.status,
+            a.create_time createTime
+        from fund_income_record a
+        LEFT JOIN fund_record b on a.fund_id = b.id
+        left join wallet_agent_product c on b.product_id = c.product_id
+        <where>
+            <if test="query.uid != null">
+                a.uid = #{uid}
+            </if>
+            <if test="query.queryUid != null and query.queryUid != ''">
+                and a.uid like concat('%',#{query.queryUid},'%')
+            </if>
+            <if test="query.queryProductId != null and query.queryProductId != ''">
+                and a.product_id like concat('%',#{query.queryProductId},'%')
+            </if>
+            <if test="query.status != null">
+                and a.status = #{query.status}
+            </if>
+            <if test="query.startTime != null">
+                and a.create_time >= #{query.startTime}
+            </if>
+            <if test="query.endTime != null">
+                and a.create_time &lt;= #{query.endTime}
+            </if>
+            <if test="query.agentId != null">
+                and b.agent_id = #{query.agentId}
+            </if>
+            <if test="query.productId != null">
+                and b.productId = #{query.productId}
+            </if>
+            and b.deleted = 0
+        </where>
+        order by a.create_time desc
     </select>
 </mapper>

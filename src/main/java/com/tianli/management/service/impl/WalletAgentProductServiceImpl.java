@@ -1,6 +1,10 @@
 package com.tianli.management.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.agent.management.auth.AgentContent;
+import com.tianli.agent.management.vo.FundProductStatisticsVO;
+import com.tianli.common.PageQuery;
 import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.dao.WalletAgentProductMapper;
 import com.tianli.management.service.IWalletAgentProductService;
@@ -45,5 +49,11 @@ public class WalletAgentProductServiceImpl extends ServiceImpl<WalletAgentProduc
     public List<WalletAgentProduct> getByAgentId(Long agentId) {
         return walletAgentProductMapper.selectList(new QueryWrapper<WalletAgentProduct>().lambda()
                 .eq(WalletAgentProduct::getAgentId,agentId));
+    }
+
+    @Override
+    public IPage<FundProductStatisticsVO> getPage(PageQuery<WalletAgentProduct> pageQuery) {
+        Long agentId = AgentContent.getAgentId();
+        return walletAgentProductMapper.selectPage(pageQuery.page(), agentId);
     }
 }
