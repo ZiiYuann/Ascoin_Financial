@@ -129,7 +129,6 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
                     .productId(walletAgentProduct.getProductId())
                     .productName(walletAgentProduct.getProductName())
                     .build()).collect(Collectors.toList());
-
             walletAgentVO.setWalletAmount(getWalletAmount(uid));
             walletAgentVO.setRechargeAmount(getRechargeAmount(uid));
             walletAgentVO.setWithdrawAmount(getWithdrawAmount(uid));
@@ -141,6 +140,14 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
             return walletAgentVO;
         });
         return page;
+    }
+
+    @Override
+    public WalletAgent getByAgentName(String agentName) {
+        return walletAgentMapper.selectOne(new QueryWrapper<WalletAgent>().lambda()
+                .eq(WalletAgent::getAgentName,agentName)
+                .eq(WalletAgent::getDeleted,0)
+        );
     }
 
     @Override

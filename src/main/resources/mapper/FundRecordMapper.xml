@@ -6,13 +6,50 @@
         select
             distict uid
         from
-            fund_record
+            fund_record a left join wallet_agent_product b on a.product_id = b.product_id
         <where>
             <if test="queryUid != null and queryUid != ''">
-                uid like concat('%',#{queryUid},'%')
+                a.uid like concat('%',#{queryUid},'%')
+            </if>
+            <if test="agentId != null">
+                and b.agent_id = #{agentId}
             </if>
         </where>
-        order by create_time
+        order by a.create_time
+    </select>
+
+
+    <select id="selectHoldAmount" resultType="com.tianli.management.dto.AmountDto">
+        SELECT sum(a.hold_amount)  amount,
+               coin
+        FROM fund_record a
+            left JOIN wallet_agent_product b on a.product_id = b.product_id
+        <where>
+         b.deleted=0
+         <if test="agentId != null">
+            and b.agent_id = #{agentId}
+         </if>
+        <if test="productId != null">
+            and b.product_id = #{productId}
+        </if>
+        </where>
+        group by a.coin
+    </select>
+
+    <select id="selectHoldUserCount" resultType="int">
+        SELECT count(DISTINCT uid)
+        FROM fund_record a
+            left JOIN wallet_agent_product b on a.product_id = b.product_id
+        <where>
+         a.status = 'PROCESS'
+         and b.deleted = 0
+         <if test="agentId != null">
+             and b.agent_id = #{agentId}
+         </if>
+         <if test="productId != null">
+             and b.product_id = #{productId}
+         </if>
+        </where>
     </select>
 
 </mapper>

@@ -1,5 +1,8 @@
 package com.tianli.management.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.agent.management.vo.FundProductStatisticsVO;
+import com.tianli.common.PageQuery;
 import com.tianli.management.entity.WalletAgentProduct;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -21,4 +24,6 @@ public interface IWalletAgentProductService extends IService<WalletAgentProduct>
     WalletAgentProduct getByProductId(Long productId);
 
     List<WalletAgentProduct> getByAgentId(Long id);
+
+    IPage<FundProductStatisticsVO> getPage(PageQuery<WalletAgentProduct> pageQuery);
 }

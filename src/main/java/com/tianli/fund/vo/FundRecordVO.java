@@ -1,6 +1,7 @@
 package com.tianli.fund.vo;
 
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.fund.enums.FundRecordStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -65,7 +66,7 @@ public class FundRecordVO implements Serializable {
     /**
      * 交易状态
      */
-    private Integer status;
+    private FundRecordStatus status;
 
     /**
      * 累计收益

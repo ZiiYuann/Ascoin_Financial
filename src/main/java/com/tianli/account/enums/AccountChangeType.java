@@ -15,6 +15,10 @@ public enum AccountChangeType {
     fund_purchase("FP"),
     //赎回
     redeem("RE"),
+    //基金赎回
+    fund_redeem("FE"),
+    //基金利息
+    fund_interest("FI"),
     //提现
     withdraw("WD"),
     //常规操作
@@ -35,7 +39,11 @@ public enum AccountChangeType {
     //还币
     repay("RP"),
     //基金销售
-    fund_sale("FS")
+    agent_fund_sale("AS"),
+    //基金赎回
+    agent_fund_redeem("AR"),
+
+    agent_fund_interest("AI")
     ;
 
 

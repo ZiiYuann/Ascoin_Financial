@@ -2,36 +2,88 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tianli.fund.dao.FundTransactionRecordMapper">
 
-    <select id="getTransactionAmount" resultType="com.tianli.management.dto.AmountDto">
+    <select id="selectTransactionAmount" resultType="com.tianli.fund.dto.FundTransactionAmountDTO">
         select
-            sum(transaction_amount) amount,
-            coin
+            sum(if(type = 'purchase',a.transaction_amount,0 ) ) purchaseAmount,
+            sum(if(type = 'redemption',a.transaction_amount,0 ) ) redemptionAmount,
+            a.coin
         from
-            fund_transaction_record
+            fund_transaction_record a
+            left join wallet_agent_product b on a.product_id = b.priduct_id
         <where>
             <if test="queryUid != null and queryUid != ''">
-                uid like concat('%',#{queryUid},'%')
+                and a.uid like concat('%',#{queryUid},'%')
             </if>
             <if test="queryFundId != null and queryFundId != ''">
-                fund_id like concat('%',#{queryFundId},'%')
+                and a.fund_id like concat('%',#{queryFundId},'%')
             </if>
             <if test="queryProductId != null and queryProductId != ''">
-                product_id like concat('%',#{queryProductId},'%')
+                and a.product_id like concat('%',#{queryProductId},'%')
             </if>
             <if test="type != null and type != ''">
-                type = #{type}
+                and a.type = #{type}
             </if>
             <if test="status != null">
-                status = #{status}
+                and a.status = #{status}
             </if>
             <if test="startTime != null ">
-                create_time >= #{startTime}
+                and a.create_time >= #{startTime}
             </if>
             <if test="endTime != null">
-                create_time &lt;= #{endTime}
+                and a.create_time &lt;= #{endTime}
             </if>
+            <if test="agentId != null">
+                and b.agent_id = #{agentId}
+            </if>
+            b.deleted = 0
         </where>
         group by coin
+    </select>
+
+    <select id="selectTransactionPage" resultType="com.tianli.fund.vo.FundTransactionRecordVO">
+        select
+            a.id,
+            a.uid uid,
+            a.product_id productId,
+            a.product_name productName,
+            a.coin,
+            b.rate,
+            a.transaction_amount transactionAmount,
+            a.type,
+            a.status,
+            a.create_time createTime
+        from
+        fund_transaction_record a
+        left join wallet_agent_product b on a.product_id = b.priduct_id
+        left join fund_record c on a.fund_id = b.id
+        <where>
+            <if test="query.queryUid != null and query.queryUid != ''">
+                and a.uid like concat('%',#{query.queryUid},'%')
+            </if>
+            <if test="query.queryFundId != null and query.queryFundId != ''">
+                and a.fund_id like concat('%',#{query.queryFundId},'%')
+            </if>
+            <if test="query.queryProductId != null and query.queryProductId != ''">
+                and a.product_id like concat('%',#{query.queryProductId},'%')
+            </if>
+            <if test="query.type != null and query.type != ''">
+                and a.type = #{query.type}
+            </if>
+            <if test="query.status != null">
+                and a.status = #{query.status}
+            </if>
+            <if test="query.startTime != null ">
+                and a.create_time >= #{query.startTime}
+            </if>
+            <if test="query.endTime != null">
+                and a.create_time &lt;= #{query.endTime}
+            </if>
+            <if test="query.agentId != null">
+                and b.agent_id = #{query.agentId}
+            </if>
+            b.deleted = 0
+        </where>
+        order by a.create_time desc
     </select>
 
 </mapper>
