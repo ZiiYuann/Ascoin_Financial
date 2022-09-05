@@ -71,9 +71,14 @@ public class FundRecordVO implements Serializable {
     private FundRecordStatus status;
 
     /**
-     * 累计收益
+     * 已发放收益
      */
-    private BigDecimal cumulativeIncomeAmount;
+    private BigDecimal incomeAmount;
+
+    /**
+     * 待发放收益
+     */
+    private BigDecimal waitIncomeAmount;
 
     /**
      * 昨日收益
