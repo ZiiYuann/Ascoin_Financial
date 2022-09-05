@@ -136,6 +136,10 @@ public class FundController {
         return Result.success(fundTransactionRecordVO);
     }
 
+    /**
+     * 申购或赎回配置列表
+     * @return
+     */
     @GetMapping("/quota/config")
     public Result quota(){
         return Result.success(FundQuota.quotas);

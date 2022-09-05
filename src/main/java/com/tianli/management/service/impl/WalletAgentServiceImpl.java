@@ -159,7 +159,7 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
             walletAgentVO.setHoldAmount(getHoldAmount(uid));
             walletAgentVO.setRedemptionAmount(getRedemptionAmount(uid));
             walletAgentVO.setInterestAmount(getInterestAmount(uid, FundIncomeStatus.audit_success));
-            walletAgentVO.setInterestAmount(getInterestAmount(uid, FundIncomeStatus.wait_audit));
+            walletAgentVO.setWaitInterestAmount(getInterestAmount(uid, FundIncomeStatus.wait_audit));
             return walletAgentVO;
         });
         return page;

@@ -52,6 +52,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -248,7 +250,15 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     @Override
     public FundRecordVO detail(Long id) {
         FundRecord fundRecord = this.getById(id);
-        return fundRecordConvert.toFundVO(fundRecord);
+        FundRecordVO fundRecordVO = fundRecordConvert.toFundVO(fundRecord);
+        long until = fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS);
+        //七天允许赎回
+        if(until > 7){
+            fundRecordVO.setIsAllowRedemption(true);
+        }else {
+            fundRecordVO.setIsAllowRedemption(false);
+        }
+        return fundRecordVO;
     }
 
     @Override
