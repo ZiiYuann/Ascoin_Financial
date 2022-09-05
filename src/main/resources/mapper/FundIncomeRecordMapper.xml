@@ -50,7 +50,8 @@
             a.hold_amount holdAmount,
             a.interest_amount interestAmount,
             a.status,
-            a.create_time createTime
+            a.create_time createTime,
+            b.logo
         from fund_income_record a
         LEFT JOIN fund_record b on a.fund_id = b.id
         left join wallet_agent_product c on b.product_id = c.product_id

@@ -19,11 +19,11 @@
         from
             wallet_agent t
         <where>
-            <if test="query.uid != null and query.uid != ''">
-                t.uid like concat('%',#{query.uid},'%')
+            <if test="query.queryUid != null and query.queryUid != ''">
+                t.uid like concat('%',#{query.queryUid},'%')
             </if>
-            <if test="query.productId != null and query.productId != ''">
-                and EXISTS(select * from wallet_agent_product t1 where t1.agent_id = t.id and t1.product_id like concat('%',#{query.productId},'%'))
+            <if test="query.queryProductId != null and query.queryProductId != ''">
+                and EXISTS(select * from wallet_agent_product t1 where t1.agent_id = t.id and t1.product_id like concat('%',#{query.queryProductId},'%'))
             </if>
             and t.deleted = 0
         </where>

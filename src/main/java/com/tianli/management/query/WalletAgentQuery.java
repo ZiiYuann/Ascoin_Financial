@@ -5,8 +5,8 @@ import lombok.Data;
 @Data
 public class WalletAgentQuery {
 
-    private String uid;
+    private String queryUid;
 
-    private String productId;
+    private String queryProductId;
 
 }
