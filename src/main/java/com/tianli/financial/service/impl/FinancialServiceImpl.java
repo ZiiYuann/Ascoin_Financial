@@ -242,7 +242,7 @@ public class FinancialServiceImpl implements FinancialService {
         }
 
         if (purchaseAmount.compareTo(financialProduct.getLimitPurchaseQuota()) < 0) {
-            throw ErrorCodeEnum.PURCHASE_AMOUNT_TO_SMALL.generalException("最小金额为:" + financialProduct.getLimitPurchaseQuota());
+            throw ErrorCodeEnum.PURCHASE_AMOUNT_TO_SMALL.generalException("低于最小申购数额:" + financialProduct.getLimitPurchaseQuota());
         }
     }
 
@@ -250,7 +250,7 @@ public class FinancialServiceImpl implements FinancialService {
     public void validRemainAmount(Long uid, CurrencyCoin currencyCoin, BigDecimal amount) {
         AccountBalance accountBalanceBalance = accountBalanceService.getAndInit(uid, currencyCoin);
         if (accountBalanceBalance.getRemain().compareTo(amount) < 0) {
-            ErrorCodeEnum.CREDIT_LACK.throwException();
+            ErrorCodeEnum.throwException("可用余额不足");
         }
     }
 
@@ -262,12 +262,12 @@ public class FinancialServiceImpl implements FinancialService {
 
         if (product.getPersonQuota() != null && product.getPersonQuota().compareTo(BigDecimal.ZERO) > 0 &&
                 amount.add(personUse).compareTo(product.getPersonQuota()) > 0) {
-            ErrorCodeEnum.throwException("用户申购金额超过个人限额");
+            ErrorCodeEnum.throwException("个人申购额度不足");
         }
 
         if (product.getTotalQuota() != null && product.getTotalQuota().compareTo(BigDecimal.ZERO) > 0 &&
                 amount.add(product.getUseQuota()).compareTo(product.getTotalQuota()) > 0) {
-            ErrorCodeEnum.throwException("用户申购金额超过总限购额");
+            ErrorCodeEnum.throwException("总申购额度不足");
         }
     }
 

@@ -17,10 +17,6 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 public class FinancialProductLadderRateIoUQuery extends IoUQuery {
 
-    private Long id;
-
-    private Long productId;
-
     private BigDecimal startPoint;
 
     private BigDecimal endPoint;

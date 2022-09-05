@@ -8,6 +8,7 @@ import com.tianli.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.financial.vo.IncomeByRecordIdVO;
 import com.tianli.management.query.FinancialProductEditQuery;
 import com.tianli.management.query.FinancialProductLadderRateIoUQuery;
+import com.tianli.management.vo.ProductLadderRateVO;
 import org.mapstruct.Mapper;
 
 /**
@@ -27,4 +28,6 @@ public interface FinancialConverter {
     IncomeByRecordIdVO toIncomeByRecordIdVO(FinancialRecord financialRecord);
 
     FinancialProductLadderRate toDO(FinancialProductLadderRateIoUQuery financialProductLadderRateIoUQuery);
+
+    ProductLadderRateVO toProductLadderRateVO(FinancialProductLadderRate rate);
 }

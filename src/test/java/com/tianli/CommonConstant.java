@@ -35,6 +35,7 @@ public class CommonConstant {
             .productTerm(PurchaseTerm.NONE)
             .rate(CommonConstant.DEFAULT_RATE).build();
 
+    // 活期 阶段利率：【0 - 1000】：10% 【1000-3000】： 30%  【3000-5000】： 50%  利率 计息时间：昨天 结束时间：明天 待计息金额：5 记息金额：5
     public final static FinancialRecord record2 = FinancialRecord.builder()
             .id(1L)
             .uid(1L)

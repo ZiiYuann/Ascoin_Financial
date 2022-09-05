@@ -70,7 +70,7 @@ public class FinancialRecord {
     private BigDecimal waitAmount;
 
     /**
-     * 利息金额
+     * 记利息金额
      */
     private BigDecimal incomeAmount;
 

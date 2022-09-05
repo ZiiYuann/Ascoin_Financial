@@ -60,6 +60,7 @@ public class FinancialProductLadderRateService extends ServiceImpl<FinancialProd
         rates.forEach(rate -> {
             FinancialProductLadderRate financialProductLadderRate = financialConverter.toDO(rate);
             financialProductLadderRate.setId(CommonFunction.generalId());
+            financialProductLadderRate.setProductId(productId);
             baseMapper.insert(financialProductLadderRate);
         });
     }
@@ -69,16 +70,12 @@ public class FinancialProductLadderRateService extends ServiceImpl<FinancialProd
      * 计算阶梯利息
      *
      * @param record 持有记录
-     * @return
      */
     public BigDecimal calLadderIncome(FinancialRecord record) {
 
         BigDecimal incomeAmount = record.getIncomeAmount();
         List<BigDecimal> ladderIncomeAmounts = new ArrayList<>();
-        var query =
-                new LambdaQueryWrapper<FinancialProductLadderRate>().eq(FinancialProductLadderRate::getProductId, record.getProductId());
-        List<FinancialProductLadderRate> ladderRates = Optional.ofNullable(baseMapper.selectList(query)).orElse(new ArrayList<>());
-
+        List<FinancialProductLadderRate> ladderRates = this.listByProductId(record.getProductId());
         ladderRates.forEach(rate -> {
             if (incomeAmount.compareTo(rate.getStartPoint()) < 0) {
                 return;
@@ -100,5 +97,14 @@ public class FinancialProductLadderRateService extends ServiceImpl<FinancialProd
 
         return ladderIncomeAmounts.stream().reduce(BigDecimal.ZERO, BigDecimal::add).setScale(8, RoundingMode.DOWN);
 
+    }
+
+    /**
+     * 通过产品id获取数据
+     */
+    public List<FinancialProductLadderRate> listByProductId(Long productId) {
+        var query =
+                new LambdaQueryWrapper<FinancialProductLadderRate>().eq(FinancialProductLadderRate::getProductId,productId);
+        return Optional.ofNullable(baseMapper.selectList(query)).orElse(new ArrayList<>());
     }
 }

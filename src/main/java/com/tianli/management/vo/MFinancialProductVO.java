@@ -1,12 +1,12 @@
 package com.tianli.management.vo;
 
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.List;
 
 /**
  * @author chenb
@@ -86,5 +86,11 @@ public class MFinancialProductVO {
      * 持有用户人数
      */
     private BigInteger holdUserCount;
+
+    /**
+     * 阶梯利率
+     */
+    private List<ProductLadderRateVO> ladderRates;
+
 
 }

@@ -92,7 +92,7 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             return;
         }
 
-        if (Objects.nonNull(productDO.getId())){
+        if (Objects.nonNull(productDO.getId())) {
             FinancialProduct product = super.getById(productDO.getId());
             if (ProductStatus.open.equals(product.getStatus())) {
                 ErrorCodeEnum.PRODUCT_CAN_NOT_EDIT.throwException();
@@ -106,8 +106,8 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             super.saveOrUpdate(productDO);
         }
 
-        if(productDO.getRateType() == 1){
-            financialProductLadderRateService.insert(productDO.getId(),financialProductQuery.getLadderRates());
+        if (productDO.getRateType() == 1) {
+            financialProductLadderRateService.insert(productDO.getId(), financialProductQuery.getLadderRates());
         }
     }
 
@@ -170,6 +170,10 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             var productSummaryDataDto = productSummaryDataDtoMap.getOrDefault(index.getId(), new ProductSummaryDataDto());
             mFinancialProductVO.setUseQuota(Optional.ofNullable(productSummaryDataDto.getUseQuota()).orElse(BigDecimal.ZERO));
             mFinancialProductVO.setHoldUserCount(Optional.ofNullable(productSummaryDataDto.getHoldUserCount()).orElse(BigInteger.ZERO));
+            if (index.getRateType() == 1) {
+                mFinancialProductVO.setLadderRates(financialProductLadderRateService.listByProductId(index.getId())
+                        .stream().map(financialConverter::toProductLadderRateVO).collect(Collectors.toList()));
+            }
             return mFinancialProductVO;
         });
     }
