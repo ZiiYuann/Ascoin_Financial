@@ -7,6 +7,7 @@ import com.tianli.exception.ExceptionMsg;
 import com.tianli.exception.ExceptionMsgMapper;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.DingDingUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
  * @apiNote
  * @since 2022-09-02
  **/
+@Slf4j
 @Component
 public class WebHookService {
 
@@ -29,6 +31,7 @@ public class WebHookService {
     private ExceptionMsgMapper exceptionMsgMapper;
 
     public void dingTalkSend(String msg, Exception e) {
+        log.error(msg + ":" + e.getMessage());
         asyncService.async(() -> this.dingTalkSendOperation(msg, e));
     }
 

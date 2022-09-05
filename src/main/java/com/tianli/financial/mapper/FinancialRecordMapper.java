@@ -44,7 +44,9 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
                            @Param("amount") BigDecimal amount,
                            @Param("originalAmount") BigDecimal originalAmount);
 
-    int increaseIncomeAmount(@Param("recordId") Long recordId, @Param("amount") BigDecimal amount, @Param("originalAmount") BigDecimal originalAmount);
+    int increaseIncomeAmount(@Param("recordId") Long recordId,
+                             @Param("amount") BigDecimal amount,
+                             @Param("originalAmount") BigDecimal originalAmount);
 
     int updateRateByProductId(@Param("productId") Long productId,
                               @Param("rate") BigDecimal rate);

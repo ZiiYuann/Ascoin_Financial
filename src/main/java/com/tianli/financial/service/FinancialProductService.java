@@ -196,7 +196,7 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
     public void reduceUseQuota(Long productId, BigDecimal reduceAmount) {
         int i = financialProductMapper.reduceUseQuota(productId, reduceAmount);
         if (i <= 0) {
-            ErrorCodeEnum.throwException("产品申购额度发生变化，请重新操作");
+            ErrorCodeEnum.throwException("减少产品使用额度失败，请联系管理员");
         }
     }
 }

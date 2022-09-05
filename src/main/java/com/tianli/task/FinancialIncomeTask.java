@@ -13,6 +13,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisLockConstants;
+import com.tianli.common.WebHookService;
 import com.tianli.common.async.AsyncService;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrCodeException;
@@ -37,9 +38,9 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -68,45 +69,21 @@ public class FinancialIncomeTask {
     private FinancialProductService financialProductService;
     @Resource
     private FinancialProductLadderRateService financialProductLadderRateService;
+    @Resource
+    private WebHookService webHookService;
 
     private static final ConcurrentHashMap<String, AtomicInteger> FAIL_COUNT_CACHE = new ConcurrentHashMap<>();
 
     //        @Scheduled(cron = "0 0/1 * * * ?")
     public void calIncomeTest() {
         log.info("========执行计算每日利息定时任务========");
-        asyncService.async(() -> {
-            LocalDateTime now = LocalDateTime.now();
-            String day = String.format("%s_%s", now.getMonthValue(), now.getDayOfMonth());
-            String redisKey = RedisLockConstants.FINANCIAL_INCOME_TASK + day;
-            BoundValueOperations<String, Object> operation = redisTemplate.boundValueOps(redisKey);
-            operation.setIfAbsent(0, 1, TimeUnit.HOURS);
-            while (true) {
-                Long page = operation.increment();
-                List<FinancialRecord> records;
-                if (page == null) {
-                    records = new ArrayList<>();
-                } else {
-                    LambdaQueryWrapper<FinancialRecord> eq = new LambdaQueryWrapper<FinancialRecord>()
-                            .eq(FinancialRecord::getId, 1740575276235094472L);
-                    records = financialRecordService.list(eq);
-                }
-
-                if ((records.size()) <= 0) {
-                    break;
-                }
-                for (FinancialRecord c : records) {
-                    FinancialIncomeTask task = SpringUtil.getBean(FinancialIncomeTask.class);
-                    task.interestStat(c);
-                }
-            }
-        });
+        asyncService.async(() -> {});
     }
 
     /**
      * 计算利息
      */
     @Scheduled(cron = "0 0 0 1/1 * ? ")
-//    @Scheduled(cron = "0 0/2 * * * ?")
     public void calIncome() {
         log.info("========执行计算每日利息定时任务========");
         asyncService.async(() -> {
@@ -117,43 +94,55 @@ public class FinancialIncomeTask {
             operation.setIfAbsent(0, 1, TimeUnit.HOURS);
             while (true) {
                 Long page = operation.increment();
-                List<FinancialRecord> records;
-                if (page == null) {
-                    records = new ArrayList<>();
-                } else {
-                    records = financialRecordService.needCalIncomeRecord(new Page<>(page, 20)).getRecords();
+                if (Objects.isNull(page)) {
+                    return;
+                }
+                List<FinancialRecord> records = financialRecordService.needCalIncomeRecord(new Page<>(page, 20)).getRecords();
+
+                if (CollectionUtils.isEmpty(records)) {
+                    return;
                 }
 
-                if ((records.size()) <= 0) {
-                    break;
-                }
-                for (FinancialRecord financialRecord : records) {
-                    FinancialIncomeTask task = SpringUtil.getBean(FinancialIncomeTask.class);
+                FinancialIncomeTask task = SpringUtil.getBean(FinancialIncomeTask.class);
+
+                records.forEach(financialRecord -> {
                     try {
                         task.interestStat(financialRecord);
                     } catch (Exception e) {
-                        e.printStackTrace();
-                        if (e instanceof ErrCodeException) {
-                            return;
-                        }
-                        String toJson = gson.toJson(financialRecord);
-                        RetryScheduledExecutor.DEFAULT_EXECUTOR.schedule(() -> {
-                            String recordId = String.valueOf(financialRecord.getId());
-                            AtomicInteger atomicInteger = FAIL_COUNT_CACHE.getOrDefault(recordId, new AtomicInteger(3));
-                            FAIL_COUNT_CACHE.put(String.valueOf(financialRecord.getId()), atomicInteger);
-
-                            int andDecrement = atomicInteger.getAndDecrement();
-                            if (andDecrement > 0) {
-                                interestStat(financialRecord);
-                            } else {
-                                log.error("统计每日利息失败: record:{}", toJson);
-                                FAIL_COUNT_CACHE.remove(recordId);
-                            }
-                        }, 30, TimeUnit.MINUTES, new RetryTaskInfo<>("incomeTask", "定时计息", financialRecord));
+                        incomeCompensate(e, task, financialRecord);
                     }
-                }
+                });
+
             }
         });
+    }
+
+    /**
+     * 计算利息补偿
+     */
+    private void incomeCompensate(Exception e, FinancialIncomeTask task, FinancialRecord financialRecord) {
+
+        if (e instanceof ErrCodeException) {
+            webHookService.dingTalkSend("理财计算利息业务异常", e);
+            return;
+        }
+        webHookService.dingTalkSend("理财计算利息异常", e);
+
+        String toJson = gson.toJson(financialRecord);
+        RetryScheduledExecutor.DEFAULT_EXECUTOR.schedule(() -> {
+            String recordId = String.valueOf(financialRecord.getId());
+            AtomicInteger atomicInteger = FAIL_COUNT_CACHE.getOrDefault(recordId, new AtomicInteger(3));
+            FAIL_COUNT_CACHE.put(String.valueOf(financialRecord.getId()), atomicInteger);
+
+            int andDecrement = atomicInteger.getAndDecrement();
+            if (andDecrement > 0) {
+                task.interestStat(financialRecord);
+            } else {
+                log.error("统计每日利息失败: record:{}", toJson);
+                webHookService.dingTalkSend("理财计算利息多次失败，请处理！", new RuntimeException(toJson));
+                FAIL_COUNT_CACHE.remove(recordId);
+            }
+        }, 30, TimeUnit.MINUTES, new RetryTaskInfo<>("incomeTask", "定时计息", financialRecord));
     }
 
     /**
@@ -172,7 +161,12 @@ public class FinancialIncomeTask {
         if (ProductType.fixed.equals(type) && endTime.compareTo(todayZero) == 0) {
             var incomeOrder = incomeOperation(financialRecord, now);
             var settleOrder = settleOperation(financialRecord, now);
-            renewalOperation(financialRecord, incomeOrder, settleOrder, now);
+            // 对于自动续费操作来说，可能会有业务异常，不影响利息对发放
+            try {
+                renewalOperation(financialRecord, incomeOrder, settleOrder, now);
+            } catch (Exception e) {
+                webHookService.dingTalkSend(String.format("产品[%d]自动续费失败", financialRecord.getProductId()), e);
+            }
         }
 
         // 如果是活期产品需要当前时间 >= 收益发放时间
@@ -230,6 +224,8 @@ public class FinancialIncomeTask {
         // 减少金额
         accountBalanceService.decrease(financialRecord.getUid(), ChargeType.purchase, product.getCoin(), transferAmount
                 , order.getOrderNo(), "转存");
+        // 增加使用金额
+        financialProductService.increaseUseQuota(product.getId(), transferAmount, product.getUseQuota());
     }
 
     /**
@@ -260,6 +256,8 @@ public class FinancialIncomeTask {
         // 增加
         accountBalanceService.increase(financialRecord.getUid(), ChargeType.settle, financialRecord.getCoin()
                 , financialRecord.getHoldAmount(), order.getOrderNo(), CurrencyLogDes.结算.name());
+        // 减少产品使用额度
+        financialProductService.reduceUseQuota(financialRecord.getProductId(), financialRecord.getHoldAmount());
         return order;
     }
 
