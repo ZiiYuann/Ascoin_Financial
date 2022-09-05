@@ -29,18 +29,22 @@ public class WebHookService {
     private ExceptionMsgMapper exceptionMsgMapper;
 
     public void dingTalkSend(String msg, Exception e) {
-        asyncService.async(() -> this.dingTalkSendOperation(msg,e));
+        asyncService.async(() -> this.dingTalkSendOperation(msg, e));
     }
 
-    private void dingTalkSendOperation(String msg, Exception e){
+    private void dingTalkSendOperation(String msg, Exception e) {
+        boolean openWebHook = Boolean.parseBoolean(configService.getOrDefaultNoCache(ConfigConstants.OPEN_WEBHOOK_EXCEPTION_PUSH, "false"));
+        if (!openWebHook) {
+            return;
+        }
         String urlPre = configService.get(ConfigConstants.SYSTEM_URL_PATH_PREFIX);
         Long id = CommonFunction.generalId();
-        exceptionMsgMapper.insert(new ExceptionMsg(id,ExceptionUtil.stacktraceToString(e), LocalDateTime.now()));
+        exceptionMsgMapper.insert(new ExceptionMsg(id, ExceptionUtil.stacktraceToString(e), LocalDateTime.now()));
 
         JSONObject jb = new JSONObject();
         jb.putOnce("title", StringUtils.isBlank(msg) ? "异常信息" : msg);
         jb.putOnce("messageUrl", urlPre + "/api/errMmp/" + id);
-        jb.putOnce("text","异常信息");
+        jb.putOnce("text", ExceptionUtil.getMessage(e));
         DingDingUtil.postWithJson(jb);
     }
 }
