@@ -43,7 +43,11 @@ public class FinancialProductLadderRateService extends ServiceImpl<FinancialProd
                 ErrorCodeEnum.throwException("第一阶段开始必须为0");
             }
 
-            if (i != 0 && i != rates.size() - 1 && !rates.get(i).getEndPoint().equals(rates.get(i+1).getStartPoint()) ) {
+            if (i != 0 && i != rates.size() - 1 && !rates.get(i).getEndPoint().equals(rates.get(i + 1).getStartPoint())) {
+                ErrorCodeEnum.throwException("前一阶段的结束必须和后一阶段的开始相同");
+            }
+
+            if (i != 0 && !rates.get(i).getStartPoint().equals(rates.get(i - 1).getEndPoint())) {
                 ErrorCodeEnum.throwException("前一阶段的结束必须和后一阶段的开始相同");
             }
         }
@@ -64,8 +68,7 @@ public class FinancialProductLadderRateService extends ServiceImpl<FinancialProd
     /**
      * 计算阶梯利息
      *
-     * @param productId 产品id
-     * @param record    持有记录
+     * @param record 持有记录
      * @return
      */
     public BigDecimal calLadderIncome(FinancialRecord record) {
@@ -76,26 +79,26 @@ public class FinancialProductLadderRateService extends ServiceImpl<FinancialProd
                 new LambdaQueryWrapper<FinancialProductLadderRate>().eq(FinancialProductLadderRate::getProductId, record.getProductId());
         List<FinancialProductLadderRate> ladderRates = Optional.ofNullable(baseMapper.selectList(query)).orElse(new ArrayList<>());
 
-        ladderRates.forEach( rate ->{
-            if (incomeAmount.compareTo(rate.getStartPoint()) < 0){
+        ladderRates.forEach(rate -> {
+            if (incomeAmount.compareTo(rate.getStartPoint()) < 0) {
                 return;
             }
 
-            if (incomeAmount.compareTo(rate.getEndPoint()) > 0){
+            if (incomeAmount.compareTo(rate.getEndPoint()) > 0) {
                 BigDecimal ladderIncomeAmount = rate.getEndPoint().subtract(rate.getStartPoint()).multiply(rate.getRate()) // 乘年化利率
-                        .divide(BigDecimal.valueOf(365), 8, RoundingMode.DOWN);
+                        .divide(BigDecimal.valueOf(365), 12, RoundingMode.DOWN);
                 ladderIncomeAmounts.add(ladderIncomeAmount);
             }
 
             // ( ]
-            if (incomeAmount.compareTo(rate.getStartPoint()) >= 0 && incomeAmount.compareTo(rate.getEndPoint()) <= 0){
+            if (incomeAmount.compareTo(rate.getStartPoint()) >= 0 && incomeAmount.compareTo(rate.getEndPoint()) <= 0) {
                 BigDecimal ladderIncomeAmount = incomeAmount.subtract(rate.getStartPoint()).multiply(rate.getRate()) // 乘年化利率
-                        .divide(BigDecimal.valueOf(365), 8, RoundingMode.DOWN);
+                        .divide(BigDecimal.valueOf(365), 12, RoundingMode.DOWN);
                 ladderIncomeAmounts.add(ladderIncomeAmount);
             }
         });
 
-        return ladderIncomeAmounts.stream().reduce(BigDecimal.ZERO,BigDecimal::add);
+        return ladderIncomeAmounts.stream().reduce(BigDecimal.ZERO, BigDecimal::add).setScale(8, RoundingMode.DOWN);
 
     }
 }
