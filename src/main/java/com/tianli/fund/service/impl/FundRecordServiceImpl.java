@@ -285,6 +285,9 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
         if(fundTransactionRecordVO.getType() == FundTransactionType.purchase){
             fundTransactionRecordVO.setExpectedIncome(dailyIncome(fundTransactionRecordVO.getTransactionAmount(),fundTransactionRecordVO.getRate()));
         }
+        if(fundTransactionRecordVO.getType() == FundTransactionType.redemption && Objects.equals(fundTransactionRecordVO.getStatus(), FundTransactionStatus.success)){
+            fundTransactionRecordVO.setAccountTate(fundTransactionRecordVO.getAuditTime());
+        }
         fundTransactionRecordVO.setProductNameEn(fundRecord.getProductNameEn());
         return fundTransactionRecordVO;
     }

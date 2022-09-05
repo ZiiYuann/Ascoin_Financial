@@ -80,6 +80,9 @@
             <if test="query.productId != null">
                 and b.productId = #{query.productId}
             </if>
+            <if test="query.fundId != null">
+                and a.fund_id = #{query.fundId}
+            </if>
         </where>
         order by a.create_time desc
     </select>

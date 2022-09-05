@@ -95,4 +95,9 @@ public class FundTransactionRecordVO implements Serializable {
      * 预计收益
      */
     private BigDecimal expectedIncome;
+
+    /**
+     * 到账时间
+     */
+    private LocalDateTime accountTate;
 }
