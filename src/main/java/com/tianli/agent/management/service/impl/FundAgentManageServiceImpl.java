@@ -53,7 +53,7 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
 
     @Override
     public MainPageVO statistics(FundStatisticsQuery query) {
-        Long agentId = AgentContent.getAgentId();
+        Long agentUId = AgentContent.getAgentUId();
         LocalDateTime startTime = null;
         LocalDateTime endTime = null;
         if(Objects.nonNull(query.getTimeRange()) ){
@@ -72,14 +72,14 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
                 .builder()
                 .startTime(startTime)
                 .endTime(endTime)
-                .agentId(agentId).build();
+                .agentUId(agentUId).build();
         List<FundTransactionAmountDTO> fundTransactionAmountDTO = fundTransactionRecordService.getFundTransactionAmountDTO(transactionQuery);
         List<AmountDto> purchaseAmount = fundTransactionAmountDTO.stream().map(amountDTO ->
                 new AmountDto(amountDTO.getPurchaseAmount(), amountDTO.getCoin())).collect(Collectors.toList());
         List<AmountDto> redemptionAmount = fundTransactionAmountDTO.stream().map(amountDTO ->
                 new AmountDto(amountDTO.getRedemptionAmount(), amountDTO.getCoin())).collect(Collectors.toList());
         FundIncomeQuery incomeQuery = FundIncomeQuery.builder()
-                .agentId(agentId)
+                .agentUId(agentUId)
                 .build();
         List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordService.getAmount(incomeQuery);
         List<AmountDto> interestAmount = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
@@ -88,7 +88,7 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
                 new AmountDto(fundIncomeAmountDTO.getPayInterestAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
         List<AmountDto> waitPayInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
                 new AmountDto(fundIncomeAmountDTO.getWaitInterestAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
-        FundRecordQuery fundRecordQuery = FundRecordQuery.builder().agentId(agentId).build();
+        FundRecordQuery fundRecordQuery = FundRecordQuery.builder().agentId(agentUId).build();
         Integer holdUserCount = fundRecordService.getHoldUserCount(fundRecordQuery);
         BigDecimal holdAmount = fundRecordService.getHoldAmount(fundRecordQuery);
         return MainPageVO.builder()

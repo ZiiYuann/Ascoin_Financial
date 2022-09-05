@@ -28,6 +28,5 @@ public interface IFundIncomeRecordService extends IService<FundIncomeRecord> {
 
     List<FundIncomeAmountDTO> getAmount(FundIncomeQuery query);
 
-    FundIncomeAmountVO getIncomeAmountVO(FundIncomeQuery query);
-
+    boolean existWaitInterest(Long uid);
 }

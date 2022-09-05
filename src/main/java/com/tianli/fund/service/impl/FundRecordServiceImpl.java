@@ -215,7 +215,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
         // 减少余额
         accountBalanceService.decrease(uid, ChargeType.fund_purchase, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.基金申购.name());
         //代理人钱包
-        AccountBalance agentAccountBalance = accountBalanceService.getAndInit(walletAgentProduct.getAgentId(), financialProduct.getCoin());
+        AccountBalance agentAccountBalance = accountBalanceService.getAndInit(walletAgentProduct.getUid(), financialProduct.getCoin());
         //代理人生成一笔订单
         Order agentOrder = Order.builder()
                 .uid(agentAccountBalance.getUid())

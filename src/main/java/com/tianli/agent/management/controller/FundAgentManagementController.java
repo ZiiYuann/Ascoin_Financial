@@ -61,7 +61,7 @@ public class FundAgentManagementController {
     @GetMapping("/transaction/record")
     @AgentPrivilege
     public Result transactionRecord(PageQuery<FundTransactionRecord> page , FundTransactionQuery query){
-        query.setAgentId(AgentContent.getAgentId());
+        query.setAgentUId(AgentContent.getAgentUId());
         IPage<FundTransactionRecordVO> transactionPage = fundTransactionRecordService.getTransactionPage(page, query);
         return Result.success(transactionPage);
     }
@@ -69,7 +69,7 @@ public class FundAgentManagementController {
     @GetMapping("/income/record")
     @AgentPrivilege
     public Result incomeRecord(PageQuery<FundIncomeRecord> page , FundIncomeQuery query){
-        query.setAgentId(AgentContent.getAgentId());
+        query.setAgentUId(AgentContent.getAgentUId());
         fundIncomeRecordService.getPage(page,query);
         return Result.success();
     }
@@ -77,7 +77,7 @@ public class FundAgentManagementController {
     @GetMapping("/hold/record")
     @AgentPrivilege
     public Result holdRecord(PageQuery<FundRecord> pageQuery, FundRecordQuery query){
-        query.setAgentId(AgentContent.getAgentId());
+        query.setAgentId(AgentContent.getAgentUId());
         IPage<FundUserRecordVO> fundUserRecordPage = fundRecordService.fundUserRecordPage(pageQuery, query);
         return Result.success(fundUserRecordPage);
     }

@@ -32,5 +32,5 @@ public class FundTransactionQuery {
 
     private LocalDateTime endTime;
 
-    private Long agentId;
+    private Long agentUId;
 }

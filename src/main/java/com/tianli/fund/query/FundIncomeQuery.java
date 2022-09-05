@@ -27,7 +27,7 @@ public class FundIncomeQuery {
 
     private LocalDateTime endTime;
 
-    private Long agentId;
+    private Long agentUId;
 
     private Long productId;
 }

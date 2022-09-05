@@ -41,7 +41,7 @@ public interface WalletAgentMapper extends BaseMapper<WalletAgent> {
             "GROUP BY a.coin")
     List<AmountDto> redemptionAmountSum(@Param("agentId") Long agentId, @Param("type") FundTransactionType type, @Param("status") Integer status);
 
-    @Select("SELECT ifnull( SUM( c.interest_amount ), 0 ) amount, a.coin FROM tfund_record a " +
+    @Select("SELECT ifnull( SUM( c.interest_amount ), 0 ) amount, a.coin FROM fund_record a " +
             "LEFT JOIN wallet_agent_product b ON a.product_id = b.product_id " +
             "left JOIN fund_income_record c on a.id = c.fund_id\n" +
             "WHERE a.uid = #{agentId} and c.status = #{status} GROUP BY a.coin")

@@ -28,10 +28,14 @@ public class WalletAgentProduct extends Model<WalletAgentProduct> {
     private Long id;
 
     /**
-     * 代理人ID
+     * 代理ID
      */
     private Long agentId;
 
+    /**
+     * 用户ID
+     */
+    private Long uid;
     /**
      * 产品ID
      */

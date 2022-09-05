@@ -32,8 +32,8 @@
             <if test="endTime != null">
                 and a.create_time &lt;= #{endTime}
             </if>
-            <if test="agentId != null">
-                and b.agent_id = #{agentId}
+            <if test="agentUId != null">
+                and b.uid = #{agentUId}
             </if>
             b.deleted = 0
         </where>
@@ -78,11 +78,20 @@
             <if test="query.endTime != null">
                 and a.create_time &lt;= #{query.endTime}
             </if>
-            <if test="query.agentId != null">
-                and b.agent_id = #{query.agentId}
+            <if test="query.agentUId != null">
+                and b.uid = #{query.agentUId}
             </if>
         </where>
         order by a.create_time desc
     </select>
 
+    <select id="selectWaitRedemptionCount" resultType="int">
+        select
+            count(*)
+        from
+            fund_transaction_record a
+        left join
+            wallet_agent_product b on a.product_id = b.product_id
+        where b.uid = #{agentUid} and a.status = 3
+    </select>
 </mapper>
