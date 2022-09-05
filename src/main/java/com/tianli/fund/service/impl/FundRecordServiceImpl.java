@@ -25,6 +25,7 @@ import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.contant.FundTransactionStatus;
 import com.tianli.fund.convert.FundRecordConvert;
 import com.tianli.fund.dao.FundRecordMapper;
+import com.tianli.fund.dto.FundIncomeAmountDTO;
 import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.entity.FundTransactionRecord;
@@ -45,13 +46,17 @@ import com.tianli.management.vo.FundUserRecordVO;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -62,6 +67,7 @@ import java.util.Objects;
  * @since 2022-08-30
  */
 @Service
+@Transactional
 public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRecord> implements IFundRecordService {
 
     @Autowired
@@ -98,8 +104,11 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     public FundMainPageVO mainPage() {
         Long uid = requestInitService.uid();
         List<AmountDto> holdAmount = fundRecordMapper.holdAmountSumByUid(uid);
-        List<AmountDto> waitPayInterestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, FundIncomeStatus.calculated);
-        List<AmountDto> payInterestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, FundIncomeStatus.audit_success);
+        FundIncomeQuery query = new FundIncomeQuery();
+        query.setUid(uid);
+        List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordService.getAmount(query);
+        List<AmountDto> waitPayInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncome -> new AmountDto(fundIncome.getWaitInterestAmount(),fundIncome.getCoin())).collect(Collectors.toList());
+        List<AmountDto> payInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncome -> new AmountDto(fundIncome.getPayInterestAmount(),fundIncome.getCoin())).collect(Collectors.toList());
         return FundMainPageVO.builder()
                 .holdAmount(orderService.calDollarAmount(holdAmount))
                 .payInterestAmount(orderService.calDollarAmount(payInterestAmount))
@@ -144,6 +153,8 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
                 .interestCalculationTime(LocalDate.now().plusDays(4L))
                 .incomeDistributionTime(LocalDate.now().plusDays(11L))
                 .redemptionTime(LocalDate.now().plusDays(11L))
+                .redemptionCycle(7)
+                .accountDate(3)
                 .build();
     }
 
@@ -185,6 +196,8 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
                 .businessType(financialProduct.getBusinessType())
                 .rate(financialProduct.getRate())
                 .status(FundRecordStatus.PROCESS)
+                .createTime(LocalDateTime.now())
+                .type(ProductType.fund)
                 .build();
         this.save(fundRecord);
 
@@ -204,7 +217,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
         // 减少余额
         accountBalanceService.decrease(uid, ChargeType.fund_purchase, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.基金申购.name());
         //代理人钱包
-        AccountBalance agentAccountBalance = accountBalanceService.getAndInit(walletAgentProduct.getAgentId(), financialProduct.getCoin());
+        AccountBalance agentAccountBalance = accountBalanceService.getAndInit(walletAgentProduct.getUid(), financialProduct.getCoin());
         //代理人生成一笔订单
         Order agentOrder = Order.builder()
                 .uid(agentAccountBalance.getUid())
@@ -237,7 +250,15 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     @Override
     public FundRecordVO detail(Long id) {
         FundRecord fundRecord = this.getById(id);
-        return fundRecordConvert.toFundVO(fundRecord);
+        FundRecordVO fundRecordVO = fundRecordConvert.toFundVO(fundRecord);
+        long until = fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS);
+        //七天允许赎回
+        if(until > 7){
+            fundRecordVO.setIsAllowRedemption(true);
+        }else {
+            fundRecordVO.setIsAllowRedemption(false);
+        }
+        return fundRecordVO;
     }
 
     @Override
@@ -269,7 +290,16 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     @Override
     public FundTransactionRecordVO transactionDetail(Long transactionId) {
         FundTransactionRecord transactionRecord = fundTransactionRecordService.getById(transactionId);
-        return fundRecordConvert.toFundTransactionVO(transactionRecord);
+        FundTransactionRecordVO fundTransactionRecordVO = fundRecordConvert.toFundTransactionVO(transactionRecord);
+        FundRecord fundRecord = this.getById(transactionRecord.getFundId());
+        if(fundTransactionRecordVO.getType() == FundTransactionType.purchase){
+            fundTransactionRecordVO.setExpectedIncome(dailyIncome(fundTransactionRecordVO.getTransactionAmount(),fundTransactionRecordVO.getRate()));
+        }
+        if(fundTransactionRecordVO.getType() == FundTransactionType.redemption && Objects.equals(fundTransactionRecordVO.getStatus(), FundTransactionStatus.success)){
+            fundTransactionRecordVO.setAccountTate(fundTransactionRecordVO.getAuditTime());
+        }
+        fundTransactionRecordVO.setProductNameEn(fundRecord.getProductNameEn());
+        return fundTransactionRecordVO;
     }
 
     @Override
@@ -296,7 +326,10 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
         FundRecord fundRecord = this.getById(id);
         if(Objects.isNull(fundRecord))ErrorCodeEnum.FUND_NOT_EXIST.throwException();
         if(redemptionAmount.compareTo(fundRecord.getHoldAmount()) > 0)ErrorCodeEnum.REDEMPTION_GT_HOLD.throwException();
-
+        if(redemptionAmount.compareTo(fundRecord.getHoldAmount()) == 0){
+            fundRecord.setStatus(FundRecordStatus.SUCCESS);
+            this.updateById(fundRecord);
+        }
         //扣除余额
         fundRecordMapper.reduceAmount(id,redemptionAmount);
 
@@ -343,5 +376,6 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     public void increaseAmount(Long id, BigDecimal amount) {
         fundRecordMapper.increaseAmount(id,amount);
     }
+
 
 }

@@ -30,13 +30,12 @@
             <if test="endTime != null">
                 and a.create_time &lt;= #{endTime}
             </if>
-            <if test="agentId != null">
-                and b.agent_id = #{agentId}
+            <if test="agentUId != null">
+                and c.uid = #{agentUId}
             </if>
             <if test="productId != null">
                 and b.productId = #{productId}
             </if>
-            and b.deleted = 0
         </where>
         group by coin
     </select>
@@ -49,15 +48,16 @@
             a.coin,
             a.rate,
             a.hold_amount holdAmount,
-            a.interest_mount interestAmount,
+            a.interest_amount interestAmount,
             a.status,
-            a.create_time createTime
+            a.create_time createTime,
+            b.logo
         from fund_income_record a
         LEFT JOIN fund_record b on a.fund_id = b.id
         left join wallet_agent_product c on b.product_id = c.product_id
         <where>
             <if test="query.uid != null">
-                a.uid = #{uid}
+                a.uid = #{query.uid}
             </if>
             <if test="query.queryUid != null and query.queryUid != ''">
                 and a.uid like concat('%',#{query.queryUid},'%')
@@ -74,14 +74,24 @@
             <if test="query.endTime != null">
                 and a.create_time &lt;= #{query.endTime}
             </if>
-            <if test="query.agentId != null">
-                and b.agent_id = #{query.agentId}
+            <if test="query.agentUId != null">
+                and b.uid = #{query.agentUId}
             </if>
             <if test="query.productId != null">
                 and b.productId = #{query.productId}
             </if>
-            and b.deleted = 0
+            <if test="query.fundId != null">
+                and a.fund_id = #{query.fundId}
+            </if>
         </where>
         order by a.create_time desc
+    </select>
+
+    <select id="selectWaitInterestCount" resultType="int">
+        select
+           count(*)
+        from fund_income_record a
+        left join wallet_agent_product b on a.product_id = b.product_id
+        where a.status in (1,2) and b.uid = #{agentUid}
     </select>
 </mapper>

@@ -13,6 +13,7 @@ import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.fund.service.IFundTransactionRecordService;
 import com.tianli.fund.vo.FundIncomeRecordVO;
+import com.tianli.fund.vo.FundTransactionRecordVO;
 import com.tianli.management.vo.FundTransactionAmountVO;
 import com.tianli.management.vo.FundUserRecordVO;
 import org.springframework.beans.factory.annotation.Autowired;

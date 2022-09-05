@@ -53,7 +53,7 @@ public class WalletAgentProductServiceImpl extends ServiceImpl<WalletAgentProduc
 
     @Override
     public IPage<FundProductStatisticsVO> getPage(PageQuery<WalletAgentProduct> pageQuery) {
-        Long agentId = AgentContent.getAgentId();
+        Long agentId = AgentContent.getAgentUId();
         return walletAgentProductMapper.selectPage(pageQuery.page(), agentId);
     }
 }

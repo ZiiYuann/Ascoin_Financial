@@ -110,7 +110,10 @@ public enum ErrorCodeEnum {
     FUND_NOT_EXIST(3606,"基金不存在"),
     REDEMPTION_GT_HOLD(3607,"赎回金额大于持有金额"),
     TRANSACTION_NOT_EXIST(3608,"交易记录不存在或状态错误"),
-    INCOME_NOT_EXIST(3609,"收益记录不存在或状态错误")
+    INCOME_NOT_EXIST(3609,"收益记录不存在或状态错误"),
+    PRODUCT_NOT_CLOSE(3610,"产品未下线"),
+    EXIST_WAIT_REDEMPTION(3611,"存在待赎回金额"),
+    EXIST_WAIT_INTEREST(3612,"存在待发放利息"),
 
 
         ;

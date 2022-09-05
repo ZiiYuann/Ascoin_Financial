@@ -11,11 +11,15 @@ import com.tianli.charge.service.OrderService;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialProduct;
+import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.contant.FundTransactionStatus;
 import com.tianli.fund.enums.FundTransactionType;
+import com.tianli.fund.query.FundIncomeQuery;
+import com.tianli.fund.service.IFundIncomeRecordService;
+import com.tianli.fund.service.IFundTransactionRecordService;
 import com.tianli.management.bo.WalletAgentBO;
 import com.tianli.management.converter.WalletAgentConverter;
 import com.tianli.management.dto.AmountDto;
@@ -68,6 +72,12 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
     @Resource
     private OrderService orderService;
 
+    @Autowired
+    private IFundIncomeRecordService fundIncomeRecordService;
+
+    @Autowired
+    private IFundTransactionRecordService fundTransactionRecordService;
+
     @Override
     public void saveAgent(WalletAgentBO bo) {
         if(this.exist(bo.getUid())) ErrorCodeEnum.AGENT_ALREADY_BIND.throwException();
@@ -97,6 +107,19 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
     public void delAgent(Long id) {
         WalletAgent walletAgent = walletAgentMapper.selectById(id);
         if(Objects.isNull(walletAgent))ErrorCodeEnum.AGENT_NOT_EXIST.throwException();
+        //其对应基金产品需手动操作下线
+        List<WalletAgentProduct> walletAgentProducts = walletAgentProductService.getByAgentId(walletAgent.getId());
+        walletAgentProducts.forEach(walletAgentProduct -> {
+            FinancialProduct financialProduct = financialProductService.getById(walletAgentProduct.getProductId());
+            if(financialProduct.getStatus() == ProductStatus.open){
+                ErrorCodeEnum.PRODUCT_NOT_CLOSE.throwException();
+            }
+        });
+        //代理人存在待赎回金额、待发放利息时不可删除
+        boolean waitRedemption = fundTransactionRecordService.existWaitRedemption(walletAgent.getUid());
+        if(waitRedemption) ErrorCodeEnum.EXIST_WAIT_REDEMPTION.throwException();
+        boolean waitInterest = fundIncomeRecordService.existWaitInterest(walletAgent.getUid());
+        if(waitInterest) ErrorCodeEnum.EXIST_WAIT_INTEREST.throwException();
         walletAgentMapper.logicDelById(id);
         walletAgentProductService.deleteByAgentId(id);
     }
@@ -136,7 +159,7 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
             walletAgentVO.setHoldAmount(getHoldAmount(uid));
             walletAgentVO.setRedemptionAmount(getRedemptionAmount(uid));
             walletAgentVO.setInterestAmount(getInterestAmount(uid, FundIncomeStatus.audit_success));
-            walletAgentVO.setInterestAmount(getInterestAmount(uid, FundIncomeStatus.wait_audit));
+            walletAgentVO.setWaitInterestAmount(getInterestAmount(uid, FundIncomeStatus.wait_audit));
             return walletAgentVO;
         });
         return page;
@@ -166,6 +189,7 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
                     .productName(financialProduct.getName())
                     .agentId(walletAgent.getId())
                     .referralCode(product.getReferralCode())
+                    .uid(walletAgent.getUid())
                     .build();
             walletAgentProductService.save(agentProduct);
         });
@@ -186,8 +210,8 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
         return orderService.amountDollarSumByChargeType(uid,ChargeType.withdraw);
     }
 
-    private BigDecimal getHoldAmount(Long uid){
-        List<AmountDto> amountDtos = walletAgentMapper.holdAmountSum(uid);
+    private BigDecimal getHoldAmount(Long agentUId){
+        List<AmountDto> amountDtos = walletAgentMapper.holdAmountSum(agentUId);
         return orderService.calDollarAmount(amountDtos);
     }
 

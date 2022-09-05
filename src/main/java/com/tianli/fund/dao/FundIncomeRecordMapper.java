@@ -26,4 +26,5 @@ public interface FundIncomeRecordMapper extends BaseMapper<FundIncomeRecord> {
 
     IPage<FundIncomeRecordVO> selectIncomePage(@Param("page") IPage<FundIncomeRecord> page,@Param("query") FundIncomeQuery query);
 
+    Integer selectWaitInterestCount(Long agentUid);
 }

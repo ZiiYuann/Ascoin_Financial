@@ -68,11 +68,9 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     }
 
     @Override
-    public FundIncomeAmountVO getIncomeAmountVO(FundIncomeQuery query) {
-        List<FundIncomeAmountDTO> fundIncomeAmountDTOS = getAmount(query);
-        List<AmountDto> amountDtos = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO -> new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
-        BigDecimal interestAmount = orderService.calDollarAmount(amountDtos);
-        return FundIncomeAmountVO.builder()
-                .interestAmount(interestAmount).build();
+    public boolean existWaitInterest(Long agentUid) {
+        int count = fundIncomeRecordMapper.selectWaitInterestCount(agentUid);
+        return count>0;
     }
+
 }

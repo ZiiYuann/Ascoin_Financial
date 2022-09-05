@@ -5,5 +5,4 @@ public enum FundTransactionType {
     purchase,
     //赎回
     redemption;
-
 }

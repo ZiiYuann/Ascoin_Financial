@@ -18,7 +18,7 @@ public class AgentContent {
         return user;
     }
 
-    public static Long getAgentId(){
+    public static Long getAgentUId(){
         return get().getAgentId();
     }
 

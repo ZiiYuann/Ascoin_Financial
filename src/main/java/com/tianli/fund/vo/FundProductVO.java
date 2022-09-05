@@ -1,6 +1,7 @@
 package com.tianli.fund.vo;
 
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RiskType;
 import lombok.Data;
@@ -48,4 +49,9 @@ public class FundProductVO {
      * 风险等级
      */
     private RiskType riskType;
+
+    /**
+     * 业务类型
+     */
+    private BusinessType businessType;
 }

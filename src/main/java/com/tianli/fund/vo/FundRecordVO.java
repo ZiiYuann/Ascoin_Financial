@@ -1,15 +1,21 @@
 package com.tianli.fund.vo;
 
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.enums.RiskType;
 import com.tianli.fund.enums.FundRecordStatus;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class FundRecordVO implements Serializable {
     private static final long serialVersionUID=1L;
 
@@ -46,7 +52,7 @@ public class FundRecordVO implements Serializable {
     /**
      * 风险类型
      */
-    private String riskType;
+    private RiskType riskType;
 
     /**
      * 运营类型
@@ -59,9 +65,9 @@ public class FundRecordVO implements Serializable {
     private BigDecimal rate;
 
     /**
-     * 交易类型
+     * 产品类型
      */
-    private String type;
+    private ProductType type;
 
     /**
      * 交易状态
@@ -69,14 +75,23 @@ public class FundRecordVO implements Serializable {
     private FundRecordStatus status;
 
     /**
-     * 累计收益
+     * 已发放收益
      */
-    private BigDecimal cumulativeIncomeAmount;
+    private BigDecimal incomeAmount;
+
+    /**
+     * 待发放收益
+     */
+    private BigDecimal waitIncomeAmount;
 
     /**
      * 昨日收益
      */
     private BigDecimal lastIncome;
 
+    /**
+     * 是否允许赎回
+     */
+    private Boolean isAllowRedemption;
 
 }

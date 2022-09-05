@@ -89,7 +89,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
 
     @Override
     public void redemptionAudit(FundAuditBO bo) {
-        Long agentId = AgentContent.getAgentId();
+        Long agentId = AgentContent.getAgentUId();
         Boolean auditResult = bo.getAuditResult();
         List<Long> ids = bo.getIds();
         ids.forEach(id ->{
@@ -159,9 +159,15 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     }
 
     @Override
+    public boolean existWaitRedemption(Long agentUid) {
+        Integer count = fundTransactionRecordMapper.selectWaitRedemptionCount(agentUid);
+        return count>0;
+    }
+
+    @Override
     public void incomeAudit(FundAuditBO bo) {
         List<Long> ids = bo.getIds();
-        Long agentId = AgentContent.getAgentId();
+        Long agentId = AgentContent.getAgentUId();
         ids.forEach(id->{
 
             FundIncomeRecord fundIncomeRecord = fundIncomeRecordService.getById(id);

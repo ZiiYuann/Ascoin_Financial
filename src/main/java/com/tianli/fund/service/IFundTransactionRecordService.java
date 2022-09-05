@@ -33,6 +33,8 @@ public interface IFundTransactionRecordService extends IService<FundTransactionR
 
     FundAuditRecordVO getRedemptionAuditRecord(Long id);
 
+    boolean existWaitRedemption(Long agentUid);
+
     void incomeAudit(FundAuditBO bo);
 
     FundAuditRecordVO getIncomeAuditRecord(Long id);

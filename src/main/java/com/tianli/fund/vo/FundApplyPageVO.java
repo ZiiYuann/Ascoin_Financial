@@ -77,12 +77,12 @@ public class FundApplyPageVO {
     /**
      * 赎回周期
      */
-    private Integer redemptionCycle = 7;
+    private Integer redemptionCycle;
 
     /**
      * 到账时间
      */
-    private Integer accountDate = 3;
+    private Integer accountDate;
 
     /**
      * 赎回时间

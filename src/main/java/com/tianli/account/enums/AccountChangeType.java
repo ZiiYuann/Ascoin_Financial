@@ -42,7 +42,7 @@ public enum AccountChangeType {
     agent_fund_sale("AS"),
     //基金赎回
     agent_fund_redeem("AR"),
-
+    //基金支付利息
     agent_fund_interest("AI")
     ;
 

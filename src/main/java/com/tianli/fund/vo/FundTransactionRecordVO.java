@@ -2,8 +2,10 @@ package com.tianli.fund.vo;
 
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.fund.enums.FundTransactionType;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -11,6 +13,8 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class FundTransactionRecordVO implements Serializable {
     private static final long serialVersionUID=1L;
     /**
@@ -36,6 +40,11 @@ public class FundTransactionRecordVO implements Serializable {
      * 产品名称
      */
     private String productName;
+
+    /**
+     * 产品英文名称
+     */
+    private String productNameEn;
 
     /**
      * 交易类型
@@ -81,4 +90,14 @@ public class FundTransactionRecordVO implements Serializable {
      * 创建时间
      */
     private LocalDateTime createTime;
+
+    /**
+     * 预计收益
+     */
+    private BigDecimal expectedIncome;
+
+    /**
+     * 到账时间
+     */
+    private LocalDateTime accountTate;
 }

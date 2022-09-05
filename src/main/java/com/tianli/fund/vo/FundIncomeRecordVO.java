@@ -63,4 +63,9 @@ public class FundIncomeRecordVO{
      */
     private LocalDateTime createTime;
 
+    /**
+     * logo
+     */
+    private String logo;
+
 }
