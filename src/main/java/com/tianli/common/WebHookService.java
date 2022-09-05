@@ -42,7 +42,7 @@ public class WebHookService {
         }
         String urlPre = configService.get(ConfigConstants.SYSTEM_URL_PATH_PREFIX);
         Long id = CommonFunction.generalId();
-        exceptionMsgMapper.insert(new ExceptionMsg(id, ExceptionUtil.stacktraceToString(e), LocalDateTime.now()));
+        exceptionMsgMapper.insert(new ExceptionMsg(id, ExceptionUtil.stacktraceToString(e,5000), LocalDateTime.now()));
 
         JSONObject jb = new JSONObject();
         jb.putOnce("title", StringUtils.isBlank(msg) ? "异常信息" : msg);
