@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.BusinessType;
+import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RiskType;
 import com.tianli.fund.enums.FundRecordStatus;
 import lombok.Builder;
@@ -105,6 +106,11 @@ public class FundRecord extends Model<FundRecord> {
      * 状态
      */
     private FundRecordStatus status;
+
+    /**
+     * 类型
+     */
+    private ProductType type;
 
 
 }

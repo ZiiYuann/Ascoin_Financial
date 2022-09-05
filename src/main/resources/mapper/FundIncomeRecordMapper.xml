@@ -36,7 +36,6 @@
             <if test="productId != null">
                 and b.productId = #{productId}
             </if>
-            and b.deleted = 0
         </where>
         group by coin
     </select>
@@ -49,7 +48,7 @@
             a.coin,
             a.rate,
             a.hold_amount holdAmount,
-            a.interest_mount interestAmount,
+            a.interest_amount interestAmount,
             a.status,
             a.create_time createTime
         from fund_income_record a
@@ -57,7 +56,7 @@
         left join wallet_agent_product c on b.product_id = c.product_id
         <where>
             <if test="query.uid != null">
-                a.uid = #{uid}
+                a.uid = #{query.uid}
             </if>
             <if test="query.queryUid != null and query.queryUid != ''">
                 and a.uid like concat('%',#{query.queryUid},'%')
@@ -80,7 +79,6 @@
             <if test="query.productId != null">
                 and b.productId = #{query.productId}
             </if>
-            and b.deleted = 0
         </where>
         order by a.create_time desc
     </select>

@@ -1,6 +1,8 @@
 package com.tianli.fund.vo;
 
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.enums.RiskType;
 import com.tianli.fund.enums.FundRecordStatus;
 import lombok.Builder;
 import lombok.Data;
@@ -46,7 +48,7 @@ public class FundRecordVO implements Serializable {
     /**
      * 风险类型
      */
-    private String riskType;
+    private RiskType riskType;
 
     /**
      * 运营类型
@@ -59,9 +61,9 @@ public class FundRecordVO implements Serializable {
     private BigDecimal rate;
 
     /**
-     * 交易类型
+     * 产品类型
      */
-    private String type;
+    private ProductType type;
 
     /**
      * 交易状态
