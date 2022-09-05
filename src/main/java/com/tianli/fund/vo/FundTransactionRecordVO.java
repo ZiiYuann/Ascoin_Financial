@@ -42,6 +42,11 @@ public class FundTransactionRecordVO implements Serializable {
     private String productName;
 
     /**
+     * 产品英文名称
+     */
+    private String productNameEn;
+
+    /**
      * 交易类型
      */
     private FundTransactionType type;

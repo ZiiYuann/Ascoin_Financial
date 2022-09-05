@@ -281,9 +281,11 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     public FundTransactionRecordVO transactionDetail(Long transactionId) {
         FundTransactionRecord transactionRecord = fundTransactionRecordService.getById(transactionId);
         FundTransactionRecordVO fundTransactionRecordVO = fundRecordConvert.toFundTransactionVO(transactionRecord);
+        FundRecord fundRecord = this.getById(transactionRecord.getFundId());
         if(fundTransactionRecordVO.getType() == FundTransactionType.purchase){
             fundTransactionRecordVO.setExpectedIncome(dailyIncome(fundTransactionRecordVO.getTransactionAmount(),fundTransactionRecordVO.getRate()));
         }
+        fundTransactionRecordVO.setProductNameEn(fundRecord.getProductNameEn());
         return fundTransactionRecordVO;
     }
 
@@ -361,5 +363,6 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     public void increaseAmount(Long id, BigDecimal amount) {
         fundRecordMapper.increaseAmount(id,amount);
     }
+
 
 }

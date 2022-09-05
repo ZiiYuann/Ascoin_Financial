@@ -7,6 +7,7 @@ import com.tianli.exception.Result;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.fund.bo.FundPurchaseBO;
 import com.tianli.fund.bo.FundRedemptionBO;
+import com.tianli.fund.contant.FundQuota;
 import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.entity.FundTransactionRecord;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * <p>
@@ -132,6 +134,11 @@ public class FundController {
     public Result transactionDetail(@PathVariable Long transactionId){
         FundTransactionRecordVO fundTransactionRecordVO = fundRecordService.transactionDetail(transactionId);
         return Result.success(fundTransactionRecordVO);
+    }
+
+    @GetMapping("/quota/config")
+    public Result quota(){
+        return Result.success(FundQuota.quotas);
     }
 
 }

@@ -16,6 +16,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.management.vo.FundUserRecordVO;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * <p>
@@ -57,4 +58,5 @@ public interface IFundRecordService extends IService<FundRecord> {
     Integer getHoldUserCount(FundRecordQuery query);
 
     void increaseAmount(Long id,BigDecimal amount);
+
 }
