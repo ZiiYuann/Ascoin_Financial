@@ -1,10 +1,12 @@
 package com.tianli.fund.query;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.tianli.fund.enums.FundTransactionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
@@ -28,8 +30,10 @@ public class FundTransactionQuery {
 
     private Integer status;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startTime;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
 
     private Long agentUId;

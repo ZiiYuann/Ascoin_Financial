@@ -29,30 +29,45 @@ public class WalletAgentController {
     @Autowired
     private IWalletAgentService walletAgentService;
 
+    /**
+     * 添加代理人
+     */
     @PostMapping
     public Result addAgent(@RequestBody @Valid WalletAgentBO bo){
         walletAgentService.saveAgent(bo);
         return Result.success();
     }
 
+    /**
+     * 更新代理人
+     */
     @PutMapping
     public Result updateAgent(@RequestBody @Valid WalletAgentBO bo){
         walletAgentService.updateAgent(bo);
         return Result.success();
     }
 
+    /**
+     * 删除代理人
+     */
     @DeleteMapping("/{id}")
     public Result delAgent(@PathVariable Long id){
         walletAgentService.delAgent(id);
         return Result.success();
     }
 
+    /**
+     * 查询代理人详情
+     */
     @GetMapping("/{id}")
     public Result info(@PathVariable Long id){
         WalletAgentVO agentVO = walletAgentService.getById(id);
         return Result.success(agentVO);
     }
 
+    /**
+     * 查询代理人列表
+     */
     @GetMapping("/list")
     public Result list(PageQuery<WalletAgent> pageQuery, WalletAgentQuery query ){
         IPage<WalletAgentVO> page = walletAgentService.getPage(pageQuery, query);

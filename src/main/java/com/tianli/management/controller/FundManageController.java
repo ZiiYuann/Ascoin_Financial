@@ -34,24 +34,36 @@ public class FundManageController {
     @Autowired
     private IFundRecordService fundRecordService;
 
+    /**
+     * 交易记录
+     */
     @GetMapping("/transaction/record")
     public Result transactionRecord(PageQuery<FundTransactionRecord> pageQuery, FundTransactionQuery query){
-        fundTransactionRecordService.getTransactionPage(pageQuery,query);
-        return Result.success();
+        IPage<FundTransactionRecordVO> transactionPage = fundTransactionRecordService.getTransactionPage(pageQuery, query);
+        return Result.success(transactionPage);
     }
 
+    /**
+     * 交易记录金额统计
+     */
     @GetMapping("/transaction/amount")
     public Result transactionAmount(FundTransactionQuery query){
         FundTransactionAmountVO transactionAmount = fundTransactionRecordService.getTransactionAmount(query);
         return Result.success(transactionAmount);
     }
 
+    /**
+     *收益记录
+     */
     @GetMapping("/income/record")
     public Result incomeRecord(PageQuery<FundIncomeRecord> pageQuery, FundIncomeQuery query){
         IPage<FundIncomeRecordVO> page = fundIncomeRecordService.getPage(pageQuery, query);
         return Result.success(page);
     }
 
+    /**
+     * 收益记录金额统计
+     */
     @GetMapping("/income/amount")
     public Result incomeAmount(PageQuery<FundIncomeRecord> pageQuery, FundIncomeQuery query){
         IPage<FundIncomeRecordVO> page = fundIncomeRecordService.getPage(pageQuery, query);
