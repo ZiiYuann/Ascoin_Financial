@@ -5,8 +5,7 @@ import com.baomidou.mybatisplus.extension.activerecord.Model;
 import java.time.LocalDateTime;
 
 import com.tianli.common.blockchain.CurrencyCoin;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 /**
  * <p>
@@ -18,6 +17,9 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class FundIncomeRecord extends Model<FundIncomeRecord> {
 
     private static final long serialVersionUID=1L;
@@ -39,7 +41,7 @@ public class FundIncomeRecord extends Model<FundIncomeRecord> {
     /**
      * 产品ID
      */
-    private Integer productId;
+    private Long productId;
 
     /**
      * 产品名称

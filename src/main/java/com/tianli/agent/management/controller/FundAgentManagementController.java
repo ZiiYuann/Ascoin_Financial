@@ -23,6 +23,8 @@ import com.tianli.fund.service.IFundRecordService;
 import com.tianli.fund.service.IFundTransactionRecordService;
 import com.tianli.fund.vo.FundTransactionRecordVO;
 import com.tianli.management.entity.WalletAgentProduct;
+import com.tianli.management.vo.FundIncomeAmountVO;
+import com.tianli.management.vo.FundTransactionAmountVO;
 import com.tianli.management.vo.FundUserRecordVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -74,12 +76,28 @@ public class FundAgentManagementController {
         return Result.success(transactionPage);
     }
 
+    @GetMapping("/transaction/amount")
+    @AgentPrivilege
+    public Result transactionAmount(FundTransactionQuery query){
+        query.setAgentUId(AgentContent.getAgentUId());
+        FundTransactionAmountVO transactionAmount = fundTransactionRecordService.getTransactionAmount(query);
+        return Result.success(transactionAmount);
+    }
+
     @GetMapping("/income/record")
     @AgentPrivilege
     public Result incomeRecord(PageQuery<FundIncomeRecord> page , FundIncomeQuery query){
         query.setAgentUId(AgentContent.getAgentUId());
         fundIncomeRecordService.getPage(page,query);
         return Result.success();
+    }
+
+    @GetMapping("/income/amount")
+    @AgentPrivilege
+    public Result incomeAmount(FundIncomeQuery query){
+        query.setAgentUId(AgentContent.getAgentUId());
+        FundIncomeAmountVO incomeAmount = fundIncomeRecordService.getIncomeAmount(query);
+        return Result.success(incomeAmount);
     }
 
     @GetMapping("/hold/record")
@@ -90,7 +108,7 @@ public class FundAgentManagementController {
         return Result.success(fundUserRecordPage);
     }
 
-    @PutMapping("/redemption/audit/{ids}")
+    @PostMapping("/redemption/audit/{ids}")
     @AgentPrivilege
     public Result redemptionAudit(@RequestBody @Valid FundAuditBO bo){
         fundTransactionRecordService.redemptionAudit(bo);
