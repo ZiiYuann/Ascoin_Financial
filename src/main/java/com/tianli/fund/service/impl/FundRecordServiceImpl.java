@@ -340,7 +340,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
             this.updateById(fundRecord);
         }
 
-        if ( fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS) <= FundCycle.redemptionCycle){
+        if ( fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS) < FundCycle.redemptionCycle){
             ErrorCodeEnum.REDEMPTION_CYCLE_ERROR.throwException();
         }
 
