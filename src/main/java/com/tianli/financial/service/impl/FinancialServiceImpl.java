@@ -1,8 +1,6 @@
 package com.tianli.financial.service.impl;
 
-import cn.hutool.Hutool;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.NumberUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -52,7 +50,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.NumberUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -451,11 +448,6 @@ public class FinancialServiceImpl implements FinancialService {
                 financialProductVO.setBaseUseQuota(baseDataAmount);
             }
 
-            if (product.getRateType() == 1) {
-                financialProductVO.setLadderRates(financialProductLadderRateService.listByProductId(product.getId())
-                        .stream().map(financialConverter::toProductLadderRateVO).collect(Collectors.toList()));
-            }
-
             return financialProductVO;
         });
     }
@@ -535,11 +527,11 @@ public class FinancialServiceImpl implements FinancialService {
         return limitQuota.multiply(adjustRate);
     }
 
-    public FinancialProductVO productDetails(Long productId) {
+    public FinancialProductDetailsVO productDetails(Long productId) {
         Long uid = requestInitService.uid();
         FinancialProduct product = financialProductService.getById(productId);
 
-        FinancialProductVO productVO = financialConverter.toFinancialProductVO(product);
+        FinancialProductDetailsVO productVO = financialConverter.toFinancialProductDetailsVO(product);
 
         var personUseQuota = financialRecordService.getUseQuota(List.of(product.getId()), uid);
         var accountBalance = accountBalanceService.getAndInit(uid, product.getCoin());
@@ -555,6 +547,11 @@ public class FinancialServiceImpl implements FinancialService {
         if (Objects.nonNull(baseDataAmount)) {
             productVO.setUseQuota(useQuota.add(baseDataAmount));
             productVO.setBaseUseQuota(baseDataAmount);
+        }
+
+        if (product.getRateType() == 1) {
+            productVO.setLadderRates(financialProductLadderRateService.listByProductId(product.getId())
+                    .stream().map(financialConverter::toProductLadderRateVO).collect(Collectors.toList()));
         }
 
         LocalDateTime startIncomeTime = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(1);

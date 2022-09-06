@@ -88,7 +88,7 @@ public interface FinancialService {
     IPage<FinancialIncomeAccrueDTO> incomeRecord(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query);
 
     /**
-     *
+     * 用户理财收益记录列表累计信息
      */
     FinancialSummaryDataVO summaryIncomeByQuery(FinancialProductIncomeQuery query);
 
@@ -103,7 +103,7 @@ public interface FinancialService {
     IPage<FinancialProductVO> products(Page<FinancialProduct> page, ProductType type);
 
     /**
-     * 产品列表
+     * 活动产品列表
      */
     IPage<FinancialProductVO> activitiesProducts(Page<FinancialProduct> page, BusinessType type);
 
@@ -117,9 +117,15 @@ public interface FinancialService {
      */
     FinancialSummaryDataVO userData(String uid);
 
+    /**
+     * 手动更新数据展板
+     */
     void boardManual(TimeQuery query);
 
-    FinancialProductVO productDetails(Long productId);
+    /**
+     * 产品详情
+     */
+    FinancialProductDetailsVO productDetails(Long productId);
 
     List<FinancialProductDropdownVO> dropdownList(ProductType type);
 }

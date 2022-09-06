@@ -123,14 +123,4 @@ public class FinancialProductVO {
      */
     private RiskType riskType;
 
-    /**
-     * 利率类型
-     */
-    private byte rateType;
-
-    /**
-     * 阶梯化利率
-     */
-    private List<ProductLadderRateVO> ladderRates;
-
 }
