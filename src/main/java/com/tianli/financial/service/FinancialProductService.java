@@ -89,7 +89,6 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             productDO.setId(CommonFunction.generalId());
             productDO.setUseQuota(BigDecimal.ZERO);
             super.saveOrUpdate(productDO);
-            return;
         }
 
         if (Objects.nonNull(productDO.getId())) {

@@ -74,8 +74,6 @@ public class FinancialProductEditQuery {
     /**
      * 参考年化
      */
-    @NotNull(message = "日利率不能为空")
-    @DecimalMin(value = "0.00000001", message = "日利率填写有误")
     private BigDecimal rate;
 
     /**
