@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.management.dto.AmountDto;
-import com.tianli.management.entity.HotWalletDetailed;
 import com.tianli.management.query.HotWalletDetailedPQuery;
+import com.tianli.management.entity.HotWalletDetailed;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

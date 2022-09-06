@@ -3,7 +3,6 @@ package com.tianli.fund.dao;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.fund.entity.FundRecord;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tianli.fund.query.FundIncomeQuery;
 import com.tianli.fund.query.FundRecordQuery;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.vo.FundUserRecordVO;

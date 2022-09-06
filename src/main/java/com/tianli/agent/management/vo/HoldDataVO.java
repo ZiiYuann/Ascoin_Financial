@@ -7,14 +7,7 @@ import java.math.BigDecimal;
 
 @Data
 @Builder
-public class MainPageVO {
-
-    private BigDecimal purchaseAmount;
-
-    private BigDecimal redemptionAmount;
-
-    private BigDecimal interestAmount;
-
+public class HoldDataVO {
     private BigDecimal holdAmount;
 
     private Integer holdCount;
@@ -22,5 +15,4 @@ public class MainPageVO {
     private BigDecimal payInterestAmount;
 
     private BigDecimal waitPayInterestAmount;
-
 }

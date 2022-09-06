@@ -1,7 +1,6 @@
 package com.tianli.management.vo;
 
 import com.tianli.chain.enums.ChainType;
-import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.management.enums.HotWalletOperationType;
 import lombok.AllArgsConstructor;

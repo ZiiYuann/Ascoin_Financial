@@ -8,7 +8,8 @@ import com.tianli.agent.management.query.FundStatisticsQuery;
 import com.tianli.agent.management.service.FundAgentManageService;
 import com.tianli.agent.management.vo.FundAuditRecordVO;
 import com.tianli.agent.management.vo.FundProductStatisticsVO;
-import com.tianli.agent.management.vo.MainPageVO;
+import com.tianli.agent.management.vo.HoldDataVO;
+import com.tianli.agent.management.vo.TransactionDataVO;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.fund.entity.FundIncomeRecord;
@@ -44,11 +45,18 @@ public class FundAgentManagementController {
     @Autowired
     private IFundRecordService fundRecordService;
 
-    @GetMapping("/statistics")
+    @GetMapping("/transaction/data")
     @AgentPrivilege
-    public Result statistics(FundStatisticsQuery query){
-        MainPageVO statistics = fundAgentManageService.statistics(query);
-        return Result.success(statistics);
+    public Result transactionData(FundStatisticsQuery query){
+        TransactionDataVO transactionDataVO = fundAgentManageService.transactionData(query);
+        return Result.success(transactionDataVO);
+    }
+
+    @GetMapping("/hold/data")
+    @AgentPrivilege
+    public Result holdData(){
+        HoldDataVO holdDataVO = fundAgentManageService.holdData();
+        return Result.success(holdDataVO);
     }
 
     @GetMapping("/product/statistics")

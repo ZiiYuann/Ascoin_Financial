@@ -20,27 +20,33 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    /**
+     * 用户登陆
+     */
     @PostMapping("/login")
     public Result login(@RequestBody @Valid AuthUserBO authUserBO){
         LoginTokenVO tokenVO = authService.login(authUserBO);
         return Result.success(tokenVO);
     }
 
+    /**
+     *修改密码
+     */
     @PostMapping("/change/password")
     @AgentPrivilege
     public Result changePassword(@RequestBody @Valid RePwdBO rePwdBO){
-
+        authService.changePassword(rePwdBO);
         return Result.success();
     }
 
+    /**
+     * 用户详情
+     */
     @GetMapping("/userInfo")
     @AgentPrivilege
     public Result userInfo(){
         AgentInfo agentInfo = AgentContent.get();
         return Result.success(agentInfo);
     }
-
-
-
 
 }
