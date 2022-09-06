@@ -12,8 +12,11 @@
         LEFT JOIN fund_record b on a.fund_id = b.id
         left join wallet_agent_product c on b.product_id = c.product_id
         <where>
+            <if test="agentId != null">
+                a.uid = #{agentId}
+            </if>
             <if test="uid != null">
-                a.uid = #{uid}
+                and a.uid = #{uid}
             </if>
             <if test="queryUid != null and queryUid != ''">
                 and a.uid like concat('%',#{queryUid},'%')
@@ -56,8 +59,11 @@
         LEFT JOIN fund_record b on a.fund_id = b.id
         left join wallet_agent_product c on b.product_id = c.product_id
         <where>
+            <if test="query.agentId != null">
+                c.agent_id = #{query.agentId}
+            </if>
             <if test="query.uid != null">
-                a.uid = #{query.uid}
+                and a.uid = #{query.uid}
             </if>
             <if test="query.queryUid != null and query.queryUid != ''">
                 and a.uid like concat('%',#{query.queryUid},'%')

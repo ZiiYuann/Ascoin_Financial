@@ -6,11 +6,13 @@ import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialProduct;
+import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.*;
 import com.tianli.management.service.FinancialBoardProductService;
+import com.tianli.management.vo.FinancialProductDropdownVO;
 import com.tianli.management.vo.MFinancialProductVO;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
@@ -126,5 +128,12 @@ public class FinancialProductController {
         return Result.success();
     }
 
-
+    /**
+     * 产品下拉
+     */
+    @GetMapping("/product/dropdown")
+    public Result dropdownList(ProductType type){
+        List<FinancialProductDropdownVO> dropdownVOS = financialService.dropdownList(type);
+        return Result.success(dropdownVOS);
+    }
 }

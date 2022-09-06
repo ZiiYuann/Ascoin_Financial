@@ -16,6 +16,7 @@ import com.tianli.financial.vo.*;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.query.TimeQuery;
+import com.tianli.management.vo.FinancialProductDropdownVO;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.FinancialUserInfoVO;
 
@@ -119,4 +120,6 @@ public interface FinancialService {
     void boardManual(TimeQuery query);
 
     FinancialProductVO productDetails(Long productId);
+
+    List<FinancialProductDropdownVO> dropdownList(ProductType type);
 }

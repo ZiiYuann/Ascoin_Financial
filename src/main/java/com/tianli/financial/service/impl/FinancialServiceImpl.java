@@ -4,6 +4,7 @@ import cn.hutool.Hutool;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.account.entity.AccountBalance;
@@ -42,6 +43,7 @@ import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.query.TimeQuery;
 import com.tianli.management.service.FinancialBoardProductService;
 import com.tianli.management.service.FinancialBoardWalletService;
+import com.tianli.management.vo.FinancialProductDropdownVO;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.FinancialUserInfoVO;
 import com.tianli.sso.init.RequestInitService;
@@ -554,6 +556,16 @@ public class FinancialServiceImpl implements FinancialService {
         productVO.setStartIncomeTime(startIncomeTime);
         productVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
         return productVO;
+    }
+
+    @Override
+    public List<FinancialProductDropdownVO> dropdownList(ProductType type) {
+        List<FinancialProduct> financialProducts = financialProductService.list(new QueryWrapper<FinancialProduct>().lambda()
+                .eq(FinancialProduct::getType, type)
+                .eq(FinancialProduct::getStatus, ProductStatus.open));
+      return financialProducts.stream().map(financialProduct ->
+               new FinancialProductDropdownVO(financialProduct.getId(),financialProduct.getName(),financialProduct.getNameEn()))
+               .collect(Collectors.toList());
     }
 
     @Resource

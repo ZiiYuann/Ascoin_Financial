@@ -71,6 +71,9 @@ public class FundManageController {
         return Result.success(incomeAmount);
     }
 
+    /**
+     * 持仓用户
+     */
     @GetMapping("/hold/record")
     public Result holdRecord(PageQuery<FundRecord> pageQuery, FundRecordQuery query){
         IPage<FundUserRecordVO> fundUserRecordPage = fundRecordService.fundUserRecordPage(pageQuery, query);
