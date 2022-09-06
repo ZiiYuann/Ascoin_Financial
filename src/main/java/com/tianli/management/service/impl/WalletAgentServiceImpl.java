@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -88,64 +89,51 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
         walletAgent.setCreateTime(LocalDateTime.now());
         walletAgent.setLoginPassword(SecureUtil.md5(walletAgent.getAgentName()));
         walletAgentMapper.insert(walletAgent);
-        products.forEach(product -> {
-            FinancialProduct financialProduct = financialProductService.getById(product.getProductId());
-            if(Objects.isNull(financialProduct) || !financialProduct.getType().equals(ProductType.fund)) ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
-            if(walletAgentProductService.getCount(product.getProductId()) > 0) ErrorCodeEnum.AGENT_PRODUCT_ALREADY_BIND.throwException();
-            WalletAgentProduct agentProduct = WalletAgentProduct.builder()
-                    .productId(product.getProductId())
-                    .productName(financialProduct.getName())
-                    .agentId(walletAgent.getId())
-                    .referralCode(product.getReferralCode())
-                    .uid(walletAgent.getUid())
-                    .build();
-            walletAgentProductService.save(agentProduct);
-        });
+        products.forEach(product -> saveAgentProduct(walletAgent,product));
     }
 
     @Override
     public void updateAgent(WalletAgentBO bo) {
         WalletAgent walletAgent = walletAgentMapper.selectById(bo.getId());
-        WalletAgent saveAgent = walletAgentConverter.toDO(bo);
         if(Objects.isNull(walletAgent))ErrorCodeEnum.AGENT_NOT_EXIST.throwException();
-        if(!walletAgent.getUid().equals(saveAgent.getUid())){
-            Integer count = walletAgentMapper.selectCountByUid(bo.getUid());
-            if(count > 0) ErrorCodeEnum.AGENT_ALREADY_BIND.throwException();
-        }
-        walletAgentMapper.updateById(saveAgent);
-        walletAgentProductService.deleteByAgentId(saveAgent.getId());
+        walletAgent.setRemark(bo.getRemark());
+        walletAgentMapper.updateById(walletAgent);
         List<WalletAgentProduct> products = walletAgentProductService.getByAgentId(walletAgent.getId());
         //删除多余的
         List<Long> productIds = products.stream().map(WalletAgentProduct::getProductId).collect(Collectors.toList());
         List<WalletAgentBO.Product> saveProducts = bo.getProducts();
         List<Long> saveProductIds = saveProducts.stream().map(WalletAgentBO.Product::getProductId).collect(Collectors.toList());
-        productIds.removeAll(saveProductIds);
-        productIds.forEach(id -> walletAgentProductService.deleteByProductId(id));
-        //增加新的
-
-
-
+        Collection<Long> deletedIds = CollUtil.subtract(productIds, saveProductIds);
+        deletedIds.forEach(id -> walletAgentProductService.deleteByProductId(id));
+        //增加或更新
+        saveProducts.forEach(saveProduct -> {
+            List<WalletAgentProduct> updateProduct = products.stream().filter(product ->
+                    product.getProductId().equals(saveProduct.getProductId())).collect(Collectors.toList());
+            if(CollUtil.isEmpty(updateProduct)){
+                saveAgentProduct(walletAgent,saveProduct);
+            }else {
+                updateProduct.forEach(product -> {
+                    product.setReferralCode(saveProduct.getReferralCode());
+                    walletAgentProductService.updateById(product);
+                });
+            }
+        });
     }
 
     @Override
     public void delAgent(Long id) {
         WalletAgent walletAgent = walletAgentMapper.selectById(id);
         if(Objects.isNull(walletAgent))ErrorCodeEnum.AGENT_NOT_EXIST.throwException();
-        //其对应基金产品需手动操作下线
+        //其对应基金产品需手动操作下线 代理人存在待赎回金额、待发放利息时不可删除
         List<WalletAgentProduct> walletAgentProducts = walletAgentProductService.getByAgentId(walletAgent.getId());
         walletAgentProducts.forEach(walletAgentProduct -> {
             FinancialProduct financialProduct = financialProductService.getById(walletAgentProduct.getProductId());
             if(financialProduct.getStatus() == ProductStatus.open){
                 ErrorCodeEnum.PRODUCT_NOT_CLOSE.throwException();
             }
+            walletAgentProductService.deleteByProductId(walletAgentProduct.getId());
         });
-        //代理人存在待赎回金额、待发放利息时不可删除
-        boolean waitRedemption = fundTransactionRecordService.existWaitRedemption(walletAgent.getUid());
-        if(waitRedemption) ErrorCodeEnum.EXIST_WAIT_REDEMPTION.throwException();
-        boolean waitInterest = fundIncomeRecordService.existWaitInterest(walletAgent.getUid());
-        if(waitInterest) ErrorCodeEnum.EXIST_WAIT_INTEREST.throwException();
         walletAgentMapper.logicDelById(id);
-        walletAgentProductService.deleteByAgentId(id);
     }
 
     @Override
@@ -197,20 +185,18 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
         );
     }
 
-    private void saveAgentProduct(WalletAgent walletAgent, List<WalletAgentBO.Product> products) {
-        products.forEach(product -> {
-            FinancialProduct financialProduct = financialProductService.getById(product.getProductId());
-            if(Objects.isNull(financialProduct) || !financialProduct.getType().equals(ProductType.fund)) ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
-            if(walletAgentProductService.getCount(product.getProductId()) > 0) ErrorCodeEnum.AGENT_PRODUCT_ALREADY_BIND.throwException();
-            WalletAgentProduct agentProduct = WalletAgentProduct.builder()
-                    .productId(product.getProductId())
-                    .productName(financialProduct.getName())
-                    .agentId(walletAgent.getId())
-                    .referralCode(product.getReferralCode())
-                    .uid(walletAgent.getUid())
-                    .build();
-            walletAgentProductService.save(agentProduct);
-        });
+    private void saveAgentProduct(WalletAgent walletAgent, WalletAgentBO.Product product) {
+        FinancialProduct financialProduct = financialProductService.getById(product.getProductId());
+        if(Objects.isNull(financialProduct) || !financialProduct.getType().equals(ProductType.fund)) ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
+        if(walletAgentProductService.getCount(product.getProductId()) > 0) ErrorCodeEnum.AGENT_PRODUCT_ALREADY_BIND.throwException();
+        WalletAgentProduct agentProduct = WalletAgentProduct.builder()
+                .productId(product.getProductId())
+                .productName(financialProduct.getName())
+                .agentId(walletAgent.getId())
+                .referralCode(product.getReferralCode())
+                .uid(walletAgent.getUid())
+                .build();
+        walletAgentProductService.save(agentProduct);
     }
 
     private BigDecimal getWalletAmount(Long uid){
