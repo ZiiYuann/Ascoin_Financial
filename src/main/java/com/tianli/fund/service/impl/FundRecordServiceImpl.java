@@ -166,7 +166,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     }
 
     @Override
-    public void purchase(FundPurchaseBO bo) {
+    public FundTransactionRecordVO purchase(FundPurchaseBO bo) {
         Long productId = bo.getProductId();
         BigDecimal purchaseAmount = bo.getPurchaseAmount();
         String referralCode = bo.getReferralCode();
@@ -252,6 +252,8 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
                 .transactionAmount(purchaseAmount)
                 .createTime(LocalDateTime.now()).build();
         fundTransactionRecordService.save(transactionRecord);
+
+        return fundRecordConvert.toFundTransactionVO(transactionRecord);
     }
 
     @Override

@@ -77,8 +77,8 @@ public class FundController {
      */
     @PostMapping("/purchase")
     public Result purchase(@RequestBody @Valid FundPurchaseBO bo){
-        fundRecordService.purchase(bo);
-        return Result.success();
+        FundTransactionRecordVO purchase = fundRecordService.purchase(bo);
+        return Result.success(purchase);
     }
 
     /**
