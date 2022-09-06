@@ -294,10 +294,11 @@ public class FinancialServiceImpl implements FinancialService {
         List<ProductRateDTO> productRateDTOS = Optional.ofNullable(financialProductService.listProductRateDTO())
                 .orElse(new ArrayList<>());
 
+        var productMap = getFinancialProductVOs().stream()
+                .collect(Collectors.groupingBy(FinancialProductVO::getCoin, Collectors.toList()));
+
+
         return productRateDTOS.stream().map(productRateDTO -> {
-            if (productRateDTO.getProductCount() == 1) {
-                return getFinancialProductVOIPage(productRateDTO.getId());
-            }
 
             FinancialProductRateVO financialProductVO = new FinancialProductRateVO();
             financialProductVO.setCoin(productRateDTO.getCoin());
@@ -305,6 +306,7 @@ public class FinancialServiceImpl implements FinancialService {
             financialProductVO.setMaxRate(productRateDTO.getMaxRate());
             financialProductVO.setMinRate(productRateDTO.getMinRate());
 
+            financialProductVO.setProducts(productMap.getOrDefault(productRateDTO.getCoin(), new ArrayList<>()));
             return financialProductVO;
         }).collect(Collectors.toList());
 
@@ -406,10 +408,9 @@ public class FinancialServiceImpl implements FinancialService {
                 .eq(FinancialBoardWallet::getCreateTime, dateTime));
     }
 
-    private FinancialProductVO getFinancialProductVOIPage(Long productId) {
-        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
-                .eq(FinancialProduct::getId, productId);
-        return getFinancialProductVOIPage(new Page<>(1, 1), null, query).getRecords().get(0);
+    private List<FinancialProductVO> getFinancialProductVOs() {
+        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<>();
+        return getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), null, query).getRecords();
     }
 
     private IPage<FinancialProductVO> getFinancialProductVOIPage(Page<FinancialProduct> page, ProductType type, LambdaQueryWrapper<FinancialProduct> query) {
@@ -494,7 +495,7 @@ public class FinancialServiceImpl implements FinancialService {
      * 获取假数据基础数据
      */
     private BigDecimal getBaseDataAmount(Long productId, BigDecimal limitQuota, BigDecimal useQuota) {
-        if (Objects.isNull(limitQuota)) {
+        if (Objects.isNull(limitQuota) || limitQuota.doubleValue() == 0f) {
             return null;
         }
         useQuota = Optional.ofNullable(useQuota).orElse(BigDecimal.ZERO);
@@ -512,7 +513,7 @@ public class FinancialServiceImpl implements FinancialService {
         int month = now.getMonthValue();
         String monthAndDay = now.format(DateTimeFormatter.ofPattern("MMdd"));
         int randomNum = (Integer.parseInt(monthAndDay) + dayOfMonth * 100 + month * 100) % 365;
-        if (randomNum < 300){
+        if (randomNum < 300) {
             randomNum = randomNum + 50;
         }
         // 获取一个每天固定的随机比例 365 以内

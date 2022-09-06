@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * @author chenb
@@ -24,4 +25,9 @@ public class FinancialProductRateVO extends FinancialProductVO{
      * 最小利率
      */
     private BigDecimal minRate;
+
+    /**
+     * 产品列表
+     */
+    private List<FinancialProductVO> products;
 }
