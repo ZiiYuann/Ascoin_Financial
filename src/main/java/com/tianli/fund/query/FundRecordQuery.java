@@ -10,9 +10,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FundRecordQuery {
+
+    private Long uid;
+
     private String queryUid;
 
-    private Long agentId;
+    private Long agentUId;
 
     private Long productId;
 }

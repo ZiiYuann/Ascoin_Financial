@@ -9,7 +9,7 @@
             a.coin
         from
             fund_transaction_record a
-            left join wallet_agent_product b on a.product_id = b.priduct_id
+            left join wallet_agent_product b on a.product_id = b.product_id
         <where>
             <if test="queryUid != null and queryUid != ''">
                 and a.uid like concat('%',#{queryUid},'%')
@@ -35,7 +35,6 @@
             <if test="agentUId != null">
                 and b.uid = #{agentUId}
             </if>
-            b.deleted = 0
         </where>
         group by coin
     </select>

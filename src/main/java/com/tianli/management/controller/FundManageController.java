@@ -14,6 +14,7 @@ import com.tianli.fund.service.IFundRecordService;
 import com.tianli.fund.service.IFundTransactionRecordService;
 import com.tianli.fund.vo.FundIncomeRecordVO;
 import com.tianli.fund.vo.FundTransactionRecordVO;
+import com.tianli.management.vo.FundIncomeAmountVO;
 import com.tianli.management.vo.FundTransactionAmountVO;
 import com.tianli.management.vo.FundUserRecordVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,9 +66,9 @@ public class FundManageController {
      * 收益记录金额统计
      */
     @GetMapping("/income/amount")
-    public Result incomeAmount(PageQuery<FundIncomeRecord> pageQuery, FundIncomeQuery query){
-        IPage<FundIncomeRecordVO> page = fundIncomeRecordService.getPage(pageQuery, query);
-        return Result.success(page);
+    public Result incomeAmount(FundIncomeQuery query){
+        FundIncomeAmountVO incomeAmount = fundIncomeRecordService.getIncomeAmount(query);
+        return Result.success(incomeAmount);
     }
 
     @GetMapping("/hold/record")
