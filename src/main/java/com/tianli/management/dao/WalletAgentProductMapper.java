@@ -26,6 +26,9 @@ public interface WalletAgentProductMapper extends BaseMapper<WalletAgentProduct>
     @Delete("delete from wallet_agent_product where agent_id = #{agentId}")
     void deleteByAgentId(Long agentId);
 
+    @Delete("delete from wallet_agent_product where product_id = #{productId}")
+    void deleteByProductId(Long productId);
+
     IPage<FundProductStatisticsVO> selectPage(@Param("page") IPage<WalletAgentProduct> pageQuery,@Param("agentId") Long agentId);
 
 }

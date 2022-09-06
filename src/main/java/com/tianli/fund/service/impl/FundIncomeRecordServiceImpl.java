@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.PageQuery;
+import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.convert.FundRecordConvert;
 import com.tianli.fund.dao.FundIncomeRecordMapper;
 import com.tianli.fund.dto.FundIncomeAmountDTO;
@@ -79,6 +80,14 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     public boolean existWaitInterest(Long agentUid) {
         int count = fundIncomeRecordMapper.selectWaitInterestCount(agentUid);
         return count>0;
+    }
+
+    @Override
+    public Integer getWaitPayCount(Long productId) {
+        return this.count(new QueryWrapper<FundIncomeRecord>().lambda()
+                .eq(FundIncomeRecord::getProductId,productId)
+                .eq(FundIncomeRecord::getStatus, FundIncomeStatus.wait_audit)
+        );
     }
 
 }

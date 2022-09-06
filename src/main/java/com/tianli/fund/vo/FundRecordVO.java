@@ -25,6 +25,11 @@ public class FundRecordVO implements Serializable {
     private Long id;
 
     /**
+     * 产品ID
+     */
+    private Long productId;
+
+    /**
      * 产品名称
      */
     private String productName;
@@ -73,6 +78,11 @@ public class FundRecordVO implements Serializable {
      * 交易状态
      */
     private FundRecordStatus status;
+
+    /**
+     * 累计收益
+     */
+    private BigDecimal cumulativeIncomeAmount;
 
     /**
      * 已发放收益

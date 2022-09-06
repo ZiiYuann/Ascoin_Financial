@@ -115,6 +115,8 @@ public enum ErrorCodeEnum {
     EXIST_WAIT_REDEMPTION(3611,"存在待赎回金额"),
     EXIST_WAIT_INTEREST(3612,"存在待发放利息"),
 
+    REDEMPTION_CYCLE_ERROR(3613,"赎回周期错误"),
+
 
         ;
     private int errorNo;

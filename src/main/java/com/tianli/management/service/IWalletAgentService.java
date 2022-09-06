@@ -30,6 +30,5 @@ public interface IWalletAgentService extends IService<WalletAgent> {
 
     WalletAgent getByAgentName(String agentName);
 
-    boolean exist(Long uid);
 
 }

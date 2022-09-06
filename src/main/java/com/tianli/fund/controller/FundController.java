@@ -1,7 +1,6 @@
 package com.tianli.fund.controller;
 
 
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * <p>
@@ -79,8 +77,8 @@ public class FundController {
      */
     @PostMapping("/purchase")
     public Result purchase(@RequestBody @Valid FundPurchaseBO bo){
-        fundRecordService.purchase(bo);
-        return Result.success();
+        FundTransactionRecordVO purchase = fundRecordService.purchase(bo);
+        return Result.success(purchase);
     }
 
     /**

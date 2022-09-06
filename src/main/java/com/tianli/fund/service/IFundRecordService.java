@@ -35,7 +35,7 @@ public interface IFundRecordService extends IService<FundRecord> {
 
     FundApplyPageVO applyPage(Long productId, BigDecimal purchaseAmount);
 
-    void purchase(FundPurchaseBO bo);
+    FundTransactionRecordVO purchase(FundPurchaseBO bo);
 
     FundRecordVO detail(Long id);
 
