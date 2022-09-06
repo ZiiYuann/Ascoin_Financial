@@ -1,7 +1,5 @@
 package com.tianli.fund.service.impl;
 
-import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.charge.service.OrderService;
@@ -23,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -40,9 +37,6 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
 
     @Autowired
     private FundIncomeRecordMapper fundIncomeRecordMapper;
-
-    @Autowired
-    private FundRecordConvert fundRecordConvert;
 
     @Autowired
     private OrderService orderService;

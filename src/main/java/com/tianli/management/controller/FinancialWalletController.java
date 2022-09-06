@@ -16,19 +16,16 @@ import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.service.OrderReviewService;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.common.PageQuery;
-import com.tianli.common.blockchain.NetworkType;
-import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.Result;
-import com.tianli.management.query.*;
 import com.tianli.management.service.FinancialBoardWalletService;
 import com.tianli.management.vo.FinancialSummaryDataVO;
+import com.tianli.management.query.*;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.util.List;
 import java.util.Objects;
 
 /**

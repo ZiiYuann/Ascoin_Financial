@@ -1,13 +1,12 @@
 package com.tianli.management.dao;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tianli.common.PageQuery;
-import com.tianli.fund.enums.FundTransactionType;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.entity.WalletAgent;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tianli.management.query.WalletAgentQuery;
 import com.tianli.management.vo.WalletAgentVO;
+import com.tianli.fund.enums.FundTransactionType;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -29,7 +28,7 @@ public interface WalletAgentMapper extends BaseMapper<WalletAgent> {
     @Update("update wallet_agent set deleted = 1 where id = #{id}")
     int logicDelById(Long id);
 
-    IPage<WalletAgentVO> selectPageByQuery(@Param("page") IPage<WalletAgentVO> page,@Param("query") WalletAgentQuery query);
+    IPage<WalletAgentVO> selectPageByQuery(@Param("page") IPage<WalletAgentVO> page, @Param("query") WalletAgentQuery query);
     @Select("SELECT ifnull( SUM( a.hold_amount ), 0 ) amount,a.coin FROM fund_record a LEFT JOIN wallet_agent_product b " +
             "ON a.product_id = b.product_id WHERE b.uid = #{agentUId} GROUP BY a.coin")
     List<AmountDto> holdAmountSum(Long agentUId);

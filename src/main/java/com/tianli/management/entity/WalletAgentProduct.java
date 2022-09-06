@@ -1,7 +1,6 @@
 package com.tianli.management.entity;
 
 import com.baomidou.mybatisplus.extension.activerecord.Model;
-import java.io.Serializable;
 
 import lombok.Builder;
 import lombok.Data;

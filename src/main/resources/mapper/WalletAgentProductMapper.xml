@@ -10,8 +10,8 @@
             b.coin coin,
             b.rate rate
         FROM wallet_agent_product a
-                 left join financial_product b on a.product_id = b.id
-        WHERE b.agent_id = #{agentId}
+        left join financial_product b on a.product_id = b.id
+        WHERE a.uid = #{agentUId}
     </select>
 
 </mapper>

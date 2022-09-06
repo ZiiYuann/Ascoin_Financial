@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.CommonFunction;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.convert.FinancialConverter;
-import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialProductLadderRate;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.mapper.FinancialProductLadderRateMapper;

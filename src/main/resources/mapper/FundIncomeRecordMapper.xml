@@ -37,7 +37,7 @@
                 and c.uid = #{agentUId}
             </if>
             <if test="productId != null">
-                and b.productId = #{productId}
+                and b.product_id = #{productId}
             </if>
         </where>
         group by coin

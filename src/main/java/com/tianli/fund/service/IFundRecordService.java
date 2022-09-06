@@ -16,7 +16,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.management.vo.FundUserRecordVO;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * <p>

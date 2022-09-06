@@ -7,7 +7,8 @@ import com.tianli.agent.management.enums.TimeQueryEnum;
 import com.tianli.agent.management.query.FundStatisticsQuery;
 import com.tianli.agent.management.service.FundAgentManageService;
 import com.tianli.agent.management.vo.FundProductStatisticsVO;
-import com.tianli.agent.management.vo.MainPageVO;
+import com.tianli.agent.management.vo.HoldDataVO;
+import com.tianli.agent.management.vo.TransactionDataVO;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.PageQuery;
 import com.tianli.fund.dto.FundIncomeAmountDTO;
@@ -52,7 +53,7 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
     IWalletAgentProductService walletAgentProductService;
 
     @Override
-    public MainPageVO statistics(FundStatisticsQuery query) {
+    public TransactionDataVO transactionData(FundStatisticsQuery query) {
         Long agentUId = AgentContent.getAgentUId();
         LocalDateTime startTime = null;
         LocalDateTime endTime = null;
@@ -84,6 +85,20 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
         List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordService.getAmount(incomeQuery);
         List<AmountDto> interestAmount = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
                 new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
+        return TransactionDataVO.builder()
+                .purchaseAmount(orderService.calDollarAmount(purchaseAmount))
+                .redemptionAmount(orderService.calDollarAmount(redemptionAmount))
+                .interestAmount(orderService.calDollarAmount(interestAmount))
+                .build();
+    }
+
+    @Override
+    public HoldDataVO holdData() {
+        Long agentUId = AgentContent.getAgentUId();
+        FundIncomeQuery incomeQuery = FundIncomeQuery.builder()
+                .agentUId(agentUId)
+                .build();
+        List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordService.getAmount(incomeQuery);
         List<AmountDto> payInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
                 new AmountDto(fundIncomeAmountDTO.getPayInterestAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
         List<AmountDto> waitPayInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
@@ -91,10 +106,7 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
         FundRecordQuery fundRecordQuery = FundRecordQuery.builder().agentUId(agentUId).build();
         Integer holdUserCount = fundRecordService.getHoldUserCount(fundRecordQuery);
         BigDecimal holdAmount = fundRecordService.getHoldAmount(fundRecordQuery);
-        return MainPageVO.builder()
-                .purchaseAmount(orderService.calDollarAmount(purchaseAmount))
-                .redemptionAmount(orderService.calDollarAmount(redemptionAmount))
-                .interestAmount(orderService.calDollarAmount(interestAmount))
+        return HoldDataVO.builder()
                 .payInterestAmount(orderService.calDollarAmount(payInterestAmount))
                 .waitPayInterestAmount(orderService.calDollarAmount(waitPayInterestAmount))
                 .holdAmount(holdAmount)

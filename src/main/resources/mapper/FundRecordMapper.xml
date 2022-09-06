@@ -57,12 +57,11 @@
     </select>
 
     <select id="selectHoldUserCount" resultType="int">
-        SELECT count(DISTINCT uid)
+        SELECT count(DISTINCT a.uid)
         FROM fund_record a
             left JOIN wallet_agent_product b on a.product_id = b.product_id
         <where>
          a.status = 'PROCESS'
-         and b.deleted = 0
          <if test="agentId != null">
              and b.agent_id = #{agentId}
          </if>

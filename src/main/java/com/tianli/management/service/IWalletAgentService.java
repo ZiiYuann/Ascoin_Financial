@@ -2,11 +2,11 @@ package com.tianli.management.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.common.PageQuery;
+import com.tianli.management.vo.WalletAgentVO;
 import com.tianli.management.bo.WalletAgentBO;
 import com.tianli.management.entity.WalletAgent;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.management.query.WalletAgentQuery;
-import com.tianli.management.vo.WalletAgentVO;
 
 /**
  * <p>
