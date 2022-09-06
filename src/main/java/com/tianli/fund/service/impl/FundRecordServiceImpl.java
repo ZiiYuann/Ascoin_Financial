@@ -22,6 +22,7 @@ import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.fund.bo.FundPurchaseBO;
 import com.tianli.fund.bo.FundRedemptionBO;
+import com.tianli.fund.contant.FundCycle;
 import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.contant.FundTransactionStatus;
 import com.tianli.fund.convert.FundRecordConvert;
@@ -128,7 +129,8 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
 
     @Override
     public IPage<FundRecordVO> fundRecordPage(PageQuery<FundRecord> page) {
-        return this.page(new Page<>(page.getPage(), page.getPageSize()))
+        Long uid = requestInitService.uid();
+        return this.page(page.page(),new QueryWrapper<FundRecord>().lambda().eq(FundRecord::getUid,uid))
                 .convert(fundRecordConvert::toFundVO);
     }
 
@@ -258,7 +260,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
         FundRecordVO fundRecordVO = fundRecordConvert.toFundVO(fundRecord);
         long until = fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS);
         //七天允许赎回
-        if(until > 7){
+        if(until >= FundCycle.redemptionCycle){
             fundRecordVO.setIsAllowRedemption(true);
         }else {
             fundRecordVO.setIsAllowRedemption(false);
@@ -335,6 +337,11 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
             fundRecord.setStatus(FundRecordStatus.SUCCESS);
             this.updateById(fundRecord);
         }
+
+        if ( fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS) >= FundCycle.redemptionCycle){
+            ErrorCodeEnum.REDEMPTION_CYCLE_ERROR.throwException();
+        }
+
         //扣除余额
         fundRecordMapper.reduceAmount(id,redemptionAmount);
 
