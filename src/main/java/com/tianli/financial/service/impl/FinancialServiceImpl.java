@@ -1,6 +1,8 @@
 package com.tianli.financial.service.impl;
 
+import cn.hutool.Hutool;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.NumberUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -48,6 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.NumberUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -495,7 +498,7 @@ public class FinancialServiceImpl implements FinancialService {
      * 获取假数据基础数据
      */
     private BigDecimal getBaseDataAmount(Long productId, BigDecimal limitQuota, BigDecimal useQuota) {
-        if (Objects.isNull(limitQuota) || limitQuota.doubleValue() == 0f) {
+        if (Objects.isNull(limitQuota) || BigDecimal.ZERO.compareTo(limitQuota) == 0) {
             return null;
         }
         useQuota = Optional.ofNullable(useQuota).orElse(BigDecimal.ZERO);
@@ -577,4 +580,5 @@ public class FinancialServiceImpl implements FinancialService {
     private FinancialBoardProductService financialBoardProductService;
     @Resource
     private FinancialBoardWalletService financialBoardWalletService;
+
 }
