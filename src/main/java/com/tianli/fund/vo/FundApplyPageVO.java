@@ -54,10 +54,14 @@ public class FundApplyPageVO {
      */
     private BigDecimal personQuota;
 
+    private BigDecimal personHoldAmount;
+
     /**
      * 总额度
      */
     private BigDecimal totalQuota;
+
+    private BigDecimal totalHoldAmount;
 
     /**
      * 申购时间

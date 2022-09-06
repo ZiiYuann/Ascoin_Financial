@@ -1,5 +1,6 @@
 package com.tianli.fund.service.impl;
 
+import cn.hutool.core.util.NumberUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -133,22 +134,26 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
 
     @Override
     public FundApplyPageVO applyPage(Long productId, BigDecimal purchaseAmount) {
-        FinancialProduct financialProduct = financialProductService.getById(productId);
-        if(Objects.isNull(financialProduct) || !financialProduct.getType().equals(ProductType.fund)) ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
 
+        FinancialProduct product = financialProductService.getById(productId);
+        if(Objects.isNull(product) || !product.getType().equals(ProductType.fund)) ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
         Long uid = requestInitService.uid();
-        AccountBalance accountBalance = accountBalanceService.getAndInit(uid, financialProduct.getCoin());
+        BigDecimal totalAmount = fundRecordMapper.selectHoldAmountSum(productId,null);
+        BigDecimal personHoldAmount = fundRecordMapper.selectHoldAmountSum(productId,uid);
+        AccountBalance accountBalance = accountBalanceService.getAndInit(uid, product.getCoin());
         return FundApplyPageVO.builder()
-                .productId(financialProduct.getId())
-                .productName(financialProduct.getName())
-                .productNameEn(financialProduct.getNameEn())
-                .coin(financialProduct.getCoin())
-                .logo(financialProduct.getLogo())
-                .rate(financialProduct.getRate())
+                .productId(product.getId())
+                .productName(product.getName())
+                .productNameEn(product.getNameEn())
+                .coin(product.getCoin())
+                .logo(product.getLogo())
+                .rate(product.getRate())
                 .availableAmount(accountBalance.getRemain())
-                .expectedIncome(dailyIncome(purchaseAmount,financialProduct.getRate()))
-                .personQuota(financialProduct.getPersonQuota())
-                .totalQuota(financialProduct.getTotalQuota())
+                .expectedIncome(dailyIncome(purchaseAmount,product.getRate()))
+                .personQuota(product.getPersonQuota())
+                .personHoldAmount(personHoldAmount)
+                .totalQuota(product.getTotalQuota())
+                .totalHoldAmount(totalAmount)
                 .purchaseTime(LocalDate.now())
                 .interestCalculationTime(LocalDate.now().plusDays(4L))
                 .incomeDistributionTime(LocalDate.now().plusDays(11L))
@@ -173,14 +178,14 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
         AccountBalance accountBalance = accountBalanceService.getAndInit(uid, financialProduct.getCoin());
         if(accountBalance.getRemain().compareTo(purchaseAmount) < 0)ErrorCodeEnum.INSUFFICIENT_BALANCE.throwException();
         //校验限额
-        BigDecimal totalUse = financialProduct.getUseQuota();
-        BigDecimal personUse = financialRecordService.getUseQuota(List.of(productId), uid).getOrDefault(productId, BigDecimal.ZERO);
+        BigDecimal totalAmount = fundRecordMapper.selectHoldAmountSum(productId,null);
+        BigDecimal personHoldAmount = fundRecordMapper.selectHoldAmountSum(productId,uid);
         if (financialProduct.getPersonQuota() != null && financialProduct.getPersonQuota().compareTo(BigDecimal.ZERO) > 0 &&
-                purchaseAmount.add(personUse).compareTo(financialProduct.getPersonQuota()) > 0) {
+                purchaseAmount.add(personHoldAmount).compareTo(financialProduct.getPersonQuota()) > 0) {
             ErrorCodeEnum.PURCHASE_GT_PERSON_QUOTA.throwException();
         }
         if (financialProduct.getTotalQuota() != null && financialProduct.getTotalQuota().compareTo(BigDecimal.ZERO) > 0 &&
-                purchaseAmount.add(totalUse).compareTo(financialProduct.getTotalQuota()) > 0) {
+                purchaseAmount.add(totalAmount).compareTo(financialProduct.getTotalQuota()) > 0) {
             ErrorCodeEnum.PURCHASE_GT_TOTAL_QUOTA.throwException();
         }
         //持有记录

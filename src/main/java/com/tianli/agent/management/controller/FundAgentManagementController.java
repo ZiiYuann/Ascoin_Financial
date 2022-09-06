@@ -77,7 +77,7 @@ public class FundAgentManagementController {
     @GetMapping("/hold/record")
     @AgentPrivilege
     public Result holdRecord(PageQuery<FundRecord> pageQuery, FundRecordQuery query){
-        query.setAgentId(AgentContent.getAgentUId());
+        query.setAgentUId(AgentContent.getAgentUId());
         IPage<FundUserRecordVO> fundUserRecordPage = fundRecordService.fundUserRecordPage(pageQuery, query);
         return Result.success(fundUserRecordPage);
     }

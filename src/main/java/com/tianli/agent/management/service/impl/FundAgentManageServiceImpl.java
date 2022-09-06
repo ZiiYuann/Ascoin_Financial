@@ -88,7 +88,7 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
                 new AmountDto(fundIncomeAmountDTO.getPayInterestAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
         List<AmountDto> waitPayInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
                 new AmountDto(fundIncomeAmountDTO.getWaitInterestAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
-        FundRecordQuery fundRecordQuery = FundRecordQuery.builder().agentId(agentUId).build();
+        FundRecordQuery fundRecordQuery = FundRecordQuery.builder().agentUId(agentUId).build();
         Integer holdUserCount = fundRecordService.getHoldUserCount(fundRecordQuery);
         BigDecimal holdAmount = fundRecordService.getHoldAmount(fundRecordQuery);
         return MainPageVO.builder()
