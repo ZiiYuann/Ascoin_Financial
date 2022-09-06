@@ -4,10 +4,12 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.*;
+import com.tianli.management.vo.ProductLadderRateVO;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author chenb
@@ -120,5 +122,10 @@ public class FinancialProductVO {
      * 风险类型
      */
     private RiskType riskType;
+
+    /**
+     * 阶梯化利率
+     */
+    private List<ProductLadderRateVO> ladderRates;
 
 }

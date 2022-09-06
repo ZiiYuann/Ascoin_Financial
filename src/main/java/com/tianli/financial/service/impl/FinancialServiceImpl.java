@@ -451,6 +451,11 @@ public class FinancialServiceImpl implements FinancialService {
                 financialProductVO.setBaseUseQuota(baseDataAmount);
             }
 
+            if (product.getRateType() == 1) {
+                financialProductVO.setLadderRates(financialProductLadderRateService.listByProductId(product.getId())
+                        .stream().map(financialConverter::toProductLadderRateVO).collect(Collectors.toList()));
+            }
+
             return financialProductVO;
         });
     }
@@ -563,9 +568,9 @@ public class FinancialServiceImpl implements FinancialService {
         List<FinancialProduct> financialProducts = financialProductService.list(new QueryWrapper<FinancialProduct>().lambda()
                 .eq(FinancialProduct::getType, type)
                 .eq(FinancialProduct::getStatus, ProductStatus.open));
-      return financialProducts.stream().map(financialProduct ->
-               new FinancialProductDropdownVO(financialProduct.getId(),financialProduct.getName(),financialProduct.getNameEn()))
-               .collect(Collectors.toList());
+        return financialProducts.stream().map(financialProduct ->
+                        new FinancialProductDropdownVO(financialProduct.getId(), financialProduct.getName(), financialProduct.getNameEn()))
+                .collect(Collectors.toList());
     }
 
     @Resource
@@ -592,5 +597,7 @@ public class FinancialServiceImpl implements FinancialService {
     private FinancialBoardProductService financialBoardProductService;
     @Resource
     private FinancialBoardWalletService financialBoardWalletService;
+    @Resource
+    private FinancialProductLadderRateService financialProductLadderRateService;
 
 }
