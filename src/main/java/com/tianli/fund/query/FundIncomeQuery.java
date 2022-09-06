@@ -33,4 +33,6 @@ public class FundIncomeQuery {
     private Long agentUId;
 
     private Long productId;
+
+    private Long agentId;
 }

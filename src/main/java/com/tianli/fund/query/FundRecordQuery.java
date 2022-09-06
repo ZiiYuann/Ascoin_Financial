@@ -18,4 +18,6 @@ public class FundRecordQuery {
     private Long agentUId;
 
     private Long productId;
+
+    private Long agentId;
 }
