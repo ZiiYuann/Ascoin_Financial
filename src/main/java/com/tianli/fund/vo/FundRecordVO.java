@@ -25,6 +25,11 @@ public class FundRecordVO implements Serializable {
     private Long id;
 
     /**
+     * 产品ID
+     */
+    private Long productId;
+
+    /**
      * 产品名称
      */
     private String productName;

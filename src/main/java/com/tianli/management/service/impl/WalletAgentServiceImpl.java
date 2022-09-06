@@ -74,12 +74,6 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
     @Resource
     private OrderService orderService;
 
-    @Autowired
-    private IFundIncomeRecordService fundIncomeRecordService;
-
-    @Autowired
-    private IFundTransactionRecordService fundTransactionRecordService;
-
     @Override
     public void saveAgent(WalletAgentBO bo) {
         Integer count = walletAgentMapper.selectCountByUid(bo.getUid());
