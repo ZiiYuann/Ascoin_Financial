@@ -39,5 +39,7 @@ public interface IFundTransactionRecordService extends IService<FundTransactionR
 
     FundAuditRecordVO getIncomeAuditRecord(Long id);
 
+    Integer getWaitRedemptionCount(Long productId);
+
 
 }

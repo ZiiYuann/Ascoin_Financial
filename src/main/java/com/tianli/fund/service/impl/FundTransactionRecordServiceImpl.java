@@ -1,5 +1,6 @@
 package com.tianli.fund.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
@@ -20,6 +21,7 @@ import com.tianli.fund.dao.FundTransactionRecordMapper;
 import com.tianli.fund.dto.FundTransactionAmountDTO;
 import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.entity.FundTransactionRecord;
+import com.tianli.fund.enums.FundTransactionType;
 import com.tianli.fund.query.FundTransactionQuery;
 import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
@@ -214,5 +216,12 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     @Override
     public FundAuditRecordVO getIncomeAuditRecord(Long id) {
         return null;
+    }
+
+    @Override
+    public Integer getWaitRedemptionCount(Long productId) {
+        return fundTransactionRecordMapper.selectCount(new QueryWrapper<FundTransactionRecord>().lambda()
+                .eq(FundTransactionRecord::getType, FundTransactionType.redemption)
+                .eq(FundTransactionRecord::getStatus,FundTransactionStatus.wait_audit));
     }
 }

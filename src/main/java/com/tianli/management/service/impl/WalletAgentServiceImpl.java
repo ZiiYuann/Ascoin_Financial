@@ -1,5 +1,6 @@
 package com.tianli.management.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -80,13 +81,26 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
 
     @Override
     public void saveAgent(WalletAgentBO bo) {
-        if(this.exist(bo.getUid())) ErrorCodeEnum.AGENT_ALREADY_BIND.throwException();
+        Integer count = walletAgentMapper.selectCountByUid(bo.getUid());
+        if(count > 0) ErrorCodeEnum.AGENT_ALREADY_BIND.throwException();
         List<WalletAgentBO.Product> products = bo.getProducts();
         WalletAgent walletAgent = walletAgentConverter.toDO(bo);
         walletAgent.setCreateTime(LocalDateTime.now());
         walletAgent.setLoginPassword(SecureUtil.md5(walletAgent.getAgentName()));
         walletAgentMapper.insert(walletAgent);
-        saveAgentProduct(walletAgent, products);
+        products.forEach(product -> {
+            FinancialProduct financialProduct = financialProductService.getById(product.getProductId());
+            if(Objects.isNull(financialProduct) || !financialProduct.getType().equals(ProductType.fund)) ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
+            if(walletAgentProductService.getCount(product.getProductId()) > 0) ErrorCodeEnum.AGENT_PRODUCT_ALREADY_BIND.throwException();
+            WalletAgentProduct agentProduct = WalletAgentProduct.builder()
+                    .productId(product.getProductId())
+                    .productName(financialProduct.getName())
+                    .agentId(walletAgent.getId())
+                    .referralCode(product.getReferralCode())
+                    .uid(walletAgent.getUid())
+                    .build();
+            walletAgentProductService.save(agentProduct);
+        });
     }
 
     @Override
@@ -95,12 +109,22 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
         WalletAgent saveAgent = walletAgentConverter.toDO(bo);
         if(Objects.isNull(walletAgent))ErrorCodeEnum.AGENT_NOT_EXIST.throwException();
         if(!walletAgent.getUid().equals(saveAgent.getUid())){
-            if(this.exist(bo.getUid())) ErrorCodeEnum.AGENT_ALREADY_BIND.throwException();
+            Integer count = walletAgentMapper.selectCountByUid(bo.getUid());
+            if(count > 0) ErrorCodeEnum.AGENT_ALREADY_BIND.throwException();
         }
         walletAgentMapper.updateById(saveAgent);
         walletAgentProductService.deleteByAgentId(saveAgent.getId());
-        List<WalletAgentBO.Product> products = bo.getProducts();
-        saveAgentProduct(walletAgent, products);
+        List<WalletAgentProduct> products = walletAgentProductService.getByAgentId(walletAgent.getId());
+        //删除多余的
+        List<Long> productIds = products.stream().map(WalletAgentProduct::getProductId).collect(Collectors.toList());
+        List<WalletAgentBO.Product> saveProducts = bo.getProducts();
+        List<Long> saveProductIds = saveProducts.stream().map(WalletAgentBO.Product::getProductId).collect(Collectors.toList());
+        productIds.removeAll(saveProductIds);
+        productIds.forEach(id -> walletAgentProductService.deleteByProductId(id));
+        //增加新的
+
+
+
     }
 
     @Override
@@ -173,17 +197,11 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
         );
     }
 
-    @Override
-    public boolean exist(Long uid) {
-        Integer count = walletAgentMapper.selectCountByUid(uid);
-        return count > 0;
-    }
-
     private void saveAgentProduct(WalletAgent walletAgent, List<WalletAgentBO.Product> products) {
         products.forEach(product -> {
             FinancialProduct financialProduct = financialProductService.getById(product.getProductId());
             if(Objects.isNull(financialProduct) || !financialProduct.getType().equals(ProductType.fund)) ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
-            if(walletAgentProductService.exist(product.getProductId())) ErrorCodeEnum.AGENT_PRODUCT_ALREADY_BIND.throwException();
+            if(walletAgentProductService.getCount(product.getProductId()) > 0) ErrorCodeEnum.AGENT_PRODUCT_ALREADY_BIND.throwException();
             WalletAgentProduct agentProduct = WalletAgentProduct.builder()
                     .productId(product.getProductId())
                     .productName(financialProduct.getName())

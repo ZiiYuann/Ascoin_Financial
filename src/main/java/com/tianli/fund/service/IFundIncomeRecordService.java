@@ -31,4 +31,6 @@ public interface IFundIncomeRecordService extends IService<FundIncomeRecord> {
     FundIncomeAmountVO getIncomeAmount(FundIncomeQuery query);
 
     boolean existWaitInterest(Long uid);
+
+    Integer getWaitPayCount(Long productId);
 }

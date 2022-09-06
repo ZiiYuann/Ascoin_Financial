@@ -17,9 +17,11 @@ import java.util.List;
  * @since 2022-08-30
  */
 public interface IWalletAgentProductService extends IService<WalletAgentProduct> {
-    boolean exist(Long productId);
+    Integer getCount(Long productId);
 
     void deleteByAgentId(Long agentId);
+
+    void deleteByProductId(Long productId);
 
     WalletAgentProduct getByProductId(Long productId);
 
