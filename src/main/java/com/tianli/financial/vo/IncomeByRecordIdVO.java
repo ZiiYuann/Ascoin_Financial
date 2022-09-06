@@ -50,6 +50,11 @@ public class IncomeByRecordIdVO {
     private BigDecimal waitAmount;
 
     /**
+     * 计息金额
+     */
+    private BigDecimal incomeAmount;
+
+    /**
      * 累计收益
      */
     private BigDecimal accrueIncomeFee;
