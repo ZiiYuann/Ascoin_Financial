@@ -7,7 +7,6 @@ import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
-import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.RecordRenewalQuery;
 import com.tianli.financial.service.FinancialProductService;
@@ -54,16 +53,16 @@ public class FinancialController {
     }
 
     /**
-     * 理财产品详情
+     * 理财产品详情【活期】
      */
     @Deprecated
     @GetMapping("/product/{productId}")
     public Result oneProduct(@PathVariable("productId") Long productId) {
-        return Result.instance().setData(financialService.productDetails(productId));
+        return Result.instance().setData(financialService.currentProductDetails(productId));
     }
 
     /**
-     * 理财产品详情
+     * 理财产品详情【定期】
      */
     @GetMapping("/product/fixed/{coin}")
     public Result productDetailsByCoin(@PathVariable("coin") CurrencyCoin coin) {
@@ -89,7 +88,7 @@ public class FinancialController {
     @GetMapping("/hold")
     public Result myHold(PageQuery<FinancialRecord> pageQuery, ProductType productType) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(financialService.myHold(pageQuery.page(), uid, productType));
+        return Result.instance().setData(financialService.holdProductPage(pageQuery.page(), uid, productType));
     }
 
     /**
@@ -103,7 +102,7 @@ public class FinancialController {
         query.setUid(uid + "");
         query.setProductType(productType);
 
-        return Result.instance().setData(financialService.incomeRecord(page.page(), query));
+        return Result.instance().setData(financialService.incomeRecordPage(page.page(), query));
     }
 
     /**
@@ -121,7 +120,7 @@ public class FinancialController {
     @GetMapping("/income/{recordId}")
     public Result incomeByRecordId(@PathVariable Long recordId) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(financialService.incomeByRecordId(uid, recordId));
+        return Result.instance().setData(financialService.recordIncome(uid, recordId));
     }
 
     /**
@@ -139,7 +138,7 @@ public class FinancialController {
     @GetMapping("/income/details")
     public Result incomeDetails(PageQuery<FinancialIncomeDaily> pageQuery, Long recordId) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(financialService.incomeDetails(pageQuery.page(), uid, recordId));
+        return Result.instance().setData(financialService.dailyIncomePage(pageQuery.page(), uid, recordId));
     }
 
 

@@ -106,7 +106,7 @@ public class FinancialProductController {
     @GetMapping("/record/income")
     @AdminPrivilege(and = Privilege.理财配置)
     public Result income(PageQuery<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
-        return Result.success(financialService.incomeRecord(page.page(), query));
+        return Result.success(financialService.incomeRecordPage(page.page(), query));
     }
 
     /**
@@ -115,7 +115,7 @@ public class FinancialProductController {
     @GetMapping("/record/income/data")
     @AdminPrivilege(and = Privilege.理财配置)
     public Result incomeData(FinancialProductIncomeQuery query) {
-        return Result.success(financialService.summaryIncomeByQuery(query));
+        return Result.success(financialService.incomeSummaryData(query));
     }
 
     /**

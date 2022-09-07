@@ -15,7 +15,7 @@ import java.util.List;
  **/
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class FinancialProductDetailsVO extends FinancialProductVO {
+public class CurrentProductPurchaseVO extends FinancialProductVO {
 
     /**
      * 阶梯化利率

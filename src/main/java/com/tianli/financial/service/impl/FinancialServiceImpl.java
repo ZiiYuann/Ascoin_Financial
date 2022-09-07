@@ -153,9 +153,9 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IncomeByRecordIdVO incomeByRecordId(Long uid, Long recordId) {
+    public RecordIncomeVO recordIncome(Long uid, Long recordId) {
         FinancialRecord record = financialRecordService.selectById(recordId, uid);
-        IncomeByRecordIdVO incomeByRecordIdVO = financialConverter.toIncomeByRecordIdVO(record);
+        RecordIncomeVO incomeByRecordIdVO = financialConverter.toIncomeByRecordIdVO(record);
 
         LambdaQueryWrapper<FinancialIncomeDaily> incomeDailyQuery = new LambdaQueryWrapper<FinancialIncomeDaily>().eq(FinancialIncomeDaily::getUid, uid)
                 .eq(FinancialIncomeDaily::getRecordId, recordId)
@@ -178,7 +178,7 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IPage<HoldProductVo> myHold(IPage<FinancialRecord> page, Long uid, ProductType type) {
+    public IPage<HoldProductVo> holdProductPage(IPage<FinancialRecord> page, Long uid, ProductType type) {
 
         var financialRecords = financialRecordService.selectListPage(page, uid, type, RecordStatus.PROCESS);
         if (CollectionUtils.isEmpty(financialRecords.getRecords())) {
@@ -217,7 +217,7 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IPage<FinancialIncomeDailyVO> incomeDetails(IPage<FinancialIncomeDaily> page, Long uid, Long recordId) {
+    public IPage<FinancialIncomeDailyVO> dailyIncomePage(IPage<FinancialIncomeDaily> page, Long uid, Long recordId) {
         FinancialRecord financialRecord = financialRecordService.selectById(recordId, uid);
         var dailyIncomeLogs = financialIncomeDailyService.pageByRecordId(page, uid, List.of(recordId), null);
         return dailyIncomeLogs.convert(income -> {
@@ -279,21 +279,21 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IPage<FinancialIncomeAccrueDTO> incomeRecord(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
+    public IPage<FinancialIncomeAccrueDTO> incomeRecordPage(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
         return financialIncomeAccrueService.incomeRecord(page, query);
     }
 
     @Override
-    public FinancialSummaryDataVO summaryIncomeByQuery(FinancialProductIncomeQuery query) {
+    public FinancialSummaryDataVO incomeSummaryData(FinancialProductIncomeQuery query) {
         return FinancialSummaryDataVO.builder()
                 .incomeAmount(Optional.ofNullable(financialIncomeAccrueService.summaryIncomeByQuery(query)).orElse(BigDecimal.ZERO))
                 .build();
     }
 
     @Override
-    public IPage<RateScopeVO> summaryProducts(Page<FinancialProduct> page,ProductType productType) {
+    public IPage<RateScopeVO> summaryProducts(Page<FinancialProduct> page, ProductType productType) {
 
-        IPage<ProductRateDTO> productRateDTOS = financialProductService.listProductRateDTO(page,productType);
+        IPage<ProductRateDTO> productRateDTOS = financialProductService.listProductRateDTO(page, productType);
         List<FinancialProductVO> financialProductVOs = getFinancialProductVOs(productType);
         var productMap = financialProductVOs.stream()
                 .collect(Collectors.groupingBy(FinancialProductVO::getCoin, Collectors.toList()));
@@ -325,7 +325,7 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IPage<FinancialUserInfoVO> user(String uid, IPage<Address> page) {
+    public IPage<FinancialUserInfoVO> financialUserPage(String uid, IPage<Address> page) {
 
         LambdaQueryWrapper<Address> queryWrapper = new LambdaQueryWrapper<>();
 
@@ -361,9 +361,9 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public FinancialSummaryDataVO userData(String uid) {
+    public FinancialSummaryDataVO userSummaryData(String uid) {
         IPage<Address> page = new Page<>(1, Integer.MAX_VALUE);
-        var userInfos = user(uid, page).getRecords();
+        var userInfos = financialUserPage(uid, page).getRecords();
 
         BigDecimal rechargeAmount = BigDecimal.ZERO;
         BigDecimal withdrawAmount = BigDecimal.ZERO;
@@ -401,10 +401,53 @@ public class FinancialServiceImpl implements FinancialService {
                 .eq(FinancialBoardWallet::getCreateTime, dateTime));
     }
 
+    public CurrentProductPurchaseVO currentProductDetails(Long productId) {
+        FinancialProductVO financialProductVO = getFinancialProductVOs(productId).get(0);
+        CurrentProductPurchaseVO productVO = financialConverter.toFinancialProductDetailsVO(financialProductVO);
+
+        if (productVO.getRateType() == 1) {
+            productVO.setLadderRates(financialProductLadderRateService.listByProductId(productId)
+                    .stream().map(financialConverter::toProductLadderRateVO).collect(Collectors.toList()));
+        }
+
+        return productVO;
+    }
+
+    @Override
+    public FixedProductsPurchaseVO fixedProductDetails(CurrencyCoin coin) {
+        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
+                .eq(FinancialProduct::getCoin, coin)
+                .eq(FinancialProduct::getType, ProductType.fixed)
+                .eq(FinancialProduct::getStatus, ProductStatus.open);
+        IPage<FinancialProductVO> financialProductVOIPage =
+                getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), null, query);
+
+        FixedProductsPurchaseVO fixedProductsPurchaseVO = new FixedProductsPurchaseVO();
+        fixedProductsPurchaseVO.setProducts(financialProductVOIPage.getRecords());
+        fixedProductsPurchaseVO.setTerms(financialProductVOIPage.getRecords().stream().map(FinancialProductVO::getTerm).collect(Collectors.toList()));
+        return fixedProductsPurchaseVO;
+    }
+
+    @Override
+    public List<FinancialProductDropdownVO> dropdownList(ProductType type) {
+        List<FinancialProduct> financialProducts = financialProductService.list(new QueryWrapper<FinancialProduct>().lambda()
+                .eq(FinancialProduct::getType, type)
+                .eq(FinancialProduct::getStatus, ProductStatus.open));
+        return financialProducts.stream().map(financialProduct ->
+                        new FinancialProductDropdownVO(financialProduct.getId(), financialProduct.getName(), financialProduct.getNameEn()))
+                .collect(Collectors.toList());
+    }
+
+    private List<FinancialProductVO> getFinancialProductVOs(Long productId) {
+        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
+                .eq(FinancialProduct::getId, productId);
+        return getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), null, query).getRecords();
+    }
+
     private List<FinancialProductVO> getFinancialProductVOs(ProductType productType) {
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
-                .eq(FinancialProduct :: getStatus,ProductStatus.open)
-                .eq(FinancialProduct :: isDeleted,false);
+                .eq(FinancialProduct::getStatus, ProductStatus.open)
+                .eq(FinancialProduct::isDeleted, false);
         return getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), productType, query).getRecords();
     }
 
@@ -441,6 +484,10 @@ public class FinancialServiceImpl implements FinancialService {
                 financialProductVO.setUseQuota(useQuota.add(baseDataAmount));
                 financialProductVO.setBaseUseQuota(baseDataAmount);
             }
+
+            LocalDateTime startIncomeTime = LocalDateTime.now().plusDays(product.getTerm().getDay());
+            financialProductVO.setStartIncomeTime(startIncomeTime);
+            financialProductVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
 
             return financialProductVO;
         });
@@ -521,64 +568,6 @@ public class FinancialServiceImpl implements FinancialService {
         return limitQuota.multiply(adjustRate);
     }
 
-    public FinancialProductDetailsVO productDetails(Long productId) {
-        Long uid = requestInitService.uid();
-        FinancialProduct product = financialProductService.getById(productId);
-
-        FinancialProductDetailsVO productVO = financialConverter.toFinancialProductDetailsVO(product);
-
-        var personUseQuota = financialRecordService.getUseQuota(List.of(product.getId()), uid);
-        var accountBalance = accountBalanceService.getAndInit(uid, product.getCoin());
-        var useQuota = product.getUseQuota();
-
-        LocalDateTime now = LocalDateTime.now();
-        productVO.setUserPersonQuota(personUseQuota.getOrDefault(productVO.getId(), BigDecimal.ZERO));
-        productVO.setHoldAmount(personUseQuota.getOrDefault(productVO.getId(), BigDecimal.ZERO));
-        productVO.setAvailableBalance(accountBalance.getRemain());
-        productVO.setPurchaseTime(now);
-
-        // 设置假数据
-        BigDecimal baseDataAmount = getBaseDataAmount(product.getId(), product.getTotalQuota(), useQuota);
-        if (Objects.nonNull(baseDataAmount)) {
-            productVO.setUseQuota(useQuota.add(baseDataAmount));
-            productVO.setBaseUseQuota(baseDataAmount);
-        }
-
-        if (product.getRateType() == 1) {
-            productVO.setLadderRates(financialProductLadderRateService.listByProductId(product.getId())
-                    .stream().map(financialConverter::toProductLadderRateVO).collect(Collectors.toList()));
-        }
-
-        LocalDateTime startIncomeTime = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(1);
-        productVO.setStartIncomeTime(startIncomeTime);
-        productVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
-        return productVO;
-    }
-
-    @Override
-    public FixedProductsPurchaseVO fixedProductDetails(CurrencyCoin coin) {
-        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
-                .eq(FinancialProduct::getCoin, coin)
-                .eq(FinancialProduct::getType, ProductType.fixed)
-                .eq(FinancialProduct::getStatus, ProductStatus.open);
-        IPage<FinancialProductVO> financialProductVOIPage =
-                getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), null, query);
-
-        FixedProductsPurchaseVO fixedProductsPurchaseVO = new FixedProductsPurchaseVO();
-        fixedProductsPurchaseVO.setProducts(financialProductVOIPage.getRecords());
-        fixedProductsPurchaseVO.setTerms(financialProductVOIPage.getRecords().stream().map(FinancialProductVO::getTerm).collect(Collectors.toList()));
-        return fixedProductsPurchaseVO;
-    }
-
-    @Override
-    public List<FinancialProductDropdownVO> dropdownList(ProductType type) {
-        List<FinancialProduct> financialProducts = financialProductService.list(new QueryWrapper<FinancialProduct>().lambda()
-                .eq(FinancialProduct::getType, type)
-                .eq(FinancialProduct::getStatus, ProductStatus.open));
-        return financialProducts.stream().map(financialProduct ->
-                        new FinancialProductDropdownVO(financialProduct.getId(), financialProduct.getName(), financialProduct.getNameEn()))
-                .collect(Collectors.toList());
-    }
 
     @Resource
     private AccountBalanceService accountBalanceService;

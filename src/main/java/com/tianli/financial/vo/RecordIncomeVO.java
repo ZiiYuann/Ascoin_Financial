@@ -21,7 +21,7 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class IncomeByRecordIdVO {
+public class RecordIncomeVO {
 
     private String productName;
 

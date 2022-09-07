@@ -27,7 +27,7 @@ public class FinancialUserController {
     @GetMapping("/list")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result user(PageQuery<Address> page, String uid) {
-        return Result.success().setData(financialService.user(uid,page.page()));
+        return Result.success().setData(financialService.financialUserPage(uid,page.page()));
     }
 
     /**
@@ -36,7 +36,7 @@ public class FinancialUserController {
     @GetMapping("/data")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result data(String uid) {
-        return Result.success().setData(financialService.userData(uid));
+        return Result.success().setData(financialService.userSummaryData(uid));
     }
 
     @Resource

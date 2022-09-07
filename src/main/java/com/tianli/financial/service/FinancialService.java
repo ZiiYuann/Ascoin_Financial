@@ -44,18 +44,18 @@ public interface FinancialService {
     /**
      * 单条记录的收益信息
      */
-    IncomeByRecordIdVO incomeByRecordId(Long uid,Long recordId);
+    RecordIncomeVO recordIncome(Long uid, Long recordId);
 
     /**
      * 我的持有列表信息
      */
-    IPage<HoldProductVo> myHold(IPage<FinancialRecord> page,Long uid, ProductType financialProductType);
+    IPage<HoldProductVo> holdProductPage(IPage<FinancialRecord> page, Long uid, ProductType financialProductType);
 
 
     /**
      * 申购的具体每日收益
      */
-    IPage<FinancialIncomeDailyVO> incomeDetails(IPage<FinancialIncomeDaily> pageQuery, Long uid , Long recordId);
+    IPage<FinancialIncomeDailyVO> dailyIncomePage(IPage<FinancialIncomeDaily> pageQuery, Long uid , Long recordId);
 
     /**
      * 校验产品是否处于开启状态
@@ -68,7 +68,6 @@ public interface FinancialService {
      * @param amount 申购金额
      */
     void validRemainAmount(Long uid, CurrencyCoin currencyCoin, BigDecimal amount);
-
 
     /**
      * 校验申购限额
@@ -84,12 +83,12 @@ public interface FinancialService {
     /**
      * 用户理财收益记录
      */
-    IPage<FinancialIncomeAccrueDTO> incomeRecord(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query);
+    IPage<FinancialIncomeAccrueDTO> incomeRecordPage(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query);
 
     /**
      * 用户理财收益记录列表累计信息
      */
-    FinancialSummaryDataVO summaryIncomeByQuery(FinancialProductIncomeQuery query);
+    FinancialSummaryDataVO incomeSummaryData(FinancialProductIncomeQuery query);
 
     /**
      * 汇总产品列表
@@ -104,12 +103,12 @@ public interface FinancialService {
     /**
      * 理财用户信息
      */
-    IPage<FinancialUserInfoVO> user(String uid, IPage<Address> page);
+    IPage<FinancialUserInfoVO> financialUserPage(String uid, IPage<Address> page);
 
     /**
      * 理财用户信息左上角信息
      */
-    FinancialSummaryDataVO userData(String uid);
+    FinancialSummaryDataVO userSummaryData(String uid);
 
     /**
      * 手动更新数据展板
@@ -117,14 +116,17 @@ public interface FinancialService {
     void boardManual(TimeQuery query);
 
     /**
-     * 产品详情
+     * 活期产品详情
      */
-    FinancialProductDetailsVO productDetails(Long productId);
+    CurrentProductPurchaseVO currentProductDetails(Long productId);
 
     /**
      * 定期产品详情
      */
     FixedProductsPurchaseVO fixedProductDetails(CurrencyCoin coin);
 
+    /**
+     * 产品下拉
+     */
     List<FinancialProductDropdownVO> dropdownList(ProductType type);
 }
