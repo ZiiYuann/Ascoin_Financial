@@ -114,7 +114,7 @@ public class FinancialProductVO {
     /**
      * 是否允许申购
      */
-    private Boolean allowPurchase;
+    private boolean allowPurchase;
 
     /**
      * 风险类型
