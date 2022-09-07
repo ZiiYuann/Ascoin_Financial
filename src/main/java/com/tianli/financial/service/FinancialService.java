@@ -94,7 +94,7 @@ public interface FinancialService {
     /**
      * 汇总产品列表
      */
-    IPage<RateScopeVO> summaryProducts(Page<FinancialProduct> page);
+    IPage<RateScopeVO> summaryProducts(Page<FinancialProduct> page,ProductType productType);
 
     /**
      * 产品列表

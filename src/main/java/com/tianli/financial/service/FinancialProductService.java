@@ -14,6 +14,7 @@ import com.tianli.financial.dto.ProductRateDTO;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductStatus;
+import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.mapper.FinancialProductMapper;
 import com.tianli.management.converter.ManagementConverter;
@@ -179,8 +180,8 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
         });
     }
 
-    public IPage<ProductRateDTO> listProductRateDTO(Page<FinancialProduct> page) {
-        return financialProductMapper.listProductRateDTO( page);
+    public IPage<ProductRateDTO> listProductRateDTO(Page<FinancialProduct> page, ProductType productType) {
+        return financialProductMapper.listProductRateDTO(page,productType);
     }
 
     /**

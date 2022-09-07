@@ -291,10 +291,10 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IPage<RateScopeVO> summaryProducts(Page<FinancialProduct> page) {
+    public IPage<RateScopeVO> summaryProducts(Page<FinancialProduct> page,ProductType productType) {
 
-        IPage<ProductRateDTO> productRateDTOS = financialProductService.listProductRateDTO(page);
-        List<FinancialProductVO> financialProductVOs = getFinancialProductVOs();
+        IPage<ProductRateDTO> productRateDTOS = financialProductService.listProductRateDTO(page,productType);
+        List<FinancialProductVO> financialProductVOs = getFinancialProductVOs(productType);
         var productMap = financialProductVOs.stream()
                 .collect(Collectors.groupingBy(FinancialProductVO::getCoin, Collectors.toList()));
 
@@ -401,16 +401,16 @@ public class FinancialServiceImpl implements FinancialService {
                 .eq(FinancialBoardWallet::getCreateTime, dateTime));
     }
 
-    private List<FinancialProductVO> getFinancialProductVOs() {
+    private List<FinancialProductVO> getFinancialProductVOs(ProductType productType) {
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
                 .eq(FinancialProduct :: getStatus,ProductStatus.open)
                 .eq(FinancialProduct :: isDeleted,false);
-        return getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), null, query).getRecords();
+        return getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), productType, query).getRecords();
     }
 
     private IPage<FinancialProductVO> getFinancialProductVOIPage(Page<FinancialProduct> page, ProductType type, LambdaQueryWrapper<FinancialProduct> query) {
         if (Objects.nonNull(type)) {
-            query.eq(FinancialProduct::getType, type);
+            query = query.eq(FinancialProduct::getType, type);
         }
 
 
