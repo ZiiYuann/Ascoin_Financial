@@ -84,20 +84,6 @@ public class FundRecord extends Model<FundRecord> {
     private BigDecimal rate;
 
     /**
-     * 累计收益
-     */
-    private BigDecimal cumulativeIncomeAmount;
-
-    /**
-     * 已发放收益
-     */
-    private BigDecimal incomeAmount;
-
-    /**
-     * 待发放收益
-     */
-    private BigDecimal waitIncomeAmount;
-    /**
      * 创建时间
      */
     private LocalDateTime createTime;

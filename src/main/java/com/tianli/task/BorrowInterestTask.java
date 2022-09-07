@@ -96,7 +96,7 @@ public class BorrowInterestTask {
         Map<String, BigDecimal> coinLiquidationPledgeRateMap = borrowPledgeCoinConfigs.stream().collect(Collectors.toMap(BorrowPledgeCoinConfig::getCoin, BorrowPledgeCoinConfig::getLiquidationPledgeRate));
         log.info("========执行计算利息定时任务========");
         while (true){
-            long page = incr(redisKey,61L);
+            long page = incr(redisKey,60L);
             List<BorrowCoinOrder> records = borrowCoinOrderService.page(new Page<>(page, 100),
                     new QueryWrapper<BorrowCoinOrder>().lambda()
                             .eq(BorrowCoinOrder::getStatus, BorrowOrderStatus.INTEREST_ACCRUAL)).getRecords();

@@ -64,21 +64,6 @@ public class FundTransactionRecord extends Model<FundTransactionRecord> {
     private BigDecimal rate;
 
     /**
-     * 审核结果
-     */
-    private Boolean auditResult;
-
-    /**
-     * 审核备注
-     */
-    private String auditRemark;
-
-    /**
-     * 审核时间
-     */
-    private LocalDateTime auditTime;
-
-    /**
      * 状态
      */
     private Integer status;
