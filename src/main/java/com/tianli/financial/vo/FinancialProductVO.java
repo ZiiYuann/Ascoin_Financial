@@ -131,4 +131,9 @@ public class FinancialProductVO {
      */
     private BigDecimal holdAmount;
 
+    /**
+     * 可以赎回的recordId
+     */
+    private Long recordId;
+
 }

@@ -85,4 +85,17 @@
         AND status = 'PROCESS'
         GROUP BY product_id
     </select>
+    <select id="firstProcessRecordMap" resultType="java.util.Map">
+        SELECT
+        product_id ,
+        max(id) as record_id
+        FROM financial_record
+        WHERE product_id in
+        <foreach collection="productIds" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        AND status = 'PROCESS'
+        AND uid = #{uid}
+        GROUP BY product_id
+    </select>
 </mapper>

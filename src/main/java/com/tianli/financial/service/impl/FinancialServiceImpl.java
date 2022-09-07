@@ -304,8 +304,8 @@ public class FinancialServiceImpl implements FinancialService {
             financialProductRateVO.setLogo(productRateDTO.getCoin().getLogoPath());
             financialProductRateVO.setMaxRate(productRateDTO.getMaxRate());
             financialProductRateVO.setMinRate(productRateDTO.getMinRate());
-
-            financialProductRateVO.setProducts(productMap.getOrDefault(productRateDTO.getCoin(), new ArrayList<>()));
+            List<FinancialProductVO> productVOS = productMap.getOrDefault(productRateDTO.getCoin(), new ArrayList<>());
+            financialProductRateVO.setProducts(productVOS);
             return financialProductRateVO;
         });
 
@@ -457,11 +457,13 @@ public class FinancialServiceImpl implements FinancialService {
 
 
         var list = financialProductService.page(page, query);
-        List<Long> productId = list.getRecords().stream().map(FinancialProduct::getId).distinct().collect(Collectors.toList());
+        List<Long> productIds = list.getRecords().stream().map(FinancialProduct::getId).distinct().collect(Collectors.toList());
 
         Boolean isNewUser = financialRecordService.isNewUser(requestInitService.uid());
 
-        Map<Long, BigDecimal> usePersonQuotaMap = financialRecordService.getUseQuota(productId, requestInitService.uid());
+        Map<Long,Long> firstProcessRecordMap = financialRecordService.firstProcessRecordMap(productIds, requestInitService.uid());
+        Map<Long, BigDecimal> usePersonQuotaMap = financialRecordService.getUseQuota(productIds, requestInitService.uid());
+
         return list.convert(product -> {
             BigDecimal usePersonQuota = usePersonQuotaMap.getOrDefault(product.getId(), BigDecimal.ZERO);
             BigDecimal totalQuota = product.getTotalQuota();
@@ -487,6 +489,9 @@ public class FinancialServiceImpl implements FinancialService {
             LocalDateTime startIncomeTime = LocalDateTime.now().plusDays(product.getTerm().getDay());
             financialProductVO.setStartIncomeTime(startIncomeTime);
             financialProductVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
+
+            // 设置第一个有效可数据的record id
+            financialProductVO.setRecordId(firstProcessRecordMap.get(product.getId()));
 
             return financialProductVO;
         });

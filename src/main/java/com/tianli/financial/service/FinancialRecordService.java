@@ -50,33 +50,33 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      * 赎回金额
      */
     @Transactional
-    public void redeem(Long recordId, BigDecimal redeemAmount,BigDecimal originalHoldAmount) {
+    public void redeem(Long recordId, BigDecimal redeemAmount, BigDecimal originalHoldAmount) {
 
         FinancialRecord record = financialRecordMapper.selectById(recordId);
 
         // 减少产品额度
-        financialProductService.reduceUseQuota(record.getProductId(),redeemAmount);
+        financialProductService.reduceUseQuota(record.getProductId(), redeemAmount);
 
         // 如果存在待记利息金额，优先扣除
-        if (record.getWaitAmount().compareTo(BigDecimal.ZERO) > 0){
+        if (record.getWaitAmount().compareTo(BigDecimal.ZERO) > 0) {
             BigDecimal reduceIncomeAmount = BigDecimal.ZERO;
             BigDecimal reduceWaitAmount;
 
-            if(record.getWaitAmount().compareTo(redeemAmount) > 0){
+            if (record.getWaitAmount().compareTo(redeemAmount) > 0) {
                 reduceWaitAmount = redeemAmount;
-            }else {
+            } else {
                 reduceWaitAmount = record.getWaitAmount();
                 reduceIncomeAmount = redeemAmount.subtract(reduceWaitAmount);
             }
 
-            if (financialRecordMapper.reduce2(recordId, reduceIncomeAmount,reduceWaitAmount,originalHoldAmount) < 0) {
+            if (financialRecordMapper.reduce2(recordId, reduceIncomeAmount, reduceWaitAmount, originalHoldAmount) < 0) {
                 log.error("赎回异常，recordId:{},amount:{}", recordId, redeemAmount);
                 ErrorCodeEnum.throwException("用户申购记录金额发生变化，请重试");
             }
             return;
         }
 
-        if (financialRecordMapper.reduce(recordId, redeemAmount,originalHoldAmount) < 0) {
+        if (financialRecordMapper.reduce(recordId, redeemAmount, originalHoldAmount) < 0) {
             log.error("赎回异常，recordId:{},amount:{}", recordId, redeemAmount);
             ErrorCodeEnum.throwException("用户申购记录金额发生变化，请重试");
         }
@@ -107,6 +107,18 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
                 .eq(FinancialRecord::getProductId, productId);
 
         return Optional.ofNullable(financialRecordMapper.selectList(query)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
+    }
+
+    /**
+     * 每个产品第一个有效持有记录id long,long   productId,recordId
+     */
+    public Map<Long, Long> firstProcessRecordMap(List<Long> productIds, Long uid) {
+        if (CollectionUtils.isEmpty(productIds)) {
+            return new HashMap<>();
+        }
+        final Map<Long, Long> result = new HashMap<>();
+        financialRecordMapper.firstProcessRecordMap(productIds, uid).forEach(index -> result.put((Long) index.get("product_id"), (Long) index.get("record_id")));
+        return result;
     }
 
     public Boolean isNewUser(Long uid) {
@@ -342,7 +354,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         if (hour <= 2) {
             ErrorCodeEnum.throwException("计算利息时间段不允许修改产品年华利率");
         }
-        financialRecordMapper.updateRateByProductId(productId,rate);
+        financialRecordMapper.updateRateByProductId(productId, rate);
     }
 
 }

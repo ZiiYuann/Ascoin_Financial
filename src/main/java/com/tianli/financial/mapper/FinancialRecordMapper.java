@@ -5,6 +5,7 @@ import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.dto.ProductSummaryDataDto;
+import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -12,6 +13,7 @@ import org.apache.ibatis.annotations.Select;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
@@ -61,7 +63,7 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
     @Select("SELECT count(DISTINCT uid) FROM financial_record WHERE status = 'PROCESS'")
     BigInteger countUid();
 
-    List<ProductSummaryDataDto> listProductSummaryDataDto(List<Long> productIds);
+    List<ProductSummaryDataDto> listProductSummaryDataDto(@Param("productIds") List<Long> productIds);
 
-
+    List<Map<String, Object>> firstProcessRecordMap(@Param("productIds") List<Long> productIds, @Param("uid") Long uid);
 }
