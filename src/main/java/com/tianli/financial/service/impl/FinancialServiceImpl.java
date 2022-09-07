@@ -447,8 +447,11 @@ public class FinancialServiceImpl implements FinancialService {
 
     private List<FinancialProductVO> getFinancialProductVOs(ProductType productType) {
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
+                .eq(false, FinancialProduct::getType, ProductType.fund)
                 .eq(FinancialProduct::getStatus, ProductStatus.open)
-                .eq(FinancialProduct::isDeleted, false);
+                .eq(FinancialProduct::isDeleted, false)
+                .orderByAsc(FinancialProduct::getType) // 活期优先
+                .orderByDesc(FinancialProduct::getRate); // 年化利率降序;
         return getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), productType, query).getRecords();
     }
 
@@ -463,7 +466,7 @@ public class FinancialServiceImpl implements FinancialService {
 
         Boolean isNewUser = financialRecordService.isNewUser(requestInitService.uid());
 
-        Map<Long,Long> firstProcessRecordMap = financialRecordService.firstProcessRecordMap(productIds, requestInitService.uid());
+        Map<Long, Long> firstProcessRecordMap = financialRecordService.firstProcessRecordMap(productIds, requestInitService.uid());
         Map<Long, BigDecimal> usePersonQuotaMap = financialRecordService.getUseQuota(productIds, requestInitService.uid());
 
         return list.convert(product -> {
