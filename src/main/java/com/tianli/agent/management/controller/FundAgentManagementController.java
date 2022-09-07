@@ -48,6 +48,9 @@ public class FundAgentManagementController {
     @Autowired
     private IFundRecordService fundRecordService;
 
+    /**
+     * 交易数据概览
+     */
     @GetMapping("/transaction/data")
     @AgentPrivilege
     public Result transactionData(FundStatisticsQuery query){
@@ -55,6 +58,9 @@ public class FundAgentManagementController {
         return Result.success(transactionDataVO);
     }
 
+    /**
+     * 持有数据概览
+     */
     @GetMapping("/hold/data")
     @AgentPrivilege
     public Result holdData(){
@@ -62,6 +68,11 @@ public class FundAgentManagementController {
         return Result.success(holdDataVO);
     }
 
+    /**
+     * 产品概览
+     * @param page
+     * @return
+     */
     @GetMapping("/product/statistics")
     @AgentPrivilege
     public Result productStatistics(PageQuery<WalletAgentProduct> page){
@@ -69,6 +80,9 @@ public class FundAgentManagementController {
         return Result.success(statisticsPage);
     }
 
+    /**
+     *交易记录
+     */
     @GetMapping("/transaction/record")
     @AgentPrivilege
     public Result transactionRecord(PageQuery<FundTransactionRecord> page , FundTransactionQuery query){
@@ -77,6 +91,9 @@ public class FundAgentManagementController {
         return Result.success(transactionPage);
     }
 
+    /**
+     * 交易记录数据
+     */
     @GetMapping("/transaction/amount")
     @AgentPrivilege
     public Result transactionAmount(FundTransactionQuery query){
@@ -85,6 +102,9 @@ public class FundAgentManagementController {
         return Result.success(transactionAmount);
     }
 
+    /**
+     * 收益数据
+     */
     @GetMapping("/income/record")
     @AgentPrivilege
     public Result incomeRecord(PageQuery<FundIncomeRecord> page , FundIncomeQuery query){
@@ -93,6 +113,9 @@ public class FundAgentManagementController {
         return Result.success();
     }
 
+    /**
+     *收益数据统计
+     */
     @GetMapping("/income/amount")
     @AgentPrivilege
     public Result incomeAmount(FundIncomeQuery query){
@@ -101,6 +124,9 @@ public class FundAgentManagementController {
         return Result.success(incomeAmount);
     }
 
+    /**
+     *持有记录
+     */
     @GetMapping("/hold/record")
     @AgentPrivilege
     public Result holdRecord(PageQuery<FundRecord> pageQuery, FundRecordQuery query){
@@ -109,6 +135,9 @@ public class FundAgentManagementController {
         return Result.success(fundUserRecordPage);
     }
 
+    /**
+     * 赎回审核
+     */
     @PostMapping("/redemption/audit")
     @AgentPrivilege
     public Result redemptionAudit(@RequestBody @Valid FundAuditBO bo){
@@ -116,6 +145,9 @@ public class FundAgentManagementController {
         return Result.success();
     }
 
+    /**
+     *赎回审核记录
+     */
     @GetMapping("/redemption/audit/{id}")
     @AgentPrivilege
     public Result redemptionAuditRecord(@PathVariable Long id){
@@ -123,6 +155,9 @@ public class FundAgentManagementController {
         return Result.success(fundReviewVOS);
     }
 
+    /**
+     * 收益审核
+     */
     @PostMapping("/income/audit")
     @AgentPrivilege
     public Result incomeAudit(@RequestBody @Valid FundAuditBO bo){
@@ -130,6 +165,9 @@ public class FundAgentManagementController {
         return Result.success();
     }
 
+    /**
+     * 收益审核记录
+     */
     @GetMapping("/income/audit/{id}")
     @AgentPrivilege
     public Result incomeAuditRecord(@PathVariable Long id){

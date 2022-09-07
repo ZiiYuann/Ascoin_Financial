@@ -1,5 +1,6 @@
 package com.tianli.fund.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.account.entity.AccountBalance;
@@ -28,12 +29,14 @@ import com.tianli.fund.dao.FundRecordMapper;
 import com.tianli.fund.dto.FundIncomeAmountDTO;
 import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.entity.FundRecord;
+import com.tianli.fund.entity.FundReview;
 import com.tianli.fund.entity.FundTransactionRecord;
 import com.tianli.fund.enums.FundRecordStatus;
 import com.tianli.fund.enums.FundTransactionType;
 import com.tianli.fund.query.FundIncomeQuery;
 import com.tianli.fund.query.FundRecordQuery;
 import com.tianli.fund.query.FundTransactionQuery;
+import com.tianli.fund.service.IFundReviewService;
 import com.tianli.fund.service.IFundTransactionRecordService;
 import com.tianli.fund.vo.*;
 import com.tianli.fund.service.IFundIncomeRecordService;
@@ -88,9 +91,6 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     private FinancialProductService financialProductService;
 
     @Autowired
-    private FinancialRecordService financialRecordService;
-
-    @Autowired
     private AccountBalanceService accountBalanceService;
 
     @Autowired
@@ -98,6 +98,9 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
 
     @Autowired
     private IFundTransactionRecordService fundTransactionRecordService;
+
+    @Autowired
+    private IFundReviewService fundReviewService;
 
     @Override
     public FundMainPageVO mainPage() {
@@ -302,7 +305,11 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
             fundTransactionRecordVO.setExpectedIncome(dailyIncome(fundTransactionRecordVO.getTransactionAmount(),fundTransactionRecordVO.getRate()));
         }
         if(fundTransactionRecordVO.getType() == FundTransactionType.redemption && Objects.equals(fundTransactionRecordVO.getStatus(), FundTransactionStatus.success)){
-            fundTransactionRecordVO.setAccountTate(fundTransactionRecordVO.getAuditTime());
+            List<FundReview> reviews = fundReviewService.getListByRid(transactionRecord.getId());
+            FundReview fundReview = CollUtil.getFirst(reviews);
+            if(Objects.nonNull(fundReview)){
+                fundTransactionRecordVO.setAccountTate(fundReview.getCreateTime());
+            }
         }
         fundTransactionRecordVO.setProductNameEn(fundRecord.getProductNameEn());
         return fundTransactionRecordVO;

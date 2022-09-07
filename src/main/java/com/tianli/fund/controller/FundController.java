@@ -137,7 +137,6 @@ public class FundController {
 
     /**
      * 申购或赎回配置列表
-     * @return
      */
     @GetMapping("/quota/config")
     public Result quota(){
