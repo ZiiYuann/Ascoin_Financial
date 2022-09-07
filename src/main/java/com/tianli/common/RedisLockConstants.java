@@ -17,6 +17,8 @@ public class RedisLockConstants {
 
     public static String BORROW_INCOME_TASK = "BorrowInterestTask#interestTasks:pageFlag:";
 
+    public static String FUND_INCOME_TASK = "FundIncomeTask#incomeTasks:pageFlag:";
+
     public static String BORROW_ORDER_UPDATE_LOCK = "BorrowOrder:update:lock:";
 
     public static String BORROW_ORDER_CREATE_LOCK = "BorrowOrder:create:lock:";
