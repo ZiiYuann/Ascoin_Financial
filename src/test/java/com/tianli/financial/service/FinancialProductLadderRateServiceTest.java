@@ -59,7 +59,7 @@ public class FinancialProductLadderRateServiceTest {
 
         ladderRates.add(FinancialProductLadderRateIoUQuery.builder()
                 .startPoint(BigDecimal.valueOf(3000L))
-                .endPoint(BigDecimal.valueOf(10000L))
+                .endPoint(null)
                 .rate(BigDecimal.valueOf(0.5))
                 .build());
         service.insert(1L,ladderRates);

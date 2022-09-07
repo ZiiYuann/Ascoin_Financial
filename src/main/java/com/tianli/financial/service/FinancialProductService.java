@@ -3,6 +3,7 @@ package com.tianli.financial.service;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisLockConstants;
@@ -177,8 +178,8 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
         });
     }
 
-    public List<ProductRateDTO> listProductRateDTO() {
-        return financialProductMapper.listProductRateDTO();
+    public IPage<ProductRateDTO> listProductRateDTO(Page<FinancialProduct> page) {
+        return financialProductMapper.listProductRateDTO( page);
     }
 
     /**

@@ -95,7 +95,7 @@ public interface FinancialService {
     /**
      * 汇总产品列表
      */
-    List<FinancialProductVO> summaryProducts(Page<FinancialProduct> page, ProductType type);
+    IPage<FinancialProductVO> summaryProducts(Page<FinancialProduct> page);
 
     /**
      * 产品列表
@@ -126,6 +126,11 @@ public interface FinancialService {
      * 产品详情
      */
     FinancialProductDetailsVO productDetails(Long productId);
+
+    /**
+     * 定期产品详情
+     */
+    FixedProductsPurchaseVO fixedProductDetails(CurrencyCoin coin);
 
     List<FinancialProductDropdownVO> dropdownList(ProductType type);
 }

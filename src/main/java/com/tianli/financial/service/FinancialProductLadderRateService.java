@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -76,18 +77,20 @@ public class FinancialProductLadderRateService extends ServiceImpl<FinancialProd
         List<BigDecimal> ladderIncomeAmounts = new ArrayList<>();
         List<FinancialProductLadderRate> ladderRates = this.listByProductId(record.getProductId());
         ladderRates.forEach(rate -> {
+
             if (incomeAmount.compareTo(rate.getStartPoint()) < 0) {
                 return;
             }
 
-            if (incomeAmount.compareTo(rate.getEndPoint()) > 0) {
+            if (Objects.nonNull(rate.getEndPoint()) && incomeAmount.compareTo(rate.getEndPoint()) > 0) {
                 BigDecimal ladderIncomeAmount = rate.getEndPoint().subtract(rate.getStartPoint()).multiply(rate.getRate()) // 乘年化利率
                         .divide(BigDecimal.valueOf(365), 12, RoundingMode.DOWN);
                 ladderIncomeAmounts.add(ladderIncomeAmount);
             }
 
             // ( ]
-            if (incomeAmount.compareTo(rate.getStartPoint()) >= 0 && incomeAmount.compareTo(rate.getEndPoint()) <= 0) {
+            if (incomeAmount.compareTo(rate.getStartPoint()) >= 0
+                    && (Objects.isNull(rate.getEndPoint()) || incomeAmount.compareTo(rate.getEndPoint()) <= 0)) {
                 BigDecimal ladderIncomeAmount = incomeAmount.subtract(rate.getStartPoint()).multiply(rate.getRate()) // 乘年化利率
                         .divide(BigDecimal.valueOf(365), 12, RoundingMode.DOWN);
                 ladderIncomeAmounts.add(ladderIncomeAmount);
@@ -103,7 +106,7 @@ public class FinancialProductLadderRateService extends ServiceImpl<FinancialProd
      */
     public List<FinancialProductLadderRate> listByProductId(Long productId) {
         var query =
-                new LambdaQueryWrapper<FinancialProductLadderRate>().eq(FinancialProductLadderRate::getProductId,productId);
+                new LambdaQueryWrapper<FinancialProductLadderRate>().eq(FinancialProductLadderRate::getProductId, productId);
         return Optional.ofNullable(baseMapper.selectList(query)).orElse(new ArrayList<>());
     }
 }

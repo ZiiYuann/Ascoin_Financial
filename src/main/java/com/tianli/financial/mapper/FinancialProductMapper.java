@@ -1,6 +1,8 @@
 package com.tianli.financial.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.financial.dto.ProductRateDTO;
 import com.tianli.financial.entity.FinancialProduct;
 import org.apache.ibatis.annotations.Mapper;
@@ -27,5 +29,5 @@ public interface FinancialProductMapper extends BaseMapper<FinancialProduct> {
                          @Param("reduceAmount") BigDecimal reduceAmount);
 
     @Select("SELECT max( rate ) AS max_rate,min( rate ) AS min_rate,coin,count( 1 ) AS product_count,id FROM financial_product WHERE `status` = 'open' GROUP BY coin order by max_rate desc ")
-    List<ProductRateDTO> listProductRateDTO();
+    IPage<ProductRateDTO> listProductRateDTO(Page<FinancialProduct> page);
 }

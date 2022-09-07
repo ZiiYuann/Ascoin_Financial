@@ -1,6 +1,7 @@
 package com.tianli.financial.controller;
 
 import com.tianli.common.PageQuery;
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.Result;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
@@ -40,8 +41,8 @@ public class FinancialController {
      * 理财产品汇总格式列表
      */
     @GetMapping("/summary/products")
-    public Result productSummary(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
-        return Result.instance().setData(financialService.summaryProducts(pageQuery.page(), productType));
+    public Result productSummary(PageQuery<FinancialProduct> pageQuery) {
+        return Result.instance().setData(financialService.summaryProducts(pageQuery.page()));
     }
 
     /**
@@ -55,9 +56,18 @@ public class FinancialController {
     /**
      * 理财产品详情
      */
+    @Deprecated
     @GetMapping("/product/{productId}")
     public Result oneProduct(@PathVariable("productId") Long productId) {
         return Result.instance().setData(financialService.productDetails(productId));
+    }
+
+    /**
+     * 理财产品详情
+     */
+    @GetMapping("/product/fixed/{coin}")
+    public Result productDetailsByCoin(@PathVariable("coin") CurrencyCoin coin) {
+        return Result.instance().setData(financialService.fixedProductDetails(coin));
     }
 
     /**

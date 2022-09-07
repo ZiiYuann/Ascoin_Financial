@@ -291,16 +291,15 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public List<FinancialProductVO> summaryProducts(Page<FinancialProduct> page, ProductType type) {
+    public IPage<FinancialProductVO> summaryProducts(Page<FinancialProduct> page) {
 
-        List<ProductRateDTO> productRateDTOS = Optional.ofNullable(financialProductService.listProductRateDTO())
-                .orElse(new ArrayList<>());
+        IPage<ProductRateDTO> productRateDTOS = financialProductService.listProductRateDTO(page);
 
         var productMap = getFinancialProductVOs().stream()
                 .collect(Collectors.groupingBy(FinancialProductVO::getCoin, Collectors.toList()));
 
 
-        return productRateDTOS.stream().map(productRateDTO -> {
+        return productRateDTOS.convert(productRateDTO -> {
 
             FinancialProductRateVO financialProductVO = new FinancialProductRateVO();
             financialProductVO.setCoin(productRateDTO.getCoin());
@@ -310,7 +309,7 @@ public class FinancialServiceImpl implements FinancialService {
 
             financialProductVO.setProducts(productMap.getOrDefault(productRateDTO.getCoin(), new ArrayList<>()));
             return financialProductVO;
-        }).collect(Collectors.toList());
+        });
 
     }
 
@@ -558,6 +557,21 @@ public class FinancialServiceImpl implements FinancialService {
         productVO.setStartIncomeTime(startIncomeTime);
         productVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
         return productVO;
+    }
+
+    @Override
+    public FixedProductsPurchaseVO fixedProductDetails(CurrencyCoin coin) {
+        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
+                .eq(FinancialProduct::getCoin, coin)
+                .eq(FinancialProduct::getType, ProductType.fixed)
+                .eq(FinancialProduct::getStatus, ProductStatus.open);
+        IPage<FinancialProductVO> financialProductVOIPage =
+                getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), null, query);
+
+        FixedProductsPurchaseVO fixedProductsPurchaseVO = new FixedProductsPurchaseVO();
+        fixedProductsPurchaseVO.setProducts(financialProductVOIPage.getRecords());
+        fixedProductsPurchaseVO.setTerms(financialProductVOIPage.getRecords().stream().map(FinancialProductVO::getTerm).collect(Collectors.toList()));
+        return fixedProductsPurchaseVO;
     }
 
     @Override

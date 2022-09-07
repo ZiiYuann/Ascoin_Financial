@@ -66,7 +66,7 @@ public class CommonConstant {
 
         ladderRates.add(FinancialProductLadderRate.builder()
                 .startPoint(BigDecimal.valueOf(3000L))
-                .endPoint(BigDecimal.valueOf(10000L))
+                .endPoint(null)
                 .rate(BigDecimal.valueOf(0.5))
                 .build());
     }
