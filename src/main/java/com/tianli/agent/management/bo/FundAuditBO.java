@@ -1,5 +1,6 @@
 package com.tianli.agent.management.bo;
 
+import com.tianli.fund.enums.FundReviewStatus;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
@@ -13,7 +14,7 @@ public class FundAuditBO {
     private List<Long> ids;
 
     @NotNull(message = "审核结果不能为空")
-    private Boolean auditResult;
+    private FundReviewStatus status;
 
-    private String auditRemark;
+    private String remark;
 }

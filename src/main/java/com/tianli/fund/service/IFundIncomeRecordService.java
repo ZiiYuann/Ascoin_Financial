@@ -1,6 +1,8 @@
 package com.tianli.fund.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.agent.management.bo.FundAuditBO;
+import com.tianli.agent.management.vo.FundReviewVO;
 import com.tianli.common.PageQuery;
 import com.tianli.fund.dto.FundIncomeAmountDTO;
 import com.tianli.fund.entity.FundIncomeRecord;
@@ -30,7 +32,9 @@ public interface IFundIncomeRecordService extends IService<FundIncomeRecord> {
 
     FundIncomeAmountVO getIncomeAmount(FundIncomeQuery query);
 
-    boolean existWaitInterest(Long uid);
-
     Integer getWaitPayCount(Long productId);
+
+    void incomeAudit(FundAuditBO bo);
+
+    List<FundReviewVO> getIncomeAuditRecord(Long id);
 }

@@ -22,7 +22,7 @@ public class HandleExceptionController {
     @ExceptionHandler(value = {Exception.class})
     public Result resolveException(HttpServletRequest request, Exception e) {
         if (!(e instanceof ErrCodeException)) {
-            webHookService.dingTalkSend("异常信息", e);
+            //webHookService.dingTalkSend("异常信息", e);
         }
         Result result = Result.instance();
         if (e instanceof ErrCodeException) {
