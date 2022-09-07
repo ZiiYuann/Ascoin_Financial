@@ -142,12 +142,5 @@ public class FinancialController {
         return Result.instance().setData(financialService.incomeDetails(pageQuery.page(), uid, recordId));
     }
 
-    /**
-     * 限时活动
-     */
-    @GetMapping("/activities")
-    public Result limitedActivities(PageQuery<FinancialProduct> pageQuery) {
-        return Result.instance().setData(financialService.activitiesProducts(pageQuery.page(), BusinessType.limited));
-    }
 
 }

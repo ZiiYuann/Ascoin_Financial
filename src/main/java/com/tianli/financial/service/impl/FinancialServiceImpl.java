@@ -291,24 +291,23 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IPage<FinancialProductVO> summaryProducts(Page<FinancialProduct> page) {
+    public IPage<RateScopeVO> summaryProducts(Page<FinancialProduct> page) {
 
         IPage<ProductRateDTO> productRateDTOS = financialProductService.listProductRateDTO(page);
         List<FinancialProductVO> financialProductVOs = getFinancialProductVOs();
-        List<Long> productIds = financialProductVOs.stream().map(FinancialProductVO::getId).collect(Collectors.toList());
         var productMap = financialProductVOs.stream()
                 .collect(Collectors.groupingBy(FinancialProductVO::getCoin, Collectors.toList()));
 
         return productRateDTOS.convert(productRateDTO -> {
 
-            FinancialProductRateVO financialProductVO = new FinancialProductRateVO();
-            financialProductVO.setCoin(productRateDTO.getCoin());
-            financialProductVO.setLogo(productRateDTO.getCoin().getLogoPath());
-            financialProductVO.setMaxRate(productRateDTO.getMaxRate());
-            financialProductVO.setMinRate(productRateDTO.getMinRate());
+            RateScopeVO financialProductRateVO = new RateScopeVO();
+            financialProductRateVO.setCoin(productRateDTO.getCoin());
+            financialProductRateVO.setLogo(productRateDTO.getCoin().getLogoPath());
+            financialProductRateVO.setMaxRate(productRateDTO.getMaxRate());
+            financialProductRateVO.setMinRate(productRateDTO.getMinRate());
 
-            financialProductVO.setProducts(productMap.getOrDefault(productRateDTO.getCoin(), new ArrayList<>()));
-            return financialProductVO;
+            financialProductRateVO.setProducts(productMap.getOrDefault(productRateDTO.getCoin(), new ArrayList<>()));
+            return financialProductRateVO;
         });
 
     }
@@ -323,13 +322,6 @@ public class FinancialServiceImpl implements FinancialService {
 
         return getFinancialProductVOIPage(page, type, query);
 
-    }
-
-    @Override
-    public IPage<FinancialProductVO> activitiesProducts(Page<FinancialProduct> page, BusinessType type) {
-        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
-                .eq(FinancialProduct::getBusinessType, ProductStatus.open);
-        return getFinancialProductVOIPage(page, null, query);
     }
 
     @Override
@@ -410,7 +402,9 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     private List<FinancialProductVO> getFinancialProductVOs() {
-        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<>();
+        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
+                .eq(FinancialProduct :: getStatus,ProductStatus.open)
+                .eq(FinancialProduct :: isDeleted,false);
         return getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), null, query).getRecords();
     }
 

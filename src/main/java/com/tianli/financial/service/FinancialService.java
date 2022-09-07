@@ -9,7 +9,6 @@ import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
-import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.vo.*;
@@ -95,17 +94,12 @@ public interface FinancialService {
     /**
      * 汇总产品列表
      */
-    IPage<FinancialProductVO> summaryProducts(Page<FinancialProduct> page);
+    IPage<RateScopeVO> summaryProducts(Page<FinancialProduct> page);
 
     /**
      * 产品列表
      */
     IPage<FinancialProductVO> products(Page<FinancialProduct> page, ProductType type);
-
-    /**
-     * 活动产品列表
-     */
-    IPage<FinancialProductVO> activitiesProducts(Page<FinancialProduct> page, BusinessType type);
 
     /**
      * 理财用户信息

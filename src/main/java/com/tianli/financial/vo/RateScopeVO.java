@@ -1,7 +1,7 @@
 package com.tianli.financial.vo;
 
+import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -12,8 +12,17 @@ import java.util.List;
  * @since 2022-08-29
  **/
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class FinancialProductRateVO extends FinancialProductVO{
+public class RateScopeVO {
+
+    /**
+     * 币别
+     */
+    private CurrencyCoin coin;
+
+    /**
+     * logo 地址
+     */
+    private String logo;
 
     /**
      * 最大利率
