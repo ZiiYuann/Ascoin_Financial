@@ -16,8 +16,8 @@
             <if test="query.agentUId != null">
                 and b.uid = #{query.agentUId}
             </if>
-            <if test="agentId != null">
-                and b.agent_id = #{agentId}
+            <if test="query.agentId != null">
+                and b.agent_id = #{query.agentId}
             </if>
         </where>
         order by a.create_time
