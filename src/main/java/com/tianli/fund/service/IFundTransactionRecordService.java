@@ -2,7 +2,7 @@ package com.tianli.fund.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.agent.management.bo.FundAuditBO;
-import com.tianli.agent.management.vo.FundAuditRecordVO;
+import com.tianli.agent.management.vo.FundReviewVO;
 import com.tianli.common.PageQuery;
 import com.tianli.fund.dto.FundTransactionAmountDTO;
 import com.tianli.fund.entity.FundTransactionRecord;
@@ -31,13 +31,7 @@ public interface IFundTransactionRecordService extends IService<FundTransactionR
 
     void redemptionAudit(FundAuditBO bo);
 
-    FundAuditRecordVO getRedemptionAuditRecord(Long id);
-
-    boolean existWaitRedemption(Long agentUid);
-
-    void incomeAudit(FundAuditBO bo);
-
-    FundAuditRecordVO getIncomeAuditRecord(Long id);
+    List<FundReviewVO> getRedemptionAuditRecord(Long id);
 
     Integer getWaitRedemptionCount(Long productId);
 

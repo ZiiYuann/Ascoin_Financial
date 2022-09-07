@@ -6,7 +6,7 @@ import com.tianli.agent.management.auth.AgentPrivilege;
 import com.tianli.agent.management.bo.FundAuditBO;
 import com.tianli.agent.management.query.FundStatisticsQuery;
 import com.tianli.agent.management.service.FundAgentManageService;
-import com.tianli.agent.management.vo.FundAuditRecordVO;
+import com.tianli.agent.management.vo.FundReviewVO;
 import com.tianli.agent.management.vo.FundProductStatisticsVO;
 import com.tianli.agent.management.vo.HoldDataVO;
 import com.tianli.agent.management.vo.TransactionDataVO;
@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/agent/management/fund")
@@ -108,7 +109,7 @@ public class FundAgentManagementController {
         return Result.success(fundUserRecordPage);
     }
 
-    @PostMapping("/redemption/audit/{ids}")
+    @PostMapping("/redemption/audit")
     @AgentPrivilege
     public Result redemptionAudit(@RequestBody @Valid FundAuditBO bo){
         fundTransactionRecordService.redemptionAudit(bo);
@@ -118,21 +119,21 @@ public class FundAgentManagementController {
     @GetMapping("/redemption/audit/{id}")
     @AgentPrivilege
     public Result redemptionAuditRecord(@PathVariable Long id){
-        FundAuditRecordVO auditRecord = fundTransactionRecordService.getRedemptionAuditRecord(id);
-        return Result.success(auditRecord);
+        List<FundReviewVO> fundReviewVOS = fundTransactionRecordService.getRedemptionAuditRecord(id);
+        return Result.success(fundReviewVOS);
     }
 
-    @PostMapping("/income/audit/{ids}")
+    @PostMapping("/income/audit")
     @AgentPrivilege
     public Result incomeAudit(@RequestBody @Valid FundAuditBO bo){
-
+        fundIncomeRecordService.incomeAudit(bo);
         return Result.success();
     }
 
-    @PostMapping("/transaction/audit/{id}")
+    @GetMapping("/income/audit/{id}")
     @AgentPrivilege
     public Result incomeAuditRecord(@PathVariable Long id){
-
-        return Result.success();
+        List<FundReviewVO> fundReviewVOS = fundIncomeRecordService.getIncomeAuditRecord(id);
+        return Result.success(fundReviewVOS);
     }
 }

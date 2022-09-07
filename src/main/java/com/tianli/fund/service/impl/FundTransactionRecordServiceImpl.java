@@ -6,7 +6,7 @@ import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.agent.management.auth.AgentContent;
 import com.tianli.agent.management.bo.FundAuditBO;
-import com.tianli.agent.management.vo.FundAuditRecordVO;
+import com.tianli.agent.management.vo.FundReviewVO;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
@@ -17,14 +17,19 @@ import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.contant.FundTransactionStatus;
+import com.tianli.fund.convert.FundRecordConvert;
 import com.tianli.fund.dao.FundTransactionRecordMapper;
 import com.tianli.fund.dto.FundTransactionAmountDTO;
 import com.tianli.fund.entity.FundIncomeRecord;
+import com.tianli.fund.entity.FundReview;
 import com.tianli.fund.entity.FundTransactionRecord;
+import com.tianli.fund.enums.FundReviewStatus;
+import com.tianli.fund.enums.FundReviewType;
 import com.tianli.fund.enums.FundTransactionType;
 import com.tianli.fund.query.FundTransactionQuery;
 import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
+import com.tianli.fund.service.IFundReviewService;
 import com.tianli.fund.service.IFundTransactionRecordService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.fund.vo.FundTransactionRecordVO;
@@ -64,7 +69,11 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     private IFundRecordService fundRecordService;
 
     @Autowired
-    private IFundIncomeRecordService fundIncomeRecordService;
+    private IFundReviewService fundReviewService;
+
+    @Autowired
+    private FundRecordConvert fundRecordConvert;
+
 
     @Override
     public IPage<FundTransactionRecordVO> getTransactionPage(PageQuery<FundTransactionRecord> page, FundTransactionQuery query) {
@@ -92,14 +101,14 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     @Override
     public void redemptionAudit(FundAuditBO bo) {
         Long agentId = AgentContent.getAgentUId();
-        Boolean auditResult = bo.getAuditResult();
+        FundReviewStatus status = bo.getStatus();
         List<Long> ids = bo.getIds();
         ids.forEach(id ->{
             FundTransactionRecord fundTransactionRecord = fundTransactionRecordMapper.selectById(id);
             if(Objects.isNull(fundTransactionRecord) ||
                     !fundTransactionRecord.getStatus().equals(FundTransactionStatus.wait_audit)) ErrorCodeEnum.TRANSACTION_NOT_EXIST.throwException();
             Long uid = fundTransactionRecord.getUid();
-            if(auditResult) {
+            if(status == FundReviewStatus.success) {
                 //生成一笔订单
                 Order agentOrder = Order.builder()
                         .uid(agentId)
@@ -131,16 +140,30 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
                 orderService.save(order);
                 // 增加余额
                 accountBalanceService.increase(uid, ChargeType.fund_redeem, fundTransactionRecord.getCoin(), fundTransactionRecord.getTransactionAmount(), order.getOrderNo(), CurrencyLogDes.代理基金赎回.name());
-                fundTransactionRecord.setAuditResult(true);
-                fundTransactionRecord.setAuditTime(LocalDateTime.now());
+
+                FundReview fundReview = FundReview.builder()
+                        .rId(id)
+                        .type(FundReviewType.redemption)
+                        .status(FundReviewStatus.success)
+                        .remark(bo.getRemark())
+                        .createTime(LocalDateTime.now())
+                        .build();
+                fundReviewService.save(fundReview);
+
                 fundTransactionRecord.setStatus(FundTransactionStatus.success);
-                fundTransactionRecord.setAuditRemark(bo.getAuditRemark());
                 fundTransactionRecordMapper.updateById(fundTransactionRecord);
             }else {
-                fundTransactionRecord.setAuditResult(false);
+
+                FundReview fundReview = FundReview.builder()
+                        .rId(id)
+                        .type(FundReviewType.redemption)
+                        .status(FundReviewStatus.fail)
+                        .remark(bo.getRemark())
+                        .createTime(LocalDateTime.now())
+                        .build();
+                fundReviewService.save(fundReview);
+
                 fundTransactionRecord.setStatus(FundTransactionStatus.fail);
-                fundTransactionRecord.setAuditTime(LocalDateTime.now());
-                fundTransactionRecord.setAuditRemark(bo.getAuditRemark());
                 fundTransactionRecordMapper.updateById(fundTransactionRecord);
                 fundRecordService.increaseAmount(fundTransactionRecord.getFundId(),fundTransactionRecord.getTransactionAmount());
             }
@@ -149,74 +172,13 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     }
 
     @Override
-    public FundAuditRecordVO getRedemptionAuditRecord(Long id) {
+    public List<FundReviewVO> getRedemptionAuditRecord(Long id) {
         FundTransactionRecord fundTransactionRecord = fundTransactionRecordMapper.selectById(id);
         if(Objects.isNull(fundTransactionRecord)) ErrorCodeEnum.TRANSACTION_NOT_EXIST.throwException();
-
-        return FundAuditRecordVO.builder()
-                .auditResult(fundTransactionRecord.getAuditResult())
-                .auditTime(fundTransactionRecord.getAuditTime())
-                .auditRemark(fundTransactionRecord.getAuditRemark())
-                .build();
+        List<FundReview> fundReviews = fundReviewService.getListByRid(id);
+        return fundReviews.stream().map(fundReview -> fundRecordConvert.toReviewVO(fundReview)).collect(Collectors.toList());
     }
 
-    @Override
-    public boolean existWaitRedemption(Long agentUid) {
-        Integer count = fundTransactionRecordMapper.selectWaitRedemptionCount(agentUid);
-        return count>0;
-    }
-
-    @Override
-    public void incomeAudit(FundAuditBO bo) {
-        List<Long> ids = bo.getIds();
-        Long agentId = AgentContent.getAgentUId();
-        ids.forEach(id->{
-
-            FundIncomeRecord fundIncomeRecord = fundIncomeRecordService.getById(id);
-            if(Objects.isNull(fundIncomeRecord) ||
-                    !fundIncomeRecord.getStatus().equals(FundIncomeStatus.wait_audit) ||
-                    !fundIncomeRecord.getStatus().equals(FundIncomeStatus.audit_failure))ErrorCodeEnum.INCOME_NOT_EXIST.throwException();
-            Long uid = fundIncomeRecord.getUid();
-
-            Order agentOrder = Order.builder()
-                    .uid(agentId)
-                    .coin(fundIncomeRecord.getCoin())
-                    .relatedId(fundIncomeRecord.getId())
-                    .orderNo(AccountChangeType.agent_fund_interest.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
-                    .amount(fundIncomeRecord.getInterestAmount())
-                    .type(ChargeType.agent_fund_interest)
-                    .status(ChargeStatus.chain_success)
-                    .createTime(LocalDateTime.now())
-                    .completeTime(LocalDateTime.now())
-                    .build();
-            orderService.save(agentOrder);
-            // 减少余额
-            accountBalanceService.decrease(agentId, ChargeType.agent_fund_interest, fundIncomeRecord.getCoin(), fundIncomeRecord.getInterestAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金利息.name());
-
-            //生成一笔订单
-            Order order = Order.builder()
-                    .uid(uid)
-                    .coin(fundIncomeRecord.getCoin())
-                    .relatedId(fundIncomeRecord.getId())
-                    .orderNo(AccountChangeType.fund_interest.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
-                    .amount(fundIncomeRecord.getInterestAmount())
-                    .type(ChargeType.fund_interest)
-                    .status(ChargeStatus.chain_success)
-                    .createTime(LocalDateTime.now())
-                    .completeTime(LocalDateTime.now())
-                    .build();
-            orderService.save(order);
-            // 增加余额
-            accountBalanceService.increase(uid, ChargeType.fund_interest, fundIncomeRecord.getCoin(), fundIncomeRecord.getInterestAmount(), order.getOrderNo(), CurrencyLogDes.基金利息.name());
-
-
-        });
-    }
-
-    @Override
-    public FundAuditRecordVO getIncomeAuditRecord(Long id) {
-        return null;
-    }
 
     @Override
     public Integer getWaitRedemptionCount(Long productId) {

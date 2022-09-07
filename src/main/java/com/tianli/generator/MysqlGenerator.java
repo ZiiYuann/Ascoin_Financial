@@ -30,7 +30,7 @@ public class MysqlGenerator {
     /**
      * 需生成数据库表
      */
-    private static final String[] TABLE_ARR = new String[]{"fund_record","fund_income_record","fund_transaction_record"};
+    private static final String[] TABLE_ARR = new String[]{"fund_review"};
 
     public static void main(String[] args) {
         generator();

@@ -30,7 +30,7 @@ public interface FundRecordMapper extends BaseMapper<FundRecord> {
     @Update("update fund_record set hold_amount = hold_amount - #{amount} where id = #{id}")
     int reduceAmount(Long id, BigDecimal amount);
 
-    @Update("update fund_record set hold_amount = hold_amount + #{amount} where id = #{id}")
+    @Update("update fund_record set hold_amount = hold_amount + #{amount},status='PROCESS' where id = #{id}")
     int increaseAmount(Long id, BigDecimal amount);
 
     IPage<FundUserRecordVO> selectDistinctUidPage(@Param("page") IPage<FundRecord> page,@Param("query") FundRecordQuery query);

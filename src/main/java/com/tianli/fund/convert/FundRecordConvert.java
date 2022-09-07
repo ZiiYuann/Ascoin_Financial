@@ -1,8 +1,10 @@
 package com.tianli.fund.convert;
 
+import com.tianli.agent.management.vo.FundReviewVO;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.entity.FundRecord;
+import com.tianli.fund.entity.FundReview;
 import com.tianli.fund.entity.FundTransactionRecord;
 import com.tianli.fund.vo.FundIncomeRecordVO;
 import com.tianli.fund.vo.FundProductVO;
@@ -20,5 +22,7 @@ public interface FundRecordConvert {
     FundIncomeRecordVO toFundIncomeVO(FundIncomeRecord fundIncomeRecord);
 
     FundTransactionRecordVO toFundTransactionVO(FundTransactionRecord fundTransactionRecord);
+
+    FundReviewVO toReviewVO(FundReview fundReview);
 
 }
