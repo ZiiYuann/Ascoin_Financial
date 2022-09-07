@@ -87,6 +87,8 @@ public class MFinancialProductVO {
      */
     private BigInteger holdUserCount;
 
+    private byte rateType;
+
     /**
      * 阶梯利率
      */
