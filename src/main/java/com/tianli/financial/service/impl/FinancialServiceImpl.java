@@ -420,7 +420,7 @@ public class FinancialServiceImpl implements FinancialService {
                 .eq(FinancialProduct::getStatus, ProductStatus.open);
         IPage<FinancialProductVO> financialProductVOIPage =
                 getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), null, query);
-
+        financialProductVOIPage.getRecords().stream().peek(record -> record.setAllowPurchase(null));
         FixedProductsPurchaseVO fixedProductsPurchaseVO = new FixedProductsPurchaseVO();
         fixedProductsPurchaseVO.setProducts(financialProductVOIPage.getRecords());
         fixedProductsPurchaseVO.setTerms(financialProductVOIPage.getRecords().stream().map(FinancialProductVO::getTerm).collect(Collectors.toList()));
