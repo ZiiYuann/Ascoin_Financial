@@ -299,7 +299,6 @@ public class FinancialServiceImpl implements FinancialService {
                 .collect(Collectors.groupingBy(FinancialProductVO::getCoin, Collectors.toList()));
 
         return productRateDTOS.convert(productRateDTO -> {
-
             RateScopeVO financialProductRateVO = new RateScopeVO();
             financialProductRateVO.setCoin(productRateDTO.getCoin());
             financialProductRateVO.setLogo(productRateDTO.getCoin().getLogoPath());

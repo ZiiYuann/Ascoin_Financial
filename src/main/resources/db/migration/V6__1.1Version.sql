@@ -1,6 +1,8 @@
 ALTER TABLE `financial`.`financial_product`
     ADD COLUMN `rate_type` tinyint(1) NULL DEFAULT 0 COMMENT '利率类型' AFTER `deleted`,
-    ADD COLUMN `use_quota` decimal(20, 8) NULL DEFAULT 0  COMMENT '已经使用申购金额' AFTER `deleted`;
+    ADD COLUMN `use_quota` decimal(20, 8) NULL DEFAULT 0  COMMENT '已经使用申购金额' AFTER `deleted`,
+    ADD COLUMN `max_rate` decimal(10, 2) NOT NULL DEFAULT 0 COMMENT '最大利率' AFTER `rate_type`,
+    ADD COLUMN `min_rate` decimal(10, 2) NOT NULL DEFAULT 0 COMMENT '最小利率' AFTER `max_rate`;
 
 ALTER TABLE `financial`.`financial_record`
     ADD COLUMN `wait_amount` decimal(20, 8) NULL DEFAULT 0 COMMENT '待记利息金额' AFTER `update_time`,

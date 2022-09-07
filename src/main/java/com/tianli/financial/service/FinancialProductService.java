@@ -21,10 +21,12 @@ import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.dto.ProductSummaryDataDto;
 import com.tianli.management.query.FinancialProductEditQuery;
 import com.tianli.management.query.FinancialProductEditStatusQuery;
+import com.tianli.management.query.FinancialProductLadderRateIoUQuery;
 import com.tianli.management.query.FinancialProductsQuery;
 import com.tianli.management.vo.MFinancialProductVO;
 import com.tianli.mconfig.ConfigService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,7 +92,6 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             productDO.setCreateTime(LocalDateTime.now());
             productDO.setId(CommonFunction.generalId());
             productDO.setUseQuota(BigDecimal.ZERO);
-            super.saveOrUpdate(productDO);
         }
 
         if (Objects.nonNull(productDO.getId())) {
@@ -104,12 +105,21 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             }
 
             product.setUpdateTime(LocalDateTime.now());
-            super.saveOrUpdate(productDO);
         }
 
+        List<FinancialProductLadderRateIoUQuery> ladderRates = financialProductQuery.getLadderRates();
         if (productDO.getRateType() == 1) {
-            financialProductLadderRateService.insert(productDO.getId(), financialProductQuery.getLadderRates());
+            if (CollectionUtils.isEmpty(ladderRates)) {
+                ErrorCodeEnum.throwException("配置为阶段利率模式，阶段利率列表不能为空");
+            }
+            financialProductLadderRateService.insert(productDO.getId(), ladderRates);
+            productDO.setRate(ladderRates.get(0).getRate());
+            productDO.setMinRate(productDO.getRate());
+            productDO.setMaxRate(ladderRates.get(ladderRates.size() - 1).getRate());
         }
+
+        super.saveOrUpdate(productDO);
+
     }
 
     /**
@@ -174,14 +184,13 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             if (index.getRateType() == 1) {
                 mFinancialProductVO.setLadderRates(financialProductLadderRateService.listByProductId(index.getId())
                         .stream().map(financialConverter::toProductLadderRateVO).collect(Collectors.toList()));
-                mFinancialProductVO.setRate(mFinancialProductVO.getLadderRates().get(0).getRate());
             }
             return mFinancialProductVO;
         });
     }
 
     public IPage<ProductRateDTO> listProductRateDTO(Page<FinancialProduct> page, ProductType productType) {
-        return financialProductMapper.listProductRateDTO(page,productType);
+        return financialProductMapper.listProductRateDTO(page, productType);
     }
 
     /**
