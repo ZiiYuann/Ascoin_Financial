@@ -157,11 +157,11 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
                 .totalQuota(product.getTotalQuota())
                 .totalHoldAmount(totalAmount)
                 .purchaseTime(LocalDate.now())
-                .interestCalculationTime(LocalDate.now().plusDays(4L))
-                .incomeDistributionTime(LocalDate.now().plusDays(11L))
-                .redemptionTime(LocalDate.now().plusDays(11L))
-                .redemptionCycle(7)
-                .accountDate(3)
+                .interestCalculationTime(LocalDate.now().plusDays(FundCycle.interestCalculationCycle))
+                .incomeDistributionTime(LocalDate.now().plusDays(FundCycle.incomeDistributionCycle))
+                .redemptionTime(LocalDate.now().plusDays(FundCycle.incomeDistributionCycle))
+                .redemptionCycle(FundCycle.interestAuditCycle)
+                .accountDate(FundCycle.accountCycle)
                 .build();
     }
 
@@ -262,11 +262,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
         FundRecordVO fundRecordVO = fundRecordConvert.toFundVO(fundRecord);
         long until = fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS);
         //七天允许赎回
-        if(until >= FundCycle.redemptionCycle){
-            fundRecordVO.setIsAllowRedemption(true);
-        }else {
-            fundRecordVO.setIsAllowRedemption(false);
-        }
+        fundRecordVO.setIsAllowRedemption(until >= FundCycle.interestAuditCycle);
         return fundRecordVO;
     }
 
@@ -344,9 +340,10 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
             this.updateById(fundRecord);
         }
 
-        if ( fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS) < FundCycle.redemptionCycle){
+        if ( fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS) <= FundCycle.interestAuditCycle){
             ErrorCodeEnum.REDEMPTION_CYCLE_ERROR.throwException();
         }
+
 
         //扣除余额
         fundRecordMapper.reduceAmount(id,redemptionAmount);

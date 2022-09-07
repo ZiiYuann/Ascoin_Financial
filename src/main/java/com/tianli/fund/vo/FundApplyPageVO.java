@@ -81,12 +81,12 @@ public class FundApplyPageVO {
     /**
      * 赎回周期
      */
-    private Integer redemptionCycle;
+    private Long redemptionCycle;
 
     /**
      * 到账时间
      */
-    private Integer accountDate;
+    private Long accountDate;
 
     /**
      * 赎回时间
