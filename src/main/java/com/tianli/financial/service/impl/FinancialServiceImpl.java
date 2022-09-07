@@ -294,10 +294,10 @@ public class FinancialServiceImpl implements FinancialService {
     public IPage<FinancialProductVO> summaryProducts(Page<FinancialProduct> page) {
 
         IPage<ProductRateDTO> productRateDTOS = financialProductService.listProductRateDTO(page);
-
-        var productMap = getFinancialProductVOs().stream()
+        List<FinancialProductVO> financialProductVOs = getFinancialProductVOs();
+        List<Long> productIds = financialProductVOs.stream().map(FinancialProductVO::getId).collect(Collectors.toList());
+        var productMap = financialProductVOs.stream()
                 .collect(Collectors.groupingBy(FinancialProductVO::getCoin, Collectors.toList()));
-
 
         return productRateDTOS.convert(productRateDTO -> {
 
@@ -435,6 +435,7 @@ public class FinancialServiceImpl implements FinancialService {
             // 设置额度信息
             FinancialProductVO financialProductVO = financialConverter.toFinancialProductVO(product);
             financialProductVO.setUserPersonQuota(usePersonQuota);
+            financialProductVO.setHoldAmount(usePersonQuota);
             // 设置是否可以申购
             boolean allowPurchase =
                     checkAllowPurchase(usePersonQuota, useQuota, personQuota, totalQuota, product.getBusinessType(), isNewUser);
@@ -538,6 +539,7 @@ public class FinancialServiceImpl implements FinancialService {
 
         LocalDateTime now = LocalDateTime.now();
         productVO.setUserPersonQuota(personUseQuota.getOrDefault(productVO.getId(), BigDecimal.ZERO));
+        productVO.setHoldAmount(personUseQuota.getOrDefault(productVO.getId(), BigDecimal.ZERO));
         productVO.setAvailableBalance(accountBalance.getRemain());
         productVO.setPurchaseTime(now);
 

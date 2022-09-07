@@ -121,9 +121,14 @@ public class FinancialProductVO {
      */
     private RiskType riskType;
 
+    /**
+     * 利率类型
+     */
+    private byte rateType;
+
+    /**
+     * 持有金额 == userPersonQuota 字端，前端不理解，额外加一个便于他们理解
+     */
     private BigDecimal holdAmount;
 
-    private BigDecimal incomeAmount;
-
-    private BigDecimal waitAmount;
 }
