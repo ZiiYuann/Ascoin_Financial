@@ -26,6 +26,7 @@ import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.vo.FundIncomeAmountVO;
 import com.tianli.management.vo.FundTransactionAmountVO;
 import com.tianli.management.vo.FundUserRecordVO;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,6 +48,9 @@ public class FundAgentManagementController {
 
     @Autowired
     private IFundRecordService fundRecordService;
+
+    @Autowired
+    private RedissonClient redissonClient;
 
     /**
      * 交易数据概览

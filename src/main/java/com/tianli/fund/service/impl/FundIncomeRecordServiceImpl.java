@@ -21,6 +21,7 @@ import com.tianli.fund.convert.FundRecordConvert;
 import com.tianli.fund.dao.FundIncomeRecordMapper;
 import com.tianli.fund.dto.FundIncomeAmountDTO;
 import com.tianli.fund.entity.FundIncomeRecord;
+import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.entity.FundReview;
 import com.tianli.fund.entity.FundTransactionRecord;
 import com.tianli.fund.enums.FundReviewStatus;
@@ -28,6 +29,7 @@ import com.tianli.fund.enums.FundReviewType;
 import com.tianli.fund.query.FundIncomeQuery;
 import com.tianli.fund.service.IFundIncomeRecordService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.fund.service.IFundRecordService;
 import com.tianli.fund.service.IFundReviewService;
 import com.tianli.fund.vo.FundIncomeRecordVO;
 import com.tianli.management.dto.AmountDto;
@@ -68,6 +70,8 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     @Autowired
     private AccountBalanceService accountBalanceService;
 
+    @Autowired
+    private IFundRecordService fundRecordService;
     @Override
     public List<AmountDto> getAmountByUidAndStatus(Long uid, Integer status) {
         FundIncomeQuery query = new FundIncomeQuery();
@@ -160,6 +164,11 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
 
                 fundIncomeRecord.setStatus(FundTransactionStatus.success);
                 this.updateById(fundIncomeRecord);
+                //持仓记录待发已发修改
+                FundRecord fundRecord = fundRecordService.getById(fundIncomeRecord.getFundId());
+                fundRecord.setWaitIncomeAmount(fundRecord.getWaitIncomeAmount().subtract(fundIncomeRecord.getInterestAmount()));
+                fundRecord.setIncomeAmount(fundRecord.getIncomeAmount().add(fundIncomeRecord.getInterestAmount()));
+                fundRecordService.updateById(fundRecord);
             }else {
                 FundReview fundReview = FundReview.builder()
                         .rId(id)

@@ -3,6 +3,7 @@ package com.tianli.fund.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.common.PageQuery;
+import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.Result;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.fund.bo.FundPurchaseBO;
@@ -15,6 +16,9 @@ import com.tianli.fund.query.FundIncomeQuery;
 import com.tianli.fund.query.FundTransactionQuery;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.fund.vo.*;
+import com.tianli.sso.init.RequestInitService;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +39,12 @@ public class FundController {
 
     @Autowired
     private IFundRecordService fundRecordService;
+
+    @Autowired
+    private RedissonClient redissonClient;
+
+    @Autowired
+    private RequestInitService requestInitService;
 
     /**
      * 主页面持有统计
@@ -77,8 +87,15 @@ public class FundController {
      */
     @PostMapping("/purchase")
     public Result purchase(@RequestBody @Valid FundPurchaseBO bo){
-        FundTransactionRecordVO purchase = fundRecordService.purchase(bo);
-        return Result.success(purchase);
+        Long uid = requestInitService.uid();
+        RLock lock = redissonClient.getLock(RedisLockConstants.FUND_CREATE_LOCK + uid);
+        lock.lock();
+        try{
+            FundTransactionRecordVO purchase = fundRecordService.purchase(bo);
+            return Result.success(purchase);
+        }finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -113,8 +130,14 @@ public class FundController {
      */
     @PostMapping("/apply/redemption")
     public Result applyRedemption(@RequestBody @Valid FundRedemptionBO bo){
-        FundTransactionRecordVO fundTransactionRecordVO = fundRecordService.applyRedemption(bo);
-        return Result.success(fundTransactionRecordVO);
+        RLock lock = redissonClient.getLock(RedisLockConstants.FUND_UPDATE_LOCK + bo.getId());
+        lock.lock();
+        try {
+            FundTransactionRecordVO fundTransactionRecordVO = fundRecordService.applyRedemption(bo);
+            return Result.success(fundTransactionRecordVO);
+        }finally {
+            lock.unlock();
+        }
     }
 
     /**
