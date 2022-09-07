@@ -55,6 +55,21 @@ public class FundRecordVO implements Serializable {
     private BigDecimal holdAmount;
 
     /**
+     * 累计收益
+     */
+    private BigDecimal cumulativeIncomeAmount;
+
+    /**
+     * 已发放收益
+     */
+    private BigDecimal incomeAmount;
+
+    /**
+     * 待发放收益
+     */
+    private BigDecimal waitIncomeAmount;
+
+    /**
      * 风险类型
      */
     private RiskType riskType;
