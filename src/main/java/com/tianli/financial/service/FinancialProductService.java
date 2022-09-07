@@ -92,6 +92,7 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             productDO.setCreateTime(LocalDateTime.now());
             productDO.setId(CommonFunction.generalId());
             productDO.setUseQuota(BigDecimal.ZERO);
+            super.saveOrUpdate(productDO);
         }
 
         if (Objects.nonNull(productDO.getId())) {
@@ -105,6 +106,7 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             }
 
             product.setUpdateTime(LocalDateTime.now());
+            super.saveOrUpdate(productDO);
         }
 
         List<FinancialProductLadderRateIoUQuery> ladderRates = financialProductQuery.getLadderRates();
@@ -116,9 +118,9 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             productDO.setRate(ladderRates.get(0).getRate());
             productDO.setMinRate(productDO.getRate());
             productDO.setMaxRate(ladderRates.get(ladderRates.size() - 1).getRate());
+            super.saveOrUpdate(productDO);
         }
 
-        super.saveOrUpdate(productDO);
 
     }
 
