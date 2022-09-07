@@ -173,6 +173,7 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
             if (index.getRateType() == 1) {
                 mFinancialProductVO.setLadderRates(financialProductLadderRateService.listByProductId(index.getId())
                         .stream().map(financialConverter::toProductLadderRateVO).collect(Collectors.toList()));
+                mFinancialProductVO.setRate(mFinancialProductVO.getLadderRates().get(0).getRate());
             }
             return mFinancialProductVO;
         });
