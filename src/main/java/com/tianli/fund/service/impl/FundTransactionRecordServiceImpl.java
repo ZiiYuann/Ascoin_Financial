@@ -186,6 +186,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     @Override
     public Integer getWaitRedemptionCount(Long productId) {
         return fundTransactionRecordMapper.selectCount(new QueryWrapper<FundTransactionRecord>().lambda()
+                 .eq(FundTransactionRecord::getProductId,productId)
                 .eq(FundTransactionRecord::getType, FundTransactionType.redemption)
                 .eq(FundTransactionRecord::getStatus,FundTransactionStatus.wait_audit));
     }
