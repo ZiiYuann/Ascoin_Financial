@@ -37,7 +37,7 @@ public class FinancialController {
 
 
     /**
-     * 理财产品汇总格式列表
+     * 【首页】产品展示
      */
     @GetMapping("/summary/products")
     public Result productSummary(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
@@ -47,6 +47,7 @@ public class FinancialController {
     /**
      * 理财产品列表
      */
+    // todo 上线稳定后可以删除
     @Deprecated
     @GetMapping("/products")
     public Result products(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
@@ -54,16 +55,15 @@ public class FinancialController {
     }
 
     /**
-     * 理财产品详情【活期】
+     * 申购详情【活期】
      */
-    @Deprecated
     @GetMapping("/product/{productId}")
-    public Result oneProduct(@PathVariable("productId") Long productId) {
+    public Result fixedProductDetails(@PathVariable("productId") Long productId) {
         return Result.instance().setData(financialService.currentProductDetails(productId));
     }
 
     /**
-     * 理财产品详情【定期】
+     * 申购详情【定期】
      */
     @GetMapping("/product/fixed/{coin}")
     public Result productDetailsByCoin(@PathVariable("coin") CurrencyCoin coin) {
