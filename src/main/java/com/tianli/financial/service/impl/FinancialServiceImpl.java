@@ -490,9 +490,13 @@ public class FinancialServiceImpl implements FinancialService {
                 financialProductVO.setUseQuota(useQuota.add(baseDataAmount));
                 financialProductVO.setBaseUseQuota(baseDataAmount);
             }
-
-            LocalDateTime startIncomeTime = LocalDateTime.now().plusDays(product.getTerm().getDay());
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime startIncomeTime = now.plusDays(1);
+            // 开始记息时间
             financialProductVO.setStartIncomeTime(startIncomeTime);
+            // 申购时间
+            financialProductVO.setPurchaseTime(now);
+            // 收益发放时间
             financialProductVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
 
             // 设置第一个有效可数据的record id
