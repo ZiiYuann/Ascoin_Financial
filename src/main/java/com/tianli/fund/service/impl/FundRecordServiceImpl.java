@@ -43,9 +43,11 @@ import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.management.dto.AmountDto;
+import com.tianli.management.dto.FundUserHoldDto;
 import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.management.vo.FundUserRecordVO;
+import com.tianli.management.vo.HoldUserAmount;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -326,6 +328,25 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
             fundUserRecordVO.setWaitPayInterestAmount(orderService.calDollarAmount(waitPayInterestAmount));
             return fundUserRecordVO;
         });
+    }
+
+    @Override
+    public HoldUserAmount fundUserAmount(FundRecordQuery query) {
+        List<FundUserHoldDto> fundUserHoldDtos = fundRecordMapper.selectFundUserHoldDto(query);
+        List<AmountDto> holdAmountDtos = fundUserHoldDtos.stream().map(fundUserHoldDto ->
+                new AmountDto(fundUserHoldDto.getHoldAmount(), fundUserHoldDto.getCoin())).collect(Collectors.toList());
+        List<AmountDto> interestAmountDtos = fundUserHoldDtos.stream().map(fundUserHoldDto ->
+                new AmountDto(fundUserHoldDto.getInterestAmount(), fundUserHoldDto.getCoin())).collect(Collectors.toList());
+        List<AmountDto> waitInterestAmountDtos = fundUserHoldDtos.stream().map(fundUserHoldDto ->
+                new AmountDto(fundUserHoldDto.getWaitInterestAmount(), fundUserHoldDto.getCoin())).collect(Collectors.toList());
+        List<AmountDto> payInterestDtos = fundUserHoldDtos.stream().map(fundUserHoldDto ->
+                new AmountDto(fundUserHoldDto.getPayInterestAmount(), fundUserHoldDto.getCoin())).collect(Collectors.toList());
+        return HoldUserAmount.builder()
+                .holdAmount(orderService.calDollarAmount(holdAmountDtos))
+                .interestAmount(orderService.calDollarAmount(interestAmountDtos))
+                .waitInterestAmount(orderService.calDollarAmount(waitInterestAmountDtos))
+                .payInterestAmount(orderService.calDollarAmount(payInterestDtos))
+                .build();
     }
 
     @Override

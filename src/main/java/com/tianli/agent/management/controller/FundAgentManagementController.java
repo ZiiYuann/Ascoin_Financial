@@ -26,6 +26,7 @@ import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.vo.FundIncomeAmountVO;
 import com.tianli.management.vo.FundTransactionAmountVO;
 import com.tianli.management.vo.FundUserRecordVO;
+import com.tianli.management.vo.HoldUserAmount;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -137,6 +138,16 @@ public class FundAgentManagementController {
         query.setAgentUId(AgentContent.getAgentUId());
         IPage<FundUserRecordVO> fundUserRecordPage = fundRecordService.fundUserRecordPage(pageQuery, query);
         return Result.success(fundUserRecordPage);
+    }
+
+    /**
+     *持有记录统计
+     */
+    @GetMapping("/hold/amount")
+    public Result holdAmount(FundRecordQuery query){
+        query.setAgentUId(AgentContent.getAgentUId());
+        HoldUserAmount holdUserAmount = fundRecordService.fundUserAmount(query);
+        return Result.success(holdUserAmount);
     }
 
     /**

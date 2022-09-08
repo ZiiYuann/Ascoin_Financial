@@ -5,6 +5,7 @@ import com.tianli.fund.entity.FundRecord;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tianli.fund.query.FundRecordQuery;
 import com.tianli.management.dto.AmountDto;
+import com.tianli.management.dto.FundUserHoldDto;
 import com.tianli.management.vo.FundUserRecordVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -40,4 +41,6 @@ public interface FundRecordMapper extends BaseMapper<FundRecord> {
     BigDecimal selectHoldAmountSum(@Param("productId") Long productId,@Param("uid") Long uid);
 
     Integer selectHoldUserCount(FundRecordQuery query);
+
+    List<FundUserHoldDto>  selectFundUserHoldDto(FundRecordQuery query);
 }

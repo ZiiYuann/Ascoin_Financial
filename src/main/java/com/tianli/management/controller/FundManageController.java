@@ -17,10 +17,13 @@ import com.tianli.fund.vo.FundTransactionRecordVO;
 import com.tianli.management.vo.FundIncomeAmountVO;
 import com.tianli.management.vo.FundTransactionAmountVO;
 import com.tianli.management.vo.FundUserRecordVO;
+import com.tianli.management.vo.HoldUserAmount;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/management/fund")
@@ -78,6 +81,15 @@ public class FundManageController {
     public Result holdRecord(PageQuery<FundRecord> pageQuery, FundRecordQuery query){
         IPage<FundUserRecordVO> fundUserRecordPage = fundRecordService.fundUserRecordPage(pageQuery, query);
         return Result.success(fundUserRecordPage);
+    }
+
+    /**
+     * 持仓用户统计
+     */
+    @GetMapping("/hold/amount")
+    public Result holdAmount(FundRecordQuery query){
+        HoldUserAmount holdUserAmount = fundRecordService.fundUserAmount(query);
+        return Result.success(holdUserAmount);
     }
 
 }
