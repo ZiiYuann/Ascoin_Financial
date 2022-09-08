@@ -75,7 +75,7 @@ public class FinancialServiceImpl implements FinancialService {
         validPurchaseAmount(uid, product, amount);
 
         // 如果是活期，判断是否已经存在申购记录，如果有的话，额外添加待记息金额不生成新的记录
-        FinancialRecord financialRecord;
+        FinancialRecord financialRecord = FinancialRecord.builder().build();
         Optional<FinancialRecord> recordOptional = Optional.empty();
         if (ProductType.current.equals(product.getType())) {
             recordOptional = financialRecordService.selectByProductId(purchaseQuery.getProductId())
@@ -84,8 +84,14 @@ public class FinancialServiceImpl implements FinancialService {
                     .filter(index -> RecordStatus.PROCESS.equals(index.getStatus())).findFirst();
         }
         // 如果存在申购记录，如果是当天继续申购，则累加金额，否则累加待记利息金额
-        recordOptional.ifPresent(record -> financialRecordService.increaseWaitAmount(record.getId(), amount, record.getWaitAmount()));
-        financialRecord = recordOptional.orElse(financialRecordService.generateFinancialRecord(uid, product, amount, purchaseQuery.isAutoCurrent()));
+        if(recordOptional.isPresent()){
+            FinancialRecord record = recordOptional.get();
+            financialRecordService.increaseWaitAmount(record.getId(), amount, record.getWaitAmount());
+        }
+
+        if(recordOptional.isEmpty()){
+            financialRecord = financialRecordService.generateFinancialRecord(uid, product, amount, purchaseQuery.isAutoCurrent());
+        }
 
         // 生成一笔订单记录
         Order order = Order.builder()
