@@ -92,13 +92,13 @@ public class FinancialProductVO {
     /**
      * 记息时间
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime startIncomeTime;
 
     /**
      * 结算时间
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime settleTime;
 
     /**
