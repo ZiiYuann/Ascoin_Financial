@@ -14,6 +14,7 @@ import com.tianli.fund.query.FundTransactionQuery;
 import com.tianli.fund.vo.*;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.management.vo.FundUserRecordVO;
+import com.tianli.management.vo.HoldUserAmount;
 
 import java.math.BigDecimal;
 
@@ -47,6 +48,8 @@ public interface IFundRecordService extends IService<FundRecord> {
     FundTransactionRecordVO transactionDetail(Long transactionId);
 
     IPage<FundUserRecordVO> fundUserRecordPage(PageQuery<FundRecord> pageQuery, FundRecordQuery query);
+
+    HoldUserAmount fundUserAmount(FundRecordQuery query);
 
     FundTransactionRecordVO applyRedemption(FundRedemptionBO bo);
 

@@ -37,7 +37,6 @@ public class WalletAgentBO {
      * 子产品列表
      */
     @NotNull(message = "子产品不能为空")
-    @Size(min = 1,message = "子产品不能为空")
     private List<Product> products;
 
     @Data

@@ -16,8 +16,8 @@
             <if test="query.agentUId != null">
                 and b.uid = #{query.agentUId}
             </if>
-            <if test="agentId != null">
-                and b.agent_id = #{agentId}
+            <if test="query.agentId != null">
+                and b.agent_id = #{query.agentId}
             </if>
         </where>
         order by a.create_time
@@ -71,4 +71,28 @@
         </where>
     </select>
 
+    <select id="selectFundUserHoldDto" resultType="com.tianli.management.dto.FundUserHoldDto">
+        SELECT
+            SUM(a.hold_amount) holdAmount,
+            sum(b.interest_amount) interestAmount,
+            sum(if(b.status = 1 or b.status =2, b.interest_amount,0)) waitInterestAmount,
+            sum(if(b.status = 3, b.interest_amount,0)) payInterestAmount,
+            a.coin
+        FROM fund_record a
+        left JOIN fund_income_record b on a.id = b.fund_id
+        left JOIN wallet_agent_product c on a.product_id = c.product_id
+
+        <where>
+            <if test="queryUid != null and queryUid != ''">
+                a.uid like concat('%',#{agentUId},'%')
+            </if>
+            <if test="agentUId != null">
+                and c.uid = #{agentUId}
+            </if>
+            <if test="agentId != null">
+                and c.agent_id = #{agentId}
+            </if>
+        </where>
+        GROUP BY a.coin
+    </select>
 </mapper>
