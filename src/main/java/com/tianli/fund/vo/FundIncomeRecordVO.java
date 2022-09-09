@@ -26,7 +26,7 @@ public class FundIncomeRecordVO{
     /**
      * 产品ID
      */
-    private Integer productId;
+    private Long productId;
 
     /**
      * 产品名称

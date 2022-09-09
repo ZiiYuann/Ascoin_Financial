@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -40,13 +41,14 @@ public class FundIncomeTask {
     @Autowired
     private RedissonClient redissonClient;
 
-    @Scheduled(cron = "0 0 0 1/1 * ? ")
+    //    @Scheduled(cron = "0 0 0 1/1 * ? ")
+    @Scheduled(cron = "0 0/1 * * * ?")
     public void incomeTasks() {
-        log.info("========执行计算利息定时任务========");
+        log.info("========执行基金计算利息定时任务========");
         LocalDateTime now = LocalDateTime.now();
         String day = String.format("%s_%s", now.getMonthValue(), now.getDayOfMonth());
         String redisKey = RedisLockConstants.FUND_INCOME_TASK + day;
-        long page = incr(redisKey,60L);
+        long page = incr(redisKey, 60L);
         List<FundRecord> records = fundRecordService.page(new Page<>(page, 100)
                         , new QueryWrapper<FundRecord>().lambda().eq(FundRecord::getStatus, FundRecordStatus.PROCESS))
                 .getRecords();
@@ -54,7 +56,7 @@ public class FundIncomeTask {
             RLock lock = redissonClient.getLock(RedisLockConstants.FUND_UPDATE_LOCK + fundRecord.getId());
             try {
                 lock.lock();
-                calculateIncome(fundRecord,now);
+                calculateIncome(fundRecord, now);
             } finally {
                 lock.unlock();
             }
@@ -62,14 +64,15 @@ public class FundIncomeTask {
         });
     }
 
-    public void calculateIncome(FundRecord fundRecord,LocalDateTime now){
+    @Transactional
+    public void calculateIncome(FundRecord fundRecord, LocalDateTime now) {
         //收益记录状态改变
         List<FundIncomeRecord> fundIncomeRecords = fundIncomeRecordService.list(new QueryWrapper<FundIncomeRecord>().lambda()
                 .eq(FundIncomeRecord::getFundId, fundRecord.getId())
                 .eq(FundIncomeRecord::getStatus, FundIncomeStatus.calculated));
         fundIncomeRecords.forEach(fundIncomeRecord -> {
             LocalDateTime fundIncomeRecordCreateTime = fundIncomeRecord.getCreateTime();
-            if(fundIncomeRecordCreateTime.until(now, ChronoUnit.DAYS) >= FundCycle.interestAuditCycle){
+            if (fundIncomeRecordCreateTime.until(now, ChronoUnit.DAYS) >= FundCycle.interestAuditCycle) {
                 fundIncomeRecord.setStatus(FundIncomeStatus.wait_audit);
                 fundIncomeRecordService.updateById(fundIncomeRecord);
             }
@@ -79,7 +82,7 @@ public class FundIncomeTask {
 
         LocalDateTime createTime = fundRecord.getCreateTime();
         //四天后开始计息
-        if(createTime.until(now, ChronoUnit.DAYS) >= FundCycle.interestCalculationCycle){
+        if (createTime.toLocalDate().plusDays(1).until(now, ChronoUnit.DAYS) >= FundCycle.interestCalculationCycle) {
             BigDecimal dailyIncome = fundRecordService.dailyIncome(fundRecord.getHoldAmount(), fundRecord.getRate());
             //收益记录
             FundIncomeRecord incomeRecord = FundIncomeRecord.builder()
@@ -106,7 +109,7 @@ public class FundIncomeTask {
     public Long incr(String key, long liveTime) {
         RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
         long increment = atomicLong.incrementAndGet();
-        if ( increment == 1 && liveTime > 0) {//初始设置过期时间
+        if (increment == 1 && liveTime > 0) {//初始设置过期时间
             atomicLong.expire(Duration.ofMinutes(liveTime));
         }
         return increment;
