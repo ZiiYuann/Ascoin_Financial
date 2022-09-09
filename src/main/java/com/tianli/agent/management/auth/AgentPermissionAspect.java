@@ -3,10 +3,12 @@ package com.tianli.agent.management.auth;
 import com.tianli.common.Constants;
 import com.tianli.common.RedisConstants;
 import com.tianli.exception.ErrorCodeEnum;
-import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -20,7 +22,7 @@ public class AgentPermissionAspect {
     @Resource
     private HttpServletRequest httpServletRequest;
 
-    @Autowired
+    @Resource
     private RedissonClient redissonClient;
 
 
