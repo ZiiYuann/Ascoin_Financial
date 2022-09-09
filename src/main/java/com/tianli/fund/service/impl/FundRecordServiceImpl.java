@@ -264,6 +264,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
         FundRecordVO fundRecordVO = fundRecordConvert.toFundVO(fundRecord);
         long until = fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS);
         //七天允许赎回
+        // todo 第二天起计算七天
         fundRecordVO.setIsAllowRedemption(until >= FundCycle.interestAuditCycle);
         return fundRecordVO;
     }

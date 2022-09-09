@@ -17,8 +17,6 @@ import java.util.Objects;
 @Component
 public class AgentPermissionAspect {
 
-    private final String REQUEST_HEAD = "Authorization";
-
     @Resource
     private HttpServletRequest httpServletRequest;
 
@@ -28,11 +26,12 @@ public class AgentPermissionAspect {
 
     @Before(value = "@annotation(privilege)")
     public void verifyActiveAdmin(AgentPrivilege privilege){
+        String REQUEST_HEAD = "token";
         String token = httpServletRequest.getHeader(REQUEST_HEAD);
         if(Objects.isNull(token)){
             ErrorCodeEnum.UNLOIGN.throwException();
         }
-        String sessionKey = RedisConstants.AGENT_SESSION_KEY+token;
+        String sessionKey = RedisConstants.AGENT_SESSION_KEY + token;
         RBucket<String> bucket = redissonClient.getBucket(sessionKey);
         if(!bucket.isExists()){
             ErrorCodeEnum.UNLOIGN.throwException();
