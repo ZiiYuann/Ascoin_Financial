@@ -145,6 +145,8 @@ public class FundController {
      */
     @GetMapping("/transaction/record")
     public Result transactionRecord(PageQuery<FundTransactionRecord> page , FundTransactionQuery query){
+        Long uid = requestInitService.uid();
+        query.setUid(uid);
         IPage<FundTransactionRecordVO> transactionRecordPage = fundRecordService.transactionRecord(page, query);
         return Result.success(transactionRecordPage);
     }
