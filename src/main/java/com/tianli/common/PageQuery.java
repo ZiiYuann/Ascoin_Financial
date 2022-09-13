@@ -12,9 +12,9 @@ import lombok.Data;
 public class PageQuery<T> {
 
 
-    private int page;
+    private int page = 1;
 
-    private int pageSize;
+    private int pageSize = 10;
 
     public Page<T> page(){
         return new Page<T>(getPage(),getPageSize());

@@ -33,6 +33,4 @@ public class FundProductStatisticsVO {
 
     private BigDecimal waitPayInterestAmount;
 
-
-
 }

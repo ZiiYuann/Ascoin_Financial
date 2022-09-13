@@ -23,10 +23,11 @@ import com.tianli.management.dto.AmountDto;
 import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.tool.time.TimeTool;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.Data;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -37,19 +38,19 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class FundAgentManageServiceImpl implements FundAgentManageService {
-    @Autowired
+    @Resource
     private OrderService orderService;
 
-    @Autowired
+    @Resource
     private IFundTransactionRecordService fundTransactionRecordService;
 
-    @Autowired
+    @Resource
     private IFundIncomeRecordService fundIncomeRecordService;
 
-    @Autowired
+    @Resource
     private IFundRecordService fundRecordService;
 
-    @Autowired
+    @Resource
     IWalletAgentProductService walletAgentProductService;
 
     @Override
@@ -57,15 +58,15 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
         Long agentUId = AgentContent.getAgentUId();
         LocalDateTime startTime = null;
         LocalDateTime endTime = null;
-        if(Objects.nonNull(query.getTimeRange()) ){
-            if(query.getTimeRange() == TimeQueryEnum.day){
-                startTime = TimeTool.toLocalDateTime( DateUtil.beginOfDay(new Date()));
-            }else if(query.getTimeRange() == TimeQueryEnum.week){
-                startTime = TimeTool.toLocalDateTime( DateUtil.beginOfWeek(new Date()));
-            }else if(query.getTimeRange() == TimeQueryEnum.mouth){
-                startTime = TimeTool.toLocalDateTime( DateUtil.beginOfMonth(new Date()));
+        if (Objects.nonNull(query.getTimeRange())) {
+            if (query.getTimeRange() == TimeQueryEnum.day) {
+                startTime = TimeTool.toLocalDateTime(DateUtil.beginOfDay(new Date()));
+            } else if (query.getTimeRange() == TimeQueryEnum.week) {
+                startTime = TimeTool.toLocalDateTime(DateUtil.beginOfWeek(new Date()));
+            } else if (query.getTimeRange() == TimeQueryEnum.mouth) {
+                startTime = TimeTool.toLocalDateTime(DateUtil.beginOfMonth(new Date()));
             }
-        }else {
+        } else {
             startTime = query.getStartTime();
             endTime = query.getEndTime();
         }
@@ -98,17 +99,13 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
         FundIncomeQuery incomeQuery = FundIncomeQuery.builder()
                 .agentUId(agentUId)
                 .build();
-        List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordService.getAmount(incomeQuery);
-        List<AmountDto> payInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
-                new AmountDto(fundIncomeAmountDTO.getPayInterestAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
-        List<AmountDto> waitPayInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
-                new AmountDto(fundIncomeAmountDTO.getWaitInterestAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
+        FundAmount fundAmount = getFundAmount(incomeQuery);
         FundRecordQuery fundRecordQuery = FundRecordQuery.builder().agentUId(agentUId).build();
         Integer holdUserCount = fundRecordService.getHoldUserCount(fundRecordQuery);
         BigDecimal holdAmount = fundRecordService.getHoldAmount(fundRecordQuery);
         return HoldDataVO.builder()
-                .payInterestAmount(orderService.calDollarAmount(payInterestAmount))
-                .waitPayInterestAmount(orderService.calDollarAmount(waitPayInterestAmount))
+                .payInterestAmount(fundAmount.getPayInterestAmount())
+                .waitPayInterestAmount(fundAmount.getWaitPayInterestAmount())
                 .holdAmount(holdAmount)
                 .holdCount(holdUserCount)
                 .build();
@@ -125,16 +122,39 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
             FundIncomeQuery incomeQuery = FundIncomeQuery.builder()
                     .productId(productId)
                     .build();
-            List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordService.getAmount(incomeQuery);
-            List<AmountDto> payInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
-                    new AmountDto(fundIncomeAmountDTO.getPayInterestAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
-            List<AmountDto> waitPayInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
-                    new AmountDto(fundIncomeAmountDTO.getWaitInterestAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
+            FundAmount fundAmount = getFundAmount(incomeQuery);
             fundProductStatisticsVO.setHoldAmount(holdAmount);
             fundProductStatisticsVO.setHoldCount(holdUserCount);
-            fundProductStatisticsVO.setPayInterestAmount(orderService.calDollarAmount(payInterestAmount));
-            fundProductStatisticsVO.setWaitPayInterestAmount(orderService.calDollarAmount(waitPayInterestAmount));
+            fundProductStatisticsVO.setPayInterestAmount(fundAmount.getPayInterestAmount());
+            fundProductStatisticsVO.setWaitPayInterestAmount(fundAmount.getWaitPayInterestAmount());
             return fundProductStatisticsVO;
         });
+    }
+
+    /**
+     *  获取基金相关的计算金额 应付金额 和 待记息金额
+     */
+    private FundAmount getFundAmount(FundIncomeQuery fundIncomeQuery){
+        List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordService.getAmount(fundIncomeQuery);
+        List<AmountDto> payInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
+                new AmountDto(fundIncomeAmountDTO.getPayInterestAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
+        List<AmountDto> waitPayInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
+                new AmountDto(fundIncomeAmountDTO.getWaitInterestAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
+
+        FundAmount fundAmount = new FundAmount();
+        fundAmount.setPayInterestAmount(orderService.calDollarAmount(payInterestAmount));
+        fundAmount.setWaitPayInterestAmount(orderService.calDollarAmount(waitPayInterestAmount));
+        return fundAmount;
+    }
+
+    /**
+     * 内部类，临时存放数据
+     */
+    @Data
+    private class FundAmount {
+
+        private BigDecimal payInterestAmount;
+
+        private BigDecimal waitPayInterestAmount;
     }
 }
