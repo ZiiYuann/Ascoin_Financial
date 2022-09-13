@@ -20,7 +20,7 @@ CREATE TABLE `financial_product_ladder_rate` (
                                                  `product_id` bigint DEFAULT NULL,
                                                  `start_point` decimal(20,8) DEFAULT NULL,
                                                  `end_point` decimal(20,8) DEFAULT NULL,
-                                                 `rate` decimal(3,2) DEFAULT NULL
+                                                 `rate` decimal(4,4) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='产品阶梯配置表';
 
 ALTER TABLE `financial_product_ladder_rate`
