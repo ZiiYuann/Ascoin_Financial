@@ -68,8 +68,8 @@ public class FundAgentManagementController {
      */
     @GetMapping("/hold/data")
     @AgentPrivilege
-    public Result holdData(){
-        HoldDataVO holdDataVO = fundAgentManageService.holdData();
+    public Result holdData(FundStatisticsQuery query){
+        HoldDataVO holdDataVO = fundAgentManageService.holdData(query);
         return Result.success(holdDataVO);
     }
 
@@ -80,8 +80,8 @@ public class FundAgentManagementController {
      */
     @GetMapping("/product/statistics")
     @AgentPrivilege
-    public Result productStatistics(PageQuery<WalletAgentProduct> page){
-        IPage<FundProductStatisticsVO> statisticsPage = fundAgentManageService.productStatistics(page);
+    public Result productStatistics(PageQuery<WalletAgentProduct> page,FundStatisticsQuery query){
+        IPage<FundProductStatisticsVO> statisticsPage = fundAgentManageService.productStatistics(page,query);
         return Result.success(statisticsPage);
     }
 

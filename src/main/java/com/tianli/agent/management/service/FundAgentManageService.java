@@ -12,8 +12,8 @@ public interface FundAgentManageService {
 
     TransactionDataVO transactionData(FundStatisticsQuery query);
 
-    HoldDataVO holdData();
+    HoldDataVO holdData(FundStatisticsQuery query);
 
-    IPage<FundProductStatisticsVO> productStatistics(PageQuery<WalletAgentProduct> page);
+    IPage<FundProductStatisticsVO> productStatistics(PageQuery<WalletAgentProduct> page,FundStatisticsQuery query);
 
 }

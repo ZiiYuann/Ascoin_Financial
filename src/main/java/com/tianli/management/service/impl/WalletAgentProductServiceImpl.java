@@ -3,6 +3,7 @@ package com.tianli.management.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.agent.management.auth.AgentContent;
+import com.tianli.agent.management.query.FundStatisticsQuery;
 import com.tianli.agent.management.vo.FundProductStatisticsVO;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.ErrorCodeEnum;
@@ -50,9 +51,9 @@ public class WalletAgentProductServiceImpl extends ServiceImpl<WalletAgentProduc
     @Override
     public void deleteByProductId(Long productId) {
         Integer redemptionCount = transactionRecordService.getWaitRedemptionCount(productId);
-        if(redemptionCount > 0) ErrorCodeEnum.EXIST_WAIT_REDEMPTION.throwException();
+        if (redemptionCount > 0) ErrorCodeEnum.EXIST_WAIT_REDEMPTION.throwException();
         Integer waitPayCount = fundIncomeRecordService.getWaitPayCount(productId);
-        if(waitPayCount > 0) ErrorCodeEnum.EXIST_WAIT_INTEREST.throwException();
+        if (waitPayCount > 0) ErrorCodeEnum.EXIST_WAIT_INTEREST.throwException();
         walletAgentProductMapper.deleteByProductId(productId);
     }
 
@@ -65,12 +66,12 @@ public class WalletAgentProductServiceImpl extends ServiceImpl<WalletAgentProduc
     @Override
     public List<WalletAgentProduct> getByAgentId(Long agentId) {
         return walletAgentProductMapper.selectList(new QueryWrapper<WalletAgentProduct>().lambda()
-                .eq(WalletAgentProduct::getAgentId,agentId));
+                .eq(WalletAgentProduct::getAgentId, agentId));
     }
 
     @Override
-    public IPage<FundProductStatisticsVO> getPage(PageQuery<WalletAgentProduct> pageQuery) {
+    public IPage<FundProductStatisticsVO> getPage(PageQuery<WalletAgentProduct> pageQuery, FundStatisticsQuery query) {
         Long agentUId = AgentContent.getAgentUId();
-        return walletAgentProductMapper.selectPage(pageQuery.page(), agentUId);
+        return walletAgentProductMapper.selectPage(pageQuery.page(), agentUId,query);
     }
 }

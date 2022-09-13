@@ -1,9 +1,7 @@
 package com.tianli.agent.management.service.impl;
 
-import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.agent.management.auth.AgentContent;
-import com.tianli.agent.management.enums.TimeQueryEnum;
 import com.tianli.agent.management.query.FundStatisticsQuery;
 import com.tianli.agent.management.service.FundAgentManageService;
 import com.tianli.agent.management.vo.FundProductStatisticsVO;
@@ -22,17 +20,13 @@ import com.tianli.fund.service.IFundTransactionRecordService;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.service.IWalletAgentProductService;
-import com.tianli.tool.time.TimeTool;
 import lombok.Data;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,25 +49,13 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
 
     @Override
     public TransactionDataVO transactionData(FundStatisticsQuery query) {
+        query.calTime();
         Long agentUId = AgentContent.getAgentUId();
-        LocalDateTime startTime = null;
-        LocalDateTime endTime = null;
-        if (Objects.nonNull(query.getTimeRange())) {
-            if (query.getTimeRange() == TimeQueryEnum.day) {
-                startTime = TimeTool.toLocalDateTime(DateUtil.beginOfDay(new Date()));
-            } else if (query.getTimeRange() == TimeQueryEnum.week) {
-                startTime = TimeTool.toLocalDateTime(DateUtil.beginOfWeek(new Date()));
-            } else if (query.getTimeRange() == TimeQueryEnum.mouth) {
-                startTime = TimeTool.toLocalDateTime(DateUtil.beginOfMonth(new Date()));
-            }
-        } else {
-            startTime = query.getStartTime();
-            endTime = query.getEndTime();
-        }
+
         FundTransactionQuery transactionQuery = FundTransactionQuery
                 .builder()
-                .startTime(startTime)
-                .endTime(endTime)
+                .startTime(query.getStartTime())
+                .endTime(query.getEndTime())
                 .agentUId(agentUId).build();
         List<FundTransactionAmountDTO> fundTransactionAmountDTO = fundTransactionRecordService.getFundTransactionAmountDTO(transactionQuery);
         List<AmountDto> purchaseAmount = fundTransactionAmountDTO.stream().map(amountDTO ->
@@ -94,9 +76,12 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
     }
 
     @Override
-    public HoldDataVO holdData() {
+    public HoldDataVO holdData(FundStatisticsQuery query) {
+        query.calTime();
         Long agentUId = AgentContent.getAgentUId();
         FundIncomeQuery incomeQuery = FundIncomeQuery.builder()
+                .startTime(query.getStartTime())
+                .endTime(query.getEndTime())
                 .agentUId(agentUId)
                 .build();
         FundAmount fundAmount = getFundAmount(incomeQuery);
@@ -112,8 +97,9 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
     }
 
     @Override
-    public IPage<FundProductStatisticsVO> productStatistics(PageQuery<WalletAgentProduct> pageQuery) {
-        IPage<FundProductStatisticsVO> page = walletAgentProductService.getPage(pageQuery);
+    public IPage<FundProductStatisticsVO> productStatistics(PageQuery<WalletAgentProduct> pageQuery, FundStatisticsQuery query) {
+        query.calTime();
+        IPage<FundProductStatisticsVO> page = walletAgentProductService.getPage(pageQuery,query);
         return page.convert(fundProductStatisticsVO -> {
             Long productId = fundProductStatisticsVO.getProductId();
             FundRecordQuery fundRecordQuery = FundRecordQuery.builder().productId(productId).build();
@@ -132,9 +118,9 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
     }
 
     /**
-     *  获取基金相关的计算金额 应付金额 和 待记息金额
+     * 获取基金相关的计算金额 应付金额 和 待记息金额
      */
-    private FundAmount getFundAmount(FundIncomeQuery fundIncomeQuery){
+    private FundAmount getFundAmount(FundIncomeQuery fundIncomeQuery) {
         List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordService.getAmount(fundIncomeQuery);
         List<AmountDto> payInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
                 new AmountDto(fundIncomeAmountDTO.getPayInterestAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());

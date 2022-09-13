@@ -4,14 +4,22 @@
 
     <select id="selectPage" resultType="com.tianli.agent.management.vo.FundProductStatisticsVO">
         SELECT
-            b.id productId,
-            b.name productName,
-            b.type type,
-            b.coin coin,
-            b.rate rate
+        b.id productId,
+        b.name productName,
+        b.type as type,
+        b.coin as coin,
+        b.rate as rate
         FROM wallet_agent_product a
         left join financial_product b on a.product_id = b.id
         WHERE a.uid = #{agentUId}
+
+        <if test="query.startTime != null">
+            and a.create_time >= #{query.startTime}
+        </if>
+        <if test="query.endTime != null">
+            and a.create_time &lt;= #{query.endTime}
+        </if>
+
     </select>
 
 </mapper>

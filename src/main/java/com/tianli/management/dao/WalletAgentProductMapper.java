@@ -1,6 +1,7 @@
 package com.tianli.management.dao;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.agent.management.query.FundStatisticsQuery;
 import com.tianli.agent.management.vo.FundProductStatisticsVO;
 import com.tianli.management.entity.WalletAgentProduct;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -20,7 +21,7 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface WalletAgentProductMapper extends BaseMapper<WalletAgentProduct> {
 
-    @Select("select count(*) from wallet_agent_product where product_id = #{productId}" )
+    @Select("select count(*) from wallet_agent_product where product_id = #{productId}")
     Integer selectCountByProjectId(Long productId);
 
     @Delete("delete from wallet_agent_product where agent_id = #{agentId}")
@@ -29,6 +30,8 @@ public interface WalletAgentProductMapper extends BaseMapper<WalletAgentProduct>
     @Delete("delete from wallet_agent_product where product_id = #{productId}")
     void deleteByProductId(Long productId);
 
-    IPage<FundProductStatisticsVO> selectPage(@Param("page") IPage<WalletAgentProduct> pageQuery,@Param("agentUId") Long agentUId);
+    IPage<FundProductStatisticsVO> selectPage(@Param("page") IPage<WalletAgentProduct> pageQuery,
+                                              @Param("agentUId") Long agentUId,
+                                              @Param("query") FundStatisticsQuery query);
 
 }
