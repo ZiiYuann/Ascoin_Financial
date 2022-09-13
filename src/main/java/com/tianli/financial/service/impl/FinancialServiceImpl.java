@@ -480,7 +480,7 @@ public class FinancialServiceImpl implements FinancialService {
             BigDecimal totalQuota = product.getTotalQuota();
             BigDecimal personQuota = product.getPersonQuota();
             BigDecimal useQuota = product.getUseQuota();
-
+            var accountBalance = accountBalanceService.getAndInit(requestInitService.uid(), product.getCoin());
             // 设置额度信息
             FinancialProductVO financialProductVO = financialConverter.toFinancialProductVO(product);
             financialProductVO.setUserPersonQuota(usePersonQuota);
@@ -507,6 +507,8 @@ public class FinancialServiceImpl implements FinancialService {
 
             // 设置第一个有效可数据的record id
             financialProductVO.setRecordId(firstProcessRecordMap.get(product.getId()));
+
+            financialProductVO.setAvailableBalance(accountBalance.getRemain());
 
             return financialProductVO;
         });
