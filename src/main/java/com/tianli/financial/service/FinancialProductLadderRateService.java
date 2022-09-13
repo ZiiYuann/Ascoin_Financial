@@ -39,6 +39,23 @@ public class FinancialProductLadderRateService extends ServiceImpl<FinancialProd
         }
 
         for (int i = 0; i < rates.size(); i++) {
+
+            if (Objects.isNull(rates.get(i)) || Objects.isNull(rates.get(i).getRate())) {
+                ErrorCodeEnum.throwException("不允许有null数据");
+            }
+
+            if (rates.get(i).getRate().compareTo(BigDecimal.ZERO) <= 0) {
+                ErrorCodeEnum.throwException("利率不允许小于等于0");
+            }
+
+            if (i != rates.size() - 1 && (Objects.isNull(rates.get(i).getEndPoint()) || Objects.isNull(rates.get(i).getStartPoint()))) {
+                ErrorCodeEnum.throwException("除了最后阶段结束节点，其余节点值不允许为空");
+            }
+
+            if (i == rates.size() - 1 && Objects.isNull(rates.get(i).getStartPoint())) {
+                ErrorCodeEnum.throwException("最后一个阶段，开始节点不允许为空");
+            }
+
             if (i == 0 && rates.get(i).getStartPoint().compareTo(BigDecimal.ZERO) != 0) {
                 ErrorCodeEnum.throwException("第一阶段开始必须为0");
             }
