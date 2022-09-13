@@ -285,18 +285,18 @@
             <version>${org.mapstruct.version}</version>
         </dependency>
 
-        <!-- 验证码 -->
-        <dependency>
-            <groupId>com.github.penggle</groupId>
-            <artifactId>kaptcha</artifactId>
-            <version>${kaptcha.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>com.alibaba.testable</groupId>
             <artifactId>testable-all</artifactId>
             <version>${testable.version}</version>
             <scope>test</scope>
+        </dependency>
+
+        <!-- 自己加的验证码EasyCaptcha依赖  -->
+        <dependency>
+            <groupId>com.github.whvcse</groupId>
+            <artifactId>easy-captcha</artifactId>
+            <version>1.6.2</version>
         </dependency>
 
     </dependencies>

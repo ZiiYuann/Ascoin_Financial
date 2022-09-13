@@ -5,10 +5,10 @@ import com.google.code.kaptcha.Producer;
 import com.tianli.agent.management.vo.CaptchaImageVO;
 import com.tianli.common.RedisConstants;
 import com.tianli.exception.Result;
-import com.tianli.tool.crypto.Base64;
+import com.wf.captcha.SpecCaptcha;
+import com.wf.captcha.base.Captcha;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.FastByteArrayOutputStream;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,19 +22,14 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 验证码操作处理
- *
  */
 @RestController
 @RequestMapping("/agent/management")
-public class CaptchaController
-{
+public class CaptchaController {
     @Resource(name = "captchaProducer")
     private Producer captchaProducer;
 
-    @Resource(name = "captchaProducerMath")
-    private Producer captchaProducerMath;
-
-    @Autowired
+    @Resource
     private RedissonClient redissonClient;
 
     /**
@@ -48,25 +43,23 @@ public class CaptchaController
 
         String capStr, code;
         BufferedImage image;
+        Captcha captcha = new SpecCaptcha(115, 42);
 
         // 生成验证码
-        capStr = code = captchaProducer.createText();
+        capStr = code = captcha.text();
         image = captchaProducer.createImage(capStr);
         RBucket<Object> bucket = redissonClient.getBucket(verifyKey);
-        bucket.set(code,5L,TimeUnit.MINUTES);
+        bucket.set(code, 5L, TimeUnit.MINUTES);
         // 转换流信息写出
         FastByteArrayOutputStream os = new FastByteArrayOutputStream();
-        try
-        {
+        try {
             ImageIO.write(image, "jpg", os);
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             return Result.fail(e.getMessage());
         }
         CaptchaImageVO captchaImageVO = CaptchaImageVO.builder()
                 .uuid(uuid)
-                .img("data:image/png;base64,"+Base64.encode(os.toByteArray()))
+                .img(captcha.toBase64())
                 .build();
         return Result.success(captchaImageVO);
     }
