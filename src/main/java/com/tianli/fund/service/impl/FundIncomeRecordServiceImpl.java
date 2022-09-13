@@ -2,6 +2,7 @@ package com.tianli.fund.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.agent.management.auth.AgentContent;
@@ -16,28 +17,25 @@ import com.tianli.common.PageQuery;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.fund.contant.FundIncomeStatus;
-import com.tianli.fund.contant.FundTransactionStatus;
 import com.tianli.fund.convert.FundRecordConvert;
 import com.tianli.fund.dao.FundIncomeRecordMapper;
 import com.tianli.fund.dto.FundIncomeAmountDTO;
 import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.entity.FundReview;
-import com.tianli.fund.entity.FundTransactionRecord;
 import com.tianli.fund.enums.FundReviewStatus;
 import com.tianli.fund.enums.FundReviewType;
 import com.tianli.fund.query.FundIncomeQuery;
 import com.tianli.fund.service.IFundIncomeRecordService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.fund.service.IFundReviewService;
 import com.tianli.fund.vo.FundIncomeRecordVO;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.vo.FundIncomeAmountVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -56,36 +54,34 @@ import java.util.stream.Collectors;
 @Transactional
 public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMapper, FundIncomeRecord> implements IFundIncomeRecordService {
 
-    @Autowired
+    @Resource
     private FundIncomeRecordMapper fundIncomeRecordMapper;
-
-    @Autowired
+    @Resource
     private OrderService orderService;
-    @Autowired
+    @Resource
     private IFundReviewService fundReviewService;
 
-    @Autowired
+    @Resource
     private FundRecordConvert fundRecordConvert;
 
-    @Autowired
+    @Resource
     private AccountBalanceService accountBalanceService;
 
-    @Autowired
+    @Resource
     private IFundRecordService fundRecordService;
+
     @Override
     public List<AmountDto> getAmountByUidAndStatus(Long uid, Integer status) {
         FundIncomeQuery query = new FundIncomeQuery();
         query.setUid(uid);
         query.setStatus(status);
         List<FundIncomeAmountDTO> fundIncomeAmountDTOS = getAmount(query);
-        List<AmountDto> amountDtos = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
-                new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
-        return amountDtos;
+        return fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO -> new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
     }
 
     @Override
     public IPage<FundIncomeRecordVO> getPage(PageQuery<FundIncomeRecord> page, FundIncomeQuery query) {
-        return fundIncomeRecordMapper.selectIncomePage(page.page(),query);
+        return fundIncomeRecordMapper.selectIncomePage(page.page(), query);
     }
 
     @Override
@@ -104,93 +100,70 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
 
     @Override
     public Integer getWaitPayCount(Long productId) {
-        return this.count(new QueryWrapper<FundIncomeRecord>().lambda()
-                .eq(FundIncomeRecord::getProductId,productId)
-                .eq(FundIncomeRecord::getStatus, FundIncomeStatus.wait_audit)
-        );
+        return this.count(new QueryWrapper<FundIncomeRecord>().lambda().eq(FundIncomeRecord::getProductId, productId).eq(FundIncomeRecord::getStatus, FundIncomeStatus.wait_audit));
     }
 
     @Override
+    @Transactional
     public void incomeAudit(FundAuditBO bo) {
         List<Long> ids = bo.getIds();
         FundReviewStatus status = bo.getStatus();
         Long agentId = AgentContent.getAgentUId();
-        ids.forEach(id->{
+        ids.forEach(id -> {
             FundIncomeRecord fundIncomeRecord = this.getById(id);
-            if(Objects.isNull(fundIncomeRecord)) ErrorCodeEnum.INCOME_NOT_EXIST.throwException();
-            if(!fundIncomeRecord.getStatus().equals(FundIncomeStatus.wait_audit)
-                && !fundIncomeRecord.getStatus().equals(FundIncomeStatus.audit_failure)) ErrorCodeEnum.INCOME_STATUS_ERROR.throwException();
+            validFundIncomeRecordReview(id, fundIncomeRecord);
+
             Long uid = fundIncomeRecord.getUid();
-            if(status == FundReviewStatus.success) {
-                Order agentOrder = Order.builder()
-                        .uid(agentId)
-                        .coin(fundIncomeRecord.getCoin())
-                        .relatedId(fundIncomeRecord.getId())
-                        .orderNo(AccountChangeType.agent_fund_interest.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
-                        .amount(fundIncomeRecord.getInterestAmount())
-                        .type(ChargeType.agent_fund_interest)
-                        .status(ChargeStatus.chain_success)
-                        .createTime(LocalDateTime.now())
-                        .completeTime(LocalDateTime.now())
-                        .build();
+
+            // 保存审核记录信息
+            FundReview fundReview = FundReview.builder().rId(id).type(FundReviewType.income).status(status == FundReviewStatus.success ? FundReviewStatus.success : FundReviewStatus.fail).remark(bo.getRemark()).createTime(LocalDateTime.now()).build();
+            fundReviewService.save(fundReview);
+
+            // 设置收益记录的状态
+            fundIncomeRecord.setStatus(status == FundReviewStatus.success ? FundIncomeStatus.audit_success : FundIncomeStatus.audit_failure);
+
+            if (status == FundReviewStatus.success) {
+                // 订单【代理基金支付利息】 对于代理而言
+                Order agentOrder = Order.builder().uid(agentId).coin(fundIncomeRecord.getCoin()).relatedId(fundIncomeRecord.getId()).orderNo(AccountChangeType.agent_fund_interest.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId())).amount(fundIncomeRecord.getInterestAmount()).type(ChargeType.agent_fund_interest).status(ChargeStatus.chain_success).createTime(LocalDateTime.now()).completeTime(LocalDateTime.now()).build();
                 orderService.save(agentOrder);
                 // 减少余额
                 accountBalanceService.decrease(agentId, ChargeType.agent_fund_interest, fundIncomeRecord.getCoin(), fundIncomeRecord.getInterestAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金利息.name());
 
-                //生成一笔订单
-                Order order = Order.builder()
-                        .uid(uid)
-                        .coin(fundIncomeRecord.getCoin())
-                        .relatedId(fundIncomeRecord.getId())
-                        .orderNo(AccountChangeType.fund_interest.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
-                        .amount(fundIncomeRecord.getInterestAmount())
-                        .type(ChargeType.fund_interest)
-                        .status(ChargeStatus.chain_success)
-                        .createTime(LocalDateTime.now())
-                        .completeTime(LocalDateTime.now())
-                        .build();
+                //订单【基金利息】对于客户而言
+                Order order = Order.builder().uid(uid).coin(fundIncomeRecord.getCoin()).relatedId(fundIncomeRecord.getId()).orderNo(AccountChangeType.fund_interest.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId())).amount(fundIncomeRecord.getInterestAmount()).type(ChargeType.fund_interest).status(ChargeStatus.chain_success).createTime(LocalDateTime.now()).completeTime(LocalDateTime.now()).build();
                 orderService.save(order);
                 // 增加余额
                 accountBalanceService.increase(uid, ChargeType.fund_interest, fundIncomeRecord.getCoin(), fundIncomeRecord.getInterestAmount(), order.getOrderNo(), CurrencyLogDes.基金利息.name());
 
-                FundReview fundReview = FundReview.builder()
-                        .rId(id)
-                        .type(FundReviewType.income)
-                        .status(FundReviewStatus.success)
-                        .remark(bo.getRemark())
-                        .createTime(LocalDateTime.now())
-                        .build();
-                fundReviewService.save(fundReview);
-
-                fundIncomeRecord.setStatus(FundTransactionStatus.success);
-                this.updateById(fundIncomeRecord);
                 //持仓记录待发已发修改
                 FundRecord fundRecord = fundRecordService.getById(fundIncomeRecord.getFundId());
                 fundRecord.setWaitIncomeAmount(fundRecord.getWaitIncomeAmount().subtract(fundIncomeRecord.getInterestAmount()));
                 fundRecord.setIncomeAmount(fundRecord.getIncomeAmount().add(fundIncomeRecord.getInterestAmount()));
                 fundRecordService.updateById(fundRecord);
-            }else {
-                FundReview fundReview = FundReview.builder()
-                        .rId(id)
-                        .type(FundReviewType.income)
-                        .status(FundReviewStatus.fail)
-                        .remark(bo.getRemark())
-                        .createTime(LocalDateTime.now())
-                        .build();
-                fundReviewService.save(fundReview);
-
-                fundIncomeRecord.setStatus(FundTransactionStatus.fail);
-                this.updateById(fundIncomeRecord);
             }
+
+            this.updateById(fundIncomeRecord);
         });
     }
 
     @Override
     public List<FundReviewVO> getIncomeAuditRecord(Long id) {
         FundIncomeRecord incomeRecord = this.getById(id);
-        if(Objects.isNull(incomeRecord)) ErrorCodeEnum.INCOME_NOT_EXIST.throwException();
+        if (Objects.isNull(incomeRecord)) ErrorCodeEnum.INCOME_NOT_EXIST.throwException();
         List<FundReview> fundReviews = fundReviewService.getListByRid(id);
         return fundReviews.stream().map(fundReview -> fundRecordConvert.toReviewVO(fundReview)).collect(Collectors.toList());
+    }
+
+    /**
+     * 校验收益记录是否有效
+     */
+    private void validFundIncomeRecordReview(Long id, FundIncomeRecord fundIncomeRecord) {
+        String msg = String.format("审核记录id：【%s】存在异常，请排查", id);
+        // 判断持有记录存在与否
+        if (Objects.isNull(fundIncomeRecord)) throw ErrorCodeEnum.INCOME_NOT_EXIST.generalException(msg);
+        // 判断记录的状态是否有效
+        if (!fundIncomeRecord.getStatus().equals(FundIncomeStatus.wait_audit) && !fundIncomeRecord.getStatus().equals(FundIncomeStatus.audit_failure))
+            throw ErrorCodeEnum.INCOME_STATUS_ERROR.generalException(msg);
     }
 
 }
