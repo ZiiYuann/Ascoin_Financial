@@ -4,12 +4,12 @@
 
     <select id="selectTransactionAmount" resultType="com.tianli.fund.dto.FundTransactionAmountDTO">
         select
-            sum(if(type = 'purchase',a.transaction_amount,0 ) ) purchaseAmount,
-            sum(if(type = 'redemption',a.transaction_amount,0 ) ) redemptionAmount,
-            a.coin
+        sum(if(type = 'purchase',a.transaction_amount,0 ) ) purchaseAmount,
+        sum(if(type = 'redemption',a.transaction_amount,0 ) ) redemptionAmount,
+        a.coin
         from
-            fund_transaction_record a
-            left join wallet_agent_product b on a.product_id = b.product_id
+        fund_transaction_record a
+        left join wallet_agent_product b on a.product_id = b.product_id
         <where>
             <if test="agentId != null">
                 b.agent_id = #{agentId}
@@ -44,25 +44,30 @@
 
     <select id="selectTransactionPage" resultType="com.tianli.fund.vo.FundTransactionRecordVO">
         select
-            a.id,
-            a.uid uid,
-            a.product_id productId,
-            a.product_name productName,
-            c.product_name_en productNameEn,
-            a.coin,
-            c.rate,
-            a.transaction_amount transactionAmount,
-            a.type,
-            a.status,
-            a.create_time createTime
+        a.id,
+        a.uid uid,
+        a.product_id productId,
+        a.product_name productName,
+        c.product_name_en productNameEn,
+        a.coin,
+        c.rate,
+        a.transaction_amount transactionAmount,
+        a.type,
+        a.status,
+        a.create_time createTime
         from
         fund_transaction_record a
         left join wallet_agent_product b on a.product_id = b.product_id
         left join fund_record c on a.fund_id = c.id
         <where>
+            1 = 1
             <if test="query.agentId != null">
-                b.agent_id = #{query.agentId}
+                and b.agent_id = #{query.agentId}
             </if>
+            <if test="query.uid != null">
+                and a.uid = #{query.uid}
+            </if>
+
             <if test="query.queryUid != null and query.queryUid != ''">
                 and a.uid like concat('%',#{query.queryUid},'%')
             </if>
@@ -92,12 +97,11 @@
     </select>
 
     <select id="selectWaitRedemptionCount" resultType="int">
-        select
-            count(*)
-        from
-            fund_transaction_record a
-        left join
-            wallet_agent_product b on a.product_id = b.product_id
-        where b.uid = #{agentUid} and a.status = 3
+        select count(*)
+        from fund_transaction_record a
+                 left join
+             wallet_agent_product b on a.product_id = b.product_id
+        where b.uid = #{agentUid}
+          and a.status = 3
     </select>
 </mapper>
