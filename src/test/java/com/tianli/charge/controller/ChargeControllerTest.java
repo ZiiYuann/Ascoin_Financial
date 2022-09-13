@@ -28,7 +28,7 @@ class ChargeControllerTest {
         httpPost.setHeader("Sign", sign);
         httpPost.setHeader("timestamp", l + "");
 //        httpPost.setEntity(new StringEntity(""));
-        httpPost.setEntity(new StringEntity("{\"token\": [{\"id\": 1742812302590244593, \"to\": \"0x5d7928f92609ec2d3439e7acc13671844933eb4d\", \"from\": \"0xb977170defa4a12e5144588bc1fe9e8257d59b21\", \"hash\": \"0xba7cce1b2bca60f0cccc29e6fd24e0edb28dcef08a5c3ad2ce47e41d5b6136a3\", \"block\": 20964949, \"value\": 9.999e21, \"createTime\": {\"date\": {\"day\": 2, \"year\": 2022, \"month\": 9}, \"time\": {\"hour\": 7, \"nano\": 0, \"minute\": 35, \"second\": 21}}, \"contractAddress\": \"0x55d398326f99059ff775485246999027b3197955\"}], \"standardCurrency\": []}"));
+        httpPost.setEntity(new StringEntity("{\"token\": [{\"id\": 1742812302590244593, \"to\": \"0x5055bc1c3fae9b059b446beafa577c7dbe897ef9\", \"from\": \"0xb977170defa4a12e5144588bc1fe9e8257d59b21\", \"hash\": \"0xba7cce1b2bca60f0cccc29e6fd24e0edb28dcef08a5c3ad2ce47e41d5b6136a7\", \"block\": 20964949, \"value\": 10000000000000000000, \"createTime\": {\"date\": {\"day\": 2, \"year\": 2022, \"month\": 9}, \"time\": {\"hour\": 7, \"nano\": 0, \"minute\": 35, \"second\": 21}}, \"contractAddress\": \"0x55d398326f99059ff775485246999027b3197955\"}], \"standardCurrency\": []}"));
         client.execute(httpPost);
     }
 

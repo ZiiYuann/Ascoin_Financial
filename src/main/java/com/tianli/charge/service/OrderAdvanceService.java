@@ -98,7 +98,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
             return;
         }
 
-        if (!orderAdvance.getAmount().equals(finalAmount)) {
+        if ( orderAdvance.getAmount().compareTo(finalAmount) != 0) {
             log.error("充值金额与预订单金额不符合");
             return;
         }
