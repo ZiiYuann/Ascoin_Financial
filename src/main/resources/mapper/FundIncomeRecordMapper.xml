@@ -44,6 +44,7 @@
         select
         a.id,
         a.product_id productId,
+        a.uid,
         a.product_name productName,
         a.coin,
         a.rate,
