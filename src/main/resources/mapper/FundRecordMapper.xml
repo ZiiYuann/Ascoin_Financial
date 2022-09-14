@@ -22,19 +22,16 @@
 
 
     <select id="selectHoldAmount" resultType="com.tianli.management.dto.AmountDto">
-        SELECT sum(a.hold_amount) amount,
-        coin
-        FROM fund_record a
-        left JOIN wallet_agent_product b on a.product_id = b.product_id
+        SELECT sum(a.hold_amount) amount,a.coin
+        FROM
+        wallet_agent_product b
+        left JOIN fund_record a on a.product_id = b.product_id
         <where>
-            <if test="agentUId != null">
-                b.uid = #{agentUId}
+            <if test="query.agentId != null">
+                b.agent_id = #{query.agentId}
             </if>
-            <if test="productId != null">
-                and a.product_id = #{productId}
-            </if>
-            <if test="uid != null">
-                and a.uid = #{uid}
+            <if test="query.productId != null">
+                and a.product_id = #{query.productId}
             </if>
         </where>
         group by a.coin
@@ -60,11 +57,11 @@
         INNER JOIN fund_record a on a.product_id = b.product_id
         <where>
             a.status = 'PROCESS'
-            <if test="agentId != null">
-                and b.agent_id = #{agentId}
+            <if test="query.agentId != null">
+                and b.agent_id = #{query.agentId}
             </if>
-            <if test="productId != null">
-                and b.product_id = #{productId}
+            <if test="query.productId != null">
+                and b.product_id = #{query.productId}
             </if>
         </where>
     </select>
@@ -79,7 +76,7 @@
         FROM (select id,coin,sum(hold_amount) as hold_amount ,product_id from fund_record WHERE `status` = 'PROCESS'
         <where>
             <if test="queryUid != null and queryUid != ''">
-                uid like concat('%',#{agentUId},'%')
+                uid like concat('%',#{queryUid},'%')
             </if>
         </where>
         GROUP BY id,coin,product_id
@@ -89,9 +86,6 @@
         = b.fund_id
         left JOIN wallet_agent_product c on a.product_id = c.product_id
         <where>
-            <if test="agentUId != null">
-                and c.uid = #{agentUId}
-            </if>
             <if test="agentId != null">
                 and c.agent_id = #{agentId}
             </if>

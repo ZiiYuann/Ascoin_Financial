@@ -11,7 +11,7 @@
         b.rate as rate
         FROM wallet_agent_product a
         left join financial_product b on a.product_id = b.id
-        WHERE a.uid = #{agentUId}
+        WHERE a.agent_id = #{agentId}
 
         <if test="query.startTime != null">
             and a.create_time >= #{query.startTime}

@@ -31,7 +31,7 @@ public interface WalletAgentProductMapper extends BaseMapper<WalletAgentProduct>
     void deleteByProductId(Long productId);
 
     IPage<FundProductStatisticsVO> selectPage(@Param("page") IPage<WalletAgentProduct> pageQuery,
-                                              @Param("agentUId") Long agentUId,
+                                              @Param("agentId") Long agentId,
                                               @Param("query") FundStatisticsQuery query);
 
 }

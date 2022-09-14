@@ -22,9 +22,9 @@ import java.util.List;
 @Mapper
 public interface FundIncomeRecordMapper extends BaseMapper<FundIncomeRecord> {
 
-    List<FundIncomeAmountDTO> selectAmount(FundIncomeQuery query);
+    List<FundIncomeAmountDTO> selectAmount(@Param("query") FundIncomeQuery query);
 
     IPage<FundIncomeRecordVO> selectIncomePage(@Param("page") IPage<FundIncomeRecord> page,@Param("query") FundIncomeQuery query);
 
-    Integer selectWaitInterestCount(Long agentUid);
+    Integer selectWaitInterestCount(Long agentId);
 }

@@ -26,5 +26,5 @@ public interface FundTransactionRecordMapper extends BaseMapper<FundTransactionR
     IPage<FundTransactionRecordVO> selectTransactionPage(@Param("page") IPage<FundTransactionRecord> page,
                                                          @Param("query") FundTransactionQuery query);
 
-    Integer selectWaitRedemptionCount(@Param("agentUid")Long agentUid);
+    Integer selectWaitRedemptionCount(@Param("agentId")Long agentId);
 }

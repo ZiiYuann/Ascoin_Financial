@@ -36,11 +36,11 @@ public interface FundRecordMapper extends BaseMapper<FundRecord> {
 
     IPage<FundUserRecordVO> selectDistinctUidPage(@Param("page") IPage<FundRecord> page,@Param("query") FundRecordQuery query);
 
-    List<AmountDto> selectHoldAmount(FundRecordQuery query);
+    List<AmountDto> selectHoldAmount(@Param("query") FundRecordQuery query);
 
     BigDecimal selectHoldAmountSum(@Param("productId") Long productId,@Param("uid") Long uid);
 
-    Integer selectHoldUserCount(FundRecordQuery query);
+    Integer selectHoldUserCount(@Param("query") FundRecordQuery query);
 
     List<FundUserHoldDto>  selectFundUserHoldDto(FundRecordQuery query);
 }

@@ -30,8 +30,6 @@ public class FundIncomeQuery {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
 
-    private Long agentUId;
-
     private Long productId;
 
     private Long agentId;

@@ -205,8 +205,8 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
         return orderService.amountDollarSumByChargeType(uid,ChargeType.withdraw);
     }
 
-    private BigDecimal getHoldAmount(Long agentUId){
-        List<AmountDto> amountDtos = walletAgentMapper.holdAmountSum(agentUId);
+    private BigDecimal getHoldAmount(Long agentId){
+        List<AmountDto> amountDtos = walletAgentMapper.holdAmountSum(agentId);
         return orderService.calDollarAmount(amountDtos);
     }
 

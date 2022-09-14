@@ -35,8 +35,8 @@
             <if test="endTime != null">
                 and a.create_time &lt;= #{endTime}
             </if>
-            <if test="agentUId != null">
-                and b.uid = #{agentUId}
+            <if test="agentId != null">
+                and b.agent_id = #{agentId}
             </if>
         </where>
         group by coin
@@ -89,8 +89,8 @@
             <if test="query.endTime != null">
                 and a.create_time &lt;= #{query.endTime}
             </if>
-            <if test="query.agentUId != null">
-                and b.uid = #{query.agentUId}
+            <if test="query.agentId != null">
+                and b.agent_id = #{query.agentId}
             </if>
         </where>
         order by a.create_time desc
@@ -101,7 +101,7 @@
         from fund_transaction_record a
                  left join
              wallet_agent_product b on a.product_id = b.product_id
-        where b.uid = #{agentUid}
+        where b.agent_id = #{agentId}
           and a.status = 3
     </select>
 </mapper>

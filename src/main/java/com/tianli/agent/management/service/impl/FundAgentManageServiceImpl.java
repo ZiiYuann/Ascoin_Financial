@@ -50,20 +50,20 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
     @Override
     public TransactionDataVO transactionData(FundStatisticsQuery query) {
         query.calTime();
-        Long agentUId = AgentContent.getAgentId();
+        Long agentId = AgentContent.getAgentId();
 
         FundTransactionQuery transactionQuery = FundTransactionQuery
                 .builder()
                 .startTime(query.getStartTime())
                 .endTime(query.getEndTime())
-                .agentUId(agentUId).build();
+                .agentId(agentId).build();
         List<FundTransactionAmountDTO> fundTransactionAmountDTO = fundTransactionRecordService.getFundTransactionAmountDTO(transactionQuery);
         List<AmountDto> purchaseAmount = fundTransactionAmountDTO.stream().map(amountDTO ->
                 new AmountDto(amountDTO.getPurchaseAmount(), amountDTO.getCoin())).collect(Collectors.toList());
         List<AmountDto> redemptionAmount = fundTransactionAmountDTO.stream().map(amountDTO ->
                 new AmountDto(amountDTO.getRedemptionAmount(), amountDTO.getCoin())).collect(Collectors.toList());
         FundIncomeQuery incomeQuery = FundIncomeQuery.builder()
-                .agentUId(agentUId)
+                .agentId(agentId)
                 .build();
         List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordService.getAmount(incomeQuery);
         List<AmountDto> interestAmount = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
@@ -78,14 +78,14 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
     @Override
     public HoldDataVO holdData(FundStatisticsQuery query) {
         query.calTime();
-        Long agentUId = AgentContent.getAgentId();
+        Long agentId = AgentContent.getAgentId();
         FundIncomeQuery incomeQuery = FundIncomeQuery.builder()
                 .startTime(query.getStartTime())
                 .endTime(query.getEndTime())
-                .agentUId(agentUId)
+                .agentId(agentId)
                 .build();
         FundAmount fundAmount = getFundAmount(incomeQuery);
-        FundRecordQuery fundRecordQuery = FundRecordQuery.builder().agentUId(agentUId).build();
+        FundRecordQuery fundRecordQuery = FundRecordQuery.builder().agentId(agentId).build();
         Integer holdUserCount = fundRecordService.getHoldUserCount(fundRecordQuery);
         BigDecimal holdAmount = fundRecordService.getHoldAmount(fundRecordQuery);
         return HoldDataVO.builder()

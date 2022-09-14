@@ -12,29 +12,29 @@
         LEFT JOIN fund_record b on c.product_id = b.product_id
         LEFT JOIN fund_income_record a on b.id = a.fund_id
         <where>
-            <if test="uid != null">
-                and a.uid = #{uid}
+            <if test="query.uid != null">
+                and a.uid = #{query.uid}
             </if>
-            <if test="queryUid != null and queryUid != ''">
-                and a.uid like concat('%',#{queryUid},'%')
+            <if test="query.queryUid != null and query.queryUid != ''">
+                and a.uid like concat('%',#{query.queryUid},'%')
             </if>
-            <if test="queryProductId != null and queryProductId != ''">
-                and a.product_id like concat('%',#{queryProductId},'%')
+            <if test="query.queryProductId != null and query.queryProductId != ''">
+                and a.product_id like concat('%',#{query.queryProductId},'%')
             </if>
-            <if test="status != null">
-                and a.status = #{status}
+            <if test="query.status != null">
+                and a.status = #{query.status}
             </if>
-            <if test="startTime != null">
-                and a.create_time >= #{startTime}
+            <if test="query.startTime != null">
+                and a.create_time >= #{query.startTime}
             </if>
-            <if test="endTime != null">
-                and a.create_time &lt;= #{endTime}
+            <if test="query.endTime != null">
+                and a.create_time &lt;= #{query.endTime}
             </if>
-            <if test="agentUId != null">
-                and c.agent_id = #{agentUId}
+            <if test="query.agentId != null">
+                and c.agent_id = #{query.agentId}
             </if>
-            <if test="productId != null">
-                and b.product_id = #{productId}
+            <if test="query.endTime.productId != null">
+                and b.product_id = #{query.productId}
             </if>
         </where>
         group by coin
@@ -77,8 +77,8 @@
             <if test="query.endTime != null">
                 and a.create_time &lt;= #{query.endTime}
             </if>
-            <if test="query.agentUId != null">
-                and b.uid = #{query.agentUId}
+            <if test="query.agentId != null">
+                and b.agent_id = #{agentId}
             </if>
             <if test="query.productId != null">
                 and b.productId = #{query.productId}
@@ -95,6 +95,6 @@
         from fund_income_record a
                  left join wallet_agent_product b on a.product_id = b.product_id
         where a.status in (1, 2)
-          and b.uid = #{agentUid}
+          and b.agent_id = #{agentId}
     </select>
 </mapper>

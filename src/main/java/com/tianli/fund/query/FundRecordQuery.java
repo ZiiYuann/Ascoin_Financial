@@ -11,13 +11,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class FundRecordQuery {
 
-    private Long uid;
-
+    /**
+     * 持有用户对uid
+     */
     private String queryUid;
 
-    private Long agentUId;
+    /**
+     * 代理人id
+     */
+    private Long agentId;
+
 
     private Long productId;
 
-    private Long agentId;
+
 }
