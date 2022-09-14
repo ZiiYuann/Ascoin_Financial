@@ -18,6 +18,8 @@ public class FundIncomeRecordVO{
 
     private static final long serialVersionUID=1L;
 
+    private Long uid;
+
     /**
      * id
      */
