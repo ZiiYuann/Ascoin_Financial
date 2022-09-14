@@ -4,11 +4,11 @@
 
     <select id="selectDistinctUidPage" resultType="com.tianli.management.vo.FundUserRecordVO">
         select
-            distinct a.uid
+        distinct a.uid
         from
-            fund_record a
+        fund_record a
         left join
-            wallet_agent_product b on a.product_id = b.product_id
+        wallet_agent_product b on a.product_id = b.product_id
         <where>
             <if test="query.queryUid != null and query.queryUid != ''">
                 a.uid like concat('%',#{query.queryUid},'%')
@@ -25,20 +25,20 @@
 
 
     <select id="selectHoldAmount" resultType="com.tianli.management.dto.AmountDto">
-        SELECT sum(a.hold_amount)  amount,
-               coin
+        SELECT sum(a.hold_amount) amount,
+        coin
         FROM fund_record a
-            left JOIN wallet_agent_product b on a.product_id = b.product_id
+        left JOIN wallet_agent_product b on a.product_id = b.product_id
         <where>
-         <if test="agentUId != null">
-            b.uid = #{agentUId}
-         </if>
-        <if test="productId != null">
-            and a.product_id = #{productId}
-        </if>
-        <if test="uid != null">
-            and a.uid = #{uid}
-        </if>
+            <if test="agentUId != null">
+                b.uid = #{agentUId}
+            </if>
+            <if test="productId != null">
+                and a.product_id = #{productId}
+            </if>
+            <if test="uid != null">
+                and a.uid = #{uid}
+            </if>
         </where>
         group by a.coin
     </select>
@@ -48,7 +48,7 @@
         FROM fund_record
         <where>
             <if test="productId != null">
-                 product_id = #{productId}
+                product_id = #{productId}
             </if>
             <if test="uid != null">
                 and uid = #{uid}
@@ -58,16 +58,17 @@
 
     <select id="selectHoldUserCount" resultType="int">
         SELECT count(DISTINCT a.uid)
-        FROM fund_record a
-            left JOIN wallet_agent_product b on a.product_id = b.product_id
+
+        FROM wallet_agent_product b
+        INNER JOIN fund_record a on a.product_id = b.product_id
         <where>
-         a.status = 'PROCESS'
-         <if test="agentId != null">
-             and b.agent_id = #{agentId}
-         </if>
-         <if test="productId != null">
-             and b.product_id = #{productId}
-         </if>
+            a.status = 'PROCESS'
+            <if test="agentId != null">
+                and b.agent_id = #{agentId}
+            </if>
+            <if test="productId != null">
+                and b.product_id = #{productId}
+            </if>
         </where>
     </select>
 
@@ -78,16 +79,17 @@
         sum(if(b.status = 1 or b.status =2, b.interest_amount,0)) waitInterestAmount,
         sum(if(b.status = 3, b.interest_amount,0)) payInterestAmount,
         a.coin
-        FROM  (select id,coin,sum(hold_amount) as hold_amount ,product_id from fund_record WHERE `status` = 'PROCESS'
-                <where>
-                    <if test="queryUid != null and queryUid != ''">
-                        uid like concat('%',#{agentUId},'%')
-                    </if>
-                </where>
+        FROM (select id,coin,sum(hold_amount) as hold_amount ,product_id from fund_record WHERE `status` = 'PROCESS'
+        <where>
+            <if test="queryUid != null and queryUid != ''">
+                uid like concat('%',#{agentUId},'%')
+            </if>
+        </where>
         GROUP BY id,coin,product_id
         ) a
-#
-        left JOIN ( SELECT `status`,fund_id,sum(interest_amount) as interest_amount  from  fund_income_record   ) b on a.id = b.fund_id
+        #
+        left JOIN ( SELECT `status`,fund_id,sum(interest_amount) as interest_amount from fund_income_record ) b on a.id
+        = b.fund_id
         left JOIN wallet_agent_product c on a.product_id = c.product_id
         <where>
             <if test="agentUId != null">

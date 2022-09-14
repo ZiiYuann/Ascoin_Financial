@@ -27,7 +27,7 @@ public class FundStatisticsQuery {
                 startTime = TimeTool.toLocalDateTime(DateUtil.beginOfDay(new Date()));
             } else if (timeRange == TimeQueryEnum.week) {
                 startTime = TimeTool.toLocalDateTime(DateUtil.beginOfWeek(new Date()));
-            } else if (timeRange == TimeQueryEnum.mouth) {
+            } else if (timeRange == TimeQueryEnum.month) {
                 startTime = TimeTool.toLocalDateTime(DateUtil.beginOfMonth(new Date()));
             }
         }

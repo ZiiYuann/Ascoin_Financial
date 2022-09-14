@@ -56,9 +56,9 @@
         a.status,
         a.create_time createTime
         from
-        fund_transaction_record a
-        left join wallet_agent_product b on a.product_id = b.product_id
-        left join fund_record c on a.fund_id = c.id
+        wallet_agent_product b
+        inner join fund_transaction_record a on a.product_id = b.product_id
+        inner join fund_record c on a.fund_id = c.id
         <where>
             1 = 1
             <if test="query.agentId != null">

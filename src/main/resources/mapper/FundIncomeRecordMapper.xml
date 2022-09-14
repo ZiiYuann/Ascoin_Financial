@@ -4,17 +4,14 @@
 
     <select id="selectAmount" resultType="com.tianli.fund.dto.FundIncomeAmountDTO">
         select
-            sum(a.interest_amount) totalAmount,
-            sum(if(a.status = 1 or a.status =2, a.interest_amount,0)) waitInterestAmount,
-            sum(if(a.status = 3, a.interest_amount,0)) payInterestAmount,
-            a.coin
-        from fund_income_record a
-        LEFT JOIN fund_record b on a.fund_id = b.id
-        left join wallet_agent_product c on b.product_id = c.product_id
+        sum(a.interest_amount) totalAmount,
+        sum(if(a.status = 1 or a.status =2, a.interest_amount,0)) waitInterestAmount,
+        sum(if(a.status = 3, a.interest_amount,0)) payInterestAmount,
+        a.coin
+        from wallet_agent_product c
+        LEFT JOIN fund_record b on c.product_id = b.product_id
+        LEFT JOIN fund_income_record a on b.id = a.fund_id
         <where>
-            <if test="agentId != null">
-                a.uid = #{agentId}
-            </if>
             <if test="uid != null">
                 and a.uid = #{uid}
             </if>
@@ -34,7 +31,7 @@
                 and a.create_time &lt;= #{endTime}
             </if>
             <if test="agentUId != null">
-                and c.uid = #{agentUId}
+                and c.agent_id = #{agentUId}
             </if>
             <if test="productId != null">
                 and b.product_id = #{productId}
@@ -45,16 +42,16 @@
 
     <select id="selectIncomePage" resultType="com.tianli.fund.vo.FundIncomeRecordVO">
         select
-            a.id,
-            a.product_id productId,
-            a.product_name productName,
-            a.coin,
-            a.rate,
-            a.hold_amount holdAmount,
-            a.interest_amount interestAmount,
-            a.status,
-            a.create_time createTime,
-            b.logo
+        a.id,
+        a.product_id productId,
+        a.product_name productName,
+        a.coin,
+        a.rate,
+        a.hold_amount holdAmount,
+        a.interest_amount interestAmount,
+        a.status,
+        a.create_time createTime,
+        b.logo
         from fund_income_record a
         LEFT JOIN fund_record b on a.fund_id = b.id
         left join wallet_agent_product c on b.product_id = c.product_id
@@ -94,10 +91,10 @@
     </select>
 
     <select id="selectWaitInterestCount" resultType="int">
-        select
-           count(*)
+        select count(*)
         from fund_income_record a
-        left join wallet_agent_product b on a.product_id = b.product_id
-        where a.status in (1,2) and b.uid = #{agentUid}
+                 left join wallet_agent_product b on a.product_id = b.product_id
+        where a.status in (1, 2)
+          and b.uid = #{agentUid}
     </select>
 </mapper>
