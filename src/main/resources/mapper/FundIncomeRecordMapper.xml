@@ -33,7 +33,7 @@
             <if test="query.agentId != null">
                 and c.agent_id = #{query.agentId}
             </if>
-            <if test="query.endTime.productId != null">
+            <if test="query.productId != null">
                 and b.product_id = #{query.productId}
             </if>
         </where>
