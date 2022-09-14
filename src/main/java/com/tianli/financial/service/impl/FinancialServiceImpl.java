@@ -78,7 +78,7 @@ public class FinancialServiceImpl implements FinancialService {
         FinancialRecord financialRecord = FinancialRecord.builder().build();
         Optional<FinancialRecord> recordOptional = Optional.empty();
         if (ProductType.current.equals(product.getType())) {
-            recordOptional = financialRecordService.selectByProductId(purchaseQuery.getProductId())
+            recordOptional = financialRecordService.selectByProductId(purchaseQuery.getProductId(),uid)
                     .stream()
                     .sorted(Comparator.comparing(FinancialRecord::getEndTime).reversed())
                     .filter(index -> RecordStatus.PROCESS.equals(index.getStatus())).findFirst();
