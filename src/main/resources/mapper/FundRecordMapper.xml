@@ -7,7 +7,7 @@
         distinct a.uid
         from
         wallet_agent_product b
-        left join
+        inner join
         fund_record a on a.product_id = b.product_id
         <where>
             <if test="query.queryUid != null and query.queryUid != ''">
@@ -25,7 +25,7 @@
         SELECT sum(a.hold_amount) amount,a.coin
         FROM
         wallet_agent_product b
-        left JOIN fund_record a on a.product_id = b.product_id
+        inner JOIN fund_record a on a.product_id = b.product_id
         <where>
             <if test="query.agentId != null">
                 b.agent_id = #{query.agentId}
@@ -82,9 +82,9 @@
         GROUP BY id,coin,product_id
         ) a
         #
-        left JOIN ( SELECT `status`,fund_id,sum(interest_amount) as interest_amount from fund_income_record ) b on a.id
+        inner JOIN ( SELECT `status`,fund_id,sum(interest_amount) as interest_amount from fund_income_record ) b on a.id
         = b.fund_id
-        left JOIN wallet_agent_product c on a.product_id = c.product_id
+        inner JOIN wallet_agent_product c on a.product_id = c.product_id
         <where>
             <if test="agentId != null">
                 and c.agent_id = #{agentId}
