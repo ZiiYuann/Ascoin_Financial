@@ -10,14 +10,15 @@ import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.enums.FundRecordStatus;
 import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
+import com.tianli.tool.time.TimeTool;
 import lombok.extern.log4j.Log4j2;
 import org.redisson.api.RAtomicLong;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -26,7 +27,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-@Configuration
+@Component
 @EnableScheduling
 @Log4j2
 public class FundIncomeTask {
@@ -41,7 +42,7 @@ public class FundIncomeTask {
     @Autowired
     private RedissonClient redissonClient;
 
-        @Scheduled(cron = "0 0 0 1/1 * ? ")
+    @Scheduled(cron = "0 0 0 1/1 * ? ")
 //    @Scheduled(cron = "0 0/1 * * * ?")
     public void incomeTasks() {
         log.info("========执行基金计算利息定时任务========");
@@ -66,17 +67,17 @@ public class FundIncomeTask {
 
     @Transactional
     public void calculateIncome(FundRecord fundRecord, LocalDateTime now) {
-        //收益记录状态改变
+        // 查询已经计算的收益信息
         List<FundIncomeRecord> fundIncomeRecords = fundIncomeRecordService.list(new QueryWrapper<FundIncomeRecord>().lambda()
                 .eq(FundIncomeRecord::getFundId, fundRecord.getId())
                 .eq(FundIncomeRecord::getStatus, FundIncomeStatus.calculated));
+        // 如果利息周期已经存在7天，则修改状态为待审核
         fundIncomeRecords.forEach(fundIncomeRecord -> {
             LocalDateTime fundIncomeRecordCreateTime = fundIncomeRecord.getCreateTime();
             if (fundIncomeRecordCreateTime.until(now, ChronoUnit.DAYS) >= FundCycle.interestAuditCycle) {
                 fundIncomeRecord.setStatus(FundIncomeStatus.wait_audit);
                 fundIncomeRecordService.updateById(fundIncomeRecord);
             }
-            //待发放收益
             fundRecord.setWaitIncomeAmount(fundRecord.getIncomeAmount().add(fundIncomeRecord.getInterestAmount()));
         });
 
@@ -95,7 +96,7 @@ public class FundIncomeTask {
                     .holdAmount(fundRecord.getHoldAmount())
                     .interestAmount(dailyIncome)
                     .status(FundIncomeStatus.calculated)
-                    .createTime(now)
+                    .createTime(TimeTool.minDay(now))
                     .build();
             fundIncomeRecordService.save(incomeRecord);
 

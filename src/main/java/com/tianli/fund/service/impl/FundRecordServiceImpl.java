@@ -177,6 +177,10 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
         FinancialProduct financialProduct = financialProductService.getById(productId);
         if (Objects.isNull(financialProduct) || !financialProduct.getType().equals(ProductType.fund))
             ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
+
+        if (!ProductStatus.open.equals(financialProduct.getStatus())) {
+            ErrorCodeEnum.PRODUCT_CAN_NOT_BUY.throwException();
+        }
         WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(productId);
         if (Objects.isNull(walletAgentProduct)) ErrorCodeEnum.AGENT_NOT_EXIST.throwException();
         if (!walletAgentProduct.getReferralCode().equals(referralCode))
