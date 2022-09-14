@@ -50,7 +50,7 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
     @Override
     public TransactionDataVO transactionData(FundStatisticsQuery query) {
         query.calTime();
-        Long agentUId = AgentContent.getAgentUId();
+        Long agentUId = AgentContent.getAgentId();
 
         FundTransactionQuery transactionQuery = FundTransactionQuery
                 .builder()
@@ -78,7 +78,7 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
     @Override
     public HoldDataVO holdData(FundStatisticsQuery query) {
         query.calTime();
-        Long agentUId = AgentContent.getAgentUId();
+        Long agentUId = AgentContent.getAgentId();
         FundIncomeQuery incomeQuery = FundIncomeQuery.builder()
                 .startTime(query.getStartTime())
                 .endTime(query.getEndTime())

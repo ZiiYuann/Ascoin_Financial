@@ -6,15 +6,12 @@
         select
         distinct a.uid
         from
-        fund_record a
+        wallet_agent_product b
         left join
-        wallet_agent_product b on a.product_id = b.product_id
+        fund_record a on a.product_id = b.product_id
         <where>
             <if test="query.queryUid != null and query.queryUid != ''">
                 a.uid like concat('%',#{query.queryUid},'%')
-            </if>
-            <if test="query.agentUId != null">
-                and b.uid = #{query.agentUId}
             </if>
             <if test="query.agentId != null">
                 and b.agent_id = #{query.agentId}

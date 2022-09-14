@@ -108,7 +108,7 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     public void incomeAudit(FundAuditBO bo) {
         List<Long> ids = bo.getIds();
         FundReviewStatus status = bo.getStatus();
-        Long agentId = AgentContent.getAgentUId();
+        Long agentId = AgentContent.getAgentId();
         ids.forEach(id -> {
             FundIncomeRecord fundIncomeRecord = this.getById(id);
             validFundIncomeRecordReview(id, fundIncomeRecord);

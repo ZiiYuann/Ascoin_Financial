@@ -13,22 +13,18 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
-import com.tianli.common.RedisLockConstants;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.contant.FundTransactionStatus;
 import com.tianli.fund.convert.FundRecordConvert;
 import com.tianli.fund.dao.FundTransactionRecordMapper;
 import com.tianli.fund.dto.FundTransactionAmountDTO;
-import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.entity.FundReview;
 import com.tianli.fund.entity.FundTransactionRecord;
 import com.tianli.fund.enums.FundReviewStatus;
 import com.tianli.fund.enums.FundReviewType;
 import com.tianli.fund.enums.FundTransactionType;
 import com.tianli.fund.query.FundTransactionQuery;
-import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.fund.service.IFundReviewService;
 import com.tianli.fund.service.IFundTransactionRecordService;
@@ -36,8 +32,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.fund.vo.FundTransactionRecordVO;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.vo.FundTransactionAmountVO;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,7 +97,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
 
     @Override
     public void redemptionAudit(FundAuditBO bo) {
-        Long agentId = AgentContent.getAgentUId();
+        Long agentId = AgentContent.getAgentId();
         FundReviewStatus status = bo.getStatus();
         List<Long> ids = bo.getIds();
         ids.forEach(id ->{

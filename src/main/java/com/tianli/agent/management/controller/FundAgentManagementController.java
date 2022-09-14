@@ -91,7 +91,7 @@ public class FundAgentManagementController {
     @GetMapping("/transaction/record")
     @AgentPrivilege
     public Result transactionRecord(PageQuery<FundTransactionRecord> page , FundTransactionQuery query){
-        query.setAgentUId(AgentContent.getAgentUId());
+        query.setAgentUId(AgentContent.getAgentId());
         IPage<FundTransactionRecordVO> transactionPage = fundTransactionRecordService.getTransactionPage(page, query);
         return Result.success(transactionPage);
     }
@@ -102,7 +102,7 @@ public class FundAgentManagementController {
     @GetMapping("/transaction/amount")
     @AgentPrivilege
     public Result transactionAmount(FundTransactionQuery query){
-        query.setAgentUId(AgentContent.getAgentUId());
+        query.setAgentUId(AgentContent.getAgentId());
         FundTransactionAmountVO transactionAmount = fundTransactionRecordService.getTransactionAmount(query);
         return Result.success(transactionAmount);
     }
@@ -113,7 +113,7 @@ public class FundAgentManagementController {
     @GetMapping("/income/record")
     @AgentPrivilege
     public Result incomeRecord(PageQuery<FundIncomeRecord> page , FundIncomeQuery query){
-        query.setAgentUId(AgentContent.getAgentUId());
+        query.setAgentUId(AgentContent.getAgentId());
         fundIncomeRecordService.getPage(page,query);
         return Result.success();
     }
@@ -124,7 +124,7 @@ public class FundAgentManagementController {
     @GetMapping("/income/amount")
     @AgentPrivilege
     public Result incomeAmount(FundIncomeQuery query){
-        query.setAgentUId(AgentContent.getAgentUId());
+        query.setAgentUId(AgentContent.getAgentId());
         FundIncomeAmountVO incomeAmount = fundIncomeRecordService.getIncomeAmount(query);
         return Result.success(incomeAmount);
     }
@@ -135,7 +135,7 @@ public class FundAgentManagementController {
     @GetMapping("/hold/record")
     @AgentPrivilege
     public Result holdRecord(PageQuery<FundRecord> pageQuery, FundRecordQuery query){
-        query.setAgentUId(AgentContent.getAgentUId());
+        query.setAgentUId(AgentContent.getAgentId());
         IPage<FundUserRecordVO> fundUserRecordPage = fundRecordService.fundUserRecordPage(pageQuery, query);
         return Result.success(fundUserRecordPage);
     }
@@ -145,7 +145,7 @@ public class FundAgentManagementController {
      */
     @GetMapping("/hold/amount")
     public Result holdAmount(FundRecordQuery query){
-        query.setAgentUId(AgentContent.getAgentUId());
+        query.setAgentUId(AgentContent.getAgentId());
         HoldUserAmount holdUserAmount = fundRecordService.fundUserAmount(query);
         return Result.success(holdUserAmount);
     }

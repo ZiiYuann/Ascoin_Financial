@@ -52,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
         String token = IdUtil.simpleUUID();
         String sessionKey = RedisConstants.AGENT_SESSION_KEY+token;
         AgentInfo agentInfo = AgentInfo.builder()
-                .agentId(walletAgent.getUid())
+                .agentId(walletAgent.getId())
                 .agentName(walletAgent.getAgentName())
                 .build();
         RBucket<String> tokenBucket = redissonClient.getBucket(sessionKey);
