@@ -85,8 +85,8 @@ public class FinancialServiceImpl implements FinancialService {
         }
         // 如果存在申购记录，如果是当天继续申购，则累加金额，否则累加待记利息金额
         if(recordOptional.isPresent()){
-            FinancialRecord record = recordOptional.get();
-            financialRecordService.increaseWaitAmount(record.getId(), amount, record.getWaitAmount());
+            financialRecord = recordOptional.get();
+            financialRecordService.increaseWaitAmount(financialRecord.getId(), amount, financialRecord.getWaitAmount());
         }
 
         if(recordOptional.isEmpty()){

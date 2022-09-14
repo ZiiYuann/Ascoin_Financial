@@ -73,19 +73,23 @@
 
     <select id="selectFundUserHoldDto" resultType="com.tianli.management.dto.FundUserHoldDto">
         SELECT
-            SUM(a.hold_amount) holdAmount,
-            sum(b.interest_amount) interestAmount,
-            sum(if(b.status = 1 or b.status =2, b.interest_amount,0)) waitInterestAmount,
-            sum(if(b.status = 3, b.interest_amount,0)) payInterestAmount,
-            a.coin
-        FROM fund_record a
-        left JOIN fund_income_record b on a.id = b.fund_id
+        SUM(a.hold_amount) holdAmount,
+        sum(b.interest_amount) interestAmount,
+        sum(if(b.status = 1 or b.status =2, b.interest_amount,0)) waitInterestAmount,
+        sum(if(b.status = 3, b.interest_amount,0)) payInterestAmount,
+        a.coin
+        FROM  (select id,coin,sum(hold_amount) as hold_amount ,product_id from fund_record WHERE `status` = 'PROCESS'
+                <where>
+                    <if test="queryUid != null and queryUid != ''">
+                        uid like concat('%',#{agentUId},'%')
+                    </if>
+                </where>
+        GROUP BY id,coin,product_id
+        ) a
+#
+        left JOIN ( SELECT `status`,fund_id,sum(interest_amount) as interest_amount  from  fund_income_record   ) b on a.id = b.fund_id
         left JOIN wallet_agent_product c on a.product_id = c.product_id
-
         <where>
-            <if test="queryUid != null and queryUid != ''">
-                a.uid like concat('%',#{agentUId},'%')
-            </if>
             <if test="agentUId != null">
                 and c.uid = #{agentUId}
             </if>

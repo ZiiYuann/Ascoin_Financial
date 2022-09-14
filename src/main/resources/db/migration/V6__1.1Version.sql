@@ -137,3 +137,11 @@ CREATE TABLE `fund_income_record` (
                                       UNIQUE KEY `uk_fund_id` (`fund_id`,`create_time`),
                                       KEY `idx_fund_id` (`fund_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='基金收益记录';
+
+
+ALTER TABLE `financial`.`fund_income_record`
+    DROP INDEX `idx_fund_id`,
+    ADD INDEX `idx_fund_id`(`fund_id` ASC, `status`, `interest_amount`) USING BTREE;
+
+ALTER TABLE `financial`.`fund_record`
+    ADD INDEX `normal`(`status` ASC, `hold_amount` ASC, `coin` ASC) USING BTREE;
