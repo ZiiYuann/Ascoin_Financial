@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -66,8 +67,10 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
                 .agentId(agentId)
                 .build();
         List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordService.getAmount(incomeQuery);
-        List<AmountDto> interestAmount = fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO ->
-                new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
+        List<AmountDto> interestAmount = fundIncomeAmountDTOS.stream()
+                .filter(index -> Objects.nonNull(index.getCoin()))
+                .map(fundIncomeAmountDTO ->
+                        new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
         return TransactionDataVO.builder()
                 .purchaseAmount(orderService.calDollarAmount(purchaseAmount))
                 .redemptionAmount(orderService.calDollarAmount(redemptionAmount))
@@ -99,7 +102,7 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
     @Override
     public IPage<FundProductStatisticsVO> productStatistics(PageQuery<WalletAgentProduct> pageQuery, FundStatisticsQuery query) {
         query.calTime();
-        IPage<FundProductStatisticsVO> page = walletAgentProductService.getPage(pageQuery,query);
+        IPage<FundProductStatisticsVO> page = walletAgentProductService.getPage(pageQuery, query);
         return page.convert(fundProductStatisticsVO -> {
             Long productId = fundProductStatisticsVO.getProductId();
             FundRecordQuery fundRecordQuery = FundRecordQuery.builder().productId(productId).build();

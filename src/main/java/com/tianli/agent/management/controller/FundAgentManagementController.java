@@ -50,8 +50,6 @@ public class FundAgentManagementController {
     @Autowired
     private IFundRecordService fundRecordService;
 
-    @Autowired
-    private RedissonClient redissonClient;
 
     /**
      * 交易数据概览

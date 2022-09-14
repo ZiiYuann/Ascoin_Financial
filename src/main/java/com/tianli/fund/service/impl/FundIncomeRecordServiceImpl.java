@@ -86,7 +86,9 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
 
     @Override
     public List<FundIncomeAmountDTO> getAmount(FundIncomeQuery query) {
-        return fundIncomeRecordMapper.selectAmount(query);
+        List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordMapper.selectAmount(query);
+        fundIncomeAmountDTOS.remove(null);
+        return fundIncomeAmountDTOS;
     }
 
     @Override

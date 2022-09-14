@@ -165,7 +165,9 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
         if (CollectionUtils.isEmpty(amountDtos)) {
             return BigDecimal.ZERO;
         }
-        return amountDtos.stream().map(amountDto -> {
+        return amountDtos.stream()
+                .filter(index -> Objects.nonNull(index.getCoin()))
+                .map(amountDto -> {
             BigDecimal amount = Optional.ofNullable(amountDto.getAmount()).orElse(BigDecimal.ZERO);
             return currencyService.getDollarRate(amountDto.getCoin()).multiply(amount);
         }).reduce(BigDecimal.ZERO, BigDecimal::add);
