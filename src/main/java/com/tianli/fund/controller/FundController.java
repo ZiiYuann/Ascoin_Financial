@@ -19,9 +19,9 @@ import com.tianli.fund.vo.*;
 import com.tianli.sso.init.RequestInitService;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 
@@ -37,13 +37,13 @@ import java.math.BigDecimal;
 @RequestMapping("/fund")
 public class FundController {
 
-    @Autowired
+    @Resource
     private IFundRecordService fundRecordService;
 
-    @Autowired
+    @Resource
     private RedissonClient redissonClient;
 
-    @Autowired
+    @Resource
     private RequestInitService requestInitService;
 
     /**

@@ -124,7 +124,8 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
         return financialProductService.page(page.page(),
                         new QueryWrapper<FinancialProduct>().lambda().eq(FinancialProduct::getType, ProductType.fund)
                                 .eq(FinancialProduct::getStatus, ProductStatus.open)
-                                .eq(FinancialProduct::isDeleted, 0))
+                                .eq(FinancialProduct::isDeleted, 0)
+                                .orderByDesc(FinancialProduct :: getRate))
                 .convert(fundRecordConvert::toProductVO);
     }
 
