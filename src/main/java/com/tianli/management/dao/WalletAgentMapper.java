@@ -42,7 +42,7 @@ public interface WalletAgentMapper extends BaseMapper<WalletAgent> {
 
     @Select("SELECT ifnull( SUM( c.interest_amount ), 0 ) amount, a.coin FROM fund_record a " +
             "LEFT JOIN wallet_agent_product b ON a.product_id = b.product_id " +
-            "left JOIN fund_income_record c on a.id = c.fund_id\n" +
-            "WHERE a.agent_id = #{agentId} and c.status = #{status} GROUP BY a.coin")
-    List<AmountDto> interestAmountSum(@Param("agentId")Long agentId,@Param("status")Integer status);
+            "left JOIN fund_income_record c on a.id = c.fund_id \n" +
+            "WHERE a.uid = #{uid} and c.status = #{status} GROUP BY a.coin")
+    List<AmountDto> interestAmountSum(@Param("uid")Long uid,@Param("status")Integer status);
 }
