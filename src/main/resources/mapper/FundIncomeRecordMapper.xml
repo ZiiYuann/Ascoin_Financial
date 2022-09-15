@@ -45,6 +45,7 @@
     <select id="selectSummaryIncomePage" resultType="com.tianli.fund.vo.FundIncomeRecordVO">
         select
         a.product_name productName,
+
         a.coin,
         b.logo,
         sum(a.interest_amount) as interestAmount
@@ -52,6 +53,7 @@
         inner JOIN fund_record b on a.fund_id = b.id
         inner join wallet_agent_product c on b.product_id = c.product_id
         <include refid="query"/>
+        group by b.id
         order by  interestAmount desc
 
     </select>
