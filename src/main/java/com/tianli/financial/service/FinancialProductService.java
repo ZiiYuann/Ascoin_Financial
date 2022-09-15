@@ -17,6 +17,9 @@ import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.mapper.FinancialProductMapper;
+import com.tianli.fund.entity.FundRecord;
+import com.tianli.fund.query.FundRecordQuery;
+import com.tianli.fund.service.IFundRecordService;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.dto.ProductSummaryDataDto;
 import com.tianli.management.query.FinancialProductEditQuery;
@@ -61,19 +64,34 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
     private RedisLock redisLock;
     @Resource
     private FinancialProductLadderRateService financialProductLadderRateService;
+    @Resource
+    private IFundRecordService fundRecordService;
 
     /**
      * 删除产品
      */
     @Transactional
     public boolean delete(Long productId) {
-        List<FinancialRecord> financialRecords = financialRecordService.selectByProductId(productId);
-        Optional<FinancialRecord> match = financialRecords.stream()
-                .filter(financialRecord -> RecordStatus.PROCESS.equals(financialRecord.getStatus())).findAny();
-        if (match.isPresent()) {
-            log.info("productId ：{} , 用户持有中不允许删除 ", productId);
-            ErrorCodeEnum.PRODUCT_USER_HOLD.throwException();
+        FinancialProduct product = financialProductMapper.selectById(productId);
+        // 如果产品是基金
+        if (ProductType.fund.equals(product.getType())) {
+            FundRecordQuery fundRecordQuery = new FundRecordQuery();
+            fundRecordQuery.setProductId(productId);
+            if (fundRecordService.getHoldUserCount(fundRecordQuery) > 0) {
+                ErrorCodeEnum.PRODUCT_USER_HOLD.throwException();
+            }
         }
+
+        if (!ProductType.fund.equals(product.getType())) {
+            List<FinancialRecord> financialRecords = financialRecordService.selectByProductId(productId);
+            Optional<FinancialRecord> match = financialRecords.stream()
+                    .filter(financialRecord -> RecordStatus.PROCESS.equals(financialRecord.getStatus())).findAny();
+            if (match.isPresent()) {
+                log.info("productId ：{} , 用户持有中不允许删除 ", productId);
+                ErrorCodeEnum.PRODUCT_USER_HOLD.throwException();
+            }
+        }
+
         return financialProductMapper.softDeleteById(productId) > 0;
     }
 
