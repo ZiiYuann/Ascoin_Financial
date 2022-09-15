@@ -24,5 +24,9 @@ public class FundRecordQuery {
 
     private Long productId;
 
+    public FundRecordQuery(Long productId) {
+        this.productId = productId;
+    }
+
 
 }

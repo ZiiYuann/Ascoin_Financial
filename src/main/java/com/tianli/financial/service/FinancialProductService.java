@@ -199,8 +199,18 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
         return financialProductIPage.convert(index -> {
             var mFinancialProductVO = managementConverter.toMFinancialProductVO(index);
             var productSummaryDataDto = productSummaryDataDtoMap.getOrDefault(index.getId(), new ProductSummaryDataDto());
-            mFinancialProductVO.setUseQuota(Optional.ofNullable(productSummaryDataDto.getUseQuota()).orElse(BigDecimal.ZERO));
-            mFinancialProductVO.setHoldUserCount(Optional.ofNullable(productSummaryDataDto.getHoldUserCount()).orElse(BigInteger.ZERO));
+            // 设置使用的金额
+            mFinancialProductVO.setUseQuota(Optional.ofNullable(index.getUseQuota()).orElse(BigDecimal.ZERO));
+            // 设置持有人数
+
+            if (!ProductType.fund.equals(index.getType())) {
+                mFinancialProductVO.setHoldUserCount(Optional.ofNullable(productSummaryDataDto.getHoldUserCount()).orElse(BigInteger.ZERO));
+            } else {
+                // 基金 特殊处理
+                Integer holdUserCount = fundRecordService.getHoldUserCount(new FundRecordQuery(index.getId()));
+                mFinancialProductVO.setHoldUserCount(BigInteger.valueOf(holdUserCount));
+            }
+
             if (index.getRateType() == 1) {
                 mFinancialProductVO.setLadderRates(financialProductLadderRateService.listByProductId(index.getId())
                         .stream().map(financialConverter::toProductLadderRateVO).collect(Collectors.toList()));
