@@ -217,13 +217,13 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
         return orderService.calDollarAmount(amountDtos);
     }
 
-    private BigDecimal getInterestAmount(Long uid, Integer status) {
-        List<AmountDto> amountDtos = walletAgentMapper.interestAmountSum(uid, List.of(status));
+    private BigDecimal getInterestAmount(Long agentId, Integer status) {
+        List<AmountDto> amountDtos = walletAgentMapper.interestAmountSum(agentId, List.of(status));
         return orderService.calDollarAmount(amountDtos);
     }
 
-    private BigDecimal getInterestAmount(Long uid, List<Integer> status) {
-        List<AmountDto> amountDtos = walletAgentMapper.interestAmountSum(uid, status);
+    private BigDecimal getInterestAmount(Long agentId, List<Integer> status) {
+        List<AmountDto> amountDtos = walletAgentMapper.interestAmountSum(agentId, status);
         return orderService.calDollarAmount(amountDtos);
     }
 

@@ -41,5 +41,5 @@ public interface WalletAgentMapper extends BaseMapper<WalletAgent> {
             "GROUP BY a.coin")
     List<AmountDto> redemptionAmountSum(@Param("agentId") Long agentId, @Param("type") FundTransactionType type, @Param("status") Integer status);
 
-    List<AmountDto> interestAmountSum(@Param("uid") Long uid, @Param("status") List<Integer> status);
+    List<AmountDto> interestAmountSum(@Param("agentId") Long agentId, @Param("status") List<Integer> status);
 }

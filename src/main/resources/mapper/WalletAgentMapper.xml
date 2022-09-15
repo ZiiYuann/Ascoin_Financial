@@ -34,7 +34,7 @@
         FROM fund_record a
                  LEFT JOIN wallet_agent_product b ON a.product_id = b.product_id
                  left JOIN fund_income_record c on a.id = c.fund_id
-        WHERE a.uid = #{uid}
+        WHERE b.agent_id = #{agentId}
           and c.status in
         <foreach collection="status" item="item" open="(" close=")" separator=",">
             #{item}
