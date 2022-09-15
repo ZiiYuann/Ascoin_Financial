@@ -45,16 +45,17 @@
     <select id="selectTransactionPage" resultType="com.tianli.fund.vo.FundTransactionRecordVO">
         select
         a.id,
-        a.uid uid,
-        a.product_id productId,
-        a.product_name productName,
-        c.product_name_en productNameEn,
+        a.uid,
+        a.fund_id as fundId,
+        a.product_id as productId,
+        a.product_name as productName,
+        c.product_name_en as productNameEn,
         a.coin,
         c.rate,
-        a.transaction_amount transactionAmount,
+        a.transaction_amount as transactionAmount,
         a.type,
         a.status,
-        a.create_time createTime
+        a.create_time as createTime
         from
         wallet_agent_product b
         inner join fund_transaction_record a on a.product_id = b.product_id
