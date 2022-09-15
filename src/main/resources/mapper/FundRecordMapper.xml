@@ -74,11 +74,9 @@
         sum(if(b.status = 3, b.interest_amount,0)) payInterestAmount,
         a.coin
         FROM (select id,coin,sum(hold_amount) as hold_amount ,product_id from fund_record WHERE `status` = 'PROCESS'
-        <where>
             <if test="queryUid != null and queryUid != ''">
-                uid like concat('%',#{queryUid},'%')
+               and  uid like concat('%',#{queryUid},'%')
             </if>
-        </where>
         GROUP BY id,coin,product_id
         ) a
         #
