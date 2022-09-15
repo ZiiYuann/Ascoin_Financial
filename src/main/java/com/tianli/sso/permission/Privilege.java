@@ -52,6 +52,7 @@ public enum Privilege {
     借币配置,
     质押币配置,
     借币订单管理,
+    基金管理
     ;
 }
 
