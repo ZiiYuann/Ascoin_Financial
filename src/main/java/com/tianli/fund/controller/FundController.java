@@ -117,6 +117,15 @@ public class FundController {
     }
 
     /**
+     * 收益明细
+     */
+    @GetMapping("/incomes")
+    public Result incomes(PageQuery<FundIncomeRecord> page , FundIncomeQuery query){
+        IPage<FundIncomeRecordVO> fundIncomeRecordPage = fundRecordService.incomeSummary(page, query);
+        return Result.success(fundIncomeRecordPage);
+    }
+
+    /**
      * 赎回页面
      */
     @GetMapping("/redemption/page")
