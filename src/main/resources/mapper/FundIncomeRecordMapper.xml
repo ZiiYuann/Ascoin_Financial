@@ -78,9 +78,6 @@
             <if test="query.endTime != null">
                 and a.create_time &lt;= #{query.endTime}
             </if>
-            <if test="query.agentId != null">
-                and b.agent_id = #{agentId}
-            </if>
             <if test="query.productId != null">
                 and b.productId = #{query.productId}
             </if>
