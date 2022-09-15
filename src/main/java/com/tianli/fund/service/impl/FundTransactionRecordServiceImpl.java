@@ -15,6 +15,8 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.financial.service.FinancialProductService;
+import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.fund.contant.FundTransactionStatus;
 import com.tianli.fund.convert.FundRecordConvert;
 import com.tianli.fund.dao.FundTransactionRecordMapper;
@@ -36,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -53,23 +56,20 @@ import java.util.stream.Collectors;
 @Transactional
 public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactionRecordMapper, FundTransactionRecord> implements IFundTransactionRecordService {
 
-    @Autowired
+    @Resource
     private FundTransactionRecordMapper fundTransactionRecordMapper;
-
-    @Autowired
+    @Resource
     private OrderService orderService;
-
-    @Autowired
+    @Resource
     private AccountBalanceService accountBalanceService;
-
-    @Autowired
+    @Resource
     private IFundRecordService fundRecordService;
-
-    @Autowired
+    @Resource
     private IFundReviewService fundReviewService;
-
-    @Autowired
+    @Resource
     private FundRecordConvert fundRecordConvert;
+    @Resource
+    private FinancialProductService financialProductService;
 
 
     @Override
@@ -149,6 +149,8 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
 
                 fundTransactionRecord.setStatus(FundTransactionStatus.success);
                 fundTransactionRecordMapper.updateById(fundTransactionRecord);
+
+                financialProductService.reduceUseQuota(fundTransactionRecord.getProductId(),fundTransactionRecord.getTransactionAmount());
             }else {
 
                 FundReview fundReview = FundReview.builder()

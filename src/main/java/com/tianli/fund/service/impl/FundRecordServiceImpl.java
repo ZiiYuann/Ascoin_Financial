@@ -125,7 +125,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
                         new QueryWrapper<FinancialProduct>().lambda().eq(FinancialProduct::getType, ProductType.fund)
                                 .eq(FinancialProduct::getStatus, ProductStatus.open)
                                 .eq(FinancialProduct::isDeleted, 0)
-                                .orderByDesc(FinancialProduct :: getRate))
+                                .orderByDesc(FinancialProduct::getRate))
                 .convert(fundRecordConvert::toProductVO);
     }
 
@@ -173,35 +173,14 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     @Override
     public FundTransactionRecordVO purchase(FundPurchaseBO bo) {
         Long productId = bo.getProductId();
-        BigDecimal purchaseAmount = bo.getPurchaseAmount();
-        String referralCode = bo.getReferralCode();
-        FinancialProduct financialProduct = financialProductService.getById(productId);
-        if (Objects.isNull(financialProduct) || !financialProduct.getType().equals(ProductType.fund))
-            ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
-
-        if (!ProductStatus.open.equals(financialProduct.getStatus())) {
-            ErrorCodeEnum.PRODUCT_CAN_NOT_BUY.throwException();
-        }
-        WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(productId);
-        if (Objects.isNull(walletAgentProduct)) ErrorCodeEnum.AGENT_NOT_EXIST.throwException();
-        if (!walletAgentProduct.getReferralCode().equals(referralCode))
-            ErrorCodeEnum.REFERRAL_CODE_ERROR.throwException();
-        //校验余额
+        var financialProduct = financialProductService.getById(productId);
         Long uid = requestInitService.uid();
-        AccountBalance accountBalance = accountBalanceService.getAndInit(uid, financialProduct.getCoin());
-        if (accountBalance.getRemain().compareTo(purchaseAmount) < 0)
-            ErrorCodeEnum.INSUFFICIENT_BALANCE.throwException();
-        //校验限额
-        BigDecimal totalAmount = fundRecordMapper.selectHoldAmountSum(productId, null);
-        BigDecimal personHoldAmount = fundRecordMapper.selectHoldAmountSum(productId, uid);
-        if (financialProduct.getPersonQuota() != null && financialProduct.getPersonQuota().compareTo(BigDecimal.ZERO) > 0 &&
-                purchaseAmount.add(personHoldAmount).compareTo(financialProduct.getPersonQuota()) > 0) {
-            ErrorCodeEnum.PURCHASE_GT_PERSON_QUOTA.throwException();
-        }
-        if (financialProduct.getTotalQuota() != null && financialProduct.getTotalQuota().compareTo(BigDecimal.ZERO) > 0 &&
-                purchaseAmount.add(totalAmount).compareTo(financialProduct.getTotalQuota()) > 0) {
-            ErrorCodeEnum.PURCHASE_GT_TOTAL_QUOTA.throwException();
-        }
+        WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(productId);
+
+        // 校验能否申购
+        validPurchase(uid, financialProduct, walletAgentProduct, bo);
+
+        BigDecimal purchaseAmount = bo.getPurchaseAmount();
         //持有记录
         FundRecord fundRecord = FundRecord.builder()
                 .uid(uid)
@@ -265,6 +244,8 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
                 .createTime(LocalDateTime.now()).build();
         fundTransactionRecordService.save(transactionRecord);
 
+        // 增加产品已经使用额度
+        financialProductService.increaseUseQuota(productId, purchaseAmount, financialProduct.getUseQuota());
         return fundRecordConvert.toFundTransactionVO(transactionRecord);
     }
 
@@ -428,4 +409,37 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     }
 
 
+    private void validPurchase(Long uid, FinancialProduct financialProduct, WalletAgentProduct walletAgentProduct, FundPurchaseBO bo) {
+
+        String referralCode = bo.getReferralCode();
+
+        if (Objects.isNull(financialProduct) || !financialProduct.getType().equals(ProductType.fund))
+            ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
+
+        Long productId = financialProduct.getId();
+        BigDecimal purchaseAmount = bo.getPurchaseAmount();
+        if (!ProductStatus.open.equals(financialProduct.getStatus())) {
+            ErrorCodeEnum.PRODUCT_CAN_NOT_BUY.throwException();
+        }
+
+        if (Objects.isNull(walletAgentProduct)) ErrorCodeEnum.AGENT_NOT_EXIST.throwException();
+        if (!walletAgentProduct.getReferralCode().equals(referralCode))
+            ErrorCodeEnum.REFERRAL_CODE_ERROR.throwException();
+        //校验余额
+
+        AccountBalance accountBalance = accountBalanceService.getAndInit(uid, financialProduct.getCoin());
+        if (accountBalance.getRemain().compareTo(purchaseAmount) < 0)
+            ErrorCodeEnum.INSUFFICIENT_BALANCE.throwException();
+        //校验限额
+        BigDecimal totalAmount = fundRecordMapper.selectHoldAmountSum(productId, null);
+        BigDecimal personHoldAmount = fundRecordMapper.selectHoldAmountSum(productId, uid);
+        if (financialProduct.getPersonQuota() != null && financialProduct.getPersonQuota().compareTo(BigDecimal.ZERO) > 0 &&
+                purchaseAmount.add(personHoldAmount).compareTo(financialProduct.getPersonQuota()) > 0) {
+            ErrorCodeEnum.PURCHASE_GT_PERSON_QUOTA.throwException();
+        }
+        if (financialProduct.getTotalQuota() != null && financialProduct.getTotalQuota().compareTo(BigDecimal.ZERO) > 0 &&
+                purchaseAmount.add(totalAmount).compareTo(financialProduct.getTotalQuota()) > 0) {
+            ErrorCodeEnum.PURCHASE_GT_TOTAL_QUOTA.throwException();
+        }
+    }
 }

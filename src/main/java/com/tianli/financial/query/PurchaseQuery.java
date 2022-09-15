@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 
-import javax.validation.constraints.DecimalMin;
 import java.math.BigDecimal;
 
 /**
