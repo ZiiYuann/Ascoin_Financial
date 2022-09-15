@@ -80,7 +80,7 @@
                 and a.create_time &lt;= #{query.endTime}
             </if>
             <if test="query.productId != null">
-                and b.productId = #{query.productId}
+                and b.product_id = #{query.productId}
             </if>
             <if test="query.fundId != null">
                 and a.fund_id = #{query.fundId}
