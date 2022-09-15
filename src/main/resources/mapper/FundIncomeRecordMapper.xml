@@ -9,8 +9,8 @@
         sum(if(a.status = 3, a.interest_amount,0)) payInterestAmount,
         a.coin
         from wallet_agent_product c
-        LEFT JOIN fund_record b on c.product_id = b.product_id
-        LEFT JOIN fund_income_record a on b.id = a.fund_id
+        inner JOIN fund_record b on c.product_id = b.product_id
+        inner JOIN fund_income_record a on b.id = a.fund_id
         <where>
             <if test="query.uid != null">
                 and a.uid = #{query.uid}
@@ -54,8 +54,8 @@
         a.create_time createTime,
         b.logo
         from fund_income_record a
-        LEFT JOIN fund_record b on a.fund_id = b.id
-        left join wallet_agent_product c on b.product_id = c.product_id
+        inner JOIN fund_record b on a.fund_id = b.id
+        inner join wallet_agent_product c on b.product_id = c.product_id
         <where>
             <if test="query.agentId != null">
                 c.agent_id = #{query.agentId}
@@ -91,7 +91,7 @@
     <select id="selectWaitInterestCount" resultType="int">
         select count(*)
         from fund_income_record a
-                 left join wallet_agent_product b on a.product_id = b.product_id
+                 inner join wallet_agent_product b on a.product_id = b.product_id
         where a.status in (1, 2)
           and b.agent_id = #{agentId}
     </select>

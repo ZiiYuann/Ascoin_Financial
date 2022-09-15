@@ -65,6 +65,8 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
                 new AmountDto(amountDTO.getRedemptionAmount(), amountDTO.getCoin())).collect(Collectors.toList());
         FundIncomeQuery incomeQuery = FundIncomeQuery.builder()
                 .agentId(agentId)
+                .startTime(query.getStartTime())
+                .endTime(query.getEndTime())
                 .build();
         List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordService.getAmount(incomeQuery);
         List<AmountDto> interestAmount = fundIncomeAmountDTOS.stream()
@@ -80,11 +82,8 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
 
     @Override
     public HoldDataVO holdData(FundStatisticsQuery query) {
-        query.calTime();
         Long agentId = AgentContent.getAgentId();
         FundIncomeQuery incomeQuery = FundIncomeQuery.builder()
-                .startTime(query.getStartTime())
-                .endTime(query.getEndTime())
                 .agentId(agentId)
                 .build();
         FundAmount fundAmount = getFundAmount(incomeQuery);
@@ -101,7 +100,6 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
 
     @Override
     public IPage<FundProductStatisticsVO> productStatistics(PageQuery<WalletAgentProduct> pageQuery, FundStatisticsQuery query) {
-        query.calTime();
         IPage<FundProductStatisticsVO> page = walletAgentProductService.getPage(pageQuery, query);
         return page.convert(fundProductStatisticsVO -> {
             Long productId = fundProductStatisticsVO.getProductId();
