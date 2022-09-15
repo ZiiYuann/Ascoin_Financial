@@ -99,6 +99,6 @@
         <if test="agentId != null">
             p.agent_id = #{agentId}
         </if>
-        group by coin
+        group by r.coin
     </select>
 </mapper>
