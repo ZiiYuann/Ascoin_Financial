@@ -112,8 +112,7 @@ public class FundAgentManagementController {
     @AgentPrivilege
     public Result incomeRecord(PageQuery<FundIncomeRecord> page , FundIncomeQuery query){
         query.setAgentId(AgentContent.getAgentId());
-        fundIncomeRecordService.getPage(page,query);
-        return Result.success();
+        return Result.success(fundIncomeRecordService.getPage(page,query));
     }
 
     /**
