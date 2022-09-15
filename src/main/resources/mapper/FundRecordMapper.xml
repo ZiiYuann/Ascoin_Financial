@@ -97,7 +97,7 @@
         left join wallet_agent_product p on r.product_id=p.product_id
         where r.uid = #{uid}
         <if test="agentId != null">
-            p.agent_id = #{agentId}
+           and p.agent_id = #{agentId}
         </if>
         group by r.coin
     </select>
