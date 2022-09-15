@@ -142,6 +142,7 @@ public class FundAgentManagementController {
      *持有记录统计
      */
     @GetMapping("/hold/amount")
+    @AgentPrivilege
     public Result holdAmount(FundRecordQuery query){
         query.setAgentId(AgentContent.getAgentId());
         HoldUserAmount holdUserAmount = fundRecordService.fundUserAmount(query);
