@@ -319,12 +319,20 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
             Long uid = fundUserRecordVO.getUid();
             List<AmountDto> amountDtos = fundRecordMapper.holdAmountSumByUid(uid);
             fundUserRecordVO.setHoldAmount(orderService.calDollarAmount(amountDtos));
+            // 累计利息
             List<AmountDto> interestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, null);
             fundUserRecordVO.setInterestAmount(orderService.calDollarAmount(interestAmount));
+
+            // 已经支付利息
             List<AmountDto> payInterestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, FundIncomeStatus.audit_success);
             fundUserRecordVO.setPayInterestAmount(orderService.calDollarAmount(payInterestAmount));
-            List<AmountDto> waitPayInterestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, FundIncomeStatus.wait_audit);
-            fundUserRecordVO.setWaitPayInterestAmount(orderService.calDollarAmount(waitPayInterestAmount));
+
+            // 待支付利息
+            List<AmountDto> waitPayInterestAmount1 = fundIncomeRecordService.getAmountByUidAndStatus(uid, FundIncomeStatus.wait_audit);
+            List<AmountDto> waitPayInterestAmount2 = fundIncomeRecordService.getAmountByUidAndStatus(uid, FundIncomeStatus.calculated);
+            BigDecimal waitPayInterestAmount = orderService.calDollarAmount(waitPayInterestAmount1)
+                    .add(orderService.calDollarAmount(waitPayInterestAmount2));
+            fundUserRecordVO.setWaitPayInterestAmount(waitPayInterestAmount);
             return fundUserRecordVO;
         });
     }
@@ -332,12 +340,17 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     @Override
     public HoldUserAmount fundUserAmount(FundRecordQuery query) {
         List<FundUserHoldDto> fundUserHoldDtos = fundRecordMapper.selectFundUserHoldDto(query);
+
+        // 持有金额
         List<AmountDto> holdAmountDtos = fundUserHoldDtos.stream().map(fundUserHoldDto ->
                 new AmountDto(fundUserHoldDto.getHoldAmount(), fundUserHoldDto.getCoin())).collect(Collectors.toList());
+        // 累计收益
         List<AmountDto> interestAmountDtos = fundUserHoldDtos.stream().map(fundUserHoldDto ->
                 new AmountDto(fundUserHoldDto.getInterestAmount(), fundUserHoldDto.getCoin())).collect(Collectors.toList());
+        // 待发放收益
         List<AmountDto> waitInterestAmountDtos = fundUserHoldDtos.stream().map(fundUserHoldDto ->
                 new AmountDto(fundUserHoldDto.getWaitInterestAmount(), fundUserHoldDto.getCoin())).collect(Collectors.toList());
+        // 已经发放收益
         List<AmountDto> payInterestDtos = fundUserHoldDtos.stream().map(fundUserHoldDto ->
                 new AmountDto(fundUserHoldDto.getPayInterestAmount(), fundUserHoldDto.getCoin())).collect(Collectors.toList());
         return HoldUserAmount.builder()
