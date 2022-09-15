@@ -113,7 +113,6 @@ public class FundController {
      */
     @GetMapping("/income/record")
     public Result incomeRecord(PageQuery<FundIncomeRecord> page , FundIncomeQuery query){
-        query.setStatus(FundIncomeStatus.GRANT.getStatus());
         IPage<FundIncomeRecordVO> fundIncomeRecordPage = fundRecordService.incomeRecord(page, query);
         return Result.success(fundIncomeRecordPage);
     }
