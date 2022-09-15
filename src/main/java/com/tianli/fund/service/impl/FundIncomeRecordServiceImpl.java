@@ -149,7 +149,9 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
                 FundRecord fundRecord = fundRecordService.getById(fundIncomeRecord.getFundId());
                 fundRecord.setWaitIncomeAmount(fundRecord.getWaitIncomeAmount().subtract(fundIncomeRecord.getInterestAmount()));
                 fundRecord.setIncomeAmount(fundRecord.getIncomeAmount().add(fundIncomeRecord.getInterestAmount()));
+                fundRecord.setCumulativeIncomeAmount(fundRecord.getCumulativeIncomeAmount().add(fundIncomeRecord.getInterestAmount()));
                 fundRecordService.updateById(fundRecord);
+
             }
 
             this.updateById(fundIncomeRecord);

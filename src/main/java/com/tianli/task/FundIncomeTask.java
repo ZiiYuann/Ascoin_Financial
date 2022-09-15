@@ -101,7 +101,7 @@ public class FundIncomeTask {
             fundIncomeRecordService.save(incomeRecord);
 
             //累计收益
-            fundRecord.setCumulativeIncomeAmount(fundRecord.getCumulativeIncomeAmount().add(dailyIncome));
+//            fundRecord.setCumulativeIncomeAmount(fundRecord.getCumulativeIncomeAmount().add(dailyIncome));
 
         }
         fundRecordService.updateById(fundRecord);
