@@ -79,7 +79,7 @@
         select product_id from wallet_agent_product
         <where>
             <if test="agentId != null">
-                and c.agent_id = #{agentId}
+                and agent_id = #{agentId}
             </if>
         </where>
         ) and `status` = 'PROCESS'
