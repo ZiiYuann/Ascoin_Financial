@@ -12,6 +12,7 @@ import com.tianli.fund.contant.FundQuota;
 import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.entity.FundTransactionRecord;
+import com.tianli.fund.enums.FundIncomeStatus;
 import com.tianli.fund.query.FundIncomeQuery;
 import com.tianli.fund.query.FundTransactionQuery;
 import com.tianli.fund.service.IFundRecordService;
@@ -112,6 +113,7 @@ public class FundController {
      */
     @GetMapping("/income/record")
     public Result incomeRecord(PageQuery<FundIncomeRecord> page , FundIncomeQuery query){
+        query.setStatus(FundIncomeStatus.GRANT.getStatus());
         IPage<FundIncomeRecordVO> fundIncomeRecordPage = fundRecordService.incomeRecord(page, query);
         return Result.success(fundIncomeRecordPage);
     }

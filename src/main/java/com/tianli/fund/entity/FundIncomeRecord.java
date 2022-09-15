@@ -69,7 +69,7 @@ public class FundIncomeRecord extends Model<FundIncomeRecord> {
     private BigDecimal interestAmount;
 
     /**
-     * 状态
+     * 状态 状态（1-已计算 2-待审核 3-已发放 4-审核失败）
      */
     private Integer status;
 
