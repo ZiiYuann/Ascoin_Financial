@@ -72,9 +72,10 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     private IFundRecordService fundRecordService;
 
     @Override
-    public List<AmountDto> getAmountByUidAndStatus(Long uid, Integer status) {
+    public List<AmountDto> getAmountByUidAndStatus(Long uid,Long agentId, Integer status) {
         FundIncomeQuery query = new FundIncomeQuery();
         query.setUid(uid);
+        query.setAgentId(agentId);
         query.setStatus(status);
         List<FundIncomeAmountDTO> fundIncomeAmountDTOS = getAmount(query);
         return fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO -> new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());

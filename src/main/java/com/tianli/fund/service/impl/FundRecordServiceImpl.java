@@ -106,7 +106,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     @Override
     public FundMainPageVO mainPage() {
         Long uid = requestInitService.uid();
-        List<AmountDto> holdAmount = fundRecordMapper.holdAmountSumByUid(uid);
+        List<AmountDto> holdAmount = fundRecordMapper.holdAmountSumByUid(uid,null);
         FundIncomeQuery query = new FundIncomeQuery();
         query.setUid(uid);
         List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordService.getAmount(query);
@@ -317,19 +317,19 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
         IPage<FundUserRecordVO> fundUserRecordPage = fundRecordMapper.selectDistinctUidPage(pageQuery.page(), query);
         return fundUserRecordPage.convert(fundUserRecordVO -> {
             Long uid = fundUserRecordVO.getUid();
-            List<AmountDto> amountDtos = fundRecordMapper.holdAmountSumByUid(uid);
+            List<AmountDto> amountDtos = fundRecordMapper.holdAmountSumByUid(uid, query.getAgentId());
             fundUserRecordVO.setHoldAmount(orderService.calDollarAmount(amountDtos));
             // 累计利息
-            List<AmountDto> interestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, null);
+            List<AmountDto> interestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, query.getAgentId(), null);
             fundUserRecordVO.setInterestAmount(orderService.calDollarAmount(interestAmount));
 
             // 已经支付利息
-            List<AmountDto> payInterestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, FundIncomeStatus.audit_success);
+            List<AmountDto> payInterestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, query.getAgentId(), FundIncomeStatus.audit_success);
             fundUserRecordVO.setPayInterestAmount(orderService.calDollarAmount(payInterestAmount));
 
             // 待支付利息
-            List<AmountDto> waitPayInterestAmount1 = fundIncomeRecordService.getAmountByUidAndStatus(uid, FundIncomeStatus.wait_audit);
-            List<AmountDto> waitPayInterestAmount2 = fundIncomeRecordService.getAmountByUidAndStatus(uid, FundIncomeStatus.calculated);
+            List<AmountDto> waitPayInterestAmount1 = fundIncomeRecordService.getAmountByUidAndStatus(uid, query.getAgentId(), FundIncomeStatus.wait_audit);
+            List<AmountDto> waitPayInterestAmount2 = fundIncomeRecordService.getAmountByUidAndStatus(uid, query.getAgentId(), FundIncomeStatus.calculated);
             BigDecimal waitPayInterestAmount = orderService.calDollarAmount(waitPayInterestAmount1)
                     .add(orderService.calDollarAmount(waitPayInterestAmount2));
             fundUserRecordVO.setWaitPayInterestAmount(waitPayInterestAmount);

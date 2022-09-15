@@ -24,7 +24,7 @@ import java.util.List;
  */
 public interface IFundIncomeRecordService extends IService<FundIncomeRecord> {
 
-    List<AmountDto> getAmountByUidAndStatus(Long uid, Integer status);
+    List<AmountDto> getAmountByUidAndStatus(Long uid,Long agentId, Integer status);
 
     IPage<FundIncomeRecordVO> getPage(PageQuery<FundIncomeRecord> page , FundIncomeQuery query);
 

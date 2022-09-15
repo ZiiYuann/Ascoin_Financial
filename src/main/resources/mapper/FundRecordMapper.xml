@@ -67,27 +67,38 @@
     </select>
 
     <select id="selectFundUserHoldDto" resultType="com.tianli.management.dto.FundUserHoldDto">
-        SELECT
-        SUM(a.hold_amount) holdAmount,
-        sum(b.interest_amount) interestAmount,
-        sum(if(b.status = 1 or b.status =2, b.interest_amount,0)) waitInterestAmount,
-        sum(if(b.status = 3, b.interest_amount,0)) payInterestAmount,
-        a.coin
-        FROM (select id,coin,sum(hold_amount) as hold_amount ,product_id from fund_record WHERE `status` = 'PROCESS'
-            <if test="queryUid != null and queryUid != ''">
-               and  uid like concat('%',#{queryUid},'%')
-            </if>
-        GROUP BY id,coin,product_id
-        ) a
-        #
-        inner JOIN ( SELECT `status`,fund_id,sum(interest_amount) as interest_amount from fund_income_record ) b on a.id
-        = b.fund_id
-        inner JOIN wallet_agent_product c on a.product_id = c.product_id
+
+        select
+        coin,
+        SUM(hold_amount) as holdAmount,
+        sum(cumulative_income_amount) interestAmount,
+        SUM(wait_income_amount) as waitInterestAmount,
+        SUM(income_amount) as payInterestAmount
+        from fund_record a where product_id in
+        (
+        select product_id from wallet_agent_product
         <where>
             <if test="agentId != null">
                 and c.agent_id = #{agentId}
             </if>
         </where>
-        GROUP BY a.coin
+        ) and `status` = 'PROCESS'
+
+        <if test="queryUid != null and queryUid != ''">
+            and uid like concat('%',#{queryUid},'%')
+        </if>
+        GROUP BY coin
+
+    </select>
+    <select id="holdAmountSumByUid" resultType="com.tianli.management.dto.AmountDto">
+
+        select sum(r.hold_amount) amount, r.coin
+        from fund_record r
+        left join wallet_agent_product p on r.product_id=p.product_id
+        where r.uid = #{uid}
+        <if test="agentId != null">
+            p.agent_id = #{agentId}
+        </if>
+        group by coin
     </select>
 </mapper>

@@ -25,8 +25,8 @@ import java.util.List;
  */
 @Mapper
 public interface FundRecordMapper extends BaseMapper<FundRecord> {
-    @Select("select sum(hold_amount) amount,coin from fund_record where uid = #{uid} group by coin")
-    List<AmountDto> holdAmountSumByUid(Long uid);
+
+    List<AmountDto> holdAmountSumByUid(@Param("uid") Long uid, @Param("agentId") Long agentId);
 
     @Update("update fund_record set hold_amount = hold_amount - #{amount} where id = #{id}")
     int reduceAmount(Long id, BigDecimal amount);
@@ -34,13 +34,13 @@ public interface FundRecordMapper extends BaseMapper<FundRecord> {
     @Update("update fund_record set hold_amount = hold_amount + #{amount},status='PROCESS' where id = #{id}")
     int increaseAmount(Long id, BigDecimal amount);
 
-    IPage<FundUserRecordVO> selectDistinctUidPage(@Param("page") IPage<FundRecord> page,@Param("query") FundRecordQuery query);
+    IPage<FundUserRecordVO> selectDistinctUidPage(@Param("page") IPage<FundRecord> page, @Param("query") FundRecordQuery query);
 
     List<AmountDto> selectHoldAmount(@Param("query") FundRecordQuery query);
 
-    BigDecimal selectHoldAmountSum(@Param("productId") Long productId,@Param("uid") Long uid);
+    BigDecimal selectHoldAmountSum(@Param("productId") Long productId, @Param("uid") Long uid);
 
     Integer selectHoldUserCount(@Param("query") FundRecordQuery query);
 
-    List<FundUserHoldDto>  selectFundUserHoldDto(FundRecordQuery query);
+    List<FundUserHoldDto> selectFundUserHoldDto(FundRecordQuery query);
 }
