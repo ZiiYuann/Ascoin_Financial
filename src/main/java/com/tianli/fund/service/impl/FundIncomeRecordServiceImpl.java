@@ -85,6 +85,11 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     }
 
     @Override
+    public IPage<FundIncomeRecordVO> getSummaryPage(PageQuery<FundIncomeRecord> page, FundIncomeQuery query) {
+        return fundIncomeRecordMapper.selectSummaryIncomePage(page.page(), query);
+    }
+
+    @Override
     public List<FundIncomeAmountDTO> getAmount(FundIncomeQuery query) {
         List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordMapper.selectAmount(query);
         fundIncomeAmountDTOS.remove(null);

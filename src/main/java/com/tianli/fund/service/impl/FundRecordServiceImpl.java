@@ -282,7 +282,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     public IPage<FundIncomeRecordVO> incomeRecord(PageQuery<FundIncomeRecord> page, FundIncomeQuery query) {
         Long uid = requestInitService.uid();
         query.setUid(uid);
-        return fundIncomeRecordService.getPage(page, query);
+        return fundIncomeRecordService.getSummaryPage(page, query);
     }
 
     @Override

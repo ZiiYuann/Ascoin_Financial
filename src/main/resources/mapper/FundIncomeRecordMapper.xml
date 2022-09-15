@@ -11,32 +11,7 @@
         from wallet_agent_product c
         inner JOIN fund_record b on c.product_id = b.product_id
         inner JOIN fund_income_record a on b.id = a.fund_id
-        <where>
-            <if test="query.uid != null">
-                and a.uid = #{query.uid}
-            </if>
-            <if test="query.queryUid != null and query.queryUid != ''">
-                and a.uid like concat('%',#{query.queryUid},'%')
-            </if>
-            <if test="query.queryProductId != null and query.queryProductId != ''">
-                and a.product_id like concat('%',#{query.queryProductId},'%')
-            </if>
-            <if test="query.status != null">
-                and a.status = #{query.status}
-            </if>
-            <if test="query.startTime != null">
-                and a.create_time >= #{query.startTime}
-            </if>
-            <if test="query.endTime != null">
-                and a.create_time &lt;= #{query.endTime}
-            </if>
-            <if test="query.agentId != null">
-                and c.agent_id = #{query.agentId}
-            </if>
-            <if test="query.productId != null">
-                and b.product_id = #{query.productId}
-            </if>
-        </where>
+        <include refid="query"/>
         group by coin
     </select>
 
@@ -56,6 +31,32 @@
         from fund_income_record a
         inner JOIN fund_record b on a.fund_id = b.id
         inner join wallet_agent_product c on b.product_id = c.product_id
+        <include refid="query"/>
+        order by a.create_time desc
+    </select>
+
+    <select id="selectWaitInterestCount" resultType="int">
+        select count(*)
+        from fund_income_record a
+                 inner join wallet_agent_product b on a.product_id = b.product_id
+        where a.status in (1, 2)
+          and b.agent_id = #{agentId}
+    </select>
+    <select id="selectSummaryIncomePage" resultType="com.tianli.fund.vo.FundIncomeRecordVO">
+        select
+        a.product_name productName,
+        a.coin,
+        b.logo,
+        sum(a.interest_amount) as interestAmount
+        from fund_income_record a
+        inner JOIN fund_record b on a.fund_id = b.id
+        inner join wallet_agent_product c on b.product_id = c.product_id
+        <include refid="query"/>
+        order by  interestAmount desc
+
+    </select>
+
+    <sql id="query">
         <where>
             <if test="query.agentId != null">
                 c.agent_id = #{query.agentId}
@@ -85,14 +86,7 @@
                 and a.fund_id = #{query.fundId}
             </if>
         </where>
-        order by a.create_time desc
-    </select>
+    </sql>
 
-    <select id="selectWaitInterestCount" resultType="int">
-        select count(*)
-        from fund_income_record a
-                 inner join wallet_agent_product b on a.product_id = b.product_id
-        where a.status in (1, 2)
-          and b.agent_id = #{agentId}
-    </select>
+
 </mapper>

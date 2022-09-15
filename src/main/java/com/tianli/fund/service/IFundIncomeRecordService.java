@@ -28,6 +28,8 @@ public interface IFundIncomeRecordService extends IService<FundIncomeRecord> {
 
     IPage<FundIncomeRecordVO> getPage(PageQuery<FundIncomeRecord> page , FundIncomeQuery query);
 
+    IPage<FundIncomeRecordVO> getSummaryPage(PageQuery<FundIncomeRecord> page , FundIncomeQuery query);
+
     List<FundIncomeAmountDTO> getAmount(FundIncomeQuery query);
 
     FundIncomeAmountVO getIncomeAmount(FundIncomeQuery query);
