@@ -2,6 +2,7 @@ package com.tianli.fund.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
@@ -86,7 +87,9 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
 
     @Override
     public IPage<FundIncomeRecordVO> getSummaryPage(PageQuery<FundIncomeRecord> page, FundIncomeQuery query) {
-        return fundIncomeRecordMapper.selectSummaryIncomePage(page.page(), query);
+        Page<FundIncomeRecord> pageQuery = page.page();
+        pageQuery.setOptimizeCountSql(false);
+        return fundIncomeRecordMapper.selectSummaryIncomePage(pageQuery, query);
     }
 
     @Override
