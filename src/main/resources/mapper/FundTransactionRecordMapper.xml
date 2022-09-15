@@ -23,7 +23,7 @@
             <if test="queryProductId != null and queryProductId != ''">
                 and a.product_id like concat('%',#{queryProductId},'%')
             </if>
-            <if test="type != null and type != ''">
+            <if test="type != null ">
                 and a.type = #{type}
             </if>
             <if test="status != null">
