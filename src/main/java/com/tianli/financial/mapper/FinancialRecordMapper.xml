@@ -47,7 +47,6 @@
     <update id="increaseIncomeAmount">
         UPDATE financial_record
         SET income_amount = income_amount + #{amount},
-            hold_amount   = hold_amount + #{amount},
             wait_amount   = 0,
             update_time   = now()
         WHERE id = #{recordId}
