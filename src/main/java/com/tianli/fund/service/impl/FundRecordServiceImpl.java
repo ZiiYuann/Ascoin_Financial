@@ -1,6 +1,7 @@
 package com.tianli.fund.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -16,9 +17,12 @@ import com.tianli.common.PageQuery;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialProduct;
+import com.tianli.financial.entity.FinancialRecord;
+import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.service.FinancialProductService;
+import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.fund.bo.FundPurchaseBO;
 import com.tianli.fund.bo.FundRedemptionBO;
 import com.tianli.fund.contant.FundCycle;
@@ -91,6 +95,9 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
 
     @Resource
     private FinancialProductService financialProductService;
+
+    @Resource
+    private FinancialRecordService financialRecordService;
 
     @Resource
     private AccountBalanceService accountBalanceService;
@@ -434,6 +441,14 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
 
         if (Objects.isNull(financialProduct) || !financialProduct.getType().equals(ProductType.fund))
             ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
+
+        if (BusinessType.benefits.equals(financialProduct.getBusinessType())) {
+            int fundHoldAmount = fundRecordMapper.selectCount(new LambdaQueryWrapper<FundRecord>().eq(FundRecord::getUid, uid));
+            int financialHoldAmount = financialRecordService.count(new LambdaQueryWrapper<FinancialRecord>().eq(FinancialRecord::getUid, uid));
+            if (fundHoldAmount > 0 || financialHoldAmount > 0) {
+                ErrorCodeEnum.BENEFITS_NOT_BUY.throwException();
+            }
+        }
 
         Long productId = financialProduct.getId();
         BigDecimal purchaseAmount = bo.getPurchaseAmount();

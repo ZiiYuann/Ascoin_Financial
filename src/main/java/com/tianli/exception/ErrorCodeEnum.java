@@ -116,7 +116,7 @@ public enum ErrorCodeEnum {
     EXIST_WAIT_REDEMPTION(3611,"存在待赎回金额"),
     EXIST_WAIT_INTEREST(3612,"存在待发放利息"),
     REDEMPTION_CYCLE_ERROR(3613,"该基金暂不可赎回"),
-
+    BENEFITS_NOT_BUY(3613,"仅限新用户可申购"),
 
         ;
     private int errorNo;
