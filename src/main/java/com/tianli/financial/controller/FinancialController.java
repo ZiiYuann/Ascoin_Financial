@@ -82,7 +82,9 @@ public class FinancialController {
         ExpectIncomeVO expectIncomeVO = new ExpectIncomeVO();
 
         if (product.getRateType() == 1) {
-            return Result.instance().setData(financialProductLadderRateService.calLadderIncome(productId, amount));
+            BigDecimal income = financialProductLadderRateService.calLadderIncome(productId, amount);
+            expectIncomeVO.setExpectIncome(income);
+            return Result.instance().setData(expectIncomeVO);
         }
 
         expectIncomeVO.setExpectIncome(product.getRate().multiply(amount)

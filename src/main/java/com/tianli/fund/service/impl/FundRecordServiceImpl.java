@@ -320,7 +320,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
             Long uid = fundUserRecordVO.getUid();
             List<AmountDto> amountDtos = fundRecordMapper.holdAmountSumByUid(uid, query.getAgentId());
             fundUserRecordVO.setHoldAmount(orderService.calDollarAmount(amountDtos));
-            // 累计利息
+            // 累计利息 包括 待发 + 已经发
             List<AmountDto> interestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, query.getAgentId(), new ArrayList<>());
             fundUserRecordVO.setInterestAmount(orderService.calDollarAmount(interestAmount));
 
