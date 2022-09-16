@@ -82,17 +82,19 @@ public class FinancialProductLadderRateService extends ServiceImpl<FinancialProd
         });
     }
 
+    public BigDecimal calLadderIncome(FinancialRecord record) {
+        return calLadderIncome(record.getProductId(), record.getHoldAmount());
+    }
 
     /**
      * 计算阶梯利息
      *
      * @param record 持有记录
      */
-    public BigDecimal calLadderIncome(FinancialRecord record) {
+    public BigDecimal calLadderIncome(Long productId, BigDecimal incomeAmount) {
 
-        BigDecimal incomeAmount = record.getIncomeAmount();
         List<BigDecimal> ladderIncomeAmounts = new ArrayList<>();
-        List<FinancialProductLadderRate> ladderRates = this.listByProductId(record.getProductId());
+        List<FinancialProductLadderRate> ladderRates = this.listByProductId(productId);
         ladderRates.forEach(rate -> {
 
             if (incomeAmount.compareTo(rate.getStartPoint()) < 0) {

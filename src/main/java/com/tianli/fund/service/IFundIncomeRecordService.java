@@ -26,6 +26,8 @@ public interface IFundIncomeRecordService extends IService<FundIncomeRecord> {
 
     List<AmountDto> getAmountByUidAndStatus(Long uid,Long agentId, Integer status);
 
+    List<AmountDto> getAmountByUidAndStatus(Long uid,Long agentId, List<Integer> status);
+
     IPage<FundIncomeRecordVO> getPage(PageQuery<FundIncomeRecord> page , FundIncomeQuery query);
 
     IPage<FundIncomeRecordVO> getSummaryPage(PageQuery<FundIncomeRecord> page , FundIncomeQuery query);

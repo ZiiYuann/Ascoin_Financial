@@ -9,6 +9,7 @@ import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.RecordRenewalQuery;
+import com.tianli.financial.service.FinancialProductLadderRateService;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.service.FinancialService;
@@ -34,6 +35,8 @@ public class FinancialController {
     private FinancialService financialService;
     @Resource
     private FinancialRecordService financialRecordService;
+    @Resource
+    private FinancialProductLadderRateService financialProductLadderRateService;
 
 
     /**
@@ -41,7 +44,7 @@ public class FinancialController {
      */
     @GetMapping("/summary/products")
     public Result productSummary(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
-        return Result.instance().setData(financialService.summaryProducts(pageQuery.page(),productType));
+        return Result.instance().setData(financialService.summaryProducts(pageQuery.page(), productType));
     }
 
     /**
@@ -77,9 +80,16 @@ public class FinancialController {
     public Result expectIncome(Long productId, BigDecimal amount) {
         FinancialProduct product = financialProductService.getById(productId);
         ExpectIncomeVO expectIncomeVO = new ExpectIncomeVO();
+
+        if (product.getRateType() == 1) {
+            return Result.instance().setData(financialProductLadderRateService.calLadderIncome(productId, amount));
+        }
+
         expectIncomeVO.setExpectIncome(product.getRate().multiply(amount)
                 .multiply(BigDecimal.valueOf(product.getTerm().getDay()))
                 .divide(BigDecimal.valueOf(365), 8, RoundingMode.DOWN));
+
+
         return Result.instance().setData(expectIncomeVO);
     }
 

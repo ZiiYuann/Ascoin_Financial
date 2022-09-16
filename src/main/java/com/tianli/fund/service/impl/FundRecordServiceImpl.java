@@ -57,6 +57,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -106,7 +107,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     @Override
     public FundMainPageVO mainPage() {
         Long uid = requestInitService.uid();
-        List<AmountDto> holdAmount = fundRecordMapper.holdAmountSumByUid(uid,null);
+        List<AmountDto> holdAmount = fundRecordMapper.holdAmountSumByUid(uid, null);
         FundIncomeQuery query = new FundIncomeQuery();
         query.setUid(uid);
         List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordService.getAmount(query);
@@ -320,7 +321,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
             List<AmountDto> amountDtos = fundRecordMapper.holdAmountSumByUid(uid, query.getAgentId());
             fundUserRecordVO.setHoldAmount(orderService.calDollarAmount(amountDtos));
             // 累计利息
-            List<AmountDto> interestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, query.getAgentId(), null);
+            List<AmountDto> interestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, query.getAgentId(), new ArrayList<>());
             fundUserRecordVO.setInterestAmount(orderService.calDollarAmount(interestAmount));
 
             // 已经支付利息
@@ -328,10 +329,8 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
             fundUserRecordVO.setPayInterestAmount(orderService.calDollarAmount(payInterestAmount));
 
             // 待支付利息
-            List<AmountDto> waitPayInterestAmount1 = fundIncomeRecordService.getAmountByUidAndStatus(uid, query.getAgentId(), FundIncomeStatus.wait_audit);
-            List<AmountDto> waitPayInterestAmount2 = fundIncomeRecordService.getAmountByUidAndStatus(uid, query.getAgentId(), FundIncomeStatus.calculated);
-            BigDecimal waitPayInterestAmount = orderService.calDollarAmount(waitPayInterestAmount1)
-                    .add(orderService.calDollarAmount(waitPayInterestAmount2));
+            BigDecimal waitPayInterestAmount = orderService.calDollarAmount(fundIncomeRecordService.getAmountByUidAndStatus(uid, query.getAgentId()
+                    , List.of(FundIncomeStatus.wait_audit, FundIncomeStatus.calculated)));
             fundUserRecordVO.setWaitPayInterestAmount(waitPayInterestAmount);
             return fundUserRecordVO;
         });

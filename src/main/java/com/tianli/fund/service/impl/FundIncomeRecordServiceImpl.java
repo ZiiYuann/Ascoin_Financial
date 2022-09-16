@@ -73,6 +73,11 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
 
     @Override
     public List<AmountDto> getAmountByUidAndStatus(Long uid,Long agentId, Integer status) {
+        return getAmountByUidAndStatus(uid,agentId,List.of(status));
+    }
+
+    @Override
+    public List<AmountDto> getAmountByUidAndStatus(Long uid, Long agentId, List<Integer> status) {
         FundIncomeQuery query = new FundIncomeQuery();
         query.setUid(uid);
         query.setAgentId(agentId);
