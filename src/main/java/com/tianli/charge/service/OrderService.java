@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -168,9 +169,9 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
         return amountDtos.stream()
                 .filter(index -> Objects.nonNull(index.getCoin()))
                 .map(amountDto -> {
-            BigDecimal amount = Optional.ofNullable(amountDto.getAmount()).orElse(BigDecimal.ZERO);
-            return currencyService.getDollarRate(amountDto.getCoin()).multiply(amount);
-        }).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    BigDecimal amount = Optional.ofNullable(amountDto.getAmount()).orElse(BigDecimal.ZERO);
+                    return currencyService.getDollarRate(amountDto.getCoin()).multiply(amount).setScale(8, RoundingMode.DOWN);
+                }).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Resource
