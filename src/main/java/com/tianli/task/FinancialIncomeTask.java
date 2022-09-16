@@ -172,7 +172,8 @@ public class FinancialIncomeTask {
 
         // 如果是活期产品需要当前时间 >= 收益发放时间
         if (ProductType.current.equals(type) && todayZero.compareTo(grantIncomeTime) >= 0) {
-            if (financialRecord.getIncomeAmount().compareTo(BigDecimal.ZERO) == 0) {
+            if (financialRecord.getIncomeAmount().compareTo(BigDecimal.ZERO) == 0
+                    && financialRecord.getWaitAmount().compareTo(BigDecimal.ZERO) > 0) {
                 financialRecordService.increaseIncomeAmount(financialRecord.getId(), financialRecord.getWaitAmount()
                         , financialRecord.getIncomeAmount());
                 return;
