@@ -1,6 +1,7 @@
 package com.tianli.task;
 
 import com.alibaba.testable.core.annotation.MockInvoke;
+import com.alibaba.testable.core.model.MockScope;
 import com.alibaba.testable.core.tool.PrivateAccessor;
 import com.tianli.CommonConstant;
 import com.tianli.account.service.AccountBalanceService;
@@ -27,7 +28,7 @@ public class FinancialIncomeTaskTest {
 
     public static class Mock {
 
-        @MockInvoke
+        @MockInvoke(scope = MockScope.ASSOCIATED)
         @SuppressWarnings("unchecked")
         private <T> T getById(FinancialProductService self, Serializable id) {
             FinancialProduct.FinancialProductBuilder builder = FinancialProduct.builder();
@@ -43,34 +44,34 @@ public class FinancialIncomeTaskTest {
             return (T) builder.build();
         }
 
-        @MockInvoke
+        @MockInvoke(scope = MockScope.ASSOCIATED)
         public void insertIncomeAccrue(FinancialIncomeAccrueService self, Long uid, Long recordId,
                                        CurrencyCoin coin, BigDecimal amount) {
         }
 
-        @MockInvoke
+        @MockInvoke(scope = MockScope.ASSOCIATED)
         public void insertIncomeDaily(FinancialIncomeDailyService self, Long uid, Long recordId,
                                       BigDecimal amount) {
         }
 
-        @MockInvoke
+        @MockInvoke(scope = MockScope.ASSOCIATED)
         public void increase(AccountBalanceService self, long uid, ChargeType type,
                              CurrencyCoin coin, BigDecimal amount,
                              String sn, String des) {
         }
 
-        @MockInvoke
+        @MockInvoke(scope = MockScope.ASSOCIATED)
         public void increaseIncomeAmount(FinancialRecordService self, Long recordId, BigDecimal amount,
                                          BigDecimal originalAmount) {
         log.info("增加计息金额为：【{}】,原先计息金额为：【{}】",amount,originalAmount);
         }
 
-        @MockInvoke
+        @MockInvoke(scope = MockScope.ASSOCIATED)
         public boolean save(OrderService self,Order order) {
             return false;
         }
 
-        @MockInvoke
+        @MockInvoke(scope = MockScope.ASSOCIATED)
         public BigDecimal calLadderIncome(FinancialProductLadderRateService self,FinancialRecord record) {
             self = new FinancialProductLadderRateService();
             return self.calLadderIncome(record);

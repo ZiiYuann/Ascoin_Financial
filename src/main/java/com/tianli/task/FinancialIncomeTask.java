@@ -77,7 +77,8 @@ public class FinancialIncomeTask {
     //        @Scheduled(cron = "0 0/1 * * * ?")
     public void calIncomeTest() {
         log.info("========执行计算每日利息定时任务========");
-        asyncService.async(() -> {});
+        asyncService.async(() -> {
+        });
     }
 
     /**
@@ -171,6 +172,11 @@ public class FinancialIncomeTask {
 
         // 如果是活期产品需要当前时间 >= 收益发放时间
         if (ProductType.current.equals(type) && todayZero.compareTo(grantIncomeTime) >= 0) {
+            if (financialRecord.getIncomeAmount().compareTo(BigDecimal.ZERO) == 0) {
+                financialRecordService.increaseIncomeAmount(financialRecord.getId(), financialRecord.getWaitAmount()
+                        , financialRecord.getIncomeAmount());
+                return;
+            }
             incomeOperation(financialRecord, now);
         }
     }
@@ -306,6 +312,8 @@ public class FinancialIncomeTask {
         // 操作余额
         accountBalanceService.increase(uid, ChargeType.income, financialRecord.getCoin()
                 , income, order.getOrderNo(), CurrencyLogDes.收益.name());
+
+
         // 如果等待记息金额 大于 0 ，则计算完利息之后添加到 记息金额中
         if (financialRecord.getWaitAmount().compareTo(BigDecimal.ZERO) > 0) {
             financialRecordService.increaseIncomeAmount(financialRecord.getId(), financialRecord.getWaitAmount()

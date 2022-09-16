@@ -1,6 +1,7 @@
 package com.tianli.financial.service;
 
 import com.alibaba.testable.core.annotation.MockInvoke;
+import com.alibaba.testable.core.model.MockScope;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.tianli.CommonConstant;
 import com.tianli.financial.convert.FinancialConverter;
@@ -18,24 +19,24 @@ public class FinancialProductLadderRateServiceTest {
     private final FinancialProductLadderRateService service = new FinancialProductLadderRateService();
 
     public static class Mock {
-        @MockInvoke
+        @MockInvoke(scope = MockScope.ASSOCIATED)
         @SuppressWarnings("unchecked")
         public <T> List<T> selectList(FinancialProductLadderRateMapper self, Wrapper<T> queryWrapper) {
             return (List<T>) CommonConstant.ladderRates;
         }
 
-        @MockInvoke
+        @MockInvoke(scope = MockScope.ASSOCIATED)
         public <T> int delete(FinancialProductLadderRateMapper self, Wrapper<T> wrapper) {
             return 0;
         }
 
-        @MockInvoke
+        @MockInvoke(scope = MockScope.ASSOCIATED)
         public FinancialProductLadderRate toDO(
                 FinancialConverter self, FinancialProductLadderRateIoUQuery financialProductLadderRateIoUQuery) {
             return new FinancialProductLadderRate();
         }
 
-        @MockInvoke
+        @MockInvoke(scope = MockScope.ASSOCIATED)
         public <T> int insert(FinancialProductLadderRateMapper self, T entity) {
             return 0;
         }

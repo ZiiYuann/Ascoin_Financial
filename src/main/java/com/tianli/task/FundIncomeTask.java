@@ -78,7 +78,6 @@ public class FundIncomeTask {
                 fundIncomeRecord.setStatus(FundIncomeStatus.wait_audit);
                 fundIncomeRecordService.updateById(fundIncomeRecord);
             }
-            fundRecord.setWaitIncomeAmount(fundRecord.getIncomeAmount().add(fundIncomeRecord.getInterestAmount()));
         });
 
         LocalDateTime createTime = fundRecord.getCreateTime();
@@ -102,6 +101,8 @@ public class FundIncomeTask {
 
             //累计收益
             fundRecord.setCumulativeIncomeAmount(fundRecord.getCumulativeIncomeAmount().add(dailyIncome));
+            // 增加待发放利息
+            fundRecord.setWaitIncomeAmount(fundRecord.getIncomeAmount().add(dailyIncome));
 
         }
         fundRecordService.updateById(fundRecord);
