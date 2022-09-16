@@ -182,6 +182,7 @@ public class FinancialServiceImpl implements FinancialService {
         incomeByRecordIdVO.setProductId(record.getProductId());
         incomeByRecordIdVO.setMaxRate(product.getMaxRate());
         incomeByRecordIdVO.setMinRate(product.getMinRate());
+        incomeByRecordIdVO.setRateType(product.getRateType());
         incomeByRecordIdVO.setRate(product.getRate());
 
         return incomeByRecordIdVO;

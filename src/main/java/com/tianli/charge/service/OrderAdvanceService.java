@@ -2,17 +2,25 @@ package com.tianli.charge.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.account.enums.AccountChangeType;
 import com.tianli.chain.dto.TRONTokenReq;
+import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderAdvance;
+import com.tianli.charge.enums.ChargeStatus;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderAdvanceMapper;
 import com.tianli.charge.query.GenerateOrderAdvanceQuery;
+import com.tianli.charge.vo.OrderBaseVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.annotation.NoRepeatCommit;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.financial.entity.FinancialProduct;
+import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductStatus;
+import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.FinancialProductService;
+import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.stereotype.Service;
@@ -37,6 +45,12 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
     private FinancialProductService financialProductService;
     @Resource
     private FinancialService financialService;
+    @Resource
+    private OrderService orderService;
+    @Resource
+    private FinancialRecordService financialRecordService;
+    @Resource
+    private ChargeService chargeService;
 
     /**
      * 生成预订单
@@ -44,10 +58,15 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
     @Transactional
     @NoRepeatCommit(autoUnlock = false)
     public Long generateOrderAdvance(GenerateOrderAdvanceQuery query) {
+
+        Long uid = requestInitService.uid();
+
+        FinancialProduct product = financialProductService.getById(query.getProductId());
+
         OrderAdvance orderAdvance = OrderAdvance.builder()
                 .id(CommonFunction.generalId())
                 .amount(query.getAmount())
-                .uid(requestInitService.uid())
+                .uid(uid)
                 .createTime(LocalDateTime.now())
                 .productId(query.getProductId())
                 .coin(query.getCoin())
@@ -55,17 +74,41 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                 .autoCurrent(query.isAutoCurrent())
                 .build();
         baseMapper.insert(orderAdvance);
+
+        // 生成一笔预订单记录
+        Order order = Order.builder()
+                .uid(requestInitService.uid())
+                .coin(product.getCoin())
+                .orderNo(AccountChangeType.advance_purchase.getPrefix() + orderAdvance.getId())
+                .amount(query.getAmount())
+                .type(ChargeType.purchase)
+                .status(ChargeStatus.created)
+                .createTime(LocalDateTime.now())
+                .status(ChargeStatus.chaining)
+                .relatedId(orderAdvance.getId())
+                .build();
+        orderService.save(order);
+
+        FinancialRecord financialRecord =
+                financialRecordService.generateFinancialRecord(uid, product, query.getAmount(), query.isAutoCurrent());
+        // 预订单
+        financialRecord.setStatus(RecordStatus.SUCCESS);
+        financialRecordService.updateById(financialRecord);
+
         return orderAdvance.getId();
     }
 
     /**
-     * 生成预订单
+     * 更新预订单
      */
     @Transactional
-    public void updateOrderAdvance(GenerateOrderAdvanceQuery query) {
+    public OrderBaseVO updateOrderAdvance(GenerateOrderAdvanceQuery query) {
         OrderAdvance orderAdvance = baseMapper.selectById(query.getId());
         orderAdvance.setTxid(query.getTxid());
         baseMapper.updateById(orderAdvance);
+
+        return chargeService.orderDetails(requestInitService.uid()
+                , AccountChangeType.advance_purchase.getPrefix() + query.getId());
     }
 
     /**
@@ -98,7 +141,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
             return;
         }
 
-        if ( orderAdvance.getAmount().compareTo(finalAmount) != 0) {
+        if (orderAdvance.getAmount().compareTo(finalAmount) != 0) {
             log.error("充值金额与预订单金额不符合");
             return;
         }
@@ -110,6 +153,6 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                 .autoCurrent(orderAdvance.isAutoCurrent())
                 .productId(orderAdvance.getProductId()).build();
 
-        financialService.purchase(uid,purchaseQuery);
+        financialService.purchase(uid, purchaseQuery);
     }
 }

@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 public enum AccountChangeType {
     //理财
     purchase("PU"),
+    advance_purchase("APU"),
     //基金理财
     fund_purchase("FP"),
     //赎回

@@ -409,8 +409,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                         .divide(BigDecimal.valueOf(365), 8, RoundingMode.DOWN));
                 orderRechargeDetailsVo.setRateType(product.getRateType());
                 orderRechargeDetailsVo.setMaxRate(product.getMaxRate());
-                orderRechargeDetailsVo.setMaxRate(product.getMinRate());
-
+                orderRechargeDetailsVo.setMinRate(product.getMinRate());
                 return orderRechargeDetailsVo;
             case redeem:
                 var orderRedeemDetailsVO = chargeConverter.toOrderRedeemDetailsVO(record);
