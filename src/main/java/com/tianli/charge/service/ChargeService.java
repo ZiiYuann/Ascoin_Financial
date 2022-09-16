@@ -37,9 +37,13 @@ import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.financial.convert.FinancialConverter;
+import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
+import com.tianli.financial.service.FinancialProductLadderRateService;
+import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.mconfig.ConfigService;
@@ -58,6 +62,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author wangqiyun
@@ -393,6 +398,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     }
 
     private OrderBaseVO getOrderBaseVO(Order order, FinancialRecord record) {
+        FinancialProduct product = financialProductService.getById(record.getProductId());
         switch (order.getType()) {
             case purchase:
             case transfer:
@@ -401,6 +407,12 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 orderRechargeDetailsVo.setExpectIncome(record.getHoldAmount().multiply(record.getRate())
                         .multiply(BigDecimal.valueOf(record.getProductTerm().getDay()))
                         .divide(BigDecimal.valueOf(365), 8, RoundingMode.DOWN));
+                orderRechargeDetailsVo.setRateType(product.getRateType());
+                if(product.getRateType() == 1){
+                    orderRechargeDetailsVo.setLadderRates(financialProductLadderRateService.listByProductId(record.getProductId())
+                            .stream().map(financialConverter::toProductLadderRateVO).collect(Collectors.toList()));
+                }
+
                 return orderRechargeDetailsVo;
             case redeem:
                 var orderRedeemDetailsVO = chargeConverter.toOrderRedeemDetailsVO(record);
@@ -534,6 +546,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     @Resource
     private FinancialRecordService financialRecordService;
     @Resource
+    private FinancialProductService financialProductService;
+    @Resource
     private WalletImputationService walletImputationService;
     @Resource
     private ContractAdapter contractAdapter;
@@ -541,5 +555,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     private ChainService chainService;
     @Resource
     private OrderAdvanceService orderAdvanceService;
+    @Resource
+    private FinancialProductLadderRateService financialProductLadderRateService;
+    @Resource
+    private FinancialConverter financialConverter;
 
 }
