@@ -136,4 +136,8 @@ public class FinancialProductVO {
      */
     private Long recordId;
 
+    private BigDecimal maxRate;
+
+    private BigDecimal minRate;
+
 }

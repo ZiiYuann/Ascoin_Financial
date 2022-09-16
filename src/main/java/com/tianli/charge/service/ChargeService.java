@@ -116,7 +116,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             // 判断是否有预先订单需要处理
             try {
                 orderAdvanceService.handlerRechargeEvent(uid, req, finalAmount, tokenAdapter);
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error("申购订单失败");
                 log.error(ExceptionUtil.getMessage(e));
             }
@@ -408,10 +408,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                         .multiply(BigDecimal.valueOf(record.getProductTerm().getDay()))
                         .divide(BigDecimal.valueOf(365), 8, RoundingMode.DOWN));
                 orderRechargeDetailsVo.setRateType(product.getRateType());
-                if(product.getRateType() == 1){
-                    orderRechargeDetailsVo.setLadderRates(financialProductLadderRateService.listByProductId(record.getProductId())
-                            .stream().map(financialConverter::toProductLadderRateVO).collect(Collectors.toList()));
-                }
+                orderRechargeDetailsVo.setMaxRate(product.getMaxRate());
+                orderRechargeDetailsVo.setMaxRate(product.getMinRate());
 
                 return orderRechargeDetailsVo;
             case redeem:

@@ -89,6 +89,10 @@ public class MFinancialProductVO {
 
     private byte rateType;
 
+    private BigDecimal maxRate;
+
+    private BigDecimal minRate;
+
     /**
      * 阶梯利率
      */

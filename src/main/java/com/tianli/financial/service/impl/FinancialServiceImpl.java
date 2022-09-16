@@ -78,18 +78,18 @@ public class FinancialServiceImpl implements FinancialService {
         FinancialRecord financialRecord = FinancialRecord.builder().build();
         Optional<FinancialRecord> recordOptional = Optional.empty();
         if (ProductType.current.equals(product.getType())) {
-            recordOptional = financialRecordService.selectByProductId(purchaseQuery.getProductId(),uid)
+            recordOptional = financialRecordService.selectByProductId(purchaseQuery.getProductId(), uid)
                     .stream()
                     .sorted(Comparator.comparing(FinancialRecord::getEndTime).reversed())
                     .filter(index -> RecordStatus.PROCESS.equals(index.getStatus())).findFirst();
         }
         // 如果存在申购记录，如果是当天继续申购，则累加金额，否则累加待记利息金额
-        if(recordOptional.isPresent()){
+        if (recordOptional.isPresent()) {
             financialRecord = recordOptional.get();
             financialRecordService.increaseWaitAmount(financialRecord.getId(), amount, financialRecord.getWaitAmount());
         }
 
-        if(recordOptional.isEmpty()){
+        if (recordOptional.isEmpty()) {
             financialRecord = financialRecordService.generateFinancialRecord(uid, product, amount, purchaseQuery.isAutoCurrent());
         }
 
@@ -162,6 +162,7 @@ public class FinancialServiceImpl implements FinancialService {
     public RecordIncomeVO recordIncome(Long uid, Long recordId) {
         FinancialRecord record = financialRecordService.selectById(recordId, uid);
         RecordIncomeVO incomeByRecordIdVO = financialConverter.toIncomeByRecordIdVO(record);
+        FinancialProduct product = financialProductService.getById(record.getProductId());
 
         LambdaQueryWrapper<FinancialIncomeDaily> incomeDailyQuery = new LambdaQueryWrapper<FinancialIncomeDaily>().eq(FinancialIncomeDaily::getUid, uid)
                 .eq(FinancialIncomeDaily::getRecordId, recordId)
@@ -179,6 +180,9 @@ public class FinancialServiceImpl implements FinancialService {
         incomeByRecordIdVO.setRecordStatus(record.getStatus());
         incomeByRecordIdVO.setAutoRenewal(record.isAutoRenewal());
         incomeByRecordIdVO.setProductId(record.getProductId());
+        incomeByRecordIdVO.setMaxRate(product.getMaxRate());
+        incomeByRecordIdVO.setMinRate(product.getMinRate());
+        incomeByRecordIdVO.setRate(product.getRate());
 
         return incomeByRecordIdVO;
     }
@@ -466,8 +470,8 @@ public class FinancialServiceImpl implements FinancialService {
             query = query.eq(FinancialProduct::getType, type);
         }
 
-        if(Objects.isNull(type)){
-            query = query.in(FinancialProduct::getType, List.of(ProductType.current,ProductType.fixed));
+        if (Objects.isNull(type)) {
+            query = query.in(FinancialProduct::getType, List.of(ProductType.current, ProductType.fixed));
         }
 
 

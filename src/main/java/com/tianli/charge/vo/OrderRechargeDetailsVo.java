@@ -29,9 +29,8 @@ public class OrderRechargeDetailsVo extends OrderBaseVO {
 
     private byte rateType;
 
-    /**
-     * 阶梯化利率
-     */
-    private List<ProductLadderRateVO> ladderRates;
+    private BigDecimal maxRate;
+
+    private BigDecimal minRate;
 
 }

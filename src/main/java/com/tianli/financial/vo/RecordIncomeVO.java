@@ -73,4 +73,10 @@ public class RecordIncomeVO {
 
     private Long productId;
 
+    private byte rateType;
+
+    private BigDecimal maxRate;
+
+    private BigDecimal minRate;
+
 }
