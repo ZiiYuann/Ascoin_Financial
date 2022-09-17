@@ -35,6 +35,7 @@ import com.tianli.management.query.FinancialProductEditQuery;
 import com.tianli.management.query.FinancialProductEditStatusQuery;
 import com.tianli.management.query.FinancialProductLadderRateIoUQuery;
 import com.tianli.management.query.FinancialProductsQuery;
+import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.management.vo.MFinancialProductVO;
 import com.tianli.mconfig.ConfigService;
 import lombok.extern.slf4j.Slf4j;
@@ -76,6 +77,8 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
     private FinancialProductLadderRateService financialProductLadderRateService;
     @Resource
     private IFundRecordService fundRecordService;
+    @Resource
+    private IWalletAgentProductService walletAgentProductService;
 
     /**
      * 删除产品
@@ -164,6 +167,12 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
 
             if (ProductStatus.close.equals(query.getStatus())) {
                 redisLock.lock(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + query.getProductId(), 5L, TimeUnit.SECONDS);
+            }
+
+            // 如果是基金产品需要上线，需要查看产品是否与代理人绑定
+            if (ProductStatus.open.equals(query.getStatus()) && ProductType.fund.equals(product.getType())) {
+                Optional.ofNullable(walletAgentProductService.getByProductId(product.getId()))
+                        .orElseThrow(ErrorCodeEnum.FUND_PRODUCT_OPEN_NEED_AGENT::generalException);
             }
 
             product.setUpdateTime(LocalDateTime.now());
