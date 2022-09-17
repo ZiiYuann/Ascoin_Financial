@@ -31,12 +31,6 @@ import java.util.List;
 public interface FinancialService {
 
     /**
-     * 申购理财产品
-     * @param purchaseQuery 申购请求
-     */
-    FinancialPurchaseResultVO purchase(Long uid,PurchaseQuery purchaseQuery);
-
-    /**
      * 统计利息
      */
     DollarIncomeVO income(Long uid);
@@ -56,24 +50,6 @@ public interface FinancialService {
      * 申购的具体每日收益
      */
     IPage<FinancialIncomeDailyVO> dailyIncomePage(IPage<FinancialIncomeDaily> pageQuery, Long uid , Long recordId);
-
-    /**
-     * 校验产品是否处于开启状态
-     * @param financialProduct 产品
-     */
-    void validProduct(FinancialProduct financialProduct, BigDecimal purchaseAmount);
-
-    /**
-     * 校验账户额度
-     * @param amount 申购金额
-     */
-    void validRemainAmount(Long uid, CurrencyCoin currencyCoin, BigDecimal amount);
-
-    /**
-     * 校验申购限额
-     * @param amount 申购金额
-     */
-    void validPurchaseAmount(Long uid, FinancialProduct product, BigDecimal amount);
 
     /**
      * 获取订单记录信息

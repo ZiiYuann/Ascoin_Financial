@@ -1,10 +1,8 @@
 package com.tianli.fund.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
@@ -17,10 +15,10 @@ import com.tianli.common.PageQuery;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialProduct;
-import com.tianli.financial.entity.FinancialRecord;
-import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.query.PurchaseQuery;
+import com.tianli.financial.service.AbstractProductOperation;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.fund.bo.FundPurchaseBO;
@@ -76,7 +74,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional
-public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRecord> implements IFundRecordService {
+public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMapper, FundRecord> implements IFundRecordService {
 
     @Resource
     private FundRecordMapper fundRecordMapper;
@@ -110,6 +108,92 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
 
     @Resource
     private IFundReviewService fundReviewService;
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public FundTransactionRecordVO purchaseOperation(Long uid, PurchaseQuery purchaseQuery) {
+        Long productId = purchaseQuery.getProductId();
+        var financialProduct = financialProductService.getById(productId);
+        WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(productId);
+
+
+        BigDecimal purchaseAmount = purchaseQuery.getAmount();
+        //持有记录
+        FundRecord fundRecord = FundRecord.builder()
+                .uid(uid)
+                .productId(productId)
+                .productName(financialProduct.getName())
+                .productNameEn(financialProduct.getNameEn())
+                .coin(financialProduct.getCoin())
+                .logo(financialProduct.getLogo())
+                .holdAmount(purchaseAmount)
+                .riskType(financialProduct.getRiskType())
+                .businessType(financialProduct.getBusinessType())
+                .rate(financialProduct.getRate())
+                .status(FundRecordStatus.PROCESS)
+                .createTime(LocalDateTime.now())
+                .type(ProductType.fund)
+                .build();
+        this.save(fundRecord);
+
+        //生成一笔订单
+        Order order = Order.builder()
+                .uid(uid)
+                .coin(financialProduct.getCoin())
+                .relatedId(fundRecord.getId())
+                .orderNo(AccountChangeType.fund_purchase.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
+                .amount(purchaseAmount)
+                .type(ChargeType.fund_purchase)
+                .status(ChargeStatus.chain_success)
+                .createTime(LocalDateTime.now())
+                .completeTime(LocalDateTime.now())
+                .build();
+        orderService.save(order);
+        // 减少余额
+        accountBalanceService.decrease(uid, ChargeType.fund_purchase, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.基金申购.name());
+        //代理人钱包
+        AccountBalance agentAccountBalance = accountBalanceService.getAndInit(walletAgentProduct.getUid(), financialProduct.getCoin());
+        //代理人生成一笔订单
+        Order agentOrder = Order.builder()
+                .uid(agentAccountBalance.getUid())
+                .coin(financialProduct.getCoin())
+                .relatedId(fundRecord.getId())
+                .orderNo(AccountChangeType.agent_fund_sale.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
+                .amount(purchaseAmount)
+                .type(ChargeType.agent_fund_sale)
+                .status(ChargeStatus.chain_success)
+                .createTime(LocalDateTime.now())
+                .completeTime(LocalDateTime.now())
+                .build();
+        orderService.save(agentOrder);
+        accountBalanceService.increase(agentAccountBalance.getUid(), ChargeType.agent_fund_sale, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.代理基金销售.name());
+        //交易记录
+        FundTransactionRecord transactionRecord = FundTransactionRecord.builder()
+                .uid(uid)
+                .fundId(fundRecord.getId())
+                .productId(fundRecord.getProductId())
+                .productName(fundRecord.getProductName())
+                .coin(fundRecord.getCoin())
+                .rate(fundRecord.getRate())
+                .type(FundTransactionType.purchase)
+                .status(FundTransactionStatus.success)
+                .transactionAmount(purchaseAmount)
+                .createTime(LocalDateTime.now()).build();
+        fundTransactionRecordService.save(transactionRecord);
+
+        return fundRecordConvert.toFundTransactionVO(transactionRecord);
+    }
+
+    @Override
+    public void validPurchaseAmount(Long uid, FinancialProduct financialProduct, BigDecimal amount) {
+
+        BigDecimal personHoldAmount = fundRecordMapper.selectHoldAmountSum(financialProduct.getId(), uid);
+        if (financialProduct.getPersonQuota() != null && financialProduct.getPersonQuota().compareTo(BigDecimal.ZERO) > 0 &&
+                amount.add(personHoldAmount).compareTo(financialProduct.getPersonQuota()) > 0) {
+            ErrorCodeEnum.PURCHASE_GT_PERSON_QUOTA.throwException();
+        }
+
+    }
 
     @Override
     public FundMainPageVO mainPage() {
@@ -180,81 +264,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
 
     @Override
     public FundTransactionRecordVO purchase(FundPurchaseBO bo) {
-        Long productId = bo.getProductId();
-        var financialProduct = financialProductService.getById(productId);
-        Long uid = requestInitService.uid();
-        WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(productId);
-
-        // 校验能否申购
-        validPurchase(uid, financialProduct, walletAgentProduct, bo);
-
-        BigDecimal purchaseAmount = bo.getPurchaseAmount();
-        //持有记录
-        FundRecord fundRecord = FundRecord.builder()
-                .uid(uid)
-                .productId(productId)
-                .productName(financialProduct.getName())
-                .productNameEn(financialProduct.getNameEn())
-                .coin(financialProduct.getCoin())
-                .logo(financialProduct.getLogo())
-                .holdAmount(purchaseAmount)
-                .riskType(financialProduct.getRiskType())
-                .businessType(financialProduct.getBusinessType())
-                .rate(financialProduct.getRate())
-                .status(FundRecordStatus.PROCESS)
-                .createTime(LocalDateTime.now())
-                .type(ProductType.fund)
-                .build();
-        this.save(fundRecord);
-
-        //生成一笔订单
-        Order order = Order.builder()
-                .uid(uid)
-                .coin(financialProduct.getCoin())
-                .relatedId(fundRecord.getId())
-                .orderNo(AccountChangeType.fund_purchase.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
-                .amount(purchaseAmount)
-                .type(ChargeType.fund_purchase)
-                .status(ChargeStatus.chain_success)
-                .createTime(LocalDateTime.now())
-                .completeTime(LocalDateTime.now())
-                .build();
-        orderService.save(order);
-        // 减少余额
-        accountBalanceService.decrease(uid, ChargeType.fund_purchase, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.基金申购.name());
-        //代理人钱包
-        AccountBalance agentAccountBalance = accountBalanceService.getAndInit(walletAgentProduct.getUid(), financialProduct.getCoin());
-        //代理人生成一笔订单
-        Order agentOrder = Order.builder()
-                .uid(agentAccountBalance.getUid())
-                .coin(financialProduct.getCoin())
-                .relatedId(fundRecord.getId())
-                .orderNo(AccountChangeType.agent_fund_sale.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
-                .amount(purchaseAmount)
-                .type(ChargeType.agent_fund_sale)
-                .status(ChargeStatus.chain_success)
-                .createTime(LocalDateTime.now())
-                .completeTime(LocalDateTime.now())
-                .build();
-        orderService.save(agentOrder);
-        accountBalanceService.increase(agentAccountBalance.getUid(), ChargeType.agent_fund_sale, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.代理基金销售.name());
-        //交易记录
-        FundTransactionRecord transactionRecord = FundTransactionRecord.builder()
-                .uid(uid)
-                .fundId(fundRecord.getId())
-                .productId(fundRecord.getProductId())
-                .productName(fundRecord.getProductName())
-                .coin(fundRecord.getCoin())
-                .rate(fundRecord.getRate())
-                .type(FundTransactionType.purchase)
-                .status(FundTransactionStatus.success)
-                .transactionAmount(purchaseAmount)
-                .createTime(LocalDateTime.now()).build();
-        fundTransactionRecordService.save(transactionRecord);
-
-        // 增加产品已经使用额度
-        financialProductService.increaseUseQuota(productId, purchaseAmount, financialProduct.getUseQuota());
-        return fundRecordConvert.toFundTransactionVO(transactionRecord);
+        return this.purchase(requestInitService.uid(), bo, FundTransactionRecordVO.class);
     }
 
     @Override
@@ -435,45 +445,16 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     }
 
 
-    private void validPurchase(Long uid, FinancialProduct financialProduct, WalletAgentProduct walletAgentProduct, FundPurchaseBO bo) {
+    @Override
+    public void validProduct(FinancialProduct financialProduct, PurchaseQuery purchaseQuery) {
 
+        FundPurchaseBO bo = (FundPurchaseBO) purchaseQuery;
         String referralCode = bo.getReferralCode();
-
-        if (Objects.isNull(financialProduct) || !financialProduct.getType().equals(ProductType.fund))
-            ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
-
-        if (BusinessType.benefits.equals(financialProduct.getBusinessType())) {
-            int fundHoldAmount = fundRecordMapper.selectCount(new LambdaQueryWrapper<FundRecord>().eq(FundRecord::getUid, uid));
-            int financialHoldAmount = financialRecordService.count(new LambdaQueryWrapper<FinancialRecord>().eq(FinancialRecord::getUid, uid));
-            if (fundHoldAmount > 0 || financialHoldAmount > 0) {
-                ErrorCodeEnum.BENEFITS_NOT_BUY.throwException();
-            }
-        }
-
-        Long productId = financialProduct.getId();
-        BigDecimal purchaseAmount = bo.getPurchaseAmount();
-        if (!ProductStatus.open.equals(financialProduct.getStatus())) {
-            ErrorCodeEnum.PRODUCT_CAN_NOT_BUY.throwException();
-        }
+        WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(financialProduct.getId());
 
         if (Objects.isNull(walletAgentProduct)) ErrorCodeEnum.AGENT_NOT_EXIST.throwException();
         if (!walletAgentProduct.getReferralCode().equals(referralCode))
             ErrorCodeEnum.REFERRAL_CODE_ERROR.throwException();
-        //校验余额
 
-        AccountBalance accountBalance = accountBalanceService.getAndInit(uid, financialProduct.getCoin());
-        if (accountBalance.getRemain().compareTo(purchaseAmount) < 0)
-            ErrorCodeEnum.INSUFFICIENT_BALANCE.throwException();
-        //校验限额
-        BigDecimal totalAmount = fundRecordMapper.selectHoldAmountSum(productId, null);
-        BigDecimal personHoldAmount = fundRecordMapper.selectHoldAmountSum(productId, uid);
-        if (financialProduct.getPersonQuota() != null && financialProduct.getPersonQuota().compareTo(BigDecimal.ZERO) > 0 &&
-                purchaseAmount.add(personHoldAmount).compareTo(financialProduct.getPersonQuota()) > 0) {
-            ErrorCodeEnum.PURCHASE_GT_PERSON_QUOTA.throwException();
-        }
-        if (financialProduct.getTotalQuota() != null && financialProduct.getTotalQuota().compareTo(BigDecimal.ZERO) > 0 &&
-                purchaseAmount.add(totalAmount).compareTo(financialProduct.getTotalQuota()) > 0) {
-            ErrorCodeEnum.PURCHASE_GT_TOTAL_QUOTA.throwException();
-        }
     }
 }

@@ -19,7 +19,9 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
+import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialService;
+import com.tianli.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.sso.init.RequestInitService;
@@ -53,6 +55,8 @@ public class ChargeController {
     private RequestInitService requestInitService;
     @Resource
     private FinancialService financialService;
+    @Resource
+    private FinancialProductService financialProductService;
     @Resource
     private ChainCallbackLogService chainCallbackLogService;
     @Resource
@@ -91,7 +95,7 @@ public class ChargeController {
         } catch (Exception e) {
             chainCallbackLog.setMsg(ExceptionUtil.getMessage(e));
             chainCallbackLog.setStatus("fail");
-            webHookService.dingTalkSend("充值回调失败",e);
+            webHookService.dingTalkSend("充值回调失败", e);
             throw e;
         } finally {
             chainCallbackLogService.updateById(chainCallbackLog);
@@ -182,7 +186,7 @@ public class ChargeController {
         RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_PURCHASE + uid + ":" + purchaseQuery.getProductId());
         try {
             lock.lock();
-            return Result.instance().setData(financialService.purchase(uid,purchaseQuery));
+            return Result.instance().setData(financialProductService.purchase(uid, purchaseQuery, FinancialPurchaseResultVO.class));
         } finally {
             lock.unlock();
         }

@@ -63,62 +63,6 @@ import java.util.stream.Collectors;
 @Service
 public class FinancialServiceImpl implements FinancialService {
 
-    @Override
-    @Transactional
-    public FinancialPurchaseResultVO purchase(Long uid, PurchaseQuery purchaseQuery) {
-        FinancialProduct product = financialProductService.getById(purchaseQuery.getProductId());
-        BigDecimal amount = purchaseQuery.getAmount();
-
-        // 校验操作
-        validProduct(product, amount);
-        validRemainAmount(uid, purchaseQuery.getCoin(), amount);
-        validPurchaseAmount(uid, product, amount);
-
-        // 如果是活期，判断是否已经存在申购记录，如果有的话，额外添加待记息金额不生成新的记录
-        FinancialRecord financialRecord = FinancialRecord.builder().build();
-        Optional<FinancialRecord> recordOptional = Optional.empty();
-        if (ProductType.current.equals(product.getType())) {
-            recordOptional = financialRecordService.selectByProductId(purchaseQuery.getProductId(), uid)
-                    .stream()
-                    .sorted(Comparator.comparing(FinancialRecord::getEndTime).reversed())
-                    .filter(index -> RecordStatus.PROCESS.equals(index.getStatus())).findFirst();
-        }
-        // 如果存在申购记录，如果是当天继续申购，则累加金额，否则累加待记利息金额
-        if (recordOptional.isPresent()) {
-            financialRecord = recordOptional.get();
-            financialRecordService.increaseWaitAmount(financialRecord.getId(), amount, financialRecord.getWaitAmount());
-        }
-
-        if (recordOptional.isEmpty()) {
-            financialRecord = financialRecordService.generateFinancialRecord(uid, product, amount, purchaseQuery.isAutoCurrent());
-        }
-
-        // 生成一笔订单记录
-        Order order = Order.builder()
-                .uid(uid)
-                .coin(product.getCoin())
-                .orderNo(AccountChangeType.purchase.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
-                .amount(amount)
-                .type(ChargeType.purchase)
-                .status(ChargeStatus.created)
-                .createTime(LocalDateTime.now())
-                .completeTime(LocalDateTime.now())
-                .status(ChargeStatus.chain_success)
-                .relatedId(financialRecord.getId())
-                .build();
-        orderService.save(order);
-
-        // 减少余额
-        accountBalanceService.decrease(uid, ChargeType.purchase, product.getCoin(), amount, order.getOrderNo(), CurrencyLogDes.申购.name());
-        // 增加已经使用申购额度
-        financialProductService.increaseUseQuota(product.getId(), amount, product.getUseQuota());
-
-        FinancialPurchaseResultVO financialPurchaseResultVO = financialConverter.toFinancialPurchaseResultVO(financialRecord);
-        financialPurchaseResultVO.setName(product.getName());
-        financialPurchaseResultVO.setStatusDes(order.getStatus().name());
-        financialPurchaseResultVO.setOrderNo(order.getOrderNo());
-        return financialPurchaseResultVO;
-    }
 
     @Override
     public DollarIncomeVO income(Long uid) {
@@ -236,52 +180,6 @@ public class FinancialServiceImpl implements FinancialService {
             financialIncomeDailyVO.setCoin(financialRecord.getCoin());
             return financialIncomeDailyVO;
         });
-    }
-
-    @Override
-    public void validProduct(FinancialProduct financialProduct, BigDecimal purchaseAmount) {
-        if (Objects.isNull(financialProduct)) {
-            ErrorCodeEnum.throwException("产品不存在");
-        }
-
-        Long productId = financialProduct.getId();
-        boolean exists = redisService.exists(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + productId);
-        if (exists) {
-            ErrorCodeEnum.PRODUCT_CAN_NOT_BUY.throwException();
-        }
-
-        if (ProductStatus.open != financialProduct.getStatus()) {
-            ErrorCodeEnum.NOT_OPEN.throwException();
-        }
-
-        if (purchaseAmount.compareTo(financialProduct.getLimitPurchaseQuota()) < 0) {
-            throw ErrorCodeEnum.PURCHASE_AMOUNT_TO_SMALL.generalException("低于最小申购数额:" + financialProduct.getLimitPurchaseQuota());
-        }
-    }
-
-    @Override
-    public void validRemainAmount(Long uid, CurrencyCoin currencyCoin, BigDecimal amount) {
-        AccountBalance accountBalanceBalance = accountBalanceService.getAndInit(uid, currencyCoin);
-        if (accountBalanceBalance.getRemain().compareTo(amount) < 0) {
-            ErrorCodeEnum.throwException("可用余额不足");
-        }
-    }
-
-    @Override
-    public void validPurchaseAmount(Long uid, FinancialProduct product, BigDecimal amount) {
-        var productId = product.getId();
-
-        BigDecimal personUse = financialRecordService.getUseQuota(List.of(productId), uid).getOrDefault(productId, BigDecimal.ZERO);
-
-        if (product.getPersonQuota() != null && product.getPersonQuota().compareTo(BigDecimal.ZERO) > 0 &&
-                amount.add(personUse).compareTo(product.getPersonQuota()) > 0) {
-            ErrorCodeEnum.throwException("个人申购额度不足");
-        }
-
-        if (product.getTotalQuota() != null && product.getTotalQuota().compareTo(BigDecimal.ZERO) > 0 &&
-                amount.add(product.getUseQuota()).compareTo(product.getTotalQuota()) > 0) {
-            ErrorCodeEnum.throwException("总申购额度不足");
-        }
     }
 
     @Override

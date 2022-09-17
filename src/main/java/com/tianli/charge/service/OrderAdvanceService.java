@@ -22,6 +22,7 @@ import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.service.FinancialService;
+import com.tianli.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -153,6 +154,6 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                 .autoCurrent(orderAdvance.isAutoCurrent())
                 .productId(orderAdvance.getProductId()).build();
 
-        financialService.purchase(uid, purchaseQuery);
+        financialProductService.purchase(uid, purchaseQuery, FinancialPurchaseResultVO.class);
     }
 }

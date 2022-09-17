@@ -5,9 +5,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.account.enums.AccountChangeType;
+import com.tianli.account.service.AccountBalanceService;
+import com.tianli.charge.entity.Order;
+import com.tianli.charge.enums.ChargeStatus;
+import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedisLock;
+import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.ProductRateDTO;
@@ -17,6 +24,8 @@ import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.mapper.FinancialProductMapper;
+import com.tianli.financial.query.PurchaseQuery;
+import com.tianli.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.query.FundRecordQuery;
 import com.tianli.fund.service.IFundRecordService;
@@ -38,6 +47,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,7 +58,7 @@ import static com.tianli.common.ConfigConstants.SYSTEM_PURCHASE_MIN_AMOUNT;
 
 @Slf4j
 @Service
-public class FinancialProductService extends ServiceImpl<FinancialProductMapper, FinancialProduct> {
+public class FinancialProductService extends AbstractProductOperation<FinancialProductMapper, FinancialProduct> {
 
     @Resource
     private FinancialConverter financialConverter;
@@ -245,5 +255,78 @@ public class FinancialProductService extends ServiceImpl<FinancialProductMapper,
         }
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public FinancialPurchaseResultVO purchaseOperation(Long uid, PurchaseQuery purchaseQuery) {
+        FinancialProduct product = financialProductService.getById(purchaseQuery.getProductId());
+        BigDecimal amount = purchaseQuery.getAmount();
+
+//        validRemainAmount(uid, purchaseQuery.getCoin(), amount);
+//        validPurchaseAmount(uid, product, amount);
+
+        // 如果是活期，判断是否已经存在申购记录，如果有的话，额外添加待记息金额不生成新的记录
+        FinancialRecord financialRecord = FinancialRecord.builder().build();
+        Optional<FinancialRecord> recordOptional = Optional.empty();
+        if (ProductType.current.equals(product.getType())) {
+            recordOptional = financialRecordService.selectByProductId(purchaseQuery.getProductId(), uid)
+                    .stream()
+                    .sorted(Comparator.comparing(FinancialRecord::getEndTime).reversed())
+                    .filter(index -> RecordStatus.PROCESS.equals(index.getStatus())).findFirst();
+        }
+        // 如果存在申购记录，如果是当天继续申购，则累加金额，否则累加待记利息金额
+        if (recordOptional.isPresent()) {
+            financialRecord = recordOptional.get();
+            financialRecordService.increaseWaitAmount(financialRecord.getId(), amount, financialRecord.getWaitAmount());
+        }
+
+        if (recordOptional.isEmpty()) {
+            financialRecord = financialRecordService.generateFinancialRecord(uid, product, amount, purchaseQuery.isAutoCurrent());
+        }
+
+        // 生成一笔订单记录
+        Order order = Order.builder()
+                .uid(uid)
+                .coin(product.getCoin())
+                .orderNo(AccountChangeType.purchase.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
+                .amount(amount)
+                .type(ChargeType.purchase)
+                .status(ChargeStatus.created)
+                .createTime(LocalDateTime.now())
+                .completeTime(LocalDateTime.now())
+                .status(ChargeStatus.chain_success)
+                .relatedId(financialRecord.getId())
+                .build();
+        orderService.save(order);
+
+        // 减少余额
+        accountBalanceService.decrease(uid, ChargeType.purchase, product.getCoin(), amount, order.getOrderNo(), CurrencyLogDes.申购.name());
+
+        FinancialPurchaseResultVO financialPurchaseResultVO = financialConverter.toFinancialPurchaseResultVO(financialRecord);
+        financialPurchaseResultVO.setName(product.getName());
+        financialPurchaseResultVO.setStatusDes(order.getStatus().name());
+        financialPurchaseResultVO.setOrderNo(order.getOrderNo());
+        return financialPurchaseResultVO;
+    }
+
+
+    @Resource
+    private AccountBalanceService accountBalanceService;
+    @Resource
+    private FinancialProductService financialProductService;
+    @Resource
+    private OrderService orderService;
+
+
+    @Override
+    public void validPurchaseAmount(Long uid, FinancialProduct product, BigDecimal amount) {
+        var productId = product.getId();
+
+        BigDecimal personUse = financialRecordService.getUseQuota(List.of(productId), uid).getOrDefault(productId, BigDecimal.ZERO);
+
+        if (product.getPersonQuota() != null && product.getPersonQuota().compareTo(BigDecimal.ZERO) > 0 &&
+                amount.add(personUse).compareTo(product.getPersonQuota()) > 0) {
+            ErrorCodeEnum.throwException("个人申购额度不足");
+        }
+    }
 
 }
