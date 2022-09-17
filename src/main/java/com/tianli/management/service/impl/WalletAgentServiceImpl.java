@@ -29,7 +29,6 @@ import com.tianli.management.query.WalletAgentQuery;
 import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.management.service.IWalletAgentService;
 import com.tianli.management.vo.WalletAgentVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,25 +52,27 @@ import java.util.stream.Collectors;
 @Transactional
 public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, WalletAgent> implements IWalletAgentService {
 
-    @Autowired
+    @Resource
     private WalletAgentConverter walletAgentConverter;
 
-    @Autowired
+    @Resource
     private WalletAgentMapper walletAgentMapper;
 
-    @Autowired
+    @Resource
     private IWalletAgentProductService walletAgentProductService;
 
-    @Autowired
+    @Resource
     private FinancialProductService financialProductService;
 
-    @Autowired
+    @Resource
     private AccountBalanceService accountBalanceService;
 
     @Resource
     private OrderService orderService;
 
+
     @Override
+    @Transactional
     public void saveAgent(WalletAgentBO bo) {
         Integer count = walletAgentMapper.selectCountByUid(bo.getUid());
         if (count > 0) ErrorCodeEnum.AGENT_ALREADY_BIND.throwException();
@@ -84,6 +85,7 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
     }
 
     @Override
+    @Transactional
     public void updateAgent(WalletAgentBO bo) {
         WalletAgent walletAgent = walletAgentMapper.selectById(bo.getId());
         if (Objects.isNull(walletAgent)) ErrorCodeEnum.AGENT_NOT_EXIST.throwException();
@@ -104,7 +106,13 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
         List<WalletAgentBO.Product> saveProducts = bo.getProducts();
         List<Long> saveProductIds = saveProducts.stream().map(WalletAgentBO.Product::getProductId).collect(Collectors.toList());
         Collection<Long> deletedIds = CollUtil.subtract(productIds, saveProductIds);
-        deletedIds.forEach(id -> walletAgentProductService.deleteByProductId(id));
+        deletedIds.forEach(id -> {
+            if (!walletAgentProductService.canDelete(id)) {
+                ErrorCodeEnum.PRODUCT_USER_HOLD.throwException();
+            }
+
+            walletAgentProductService.deleteByProductId(id);
+        });
         //增加或更新
         saveProducts.forEach(saveProduct -> {
             List<WalletAgentProduct> updateProduct = products.stream().filter(product ->
@@ -121,6 +129,7 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
     }
 
     @Override
+    @Transactional
     public void delAgent(Long id) {
         WalletAgent walletAgent = walletAgentMapper.selectById(id);
         if (Objects.isNull(walletAgent)) ErrorCodeEnum.AGENT_NOT_EXIST.throwException();

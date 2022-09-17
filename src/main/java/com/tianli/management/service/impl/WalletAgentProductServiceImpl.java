@@ -8,7 +8,9 @@ import com.tianli.agent.management.query.FundStatisticsQuery;
 import com.tianli.agent.management.vo.FundProductStatisticsVO;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.service.IFundIncomeRecordService;
+import com.tianli.fund.service.IFundRecordService;
 import com.tianli.fund.service.IFundTransactionRecordService;
 import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.dao.WalletAgentProductMapper;
@@ -17,6 +19,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -42,6 +46,8 @@ public class WalletAgentProductServiceImpl extends ServiceImpl<WalletAgentProduc
 
     @Autowired
     private IFundIncomeRecordService fundIncomeRecordService;
+    @Resource
+    private IFundRecordService fundRecordService;
 
     @Override
     public Integer getCount(Long productId) {
@@ -89,5 +95,17 @@ public class WalletAgentProductServiceImpl extends ServiceImpl<WalletAgentProduc
     public IPage<FundProductStatisticsVO> getPage(PageQuery<WalletAgentProduct> pageQuery, FundStatisticsQuery query) {
         Long agentId = AgentContent.getAgentId();
         return walletAgentProductMapper.selectPage(pageQuery.page(), agentId, query);
+    }
+
+    @Override
+    public boolean canDelete(Long productId) {
+        // 该子产品被有持仓金额or待赎回金额or待发利息时，不允许删除
+        LambdaQueryWrapper<FundRecord> queryWrapper = new LambdaQueryWrapper<FundRecord>()
+                .select(FundRecord::getProductId);
+        List<FundRecord> fundRecords = fundRecordService.list(queryWrapper);
+        Optional<FundRecord> any = fundRecords.stream()
+                .filter(fundRecord -> fundRecord.getHoldAmount().compareTo(BigDecimal.ZERO) > 0
+                        || fundRecord.getWaitIncomeAmount().compareTo(BigDecimal.ZERO) > 0).findAny();
+        return any.isEmpty();
     }
 }

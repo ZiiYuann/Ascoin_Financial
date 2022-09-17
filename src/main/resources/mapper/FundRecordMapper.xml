@@ -99,6 +99,7 @@
         <if test="agentId != null">
            and p.agent_id = #{agentId}
         </if>
+        r.status = 'PROCESS'
         group by r.coin
     </select>
 </mapper>

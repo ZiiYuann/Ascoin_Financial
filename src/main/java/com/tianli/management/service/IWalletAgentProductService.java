@@ -34,4 +34,9 @@ public interface IWalletAgentProductService extends IService<WalletAgentProduct>
     List<Long> listProductIdExcludeAgentId(Long agentId);
 
     IPage<FundProductStatisticsVO> getPage(PageQuery<WalletAgentProduct> pageQuery, FundStatisticsQuery query);
+
+    /**
+     * 判断基金产品是否可以删除
+     */
+    boolean canDelete(Long productId);
 }

@@ -104,7 +104,7 @@ public class FundRecord extends Model<FundRecord> {
     private LocalDateTime createTime;
 
     /**
-     * 状态
+     * 状态 状态为完成情况 ： holdAmount == 0
      */
     private FundRecordStatus status;
 
