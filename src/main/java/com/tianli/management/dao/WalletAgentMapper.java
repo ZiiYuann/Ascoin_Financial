@@ -30,7 +30,7 @@ public interface WalletAgentMapper extends BaseMapper<WalletAgent> {
 
     IPage<WalletAgentVO> selectPageByQuery(@Param("page") IPage<WalletAgentVO> page, @Param("query") WalletAgentQuery query);
 
-    @Select("SELECT ifnull( SUM( a.hold_amount ), 0 ) amount,a.coin FROM fund_record a LEFT JOIN wallet_agent_product b " +
+    @Select("SELECT ifnull( SUM( a.hold_amount ), 0 ) amount,a.coin FROM wallet_agent_product b  INNER JOIN fund_record a " +
             "ON a.product_id = b.product_id WHERE b.agent_id = #{agentId} GROUP BY a.coin")
     List<AmountDto> holdAmountSum(Long agentId);
 

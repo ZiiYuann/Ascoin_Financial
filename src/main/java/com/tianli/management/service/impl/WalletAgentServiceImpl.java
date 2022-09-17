@@ -159,7 +159,7 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
             walletAgentVO.setRechargeAmount(getRechargeAmount(uid));
             walletAgentVO.setWithdrawAmount(getWithdrawAmount(uid));
             walletAgentVO.setProducts(productList);
-            walletAgentVO.setHoldAmount(getHoldAmount(uid));
+            walletAgentVO.setHoldAmount(getHoldAmount(agentId));
             walletAgentVO.setRedemptionAmount(getRedemptionAmount(agentId));
             walletAgentVO.setInterestAmount(getInterestAmount(agentId, FundIncomeStatus.audit_success));
             walletAgentVO.setWaitInterestAmount(getInterestAmount(agentId, List.of(FundIncomeStatus.wait_audit, FundIncomeStatus.calculated)));

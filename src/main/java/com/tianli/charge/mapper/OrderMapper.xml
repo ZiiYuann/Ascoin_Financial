@@ -117,7 +117,7 @@
     </select>
 
     <select id="amountSumByUidAndChargeType" resultType="com.tianli.management.dto.AmountDto">
-        SELECT ifnull(sum(amount),0.0) ,coin FROM `order`
+        SELECT ifnull(sum(amount),0.0) as amount ,coin FROM `order`
         WHERE
             type=#{chargeType}
             and uid = #{uid}
