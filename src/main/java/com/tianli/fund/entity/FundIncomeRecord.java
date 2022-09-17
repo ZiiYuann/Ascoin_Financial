@@ -1,7 +1,9 @@
 package com.tianli.fund.entity;
 
 import java.math.BigDecimal;
+
 import com.baomidou.mybatisplus.extension.activerecord.Model;
+
 import java.time.LocalDateTime;
 
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -22,7 +24,7 @@ import lombok.*;
 @NoArgsConstructor
 public class FundIncomeRecord extends Model<FundIncomeRecord> {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     /**
      * id
@@ -77,5 +79,7 @@ public class FundIncomeRecord extends Model<FundIncomeRecord> {
      * 创建时间
      */
     private LocalDateTime createTime;
+
+    private String orderNo;
 
 }

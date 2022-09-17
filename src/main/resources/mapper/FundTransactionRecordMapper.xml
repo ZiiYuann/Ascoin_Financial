@@ -49,8 +49,8 @@
     <sql id="fundTransactionQuery">
         <where>
             1=1
-            <if test="agentId != null">
-                and b.agent_id = #{agentId}
+            <if test="query.agentId != null">
+                and b.agent_id = #{query.agentId}
             </if>
 
             <if test="query.uid != null">

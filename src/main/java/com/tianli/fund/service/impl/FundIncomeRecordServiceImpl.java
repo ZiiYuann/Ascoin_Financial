@@ -72,8 +72,8 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     private IFundRecordService fundRecordService;
 
     @Override
-    public List<AmountDto> getAmountByUidAndStatus(Long uid,Long agentId, Integer status) {
-        return getAmountByUidAndStatus(uid,agentId,List.of(status));
+    public List<AmountDto> getAmountByUidAndStatus(Long uid, Long agentId, Integer status) {
+        return getAmountByUidAndStatus(uid, agentId, List.of(status));
     }
 
     @Override
@@ -140,13 +140,23 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
 
             if (status == FundReviewStatus.success) {
                 // 订单【代理基金支付利息】 对于代理而言
-                Order agentOrder = Order.builder().uid(agentId).coin(fundIncomeRecord.getCoin()).relatedId(fundIncomeRecord.getId()).orderNo(AccountChangeType.agent_fund_interest.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId())).amount(fundIncomeRecord.getInterestAmount()).type(ChargeType.agent_fund_interest).status(ChargeStatus.chain_success).createTime(LocalDateTime.now()).completeTime(LocalDateTime.now()).build();
+                Order agentOrder = Order.builder()
+                        .uid(agentId)
+                        .coin(fundIncomeRecord.getCoin())
+                        .relatedId(fundIncomeRecord.getId())
+                        .orderNo(AccountChangeType.agent_fund_interest.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
+                        .amount(fundIncomeRecord.getInterestAmount())
+                        .type(ChargeType.agent_fund_interest)
+                        .status(ChargeStatus.chain_success)
+                        .createTime(LocalDateTime.now()).completeTime(LocalDateTime.now()).build();
                 orderService.save(agentOrder);
                 // 减少余额
                 accountBalanceService.decrease(agentId, ChargeType.agent_fund_interest, fundIncomeRecord.getCoin(), fundIncomeRecord.getInterestAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金利息.name());
 
                 //订单【基金利息】对于客户而言
-                Order order = Order.builder().uid(uid).coin(fundIncomeRecord.getCoin()).relatedId(fundIncomeRecord.getId()).orderNo(AccountChangeType.fund_interest.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId())).amount(fundIncomeRecord.getInterestAmount()).type(ChargeType.fund_interest).status(ChargeStatus.chain_success).createTime(LocalDateTime.now()).completeTime(LocalDateTime.now()).build();
+                Order order = Order.builder()
+                        .uid(uid)
+                        .coin(fundIncomeRecord.getCoin()).relatedId(fundIncomeRecord.getId()).orderNo(AccountChangeType.fund_interest.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId())).amount(fundIncomeRecord.getInterestAmount()).type(ChargeType.fund_interest).status(ChargeStatus.chain_success).createTime(LocalDateTime.now()).completeTime(LocalDateTime.now()).build();
                 orderService.save(order);
                 // 增加余额
                 accountBalanceService.increase(uid, ChargeType.fund_interest, fundIncomeRecord.getCoin(), fundIncomeRecord.getInterestAmount(), order.getOrderNo(), CurrencyLogDes.基金利息.name());
