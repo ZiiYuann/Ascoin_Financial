@@ -10,16 +10,14 @@ import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
-import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.vo.*;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.query.TimeQuery;
-import com.tianli.management.vo.FinancialProductDropdownVO;
+import com.tianli.management.vo.FundProductBindDropdownVO;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.FinancialUserInfoVO;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -102,7 +100,7 @@ public interface FinancialService {
     FixedProductsPurchaseVO fixedProductDetails(CurrencyCoin coin);
 
     /**
-     * 产品下拉
+     * 基金需要能够绑定的产品下拉
      */
-    List<FinancialProductDropdownVO> dropdownList(ProductType type);
+    List<FundProductBindDropdownVO> fundProductBindDropdownList(ProductType type);
 }

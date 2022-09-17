@@ -1,5 +1,6 @@
 package com.tianli.management.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.agent.management.auth.AgentContent;
@@ -16,7 +17,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -70,8 +75,19 @@ public class WalletAgentProductServiceImpl extends ServiceImpl<WalletAgentProduc
     }
 
     @Override
+    public List<Long> listProductIdExcludeAgentId(Long agentId) {
+        LambdaQueryWrapper<WalletAgentProduct> queryWrapper = new LambdaQueryWrapper<WalletAgentProduct>()
+                .select(WalletAgentProduct::getProductId);
+        if (Objects.nonNull(agentId)) {
+            queryWrapper = queryWrapper.eq(false, WalletAgentProduct::getAgentId, agentId);
+        }
+        return Optional.ofNullable(walletAgentProductMapper.selectList(queryWrapper)).orElse(new ArrayList<>())
+                .stream().map(WalletAgentProduct::getProductId).collect(Collectors.toList());
+    }
+
+    @Override
     public IPage<FundProductStatisticsVO> getPage(PageQuery<WalletAgentProduct> pageQuery, FundStatisticsQuery query) {
         Long agentId = AgentContent.getAgentId();
-        return walletAgentProductMapper.selectPage(pageQuery.page(), agentId,query);
+        return walletAgentProductMapper.selectPage(pageQuery.page(), agentId, query);
     }
 }

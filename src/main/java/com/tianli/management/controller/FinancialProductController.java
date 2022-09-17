@@ -12,7 +12,7 @@ import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.*;
 import com.tianli.management.service.FinancialBoardProductService;
-import com.tianli.management.vo.FinancialProductDropdownVO;
+import com.tianli.management.vo.FundProductBindDropdownVO;
 import com.tianli.management.vo.MFinancialProductVO;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
@@ -94,7 +94,7 @@ public class FinancialProductController {
     @GetMapping("/orders")
     @AdminPrivilege(and = Privilege.理财配置)
     public Result orders(PageQuery<OrderFinancialVO> page, FinancialOrdersQuery query) {
-        query.setDefaultChargeType(List.of(ChargeType.purchase,ChargeType.redeem,ChargeType.transfer,ChargeType.settle));
+        query.setDefaultChargeType(List.of(ChargeType.purchase, ChargeType.redeem, ChargeType.transfer, ChargeType.settle));
         IPage<OrderFinancialVO> financialOrderVOIPage = financialService.orderPage(page.page(), query);
         return Result.success(financialOrderVOIPage);
     }
@@ -132,8 +132,8 @@ public class FinancialProductController {
      * 产品下拉
      */
     @GetMapping("/product/dropdown")
-    public Result dropdownList(ProductType type){
-        List<FinancialProductDropdownVO> dropdownVOS = financialService.dropdownList(type);
+    public Result dropdownList(ProductType type) {
+        List<FundProductBindDropdownVO> dropdownVOS = financialService.fundProductBindDropdownList(type);
         return Result.success(dropdownVOS);
     }
 }

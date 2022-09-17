@@ -9,9 +9,9 @@ import com.tianli.management.entity.WalletAgent;
 import com.tianli.management.query.WalletAgentQuery;
 import com.tianli.management.service.IWalletAgentService;
 import com.tianli.management.vo.WalletAgentVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import javax.validation.Valid;
 
 /**
@@ -26,14 +26,14 @@ import javax.validation.Valid;
 @RequestMapping("/management/agent")
 public class WalletAgentController {
 
-    @Autowired
+    @Resource
     private IWalletAgentService walletAgentService;
 
     /**
      * 添加代理人
      */
     @PostMapping
-    public Result addAgent(@RequestBody @Valid WalletAgentBO bo){
+    public Result addAgent(@RequestBody @Valid WalletAgentBO bo) {
         walletAgentService.saveAgent(bo);
         return Result.success();
     }
@@ -42,7 +42,7 @@ public class WalletAgentController {
      * 更新代理人
      */
     @PutMapping
-    public Result updateAgent(@RequestBody @Valid WalletAgentBO bo){
+    public Result updateAgent(@RequestBody @Valid WalletAgentBO bo) {
         walletAgentService.updateAgent(bo);
         return Result.success();
     }
@@ -51,7 +51,7 @@ public class WalletAgentController {
      * 删除代理人
      */
     @DeleteMapping("/{id}")
-    public Result delAgent(@PathVariable Long id){
+    public Result delAgent(@PathVariable Long id) {
         walletAgentService.delAgent(id);
         return Result.success();
     }
@@ -60,7 +60,7 @@ public class WalletAgentController {
      * 查询代理人详情
      */
     @GetMapping("/{id}")
-    public Result info(@PathVariable Long id){
+    public Result info(@PathVariable Long id) {
         WalletAgentVO agentVO = walletAgentService.getById(id);
         return Result.success(agentVO);
     }
@@ -69,7 +69,7 @@ public class WalletAgentController {
      * 查询代理人列表
      */
     @GetMapping("/list")
-    public Result list(PageQuery<WalletAgent> pageQuery, WalletAgentQuery query ){
+    public Result list(PageQuery<WalletAgent> pageQuery, WalletAgentQuery query) {
         IPage<WalletAgentVO> page = walletAgentService.getPage(pageQuery, query);
         return Result.success(page);
     }

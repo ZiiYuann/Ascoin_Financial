@@ -28,5 +28,10 @@ public interface IWalletAgentProductService extends IService<WalletAgentProduct>
 
     List<WalletAgentProduct> getByAgentId(Long id);
 
+    /**
+     * 获取当前代理人之外的基金产品id
+     */
+    List<Long> listProductIdExcludeAgentId(Long agentId);
+
     IPage<FundProductStatisticsVO> getPage(PageQuery<WalletAgentProduct> pageQuery, FundStatisticsQuery query);
 }

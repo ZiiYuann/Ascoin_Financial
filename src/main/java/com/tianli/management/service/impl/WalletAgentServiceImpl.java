@@ -89,6 +89,15 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
         if (Objects.isNull(walletAgent)) ErrorCodeEnum.AGENT_NOT_EXIST.throwException();
         walletAgent.setRemark(bo.getRemark());
         walletAgentMapper.updateById(walletAgent);
+
+        // 校验是否绑定了其他已经绑定的产品
+        List<Long> otherBindProductIds = walletAgentProductService.listProductIdExcludeAgentId(bo.getId());
+        bo.getProducts().forEach(operationProduct -> {
+            if (otherBindProductIds.contains(operationProduct.getProductId())) {
+                ErrorCodeEnum.FUND_PRODUCT_REPEAT_BIND.throwException();
+            }
+        });
+
         List<WalletAgentProduct> products = walletAgentProductService.getByAgentId(walletAgent.getId());
         //删除多余的
         List<Long> productIds = products.stream().map(WalletAgentProduct::getProductId).collect(Collectors.toList());

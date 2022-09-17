@@ -118,6 +118,7 @@ public enum ErrorCodeEnum {
     REDEMPTION_CYCLE_ERROR(3613,"该基金暂不可赎回"),
     BENEFITS_NOT_BUY(3614,"仅限新用户可申购"),
     FUND_PRODUCT_OPEN_NEED_AGENT(3615,"基金产品上线必须绑定代理人"),
+    FUND_PRODUCT_REPEAT_BIND(3615,"基金产品不允许重复绑定代理人"),
 
         ;
     private int errorNo;

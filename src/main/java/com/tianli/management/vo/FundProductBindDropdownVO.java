@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class FinancialProductDropdownVO {
+public class FundProductBindDropdownVO {
 
     private Long productId;
 

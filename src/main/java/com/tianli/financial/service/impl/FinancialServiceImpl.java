@@ -5,21 +5,12 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tianli.account.entity.AccountBalance;
-import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
-import com.tianli.charge.entity.Order;
-import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
-import com.tianli.common.CommonFunction;
-import com.tianli.common.RedisLockConstants;
-import com.tianli.common.RedisService;
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.currency.log.CurrencyLogDes;
-import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.dto.ProductRateDTO;
@@ -31,7 +22,6 @@ import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
-import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.*;
 import com.tianli.financial.vo.*;
 import com.tianli.management.entity.FinancialBoardProduct;
@@ -41,9 +31,10 @@ import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.query.TimeQuery;
 import com.tianli.management.service.FinancialBoardProductService;
 import com.tianli.management.service.FinancialBoardWalletService;
-import com.tianli.management.vo.FinancialProductDropdownVO;
+import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.FinancialUserInfoVO;
+import com.tianli.management.vo.FundProductBindDropdownVO;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
@@ -339,12 +330,20 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public List<FinancialProductDropdownVO> dropdownList(ProductType type) {
-        List<FinancialProduct> financialProducts = financialProductService.list(new QueryWrapper<FinancialProduct>().lambda()
+    public List<FundProductBindDropdownVO> fundProductBindDropdownList(ProductType type) {
+
+        List<Long> bindProductIds = walletAgentProductService.listProductIdExcludeAgentId(null);
+
+        LambdaQueryWrapper<FinancialProduct> queryWrapper = new QueryWrapper<FinancialProduct>().lambda()
                 .eq(FinancialProduct::getType, type)
-                .eq(FinancialProduct::getStatus, ProductStatus.open));
-        return financialProducts.stream().map(financialProduct ->
-                        new FinancialProductDropdownVO(financialProduct.getId(), financialProduct.getName(), financialProduct.getNameEn()))
+                .eq(FinancialProduct::getStatus, ProductStatus.close)
+                .notIn(FinancialProduct::getId, bindProductIds);
+
+
+        List<FinancialProduct> financialProducts = financialProductService.list(queryWrapper);
+        return financialProducts.stream()
+                .map(financialProduct ->
+                        new FundProductBindDropdownVO(financialProduct.getId(), financialProduct.getName(), financialProduct.getNameEn()))
                 .collect(Collectors.toList());
     }
 
@@ -515,12 +514,12 @@ public class FinancialServiceImpl implements FinancialService {
     @Resource
     private AddressService addressService;
     @Resource
-    private RedisService redisService;
-    @Resource
     private FinancialBoardProductService financialBoardProductService;
     @Resource
     private FinancialBoardWalletService financialBoardWalletService;
     @Resource
     private FinancialProductLadderRateService financialProductLadderRateService;
+    @Resource
+    private IWalletAgentProductService walletAgentProductService;
 
 }

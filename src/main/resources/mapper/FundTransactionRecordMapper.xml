@@ -10,35 +10,7 @@
         from
         fund_transaction_record a
         left join wallet_agent_product b on a.product_id = b.product_id
-        <where>
-            <if test="agentId != null">
-                b.agent_id = #{agentId}
-            </if>
-            <if test="queryUid != null and queryUid != ''">
-                and a.uid like concat('%',#{queryUid},'%')
-            </if>
-            <if test="queryFundId != null and queryFundId != ''">
-                and a.fund_id like concat('%',#{queryFundId},'%')
-            </if>
-            <if test="queryProductId != null and queryProductId != ''">
-                and a.product_id like concat('%',#{queryProductId},'%')
-            </if>
-            <if test="type != null ">
-                and a.type = #{type}
-            </if>
-            <if test="status != null">
-                and a.status = #{status}
-            </if>
-            <if test="startTime != null ">
-                and a.create_time >= #{startTime}
-            </if>
-            <if test="endTime != null">
-                and a.create_time &lt;= #{endTime}
-            </if>
-            <if test="agentId != null">
-                and b.agent_id = #{agentId}
-            </if>
-        </where>
+        <include refid="fundTransactionQuery"/>
         group by coin
     </select>
 
@@ -60,24 +32,41 @@
         wallet_agent_product b
         inner join fund_transaction_record a on a.product_id = b.product_id
         inner join fund_record c on a.fund_id = c.id
+        <include refid="fundTransactionQuery"/>
+        order by a.create_time desc
+    </select>
+
+    <select id="selectWaitRedemptionCount" resultType="int">
+        select count(*)
+        from fund_transaction_record a
+                 left join
+             wallet_agent_product b on a.product_id = b.product_id
+        where b.agent_id = #{agentId}
+          and a.status = 3
+    </select>
+
+
+    <sql id="fundTransactionQuery">
         <where>
-            1 = 1
-            <if test="query.agentId != null">
-                and b.agent_id = #{query.agentId}
+            1=1
+            <if test="agentId != null">
+                and b.agent_id = #{agentId}
             </if>
+
             <if test="query.uid != null">
                 and a.uid = #{query.uid}
             </if>
 
+            <if test="query.queryProductId != null and query.queryProductId != ''">
+                and a.product_id like concat('%',#{query.queryProductId},'%')
+            </if>
             <if test="query.queryUid != null and query.queryUid != ''">
                 and a.uid like concat('%',#{query.queryUid},'%')
             </if>
             <if test="query.queryFundId != null and query.queryFundId != ''">
                 and a.fund_id like concat('%',#{query.queryFundId},'%')
             </if>
-            <if test="query.queryProductId != null and query.queryProductId != ''">
-                and a.product_id like concat('%',#{query.queryProductId},'%')
-            </if>
+
             <if test="query.type != null">
                 and a.type = #{query.type}
             </if>
@@ -90,19 +79,7 @@
             <if test="query.endTime != null">
                 and a.create_time &lt;= #{query.endTime}
             </if>
-            <if test="query.agentId != null">
-                and b.agent_id = #{query.agentId}
-            </if>
-        </where>
-        order by a.create_time desc
-    </select>
 
-    <select id="selectWaitRedemptionCount" resultType="int">
-        select count(*)
-        from fund_transaction_record a
-                 left join
-             wallet_agent_product b on a.product_id = b.product_id
-        where b.agent_id = #{agentId}
-          and a.status = 3
-    </select>
+        </where>
+    </sql>
 </mapper>
