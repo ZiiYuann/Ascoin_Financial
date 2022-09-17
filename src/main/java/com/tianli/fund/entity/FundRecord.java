@@ -1,7 +1,9 @@
 package com.tianli.fund.entity;
 
 import java.math.BigDecimal;
+
 import com.baomidou.mybatisplus.extension.activerecord.Model;
+
 import java.time.LocalDateTime;
 
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -26,7 +28,7 @@ import lombok.EqualsAndHashCode;
 @Builder
 public class FundRecord extends Model<FundRecord> {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     /**
      * ID
@@ -112,6 +114,8 @@ public class FundRecord extends Model<FundRecord> {
      * 类型
      */
     private ProductType type;
+
+    private String orderNo;
 
 
 }

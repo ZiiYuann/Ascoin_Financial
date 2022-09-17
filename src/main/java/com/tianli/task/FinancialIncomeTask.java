@@ -291,20 +291,21 @@ public class FinancialIncomeTask {
             income = financialProductLadderRateService.calLadderIncome(financialRecord);
         }
 
+        long id = CommonFunction.generalId();
+        String orderNo = AccountChangeType.income.getPrefix() + CommonFunction.generalSn(id);
 
         Long uid = financialRecord.getUid();
         // 记录利息汇总
-        financialIncomeAccrueService.insertIncomeAccrue(uid, financialRecord.getId()
-                , financialRecord.getCoin(), income);
+        financialIncomeAccrueService.insertIncomeAccrue(uid, financialRecord.getId(), financialRecord.getCoin(), income);
         // 记录昨日利息
-        financialIncomeDailyService.insertIncomeDaily(uid, financialRecord.getId()
-                , income);
+        financialIncomeDailyService.insertIncomeDaily(uid, financialRecord.getId(), income
+                , financialRecord.getIncomeAmount(), financialRecord.getRate(), orderNo);
         // 生成订单
-        long id = CommonFunction.generalId();
+
         Order order = Order.builder()
                 .id(id)
                 .uid(financialRecord.getUid())
-                .orderNo(AccountChangeType.income.getPrefix() + CommonFunction.generalSn(id))
+                .orderNo(orderNo)
                 .type(ChargeType.income)
                 .status(ChargeStatus.chain_success)
                 .coin(financialRecord.getCoin())

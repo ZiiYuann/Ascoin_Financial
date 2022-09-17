@@ -156,7 +156,14 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
                 //订单【基金利息】对于客户而言
                 Order order = Order.builder()
                         .uid(uid)
-                        .coin(fundIncomeRecord.getCoin()).relatedId(fundIncomeRecord.getId()).orderNo(AccountChangeType.fund_interest.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId())).amount(fundIncomeRecord.getInterestAmount()).type(ChargeType.fund_interest).status(ChargeStatus.chain_success).createTime(LocalDateTime.now()).completeTime(LocalDateTime.now()).build();
+                        .coin(fundIncomeRecord.getCoin())
+                        .relatedId(fundIncomeRecord.getId())
+                        .orderNo(AccountChangeType.fund_interest.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
+                        .amount(fundIncomeRecord.getInterestAmount())
+                        .type(ChargeType.fund_interest)
+                        .status(ChargeStatus.chain_success)
+                        .createTime(LocalDateTime.now())
+                        .completeTime(LocalDateTime.now()).build();
                 orderService.save(order);
                 // 增加余额
                 accountBalanceService.increase(uid, ChargeType.fund_interest, fundIncomeRecord.getCoin(), fundIncomeRecord.getInterestAmount(), order.getOrderNo(), CurrencyLogDes.基金利息.name());
@@ -165,6 +172,7 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
                 FundRecord fundRecord = fundRecordService.getById(fundIncomeRecord.getFundId());
                 fundRecord.setWaitIncomeAmount(fundRecord.getWaitIncomeAmount().subtract(fundIncomeRecord.getInterestAmount()));
                 fundRecord.setIncomeAmount(fundRecord.getIncomeAmount().add(fundIncomeRecord.getInterestAmount()));
+                fundRecord.setOrderNo(order.getOrderNo());
 //                fundRecord.setCumulativeIncomeAmount(fundRecord.getCumulativeIncomeAmount().add(fundIncomeRecord.getInterestAmount()));
                 fundRecordService.updateById(fundRecord);
 
