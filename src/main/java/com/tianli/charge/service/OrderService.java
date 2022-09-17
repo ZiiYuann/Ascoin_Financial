@@ -170,7 +170,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
                 .filter(index -> Objects.nonNull(index.getCoin()))
                 .map(amountDto -> {
                     BigDecimal amount = Optional.ofNullable(amountDto.getAmount()).orElse(BigDecimal.ZERO);
-                    return currencyService.getDollarRate(amountDto.getCoin()).multiply(amount).setScale(8, RoundingMode.DOWN);
+                    return currencyService.getDollarRate(amountDto.getCoin()).multiply(amount);
                 }).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 

@@ -87,6 +87,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
         List<FundTransactionAmountDTO> fundTransactionAmountDTOS = getFundTransactionAmountDTO(query);
         List<AmountDto> purchaseAmount = fundTransactionAmountDTOS.stream().map(amountDTO ->
                 new AmountDto(amountDTO.getPurchaseAmount(), amountDTO.getCoin())).collect(Collectors.toList());
+
         List<AmountDto> redemptionAmount = fundTransactionAmountDTOS.stream().map(amountDTO ->
                 new AmountDto(amountDTO.getRedemptionAmount(), amountDTO.getCoin())).collect(Collectors.toList());
         return FundTransactionAmountVO.builder()
@@ -100,12 +101,13 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
         Long agentId = AgentContent.getAgentId();
         FundReviewStatus status = bo.getStatus();
         List<Long> ids = bo.getIds();
-        ids.forEach(id ->{
+        ids.forEach(id -> {
             FundTransactionRecord fundTransactionRecord = fundTransactionRecordMapper.selectById(id);
-            if(Objects.isNull(fundTransactionRecord) ||
-                    !fundTransactionRecord.getStatus().equals(FundTransactionStatus.wait_audit)) ErrorCodeEnum.TRANSACTION_NOT_EXIST.throwException();
+            if (Objects.isNull(fundTransactionRecord) ||
+                    !fundTransactionRecord.getStatus().equals(FundTransactionStatus.wait_audit))
+                ErrorCodeEnum.TRANSACTION_NOT_EXIST.throwException();
             Long uid = fundTransactionRecord.getUid();
-            if(status == FundReviewStatus.success) {
+            if (status == FundReviewStatus.success) {
                 //生成一笔订单
                 Order agentOrder = Order.builder()
                         .uid(agentId)
@@ -150,8 +152,8 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
                 fundTransactionRecord.setStatus(FundTransactionStatus.success);
                 fundTransactionRecordMapper.updateById(fundTransactionRecord);
 
-                financialProductService.reduceUseQuota(fundTransactionRecord.getProductId(),fundTransactionRecord.getTransactionAmount());
-            }else {
+                financialProductService.reduceUseQuota(fundTransactionRecord.getProductId(), fundTransactionRecord.getTransactionAmount());
+            } else {
 
                 FundReview fundReview = FundReview.builder()
                         .rId(id)
@@ -164,7 +166,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
 
                 fundTransactionRecord.setStatus(FundTransactionStatus.fail);
                 fundTransactionRecordMapper.updateById(fundTransactionRecord);
-                fundRecordService.increaseAmount(fundTransactionRecord.getFundId(),fundTransactionRecord.getTransactionAmount());
+                fundRecordService.increaseAmount(fundTransactionRecord.getFundId(), fundTransactionRecord.getTransactionAmount());
             }
         });
 
@@ -173,7 +175,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     @Override
     public List<FundReviewVO> getRedemptionAuditRecord(Long id) {
         FundTransactionRecord fundTransactionRecord = fundTransactionRecordMapper.selectById(id);
-        if(Objects.isNull(fundTransactionRecord)) ErrorCodeEnum.TRANSACTION_NOT_EXIST.throwException();
+        if (Objects.isNull(fundTransactionRecord)) ErrorCodeEnum.TRANSACTION_NOT_EXIST.throwException();
         List<FundReview> fundReviews = fundReviewService.getListByRid(id);
         return fundReviews.stream().map(fundReview -> fundRecordConvert.toReviewVO(fundReview)).collect(Collectors.toList());
     }
@@ -182,8 +184,8 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     @Override
     public Integer getWaitRedemptionCount(Long productId) {
         return fundTransactionRecordMapper.selectCount(new QueryWrapper<FundTransactionRecord>().lambda()
-                 .eq(FundTransactionRecord::getProductId,productId)
+                .eq(FundTransactionRecord::getProductId, productId)
                 .eq(FundTransactionRecord::getType, FundTransactionType.redemption)
-                .eq(FundTransactionRecord::getStatus,FundTransactionStatus.wait_audit));
+                .eq(FundTransactionRecord::getStatus, FundTransactionStatus.wait_audit));
     }
 }
