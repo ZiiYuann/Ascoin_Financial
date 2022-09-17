@@ -8,6 +8,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.vo.AccountBalanceVO;
+import com.tianli.address.AddressService;
+import com.tianli.address.mapper.Address;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.PageQuery;
@@ -38,6 +40,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -54,26 +57,28 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
 
     @Resource
     private WalletAgentConverter walletAgentConverter;
-
     @Resource
     private WalletAgentMapper walletAgentMapper;
-
     @Resource
     private IWalletAgentProductService walletAgentProductService;
-
     @Resource
     private FinancialProductService financialProductService;
-
     @Resource
     private AccountBalanceService accountBalanceService;
-
     @Resource
     private OrderService orderService;
+    @Resource
+    private AddressService addressService;
 
 
     @Override
     @Transactional
     public void saveAgent(WalletAgentBO bo) {
+
+        Long uid = bo.getUid();
+        // 校验代理人钱包是否激活
+        Optional.ofNullable(addressService.get(uid)).orElseThrow(ErrorCodeEnum.AGENT_NOT_ACTIVE::generalException);
+
         Integer count = walletAgentMapper.selectCountByUid(bo.getUid());
         if (count > 0) ErrorCodeEnum.AGENT_ALREADY_BIND.throwException();
         List<WalletAgentBO.Product> products = bo.getProducts();
