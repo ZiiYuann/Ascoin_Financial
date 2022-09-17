@@ -157,6 +157,12 @@ public class FinancialIncomeTask {
         LocalDateTime grantIncomeTime = financialRecord.getStartIncomeTime().plusDays(1);
         LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
 
+        if (financialRecord.getIncomeAmount().compareTo(BigDecimal.ZERO) == 0
+                && financialRecord.getWaitAmount().compareTo(BigDecimal.ZERO) > 0) {
+            financialRecordService.increaseIncomeAmount(financialRecord.getId(), financialRecord.getWaitAmount()
+                    , financialRecord.getIncomeAmount());
+            return;
+        }
 
         // 如果是定期产品且当前时间为到期前一天则计算利息
         if (ProductType.fixed.equals(type) && endTime.compareTo(todayZero) == 0) {
@@ -173,13 +179,6 @@ public class FinancialIncomeTask {
         // 如果是活期产品需要当前时间 >= 收益发放时间
         if (ProductType.current.equals(type)) {
             // 记息金额为0 且 待记息金额 不为 0， 直接增加记息金额后返回
-            if (financialRecord.getIncomeAmount().compareTo(BigDecimal.ZERO) == 0
-                    && financialRecord.getWaitAmount().compareTo(BigDecimal.ZERO) > 0) {
-                financialRecordService.increaseIncomeAmount(financialRecord.getId(), financialRecord.getWaitAmount()
-                        , financialRecord.getIncomeAmount());
-                return;
-            }
-
             if (todayZero.compareTo(grantIncomeTime) >= 0) {
                 incomeOperation(financialRecord, now);
             }

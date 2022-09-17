@@ -1,7 +1,6 @@
 package com.tianli.chain.service.contract;
 
-import com.alibaba.testable.core.annotation.MockInvoke;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tianli.FinancialApplication;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.service.FinancialRecordService;
@@ -17,7 +16,6 @@ import java.util.List;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = FinancialApplication.class)
-
 class BootTest {
 
     @Resource
@@ -37,11 +35,15 @@ class BootTest {
 
     @Test
     void income() throws InterruptedException {
-        while (true){
-            List<FinancialRecord> records = financialRecordService.needCalIncomeRecord(new Page<>(1, 100)).getRecords();
+        while (true) {
+            List<FinancialRecord> records = financialRecordService.list(
 
-            records.forEach( record -> financialIncomeTask.interestStat(record));
-            Thread.sleep(1000);
+                    new LambdaQueryWrapper<FinancialRecord>()
+                            .in(FinancialRecord::getId, List.of(1744213468616162991L))
+            );
+
+            records.forEach(record -> financialIncomeTask.interestStat(record));
+            Thread.sleep(5000);
 
         }
     }

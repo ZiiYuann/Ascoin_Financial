@@ -83,13 +83,14 @@ public class FinancialProductLadderRateService extends ServiceImpl<FinancialProd
     }
 
     public BigDecimal calLadderIncome(FinancialRecord record) {
-        return calLadderIncome(record.getProductId(), record.getHoldAmount());
+        return calLadderIncome(record.getProductId(), record.getIncomeAmount());
     }
 
     /**
      * 计算阶梯利息
      *
-     * @param record 持有记录
+     * @param productId 持有记录
+     * @param incomeAmount 持有记录
      */
     public BigDecimal calLadderIncome(Long productId, BigDecimal incomeAmount) {
 
