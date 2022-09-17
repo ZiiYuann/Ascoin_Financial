@@ -145,7 +145,9 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         }
 
         var query =
-                new LambdaQueryWrapper<FinancialRecord>().in(FinancialRecord::getProductId, productIds);
+                new LambdaQueryWrapper<FinancialRecord>()
+                        .eq(FinancialRecord :: getStatus,RecordStatus.PROCESS)
+                        .in(FinancialRecord::getProductId, productIds);
 
         if (Objects.nonNull(uid)) {
             query = query.eq(FinancialRecord::getUid, uid);
