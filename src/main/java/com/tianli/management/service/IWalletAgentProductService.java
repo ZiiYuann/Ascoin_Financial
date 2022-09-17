@@ -20,8 +20,6 @@ import java.util.List;
 public interface IWalletAgentProductService extends IService<WalletAgentProduct> {
     Integer getCount(Long productId);
 
-    void deleteByAgentId(Long agentId);
-
     void deleteByProductId(Long productId);
 
     WalletAgentProduct getByProductId(Long productId);
@@ -39,4 +37,6 @@ public interface IWalletAgentProductService extends IService<WalletAgentProduct>
      * 判断基金产品是否可以删除
      */
     boolean canDelete(Long productId);
+
+    boolean canDelete(Long productId,boolean throwE );
 }

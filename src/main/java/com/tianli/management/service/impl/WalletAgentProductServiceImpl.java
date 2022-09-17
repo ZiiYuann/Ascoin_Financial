@@ -3,6 +3,7 @@ package com.tianli.management.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.agent.management.auth.AgentContent;
 import com.tianli.agent.management.query.FundStatisticsQuery;
 import com.tianli.agent.management.vo.FundProductStatisticsVO;
@@ -12,11 +13,9 @@ import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.fund.service.IFundTransactionRecordService;
-import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.dao.WalletAgentProductMapper;
+import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.service.IWalletAgentProductService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -38,13 +37,13 @@ import java.util.stream.Collectors;
 @Service
 public class WalletAgentProductServiceImpl extends ServiceImpl<WalletAgentProductMapper, WalletAgentProduct> implements IWalletAgentProductService {
 
-    @Autowired
+    @Resource
     private WalletAgentProductMapper walletAgentProductMapper;
 
-    @Autowired
+    @Resource
     private IFundTransactionRecordService transactionRecordService;
 
-    @Autowired
+    @Resource
     private IFundIncomeRecordService fundIncomeRecordService;
     @Resource
     private IFundRecordService fundRecordService;
@@ -52,11 +51,6 @@ public class WalletAgentProductServiceImpl extends ServiceImpl<WalletAgentProduc
     @Override
     public Integer getCount(Long productId) {
         return walletAgentProductMapper.selectCountByProjectId(productId);
-    }
-
-    @Override
-    public void deleteByAgentId(Long agentId) {
-        walletAgentProductMapper.deleteByAgentId(agentId);
     }
 
     @Override
@@ -97,7 +91,7 @@ public class WalletAgentProductServiceImpl extends ServiceImpl<WalletAgentProduc
     }
 
     @Override
-    public boolean canDelete(Long productId) {
+    public boolean canDelete(Long productId, boolean throwE) {
         // 该子产品被有持仓金额or待赎回金额or待发利息时，不允许删除
         LambdaQueryWrapper<FundRecord> queryWrapper = new LambdaQueryWrapper<FundRecord>()
                 .select(FundRecord::getProductId);
@@ -105,6 +99,15 @@ public class WalletAgentProductServiceImpl extends ServiceImpl<WalletAgentProduc
         Optional<FundRecord> any = fundRecords.stream()
                 .filter(fundRecord -> fundRecord.getHoldAmount().compareTo(BigDecimal.ZERO) > 0
                         || fundRecord.getWaitIncomeAmount().compareTo(BigDecimal.ZERO) > 0).findAny();
+
+        if (throwE && any.isPresent()) {
+            ErrorCodeEnum.PRODUCT_USER_HOLD.throwException();
+        }
         return any.isEmpty();
+    }
+
+    @Override
+    public boolean canDelete(Long productId) {
+        return canDelete(productId, false);
     }
 }

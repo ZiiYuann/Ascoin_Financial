@@ -112,10 +112,7 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
         List<Long> saveProductIds = saveProducts.stream().map(WalletAgentBO.Product::getProductId).collect(Collectors.toList());
         Collection<Long> deletedIds = CollUtil.subtract(productIds, saveProductIds);
         deletedIds.forEach(id -> {
-            if (!walletAgentProductService.canDelete(id)) {
-                ErrorCodeEnum.PRODUCT_USER_HOLD.throwException();
-            }
-
+            walletAgentProductService.canDelete(id, true);
             walletAgentProductService.deleteByProductId(id);
         });
         //增加或更新
@@ -145,6 +142,7 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
             if (financialProduct.getStatus() == ProductStatus.open) {
                 ErrorCodeEnum.PRODUCT_NOT_CLOSE.throwException();
             }
+            walletAgentProductService.canDelete(walletAgentProduct.getProductId(), true);
             walletAgentProductService.deleteByProductId(walletAgentProduct.getId());
         });
         walletAgentMapper.logicDelById(id);
