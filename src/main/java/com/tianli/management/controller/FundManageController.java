@@ -1,7 +1,6 @@
 package com.tianli.management.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tianli.agent.management.auth.AgentPrivilege;
 import com.tianli.agent.management.vo.FundReviewVO;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
@@ -22,14 +21,12 @@ import com.tianli.management.vo.FundUserRecordVO;
 import com.tianli.management.vo.HoldUserAmount;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -50,7 +47,7 @@ public class FundManageController {
      */
     @GetMapping("/transaction/record")
     @AdminPrivilege(and = Privilege.基金管理)
-    public Result transactionRecord(PageQuery<FundTransactionRecord> pageQuery, FundTransactionQuery query){
+    public Result transactionRecord(PageQuery<FundTransactionRecord> pageQuery, FundTransactionQuery query) {
         IPage<FundTransactionRecordVO> transactionPage = fundTransactionRecordService.getTransactionPage(pageQuery, query);
         return Result.success(transactionPage);
     }
@@ -60,17 +57,17 @@ public class FundManageController {
      */
     @GetMapping("/transaction/amount")
     @AdminPrivilege(and = Privilege.基金管理)
-    public Result transactionAmount(FundTransactionQuery query){
+    public Result transactionAmount(FundTransactionQuery query) {
         FundTransactionAmountVO transactionAmount = fundTransactionRecordService.getTransactionAmount(query);
         return Result.success(transactionAmount);
     }
 
     /**
-     *收益记录
+     * 收益记录
      */
     @GetMapping("/income/record")
     @AdminPrivilege(and = Privilege.基金管理)
-    public Result incomeRecord(PageQuery<FundIncomeRecord> pageQuery, FundIncomeQuery query){
+    public Result incomeRecord(PageQuery<FundIncomeRecord> pageQuery, FundIncomeQuery query) {
         IPage<FundIncomeRecordVO> page = fundIncomeRecordService.getPage(pageQuery, query);
         return Result.success(page);
     }
@@ -80,7 +77,7 @@ public class FundManageController {
      */
     @GetMapping("/income/amount")
     @AdminPrivilege(and = Privilege.基金管理)
-    public Result incomeAmount(FundIncomeQuery query){
+    public Result incomeAmount(FundIncomeQuery query) {
         FundIncomeAmountVO incomeAmount = fundIncomeRecordService.getIncomeAmount(query);
         return Result.success(incomeAmount);
     }
@@ -90,7 +87,7 @@ public class FundManageController {
      */
     @GetMapping("/hold/record")
     @AdminPrivilege(and = Privilege.基金管理)
-    public Result holdRecord(PageQuery<FundRecord> pageQuery, FundRecordQuery query){
+    public Result holdRecord(PageQuery<FundRecord> pageQuery, FundRecordQuery query) {
         IPage<FundUserRecordVO> fundUserRecordPage = fundRecordService.fundUserRecordPage(pageQuery, query);
         return Result.success(fundUserRecordPage);
     }
@@ -100,7 +97,7 @@ public class FundManageController {
      */
     @GetMapping("/hold/amount")
     @AdminPrivilege(and = Privilege.基金管理)
-    public Result holdAmount(FundRecordQuery query){
+    public Result holdAmount(FundRecordQuery query) {
         HoldUserAmount holdUserAmount = fundRecordService.fundUserAmount(query);
         return Result.success(holdUserAmount);
     }
@@ -110,8 +107,18 @@ public class FundManageController {
      */
     @GetMapping("/income/audit/{id}")
     @AdminPrivilege(and = Privilege.基金管理)
-    public Result incomeAuditRecord(@PathVariable Long id){
+    public Result incomeAuditRecord(@PathVariable Long id) {
         List<FundReviewVO> fundReviewVOS = fundIncomeRecordService.getIncomeAuditRecord(id);
+        return Result.success(fundReviewVOS);
+    }
+
+    /**
+     * 赎回审核记录
+     */
+    @GetMapping("/redemption/audit/{id}")
+    @AdminPrivilege(and = Privilege.基金管理)
+    public Result redemptionAuditRecord(@PathVariable Long id) {
+        List<FundReviewVO> fundReviewVOS = fundTransactionRecordService.getRedemptionAuditRecord(id);
         return Result.success(fundReviewVOS);
     }
 

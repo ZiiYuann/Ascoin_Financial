@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tianli.FinancialApplication;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.service.FinancialRecordService;
+import com.tianli.fund.entity.FundRecord;
+import com.tianli.fund.service.IFundRecordService;
 import com.tianli.task.FinancialIncomeTask;
 import com.tianli.task.FundIncomeTask;
 import org.junit.jupiter.api.Test;
@@ -12,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RunWith(SpringRunner.class)
@@ -19,10 +22,10 @@ import java.util.List;
 class BootTest {
 
     @Resource
-    private TronTriggerContract tronTriggerContract;
+    private FundIncomeTask fundIncomeTask;
 
     @Resource
-    private FundIncomeTask fundIncomeTask;
+    private IFundRecordService fundRecordService;
     @Resource
     private FinancialIncomeTask financialIncomeTask;
     @Resource
@@ -47,5 +50,19 @@ class BootTest {
 
         }
     }
+
+    @Test
+    void fundIncome() throws InterruptedException {
+        while (true) {
+            FundRecord record = fundRecordService.getById(
+                    1571691088468738050L
+            );
+
+            fundIncomeTask.calculateIncome(record, LocalDateTime.now());
+            Thread.sleep(5000);
+
+        }
+    }
+
 
 }
