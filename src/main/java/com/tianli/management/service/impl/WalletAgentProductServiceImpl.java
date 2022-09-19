@@ -94,7 +94,7 @@ public class WalletAgentProductServiceImpl extends ServiceImpl<WalletAgentProduc
     public boolean canDelete(Long productId, boolean throwE) {
         // 该子产品被有持仓金额or待赎回金额or待发利息时，不允许删除
         LambdaQueryWrapper<FundRecord> queryWrapper = new LambdaQueryWrapper<FundRecord>()
-                .select(FundRecord::getProductId);
+                .eq(FundRecord::getProductId,productId);
         List<FundRecord> fundRecords = fundRecordService.list(queryWrapper);
         Optional<FundRecord> any = fundRecords.stream()
                 .filter(fundRecord -> fundRecord.getHoldAmount().compareTo(BigDecimal.ZERO) > 0
