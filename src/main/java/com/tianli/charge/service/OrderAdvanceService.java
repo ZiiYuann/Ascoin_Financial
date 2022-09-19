@@ -64,8 +64,12 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
 
         FinancialProduct product = financialProductService.getById(query.getProductId());
 
+        // 预订单和持有record 订单id一致
+        FinancialRecord financialRecord =
+                financialRecordService.generateFinancialRecord(uid, product, query.getAmount(), query.isAutoCurrent());
+
         OrderAdvance orderAdvance = OrderAdvance.builder()
-                .id(CommonFunction.generalId())
+                .id(financialRecord.getId())
                 .amount(query.getAmount())
                 .uid(uid)
                 .createTime(LocalDateTime.now())
@@ -90,8 +94,6 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                 .build();
         orderService.save(order);
 
-        FinancialRecord financialRecord =
-                financialRecordService.generateFinancialRecord(uid, product, query.getAmount(), query.isAutoCurrent());
         // 预订单
         financialRecord.setStatus(RecordStatus.SUCCESS);
         financialRecordService.updateById(financialRecord);
