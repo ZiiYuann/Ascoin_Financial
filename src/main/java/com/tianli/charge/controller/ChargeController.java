@@ -258,7 +258,6 @@ public class ChargeController {
      */
     @PutMapping("/order/advance")
     public Result updateOrderAdvance(@RequestBody GenerateOrderAdvanceQuery query) {
-        orderAdvanceService.updateOrderAdvance(query);
-        return Result.success();
+        return Result.success(orderAdvanceService.updateOrderAdvance(query));
     }
 }

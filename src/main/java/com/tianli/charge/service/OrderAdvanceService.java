@@ -74,8 +74,8 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                 .uid(uid)
                 .createTime(LocalDateTime.now())
                 .productId(query.getProductId())
-                .coin(query.getCoin())
-                .term(query.getTerm())
+                .coin(product.getCoin())
+                .term(product.getTerm())
                 .autoCurrent(query.isAutoCurrent())
                 .build();
         baseMapper.insert(orderAdvance);

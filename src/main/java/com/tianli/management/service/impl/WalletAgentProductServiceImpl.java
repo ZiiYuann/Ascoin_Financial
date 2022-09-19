@@ -78,7 +78,7 @@ public class WalletAgentProductServiceImpl extends ServiceImpl<WalletAgentProduc
     public List<Long> listProductIdExcludeAgentId(Long agentId) {
         LambdaQueryWrapper<WalletAgentProduct> queryWrapper = new LambdaQueryWrapper<>();
         if (Objects.nonNull(agentId)) {
-            queryWrapper = queryWrapper.eq(false, WalletAgentProduct::getAgentId, agentId);
+            queryWrapper = queryWrapper.notIn(WalletAgentProduct::getAgentId, agentId);
         }
         return Optional.ofNullable(walletAgentProductMapper.selectList(queryWrapper)).orElse(new ArrayList<>())
                 .stream().map(WalletAgentProduct::getProductId).collect(Collectors.toList());
