@@ -49,7 +49,7 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
         FinancialProduct product = financialProductService.getById(purchaseQuery.getProductId());
 
         // pre operation
-        baseValidProduct(product, purchaseQuery);
+        baseValidProduct(uid,product, purchaseQuery);
         validRemainAmount(uid, product.getCoin(), purchaseQuery.getAmount());
         baseValidPurchaseAmount(uid, product, purchaseQuery.getAmount());
 
@@ -74,7 +74,7 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
      *
      * @param financialProduct 产品
      */
-    public void baseValidProduct(FinancialProduct financialProduct, PurchaseQuery purchaseQuery) {
+    public void baseValidProduct(Long uid,FinancialProduct financialProduct, PurchaseQuery purchaseQuery) {
         BigDecimal purchaseAmount = purchaseQuery.getAmount();
         if (Objects.isNull(financialProduct)) {
             ErrorCodeEnum.PRODUCT_CAN_NOT_BUY.throwException();
@@ -94,7 +94,6 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
             throw ErrorCodeEnum.PURCHASE_AMOUNT_TO_SMALL.generalException("低于最小申购数额:" + financialProduct.getLimitPurchaseQuota());
         }
 
-        Long uid = requestInitService.uid();
         if (BusinessType.benefits.equals(financialProduct.getBusinessType())) {
             int fundHoldAmount = fundRecordService.count(new LambdaQueryWrapper<FundRecord>().eq(FundRecord::getUid, uid));
             int financialHoldAmount = financialRecordService.count(new LambdaQueryWrapper<FinancialRecord>().eq(FinancialRecord::getUid, uid));

@@ -31,6 +31,7 @@ import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
+import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.TokenAdapter;
@@ -112,13 +113,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             // 操作归集信息
             walletImputationService.insert(uid, address, tokenAdapter, req, finalAmount);
 
-            // 判断是否有预先订单需要处理
-            try {
-                orderAdvanceService.handlerRechargeEvent(uid, req, finalAmount, tokenAdapter);
-            } catch (Exception e) {
-                log.error("申购订单失败");
-                log.error(ExceptionUtil.getMessage(e));
-            }
+            asyncService.async(() -> orderAdvanceService.handlerRechargeEvent(uid, req, finalAmount, tokenAdapter));
+
         }
 
     }
@@ -552,8 +548,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     @Resource
     private OrderAdvanceService orderAdvanceService;
     @Resource
-    private FinancialProductLadderRateService financialProductLadderRateService;
-    @Resource
-    private FinancialConverter financialConverter;
+    private AsyncService asyncService;
 
 }

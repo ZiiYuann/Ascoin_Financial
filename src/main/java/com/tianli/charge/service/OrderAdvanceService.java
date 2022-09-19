@@ -25,6 +25,7 @@ import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -117,7 +118,6 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
     /**
      * 处理充值事件
      */
-
     public void handlerRechargeEvent(Long uid, TRONTokenReq req, BigDecimal finalAmount, TokenAdapter tokenAdapter) {
         var query = new LambdaQueryWrapper<OrderAdvance>()
                 .eq(OrderAdvance::getUid, uid)
