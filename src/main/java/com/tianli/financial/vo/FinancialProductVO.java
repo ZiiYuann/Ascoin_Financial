@@ -82,6 +82,7 @@ public class FinancialProductVO {
     /**
      * 申购时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime purchaseTime;
 
     /**
