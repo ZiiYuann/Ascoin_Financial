@@ -110,7 +110,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
             if (status == FundReviewStatus.success) {
                 //生成一笔订单
                 Order agentOrder = Order.builder()
-                        .uid(agentId)
+                        .uid(uid)
                         .coin(fundTransactionRecord.getCoin())
                         .relatedId(fundTransactionRecord.getId())
                         .orderNo(AccountChangeType.agent_fund_redeem.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
@@ -122,7 +122,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
                         .build();
                 orderService.save(agentOrder);
                 // 减少余额
-                accountBalanceService.decrease(agentId, ChargeType.agent_fund_redeem, fundTransactionRecord.getCoin(), fundTransactionRecord.getTransactionAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金赎回.name());
+                accountBalanceService.decrease(uid, ChargeType.agent_fund_redeem, fundTransactionRecord.getCoin(), fundTransactionRecord.getTransactionAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金赎回.name());
 
                 //生成一笔订单
                 Order order = Order.builder()
