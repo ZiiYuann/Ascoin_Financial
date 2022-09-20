@@ -74,7 +74,8 @@ public class TestController {
 
         list.forEach(record -> {
             List<FundIncomeRecord> incomeRecords = Optional.ofNullable(fundIncomeRecordService.list(new LambdaQueryWrapper<FundIncomeRecord>()
-                    .eq(FundIncomeRecord::getFundId, record.getId()))).orElse(new ArrayList<>());
+                    .eq(FundIncomeRecord::getFundId, record.getId()))
+            ).orElse(new ArrayList<>());
 
             // 计息时间为4天后，所以手动修改为5天前
             record.setCreateTime(now.plusDays(-7));
@@ -85,7 +86,9 @@ public class TestController {
             }
 
             fundRecordService.updateById(record);
-            fundIncomeRecordService.updateBatchById(incomeRecords);
+            fundIncomeRecordService.remove(new LambdaQueryWrapper<FundIncomeRecord>()
+                    .eq(FundIncomeRecord::getFundId, record.getId()));
+            fundIncomeRecordService.saveBatch(incomeRecords);
 
             fundIncomeTask.calculateIncome(record, now);
         });
