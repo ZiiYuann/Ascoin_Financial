@@ -45,7 +45,7 @@ public class OrderAdvanceTask {
     @Resource
     private WebHookService webHookService;
 
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0/15 * * * ?")
     public void incomeTasks() {
         List<Order> advanceOrders = Optional.ofNullable(orderService.list(new LambdaQueryWrapper<Order>()
                 .eq(Order::getType, ChargeType.purchase)
