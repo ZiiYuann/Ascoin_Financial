@@ -19,6 +19,7 @@ import com.tianli.mconfig.ConfigService;
 import com.tianli.task.FinancialIncomeTask;
 import com.tianli.task.FundIncomeTask;
 import com.tianli.tool.time.TimeTool;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -68,27 +69,36 @@ public class TestController {
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime nowZero = TimeTool.minDay(now);
-
-        List<FundRecord> list = fundRecordService.list(new LambdaQueryWrapper<FundRecord>()
-                .eq(FundRecord::getUid, query.getUid()));
-
+        LambdaQueryWrapper<FundRecord> eq = new LambdaQueryWrapper<FundRecord>()
+                .eq(FundRecord::getUid, query.getUid());
+        if (Objects.nonNull(query.getRecordId())) {
+            eq = eq.eq(FundRecord::getId, query.getRecordId());
+        }
+        List<FundRecord> list = fundRecordService.list(eq);
         list.forEach(record -> {
             List<FundIncomeRecord> incomeRecords = Optional.ofNullable(fundIncomeRecordService.list(new LambdaQueryWrapper<FundIncomeRecord>()
-                    .eq(FundIncomeRecord::getFundId, record.getId()))
+                            .eq(FundIncomeRecord::getFundId, record.getId())
+                            .orderByDesc(FundIncomeRecord::getCreateTime)
+                    )
             ).orElse(new ArrayList<>());
 
+            if (CollectionUtils.isNotEmpty(incomeRecords)) {
+                FundIncomeRecord fundIncomeRecordFirst = incomeRecords.get(0);
+                FundIncomeRecord fundIncomeRecordLast = incomeRecords.get(incomeRecords.size() - 1);
+                fundIncomeRecordFirst.setCreateTime(fundIncomeRecordLast.getCreateTime().plusDays(-1));
+                fundIncomeRecordService.updateById(fundIncomeRecordFirst);
+            }
+
             // 计息时间为4天后，所以手动修改为5天前
-            record.setCreateTime(now.plusDays(-7));
+            record.setCreateTime(now.plusDays(-8));
             // 利息修改为前一天的时间
             for (int i = 0; i < incomeRecords.size(); i++) {
                 FundIncomeRecord fundIncomeRecord = incomeRecords.get(i);
                 fundIncomeRecord.setCreateTime(nowZero.plusDays(-(i + 1)));
             }
 
+
             fundRecordService.updateById(record);
-            fundIncomeRecordService.remove(new LambdaQueryWrapper<FundIncomeRecord>()
-                    .eq(FundIncomeRecord::getFundId, record.getId()));
-            fundIncomeRecordService.saveBatch(incomeRecords);
 
             fundIncomeTask.calculateIncome(record, now);
         });

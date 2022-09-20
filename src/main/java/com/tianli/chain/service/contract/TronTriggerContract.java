@@ -183,9 +183,12 @@ public class TronTriggerContract extends AbstractContractOperation {
         byte[] decode = Hex.decode(hash);
         Protocol.Transaction transaction =
                 blockingStub.getTransactionById(GrpcAPI.BytesMessage.newBuilder().setValue(ByteString.copyFrom(decode)).build());
-        List<Protocol.Transaction.Result.code> codes = transaction.getRetList().stream().map(Protocol.Transaction.Result::getRet).distinct().collect(Collectors.toList());
 
-        return !CollectionUtils.isNotEmpty(codes) || codes.size() <= 1;
+       if (CollectionUtils.isEmpty(transaction.getRetList())){
+           return false;
+       }
+        int status = transaction.getRet(0).getContractRetValue();
+        return status == Protocol.Transaction.Result.contractResult.SUCCESS_VALUE;
     }
 
     @Override

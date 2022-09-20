@@ -12,7 +12,6 @@ import com.tianli.charge.service.OrderAdvanceService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.WebHookService;
 import com.tianli.common.blockchain.NetworkType;
-import com.tianli.financial.service.FinancialProductService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -23,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -41,15 +41,14 @@ public class OrderAdvanceTask {
     @Resource
     private ContractAdapter contractAdapter;
     @Resource
-    private FinancialProductService financialProductService;
-    @Resource
     private WebHookService webHookService;
 
     @Scheduled(cron = "0 0/15 * * * ?")
     public void incomeTasks() {
         List<Order> advanceOrders = Optional.ofNullable(orderService.list(new LambdaQueryWrapper<Order>()
                 .eq(Order::getType, ChargeType.purchase)
-                .likeLeft(Order::getOrderNo, AccountChangeType.advance_purchase.getPrefix()))).orElse(new ArrayList<>());
+                .eq(Order::getStatus, ChargeStatus.chaining)
+                .likeRight(Order::getOrderNo, AccountChangeType.advance_purchase.getPrefix()))).orElse(new ArrayList<>());
 
         advanceOrders.forEach(this::scanChainOperation);
     }
@@ -60,7 +59,14 @@ public class OrderAdvanceTask {
         Long relatedId = order.getRelatedId();
 
         OrderAdvance orderAdvance = orderAdvanceService.getById(relatedId);
-        if (LocalDateTime.now().until(orderAdvance.getCreateTime(), ChronoUnit.MINUTES) > 5) {
+
+        if (Objects.isNull(orderAdvance) ) {
+            order.setStatus(ChargeStatus.chain_fail);
+            orderService.updateById(order);
+            return;
+        }
+
+        if (orderAdvance.getCreateTime().until(LocalDateTime.now(), ChronoUnit.MINUTES) > 5) {
             if (StringUtils.isBlank(orderAdvance.getTxid())) {
                 orderAdvance.setFinish(2);
                 orderAdvanceService.updateById(orderAdvance);

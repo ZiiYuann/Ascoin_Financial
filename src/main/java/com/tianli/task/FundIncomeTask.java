@@ -42,7 +42,7 @@ public class FundIncomeTask {
     @Autowired
     private RedissonClient redissonClient;
 
-    @Scheduled(cron = "0 0 0 1/1 * ? ")
+    @Scheduled(cron = "0 0 0 1/20 * ? ")
 //    @Scheduled(cron = "0 0/1 * * * ?")
     public void incomeTasks() {
         log.info("========执行基金计算利息定时任务========");
@@ -67,18 +67,22 @@ public class FundIncomeTask {
 
     @Transactional
     public void calculateIncome(FundRecord fundRecord, LocalDateTime now) {
+        LocalDateTime todayZero = TimeTool.minDay(now);
+
         // 查询已经计算的收益信息
         List<FundIncomeRecord> fundIncomeRecords = fundIncomeRecordService.list(new QueryWrapper<FundIncomeRecord>().lambda()
                 .eq(FundIncomeRecord::getFundId, fundRecord.getId())
-                .eq(FundIncomeRecord::getStatus, FundIncomeStatus.calculated));
+                .eq(FundIncomeRecord::getStatus, FundIncomeStatus.calculated)
+                .between(FundIncomeRecord::getCreateTime, todayZero.plusDays(-7), todayZero.plusDays(-1)));
+
         // 如果利息周期已经存在7天，则修改状态为待审核
-        fundIncomeRecords.forEach(fundIncomeRecord -> {
-            LocalDateTime fundIncomeRecordCreateTime = fundIncomeRecord.getCreateTime();
-            if (fundIncomeRecordCreateTime.until(now, ChronoUnit.DAYS) >= FundCycle.interestAuditCycle) {
+        if (fundIncomeRecords.size() == 7) {
+            fundIncomeRecords.forEach(fundIncomeRecord -> {
                 fundIncomeRecord.setStatus(FundIncomeStatus.wait_audit);
                 fundIncomeRecordService.updateById(fundIncomeRecord);
-            }
-        });
+            });
+        }
+
 
         LocalDateTime createTime = fundRecord.getCreateTime();
         //四天后开始计息
@@ -95,7 +99,7 @@ public class FundIncomeTask {
                     .holdAmount(fundRecord.getHoldAmount())
                     .interestAmount(dailyIncome)
                     .status(FundIncomeStatus.calculated)
-                    .createTime(TimeTool.minDay(now))
+                    .createTime(todayZero)
                     .build();
             fundIncomeRecordService.save(incomeRecord);
 
