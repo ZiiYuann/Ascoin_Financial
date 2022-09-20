@@ -27,6 +27,10 @@ public class RedisLockConstants {
 
     public static String FUND_CREATE_LOCK = "Fund:create:lock:";
 
+    public static String FUND_REDEEM_LOCK = "Fund:redeem:lock:";
+
+    public static String FUND_INCOME_LOCK = "Fund:income:lock:";
+
     public static String BORROW_ORDER_NUM_TASK = "BorrowOrderNumTask#statisticalOrderNum:lock:";
 
     public static String RECYCLE_LOCK = "recharge:recycle:";
