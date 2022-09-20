@@ -38,9 +38,9 @@ import com.tianli.management.vo.FundProductBindDropdownVO;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -337,8 +337,12 @@ public class FinancialServiceImpl implements FinancialService {
         LambdaQueryWrapper<FinancialProduct> queryWrapper = new QueryWrapper<FinancialProduct>().lambda()
                 .eq(FinancialProduct::getType, type)
                 .eq(FinancialProduct::getStatus, ProductStatus.close)
-                .eq(FinancialProduct::isDeleted, false)
-                .notIn(FinancialProduct::getId, bindProductIds);
+                .eq(FinancialProduct::isDeleted, false);
+
+
+        if (CollectionUtils.isNotEmpty(bindProductIds)) {
+            queryWrapper = queryWrapper.notIn(FinancialProduct::getId, bindProductIds);
+        }
 
 
         List<FinancialProduct> financialProducts = financialProductService.list(queryWrapper);

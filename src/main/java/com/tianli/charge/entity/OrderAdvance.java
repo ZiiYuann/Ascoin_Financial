@@ -41,7 +41,7 @@ public class OrderAdvance {
 
     private LocalDateTime createTime;
 
-    private boolean isFinish;
+    private boolean finish;
 
     private int tryTimes;
 }
