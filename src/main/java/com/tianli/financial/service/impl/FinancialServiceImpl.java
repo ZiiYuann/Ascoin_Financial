@@ -337,6 +337,7 @@ public class FinancialServiceImpl implements FinancialService {
         LambdaQueryWrapper<FinancialProduct> queryWrapper = new QueryWrapper<FinancialProduct>().lambda()
                 .eq(FinancialProduct::getType, type)
                 .eq(FinancialProduct::getStatus, ProductStatus.close)
+                .eq(FinancialProduct::isDeleted, false)
                 .notIn(FinancialProduct::getId, bindProductIds);
 
 
