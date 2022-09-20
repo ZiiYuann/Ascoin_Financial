@@ -116,7 +116,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
             if (status == FundReviewStatus.success) {
                 //生成一笔订单
                 Order agentOrder = Order.builder()
-                        .uid(uid)
+                        .uid(agentVO.getUid())
                         .coin(fundTransactionRecord.getCoin())
                         .relatedId(fundTransactionRecord.getId())
                         .orderNo(AccountChangeType.agent_fund_redeem.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
