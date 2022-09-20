@@ -32,7 +32,9 @@ import com.tianli.fund.service.IFundRecordService;
 import com.tianli.fund.service.IFundReviewService;
 import com.tianli.fund.vo.FundIncomeRecordVO;
 import com.tianli.management.dto.AmountDto;
+import com.tianli.management.service.IWalletAgentService;
 import com.tianli.management.vo.FundIncomeAmountVO;
+import com.tianli.management.vo.WalletAgentVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,15 +63,14 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     private OrderService orderService;
     @Resource
     private IFundReviewService fundReviewService;
-
     @Resource
     private FundRecordConvert fundRecordConvert;
-
     @Resource
     private AccountBalanceService accountBalanceService;
-
     @Resource
     private IFundRecordService fundRecordService;
+    @Resource
+    private IWalletAgentService walletAgentService;
 
     @Override
     public List<AmountDto> getAmountByUidAndStatus(Long uid, Long agentId, Integer status) {
@@ -125,6 +126,8 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
         List<Long> ids = bo.getIds();
         FundReviewStatus status = bo.getStatus();
         Long agentId = AgentContent.getAgentId();
+        WalletAgentVO agentVO = walletAgentService.getById(agentId);
+
         ids.forEach(id -> {
             FundIncomeRecord fundIncomeRecord = this.getById(id);
             validFundIncomeRecordReview(id, fundIncomeRecord);
@@ -141,7 +144,7 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
             if (status == FundReviewStatus.success) {
                 // 订单【代理基金支付利息】 对于代理而言
                 Order agentOrder = Order.builder()
-                        .uid(agentId)
+                        .uid(agentVO.getUid())
                         .coin(fundIncomeRecord.getCoin())
                         .relatedId(fundIncomeRecord.getId())
                         .orderNo(AccountChangeType.agent_fund_interest.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
@@ -151,7 +154,7 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
                         .createTime(LocalDateTime.now()).completeTime(LocalDateTime.now()).build();
                 orderService.save(agentOrder);
                 // 减少余额
-                accountBalanceService.decrease(agentId, ChargeType.agent_fund_interest, fundIncomeRecord.getCoin(), fundIncomeRecord.getInterestAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金利息.name());
+                accountBalanceService.decrease(agentVO.getUid(), ChargeType.agent_fund_interest, fundIncomeRecord.getCoin(), fundIncomeRecord.getInterestAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金利息.name());
 
                 //订单【基金利息】对于客户而言
                 Order order = Order.builder()
