@@ -157,13 +157,13 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                 .autoCurrent(orderAdvance.isAutoCurrent())
                 .productId(orderAdvance.getProductId()).build();
 
-        financialProductService.purchase(uid, purchaseQuery, FinancialPurchaseResultVO.class);
+        Order order = orderService.getOrderNo(AccountChangeType.advance_purchase.getPrefix() + orderAdvance.getId());
+        financialProductService.purchase(uid, purchaseQuery, FinancialPurchaseResultVO.class, order);
 
         // 预订单状态设置为完成
         orderAdvance.setFinish(true);
         baseMapper.updateById(orderAdvance);
 
-        Order order = orderService.getOrderNo(AccountChangeType.advance_purchase.getPrefix() + orderAdvance.getId());
         order.setStatus(ChargeStatus.chain_success);
         orderService.updateById(order);
     }

@@ -23,11 +23,12 @@ class ChargeControllerTest {
         HttpClient client = HttpClientBuilder.create().build();
         // BSC链
 //        HttpPost httpPost = new HttpPost("https://www.assureadd.com/api/charge/recharge/BSC");
-        HttpPost httpPost = new HttpPost("http://127.0.0.1:8080/api/charge/recharge/BSC");
+        HttpPost httpPost = new HttpPost("http://127.0.0.1:8080/api/charge/recharge/TRON");
         httpPost.setHeader("Content-Type", "text/plain");
         httpPost.setHeader("Sign", sign);
         httpPost.setHeader("timestamp", l + "");
-        httpPost.setEntity(new StringEntity("{\"token\": [{\"id\": 1744368644812993393, \"to\": \"0x22a646ef282b62af0391eba132c53dc208928182\", \"from\": \"0x504958caa2488691d85d5b36670dc9411f8dc383\", \"hash\": \"0xee3796c9dc41ad4c2578b290d03eaac3a8340a492c564120908b85974cc52d49\", \"block\": 21457774, \"value\": \"2000000000000000000\", \"createTime\": {\"date\": {\"day\": 19, \"year\": 2022, \"month\": 9}, \"time\": {\"hour\": 11, \"nano\": 0, \"minute\": 52, \"second\": 45}}, \"contractAddress\": \"0x55d398326f99059ff775485246999027b3197955\"}], \"standardCurrency\": []}"));
+        httpPost.setEntity(new StringEntity("{\"token\": [{\"id\": 1744456642329086075, \"to\": \"TQDjgFcrVqpDpHJeh1T4WVBebdf4WKoqHQ\", " +
+                "\"from\": \"TTahu848LG5HLPBmyzUwgG8v2XvCfrF8y9\", \"hash\": \"27a4fc47c9044a357f7b40a0ba261fed3dcec2a294a04685d74e12d46a004155\", \"block\": 44354678, \"value\": \"1000000\", \"netFee\": \"0\", \"status\": 1, \"netUsage\": 345, \"energyFee\": \"4102000\", \"createTime\": {\"date\": {\"day\": 20, \"year\": 2022, \"month\": 9}, \"time\": {\"hour\": 11, \"nano\": 0, \"minute\": 11, \"second\": 24}}, \"energyUsage\": 0, \"contractAddress\": \"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t\", \"energyUsageTotal\": 14650, \"originEnergyUsage\": 0}], \"standardCurrency\": []}"));
 //        httpPost.setEntity(new StringEntity(""));
         client.execute(httpPost);
     }
