@@ -267,6 +267,12 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
     @Override
     @SuppressWarnings("unchecked")
     public FinancialPurchaseResultVO purchaseOperation(Long uid, PurchaseQuery purchaseQuery) {
+        return purchaseOperation(uid, purchaseQuery, null);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public FinancialPurchaseResultVO purchaseOperation(Long uid, PurchaseQuery purchaseQuery, Order order) {
         FinancialProduct product = financialProductService.getById(purchaseQuery.getProductId());
         BigDecimal amount = purchaseQuery.getAmount();
 
@@ -292,20 +298,22 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
             financialRecord = financialRecordService.generateFinancialRecord(uid, product, amount, purchaseQuery.isAutoCurrent());
         }
 
-        // 生成一笔订单记录
-        Order order = Order.builder()
-                .uid(uid)
-                .coin(product.getCoin())
-                .orderNo(AccountChangeType.purchase.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
-                .amount(amount)
-                .type(ChargeType.purchase)
-                .status(ChargeStatus.created)
-                .createTime(LocalDateTime.now())
-                .completeTime(LocalDateTime.now())
-                .status(ChargeStatus.chain_success)
-                .relatedId(financialRecord.getId())
-                .build();
-        orderService.save(order);
+        if (Objects.isNull(order)) {
+            // 生成一笔订单记录
+            order = Order.builder()
+                    .uid(uid)
+                    .coin(product.getCoin())
+                    .orderNo(AccountChangeType.purchase.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
+                    .amount(amount)
+                    .type(ChargeType.purchase)
+                    .status(ChargeStatus.created)
+                    .createTime(LocalDateTime.now())
+                    .completeTime(LocalDateTime.now())
+                    .status(ChargeStatus.chain_success)
+                    .relatedId(financialRecord.getId())
+                    .build();
+            orderService.save(order);
+        }
 
         // 减少余额
         accountBalanceService.decrease(uid, ChargeType.purchase, product.getCoin(), amount, order.getOrderNo(), CurrencyLogDes.申购.name());

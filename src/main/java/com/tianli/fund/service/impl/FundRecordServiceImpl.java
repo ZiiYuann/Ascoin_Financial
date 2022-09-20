@@ -21,6 +21,7 @@ import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.AbstractProductOperation;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
+import com.tianli.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.fund.bo.FundPurchaseBO;
 import com.tianli.fund.bo.FundRedemptionBO;
 import com.tianli.fund.contant.FundCycle;
@@ -112,10 +113,15 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     @Override
     @SuppressWarnings("unchecked")
     public FundTransactionRecordVO purchaseOperation(Long uid, PurchaseQuery purchaseQuery) {
+        return purchaseOperation(uid, purchaseQuery, null);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public FundTransactionRecordVO purchaseOperation(Long uid, PurchaseQuery purchaseQuery, Order order) {
         Long productId = purchaseQuery.getProductId();
         var financialProduct = financialProductService.getById(productId);
         WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(productId);
-
 
         BigDecimal purchaseAmount = purchaseQuery.getAmount();
         //持有记录
@@ -136,19 +142,21 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
                 .build();
         this.save(fundRecord);
 
-        //生成一笔订单
-        Order order = Order.builder()
-                .uid(uid)
-                .coin(financialProduct.getCoin())
-                .relatedId(fundRecord.getId())
-                .orderNo(AccountChangeType.fund_purchase.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
-                .amount(purchaseAmount)
-                .type(ChargeType.fund_purchase)
-                .status(ChargeStatus.chain_success)
-                .createTime(LocalDateTime.now())
-                .completeTime(LocalDateTime.now())
-                .build();
-        orderService.save(order);
+        if (Objects.isNull(order)) {
+            //生成一笔订单
+            order = Order.builder()
+                    .uid(uid)
+                    .coin(financialProduct.getCoin())
+                    .relatedId(fundRecord.getId())
+                    .orderNo(AccountChangeType.fund_purchase.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
+                    .amount(purchaseAmount)
+                    .type(ChargeType.fund_purchase)
+                    .status(ChargeStatus.chain_success)
+                    .createTime(LocalDateTime.now())
+                    .completeTime(LocalDateTime.now())
+                    .build();
+            orderService.save(order);
+        }
         // 减少余额
         accountBalanceService.decrease(uid, ChargeType.fund_purchase, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.基金申购.name());
         //代理人钱包

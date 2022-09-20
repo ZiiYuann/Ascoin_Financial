@@ -1,6 +1,5 @@
 package com.tianli.charge.service;
 
-import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -38,12 +37,10 @@ import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
-import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
-import com.tianli.financial.service.FinancialProductLadderRateService;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.management.query.FinancialChargeQuery;
@@ -378,7 +375,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .eq(Order::getUid, uid)
                 .eq(Order::getOrderNo, orderNo);
         Order order = Optional.ofNullable(orderService.getOne(queryWrapper)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
-        if (!ChargeType.purchase.equals(order.getType()) && !ChargeType.redeem.equals(order.getType()) && !ChargeType.transfer.equals(order.getType())) {
+        if (!ChargeType.purchase.equals(order.getType()) && !ChargeType.redeem.equals(order.getType())
+                && !ChargeType.transfer.equals(order.getType())) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
 

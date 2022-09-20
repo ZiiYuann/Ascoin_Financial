@@ -159,10 +159,13 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
 
         financialProductService.purchase(uid, purchaseQuery, FinancialPurchaseResultVO.class);
 
-        // 删除预订单产生的order、预订单状态设置为完成
-        orderService.deleteByOrderNo(orderAdvance.getUid(), AccountChangeType.advance_purchase.getPrefix() + orderAdvance.getId());
+        // 预订单状态设置为完成
         orderAdvance.setFinish(true);
         baseMapper.updateById(orderAdvance);
+
+        Order order = orderService.getOrderNo(AccountChangeType.advance_purchase.getPrefix() + orderAdvance.getId());
+        order.setStatus(ChargeStatus.chain_success);
+        orderService.updateById(order);
     }
 
     /**

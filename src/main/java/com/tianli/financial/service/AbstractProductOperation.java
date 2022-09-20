@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.service.AccountBalanceService;
+import com.tianli.charge.entity.Order;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.RedisService;
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -45,16 +46,16 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
 
     @Transactional
     @SuppressWarnings("unchecked")
-    public <R> R purchase(Long uid, PurchaseQuery purchaseQuery, Class<R> rClass) {
+    public <R> R purchase(Long uid, PurchaseQuery purchaseQuery, Class<R> rClass, Order order) {
         FinancialProduct product = financialProductService.getById(purchaseQuery.getProductId());
 
         // pre operation
-        baseValidProduct(uid,product, purchaseQuery);
+        baseValidProduct(uid, product, purchaseQuery);
         validRemainAmount(uid, product.getCoin(), purchaseQuery.getAmount());
         baseValidPurchaseAmount(uid, product, purchaseQuery.getAmount());
 
 
-        Object o = this.purchaseOperation(uid, purchaseQuery);
+        Object o = this.purchaseOperation(uid, purchaseQuery, order);
 
 
         // finish operation
@@ -67,14 +68,29 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
         return (R) o;
     }
 
+    @Transactional
+    @SuppressWarnings("unchecked")
+    public <R> R purchase(Long uid, PurchaseQuery purchaseQuery, Class<R> rClass) {
+        return purchase(uid, purchaseQuery, rClass, null);
+    }
+
     public abstract <R> R purchaseOperation(Long uid, PurchaseQuery purchaseQuery);
+
+    /**
+     * @param uid           uid
+     * @param purchaseQuery 申购参数
+     * @param order         外部order
+     * @param <R>
+     * @return
+     */
+    public abstract <R> R purchaseOperation(Long uid, PurchaseQuery purchaseQuery, Order order);
 
     /**
      * 校验产品是否处于开启状态
      *
      * @param financialProduct 产品
      */
-    public void baseValidProduct(Long uid,FinancialProduct financialProduct, PurchaseQuery purchaseQuery) {
+    public void baseValidProduct(Long uid, FinancialProduct financialProduct, PurchaseQuery purchaseQuery) {
         BigDecimal purchaseAmount = purchaseQuery.getAmount();
         if (Objects.isNull(financialProduct)) {
             ErrorCodeEnum.PRODUCT_CAN_NOT_BUY.throwException();
