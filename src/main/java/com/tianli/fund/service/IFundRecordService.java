@@ -39,13 +39,13 @@ public interface IFundRecordService extends IService<FundRecord> {
 
     FundRecordVO detail(Long id);
 
-    IPage<FundIncomeRecordVO> incomeRecord(PageQuery<FundIncomeRecord> page ,  FundIncomeQuery query);
+    IPage<FundIncomeRecordVO> incomeRecord(PageQuery<FundIncomeRecord> page, FundIncomeQuery query);
 
-    IPage<FundIncomeRecordVO> incomeSummary(PageQuery<FundIncomeRecord> page ,  FundIncomeQuery query);
+    IPage<FundIncomeRecordVO> incomeSummary(PageQuery<FundIncomeRecord> page, FundIncomeQuery query);
 
     FundRecordVO redemptionPage(Long id);
 
-    IPage<FundTransactionRecordVO> transactionRecord(PageQuery<FundTransactionRecord> page , FundTransactionQuery query);
+    IPage<FundTransactionRecordVO> transactionRecord(PageQuery<FundTransactionRecord> page, FundTransactionQuery query);
 
     FundTransactionRecordVO transactionDetail(Long transactionId);
 
@@ -55,12 +55,14 @@ public interface IFundRecordService extends IService<FundRecord> {
 
     FundTransactionRecordVO applyRedemption(FundRedemptionBO bo);
 
-    BigDecimal dailyIncome(BigDecimal holdAmount,BigDecimal rate);
+    BigDecimal dailyIncome(BigDecimal holdAmount, BigDecimal rate);
 
     BigDecimal getHoldAmount(FundRecordQuery query);
 
     Integer getHoldUserCount(FundRecordQuery query);
 
-    void increaseAmount(Long id,BigDecimal amount);
+    void increaseAmount(Long id, BigDecimal amount);
+
+    void updateRateByProductId(Long id, BigDecimal rate);
 
 }

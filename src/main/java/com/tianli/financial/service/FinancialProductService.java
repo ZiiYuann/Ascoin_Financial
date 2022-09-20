@@ -133,7 +133,11 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
             }
             // 如果年化利率修改，需要更新持有记录表
             if (!product.getRate().equals(productDO.getRate())) {
-                financialRecordService.updateRateByProductId(product.getId(), productDO.getRate());
+                if (ProductType.fund.equals(product.getType())) {
+                    fundRecordService.updateRateByProductId(product.getId(), productDO.getRate());
+                } else {
+                    financialRecordService.updateRateByProductId(product.getId(), productDO.getRate());
+                }
             }
 
             product.setUpdateTime(LocalDateTime.now());

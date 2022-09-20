@@ -43,4 +43,7 @@ public interface FundRecordMapper extends BaseMapper<FundRecord> {
     Integer selectHoldUserCount(@Param("query") FundRecordQuery query);
 
     List<FundUserHoldDto> selectFundUserHoldDto(FundRecordQuery query);
+
+    int updateRateByProductId(@Param("productId") Long productId,
+                              @Param("rate") BigDecimal rate);
 }

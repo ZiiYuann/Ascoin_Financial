@@ -452,6 +452,15 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         fundRecordMapper.increaseAmount(id, amount);
     }
 
+    @Override
+    public void updateRateByProductId(Long id, BigDecimal rate) {
+        int hour = LocalDateTime.now().getHour();
+        if (hour <= 2) {
+            ErrorCodeEnum.throwException("计算利息时间段不允许修改产品年华利率");
+        }
+        fundRecordMapper.updateRateByProductId(id, rate);
+    }
+
 
     @Override
     public void validProduct(FinancialProduct financialProduct, PurchaseQuery purchaseQuery) {
