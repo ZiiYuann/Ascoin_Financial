@@ -1,6 +1,7 @@
 package com.tianli.charge.entity;
 
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.financial.enums.PurchaseTerm;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,7 +42,10 @@ public class OrderAdvance {
 
     private LocalDateTime createTime;
 
-    private boolean finish;
+    private NetworkType network;
+
+    // 0 未完成 1完成 2失败
+    private int finish;
 
     private int tryTimes;
 }

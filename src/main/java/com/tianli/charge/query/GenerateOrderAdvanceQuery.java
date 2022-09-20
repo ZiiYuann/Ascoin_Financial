@@ -1,6 +1,7 @@
 package com.tianli.charge.query;
 
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.financial.enums.PurchaseTerm;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,4 +32,6 @@ public class GenerateOrderAdvanceQuery {
     private CurrencyCoin coin;
 
     private PurchaseTerm term;
+
+    private NetworkType network;
 }

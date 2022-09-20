@@ -189,7 +189,7 @@ ALTER TABLE `financial_income_daily`
     ADD COLUMN `amount`   decimal(20, 8) NULL COMMENT '计算时的金额' AFTER `rate`;
 
 
-ALTER TABLE `financial`.`fund_income_record`
+ALTER TABLE `fund_income_record`
     ADD COLUMN `order_no` varchar(30) NULL COMMENT '订单号' AFTER `create_time`;
 
 UPDATE financial_income_daily d
@@ -197,5 +197,8 @@ UPDATE financial_income_daily d
 SET d.amount = r.income_amount,
     d.rate   = r.rate;
 
+
+ALTER TABLE `order`
+    ADD INDEX `orderNoIndex`(`type`, `order_no`);
 
 

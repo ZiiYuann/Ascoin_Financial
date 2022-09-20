@@ -106,6 +106,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
     public OrderBaseVO updateOrderAdvance(GenerateOrderAdvanceQuery query) {
         OrderAdvance orderAdvance = baseMapper.selectById(query.getId());
         orderAdvance.setTxid(query.getTxid());
+        orderAdvance.setNetwork(query.getNetwork());
         baseMapper.updateById(orderAdvance);
 
         return chargeService.orderDetails(requestInitService.uid()
@@ -120,7 +121,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
         var query = new LambdaQueryWrapper<OrderAdvance>()
                 .eq(OrderAdvance::getUid, uid)
                 .eq(OrderAdvance::getTxid, req.getHash())
-                .eq(OrderAdvance::isFinish, false);
+                .eq(OrderAdvance::getFinish, 0);
         OrderAdvance orderAdvance = baseMapper.selectOne(query);
         if (Objects.isNull(orderAdvance)) {
             return;
@@ -162,7 +163,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
         financialProductService.purchase(uid, purchaseQuery, FinancialPurchaseResultVO.class, order);
 
         // 预订单状态设置为完成
-        orderAdvance.setFinish(true);
+        orderAdvance.setFinish(1);
         baseMapper.updateById(orderAdvance);
 
         order.setStatus(ChargeStatus.chain_success);
