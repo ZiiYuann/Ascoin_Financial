@@ -17,7 +17,6 @@ import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.service.IFundRecordService;
-import com.tianli.sso.init.RequestInitService;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -41,8 +40,7 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
     private IFundRecordService fundRecordService;
     @Resource
     private FinancialRecordService financialRecordService;
-    @Resource
-    private RequestInitService requestInitService;
+
 
     @Transactional
     @SuppressWarnings("unchecked")
@@ -69,7 +67,6 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
     }
 
     @Transactional
-    @SuppressWarnings("unchecked")
     public <R> R purchase(Long uid, PurchaseQuery purchaseQuery, Class<R> rClass) {
         return purchase(uid, purchaseQuery, rClass, null);
     }
@@ -80,7 +77,7 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
      * @param uid           uid
      * @param purchaseQuery 申购参数
      * @param order         外部order
-     * @param <R>
+     * @param <R> r
      * @return
      */
     public abstract <R> R purchaseOperation(Long uid, PurchaseQuery purchaseQuery, Order order);

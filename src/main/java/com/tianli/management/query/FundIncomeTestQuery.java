@@ -16,5 +16,6 @@ public class FundIncomeTestQuery {
 
     private Long uid;
 
+    private Long recordId;
 }
 

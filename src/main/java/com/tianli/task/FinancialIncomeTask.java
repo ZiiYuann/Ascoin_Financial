@@ -24,7 +24,9 @@ import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
+import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.*;
+import com.tianli.financial.vo.FinancialPurchaseResultVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -231,11 +233,13 @@ public class FinancialIncomeTask {
                 .build();
         orderService.save(order);
 
-        // 减少金额
-        accountBalanceService.decrease(financialRecord.getUid(), ChargeType.purchase, product.getCoin(), transferAmount
-                , order.getOrderNo(), "转存");
-        // 增加使用金额
-        financialProductService.increaseUseQuota(product.getId(), transferAmount, product.getUseQuota());
+        PurchaseQuery purchaseQuery = new PurchaseQuery();
+        purchaseQuery.setAmount(transferAmount);
+        purchaseQuery.setProductId(product.getId());
+        purchaseQuery.setCoin(product.getCoin());
+        purchaseQuery.setTerm(product.getTerm());
+        purchaseQuery.setAutoCurrent(false);
+        financialProductService.purchase(financialRecord.getUid(), purchaseQuery, FinancialPurchaseResultVO.class, order);
     }
 
     /**
@@ -261,6 +265,7 @@ public class FinancialIncomeTask {
         // 更新申购记录信息
         financialRecord.setEndTime(now);
         financialRecord.setStatus(RecordStatus.SUCCESS);
+        financialRecord.setHoldAmount(BigDecimal.ZERO);
         financialRecordService.updateById(financialRecord);
 
         // 增加

@@ -2,23 +2,35 @@ package com.tianli.management.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tianli.exception.Result;
+import com.tianli.financial.entity.FinancialIncomeAccrue;
+import com.tianli.financial.entity.FinancialIncomeDaily;
+import com.tianli.financial.entity.FinancialRecord;
+import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.enums.RecordStatus;
+import com.tianli.financial.service.FinancialIncomeAccrueService;
+import com.tianli.financial.service.FinancialIncomeDailyService;
+import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.management.query.FundIncomeTestQuery;
 import com.tianli.mconfig.ConfigService;
-import com.tianli.sso.permission.AdminPrivilege;
-import com.tianli.sso.permission.Privilege;
+import com.tianli.task.FinancialIncomeTask;
 import com.tianli.task.FundIncomeTask;
 import com.tianli.tool.time.TimeTool;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -37,13 +49,20 @@ public class TestController {
     private FundIncomeTask fundIncomeTask;
     @Resource
     private ConfigService configService;
+    @Resource
+    private FinancialIncomeTask financialIncomeTask;
+    @Resource
+    private FinancialRecordService financialRecordService;
+    @Resource
+    private FinancialIncomeDailyService financialIncomeDailyService;
+    @Resource
+    private FinancialIncomeAccrueService financialIncomeAccrueService;
 
     /**
      * 交易记录
      */
     @PutMapping("/fund/income")
-    @AdminPrivilege(and = Privilege.基金管理)
-    public Result transactionRecord(@RequestBody FundIncomeTestQuery query) {
+    public Result fundIncome(@RequestBody FundIncomeTestQuery query) {
 
         configService.get("taskTest");
 
@@ -58,7 +77,7 @@ public class TestController {
                     .eq(FundIncomeRecord::getFundId, record.getId()))).orElse(new ArrayList<>());
 
             // 计息时间为4天后，所以手动修改为5天前
-            record.setCreateTime(now.plusDays(-5));
+            record.setCreateTime(now.plusDays(-7));
             // 利息修改为前一天的时间
             for (int i = 0; i < incomeRecords.size(); i++) {
                 FundIncomeRecord fundIncomeRecord = incomeRecords.get(i);
@@ -69,6 +88,57 @@ public class TestController {
             fundIncomeRecordService.updateBatchById(incomeRecords);
 
             fundIncomeTask.calculateIncome(record, now);
+        });
+
+        return Result.success();
+    }
+
+    /**
+     * 交易记录
+     */
+    @PutMapping("/financial/income")
+    public Result financialIncome(@RequestBody FundIncomeTestQuery query) {
+        configService.get("taskTest");
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime nowZero = TimeTool.minDay(now);
+
+        List<FinancialRecord> records = financialRecordService.selectList(query.getUid(), null, RecordStatus.PROCESS);
+
+        if (Objects.nonNull(query.getRecordId())) {
+            records = records.stream().filter(r -> query.getRecordId().equals(r.getId())).collect(Collectors.toList());
+        }
+
+        records.forEach(record -> {
+            if (ProductType.fixed.equals(record.getProductType())) {
+                record.setEndTime(nowZero);
+                record.setPurchaseTime(nowZero.plusDays(-(record.getProductTerm().getDay() + 1)));
+                record.setStartIncomeTime(nowZero.plusDays(-(record.getProductTerm().getDay())));
+            }
+
+            if (ProductType.current.equals(record.getProductType())) {
+                record.setStartIncomeTime(nowZero.plusDays(-1));
+            }
+
+            financialRecordService.updateById(record);
+            List<FinancialIncomeDaily> incomeDailies = Optional.of(financialIncomeDailyService.list(new LambdaQueryWrapper<FinancialIncomeDaily>()
+                    .eq(FinancialIncomeDaily::getRecordId, record.getId()))).orElse(new ArrayList<>());
+
+            for (int i = 0; i < incomeDailies.size(); i++) {
+                FinancialIncomeDaily fundIncomeRecord = incomeDailies.get(i);
+                fundIncomeRecord.setFinishTime(nowZero.plusDays(-(i + 2)));
+            }
+            financialIncomeDailyService.updateBatchById(incomeDailies);
+
+            FinancialIncomeAccrue financialIncomeAccrue = financialIncomeAccrueService.getOne(new LambdaQueryWrapper<FinancialIncomeAccrue>()
+                    .eq(FinancialIncomeAccrue::getRecordId, record.getId()));
+            if (Objects.nonNull(financialIncomeAccrue)) {
+                financialIncomeAccrue.setUpdateTime(nowZero.plusDays(-2));
+                financialIncomeAccrueService.updateById(financialIncomeAccrue);
+            }
+
+            financialIncomeTask.interestStat(record);
+
         });
 
         return Result.success();
