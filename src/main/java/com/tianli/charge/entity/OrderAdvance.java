@@ -40,4 +40,8 @@ public class OrderAdvance {
     private boolean autoCurrent;
 
     private LocalDateTime createTime;
+
+    private boolean isFinish;
+
+    private int tryTimes;
 }

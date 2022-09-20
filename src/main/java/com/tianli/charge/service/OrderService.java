@@ -174,6 +174,13 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
                 }).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    public void deleteByOrderNo(Long uid, String orderNo) {
+        LambdaQueryWrapper<Order> query = new LambdaQueryWrapper<Order>()
+                .eq(Order::getUid, uid)
+                .eq(Order::getOrderNo, orderNo);
+        orderMapper.delete(query);
+    }
+
     @Resource
     private OrderMapper orderMapper;
     @Resource

@@ -11,7 +11,6 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderAdvanceMapper;
 import com.tianli.charge.query.GenerateOrderAdvanceQuery;
 import com.tianli.charge.vo.OrderBaseVO;
-import com.tianli.common.CommonFunction;
 import com.tianli.common.annotation.NoRepeatCommit;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.financial.entity.FinancialProduct;
@@ -21,7 +20,6 @@ import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
-import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.stereotype.Service;
@@ -45,8 +43,6 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
     private RequestInitService requestInitService;
     @Resource
     private FinancialProductService financialProductService;
-    @Resource
-    private FinancialService financialService;
     @Resource
     private OrderService orderService;
     @Resource
@@ -118,14 +114,19 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
     /**
      * 处理充值事件
      */
+    @Transactional
     public void handlerRechargeEvent(Long uid, TRONTokenReq req, BigDecimal finalAmount, TokenAdapter tokenAdapter) {
         var query = new LambdaQueryWrapper<OrderAdvance>()
                 .eq(OrderAdvance::getUid, uid)
-                .eq(OrderAdvance::getTxid, req.getHash());
+                .eq(OrderAdvance::getTxid, req.getHash())
+                .eq(OrderAdvance::isFinish, false);
         OrderAdvance orderAdvance = baseMapper.selectOne(query);
         if (Objects.isNull(orderAdvance)) {
             return;
         }
+
+        // 增加尝试次数【不受本身事务的影响】
+        addTryTimes(orderAdvance.getId());
 
         Long productId = orderAdvance.getProductId();
         FinancialProduct product = financialProductService.getById(productId);
@@ -157,5 +158,18 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                 .productId(orderAdvance.getProductId()).build();
 
         financialProductService.purchase(uid, purchaseQuery, FinancialPurchaseResultVO.class);
+
+        // 删除预订单产生的order、预订单状态设置为完成
+        orderService.deleteByOrderNo(orderAdvance.getUid(), AccountChangeType.advance_purchase.getPrefix() + orderAdvance.getId());
+        orderAdvance.setFinish(true);
+        baseMapper.updateById(orderAdvance);
+    }
+
+    /**
+     * 增加尝试的次数
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void addTryTimes(Long id) {
+        baseMapper.addTryTimes(id);
     }
 }

@@ -46,6 +46,8 @@ CREATE TABLE `order_advance`
     `amount`       decimal(20, 8)                                               NOT NULL COMMENT '申购数额',
     `auto_current` tinyint(1)                                                   NOT NULL COMMENT '收否自动续期',
     `create_time`  datetime     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `is_finish`    tinyint(1)                                                   NULL COMMENT '是否完成',
+    `try_times`    tinyint(1)                                                   NULL COMMENT '尝试次数',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
