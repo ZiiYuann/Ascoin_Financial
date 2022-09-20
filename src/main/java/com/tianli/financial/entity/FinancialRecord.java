@@ -108,4 +108,9 @@ public class FinancialRecord {
      * 更新时间
      */
     private LocalDateTime updateTime;
+
+    /**
+     * 是否本地申购记录
+     */
+    private boolean localPurchase;
 }

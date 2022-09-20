@@ -93,6 +93,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
 
         // 预订单
         financialRecord.setStatus(RecordStatus.SUCCESS);
+        financialRecord.setLocalPurchase(true);
         financialRecordService.updateById(financialRecord);
 
         return orderAdvance.getId();

@@ -5,8 +5,9 @@ ALTER TABLE `financial`.`financial_product`
     ADD COLUMN `min_rate`  decimal(10, 2) NOT NULL DEFAULT 0 COMMENT '最小利率' AFTER `max_rate`;
 
 ALTER TABLE `financial`.`financial_record`
-    ADD COLUMN `wait_amount`   decimal(20, 8) NULL DEFAULT 0 COMMENT '待记利息金额' AFTER `update_time`,
-    ADD COLUMN `income_amount` decimal(20, 8) NULL DEFAULT 0 COMMENT '记录利息金额' AFTER `update_time`;
+    ADD COLUMN `wait_amount`      decimal(20, 8) NULL DEFAULT 0 COMMENT '待记利息金额' AFTER `update_time`,
+    ADD COLUMN `income_amount`    decimal(20, 8) NULL DEFAULT 0 COMMENT '记录利息金额' AFTER `update_time`,
+    ADD COLUMN `local_purchase` tinyint(1)     NULL DEFAULT 0 COMMENT '是否本地申购' AFTER `update_time`;
 
 UPDATE financial_record a, (SELECT id, hold_amount FROM financial_record)
     b
@@ -195,4 +196,6 @@ UPDATE financial_income_daily d
     INNER JOIN financial_record r ON d.record_id = r.id
 SET d.amount = r.income_amount,
     d.rate   = r.rate;
+
+
 
