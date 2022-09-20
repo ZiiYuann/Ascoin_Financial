@@ -33,7 +33,9 @@ import com.tianli.fund.service.IFundTransactionRecordService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.fund.vo.FundTransactionRecordVO;
 import com.tianli.management.dto.AmountDto;
+import com.tianli.management.service.IWalletAgentService;
 import com.tianli.management.vo.FundTransactionAmountVO;
+import com.tianli.management.vo.WalletAgentVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,6 +72,8 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     private FundRecordConvert fundRecordConvert;
     @Resource
     private FinancialProductService financialProductService;
+    @Resource
+    private IWalletAgentService walletAgentService;
 
 
     @Override
@@ -99,6 +103,8 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     @Override
     public void redemptionAudit(FundAuditBO bo) {
         Long agentId = AgentContent.getAgentId();
+        WalletAgentVO agentVO = walletAgentService.getById(agentId);
+
         FundReviewStatus status = bo.getStatus();
         List<Long> ids = bo.getIds();
         ids.forEach(id -> {
@@ -122,7 +128,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
                         .build();
                 orderService.save(agentOrder);
                 // 减少余额
-                accountBalanceService.decrease(uid, ChargeType.agent_fund_redeem, fundTransactionRecord.getCoin(), fundTransactionRecord.getTransactionAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金赎回.name());
+                accountBalanceService.decrease(agentVO.getUid(), ChargeType.agent_fund_redeem, fundTransactionRecord.getCoin(), fundTransactionRecord.getTransactionAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金赎回.name());
 
                 //生成一笔订单
                 Order order = Order.builder()
