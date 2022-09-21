@@ -22,11 +22,12 @@ import com.tianli.management.dto.AmountDto;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,7 +40,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class OrderService extends ServiceImpl<OrderMapper,Order> {
+public class OrderService extends ServiceImpl<OrderMapper, Order> {
 
     /**
      * 全局保存订单的入口，保存订单的时候请不要调用其他的接口
@@ -65,16 +66,16 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
         return true;
     }
 
-    public Order getOrderByHash(String hash){
+    public Order getOrderByHash(String hash) {
         OrderChargeInfo orderChargeInfo = this.getOrderChargeByTxid(hash);
-        return orderMapper.selectOne(new LambdaQueryWrapper<Order>().eq(Order :: getRelatedId, orderChargeInfo.getId()));
+        return orderMapper.selectOne(new LambdaQueryWrapper<Order>().eq(Order::getRelatedId, orderChargeInfo.getId()));
     }
 
     /**
      * 通过交易hash查询 区块链订单信息
      */
-    public OrderChargeInfo getOrderChargeByTxid(String txid){
-       return orderChargeInfoMapper.selectOne(new LambdaQueryWrapper<OrderChargeInfo>().eq(OrderChargeInfo :: getTxid, txid));
+    public OrderChargeInfo getOrderChargeByTxid(String txid) {
+        return orderChargeInfoMapper.selectOne(new LambdaQueryWrapper<OrderChargeInfo>().eq(OrderChargeInfo::getTxid, txid));
     }
 
     public void insert(OrderChargeInfo orderChargeInfo) {
@@ -90,7 +91,7 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
         EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
 
         return orderFinancialVOIPage.convert(orderFinancialVO -> {
-            orderFinancialVO.setDollarAmount(orderFinancialVO.getAmount().multiply(dollarRateMap.getOrDefault(orderFinancialVO.getCoin(),BigDecimal.ONE)));
+            orderFinancialVO.setDollarAmount(orderFinancialVO.getAmount().multiply(dollarRateMap.getOrDefault(orderFinancialVO.getCoin(), BigDecimal.ONE)));
             return orderFinancialVO;
         });
     }
@@ -101,24 +102,24 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
 
     public IPage<OrderChargeInfoVO> selectOrderChargeInfoVOPage(IPage<OrderChargeInfoVO> page, FinancialChargeQuery query) {
         IPage<OrderChargeInfoVO> orderChargeInfoVOIPage = orderMapper.selectOrderChargeInfoVOPage(page, query);
-        orderChargeInfoVOIPage.convert(orderChargeInfoVO ->  {
+        orderChargeInfoVOIPage.convert(orderChargeInfoVO -> {
             BigDecimal amount = Optional.ofNullable(orderChargeInfoVO.getAmount()).orElse(BigDecimal.ZERO);
             BigDecimal serviceAmount = Optional.ofNullable(orderChargeInfoVO.getServiceAmount()).orElse(BigDecimal.ZERO);
             orderChargeInfoVO.setAccountAmount(amount.subtract(serviceAmount));
             return orderChargeInfoVO;
         });
         return orderChargeInfoVOIPage;
-}
+    }
 
 
     /**
      * 获取不同用户不同订单类型的汇总金额
      */
-    public Map<Long,BigDecimal> getSummaryOrderAmount(List<Long> uids,ChargeType type){
+    public Map<Long, BigDecimal> getSummaryOrderAmount(List<Long> uids, ChargeType type) {
         LambdaQueryWrapper<Order> orderQuery = new LambdaQueryWrapper<Order>()
                 .in(Order::getUid, uids)
                 .eq(Order::getType, type)
-                .eq(Order :: getStatus, ChargeStatus.chain_success);
+                .eq(Order::getStatus, ChargeStatus.chain_success);
 
         List<Order> orders = Optional.ofNullable(orderMapper.selectList(orderQuery)).orElse(new ArrayList<>());
 
@@ -126,11 +127,11 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
         EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
         return orderMapByUid.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
-                entry -> entry.getValue().stream().map( order -> {
+                entry -> entry.getValue().stream().map(order -> {
                     BigDecimal amount = order.getAmount();
                     BigDecimal rate = dollarRateMap.getOrDefault(order.getCoin(), BigDecimal.ONE);
                     return amount.multiply(rate);
-                }).reduce(BigDecimal.ZERO,BigDecimal::add)
+                }).reduce(BigDecimal.ZERO, BigDecimal::add)
         ));
     }
 
@@ -141,7 +142,7 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
     }
 
     public BigDecimal amountDollarSumByCompleteTime(ChargeType chargeType, LocalDateTime startTime, LocalDateTime endTime) {
-        List<AmountDto> amountDtos = orderMapper.amountSumByCompleteTime(chargeType,startTime,endTime);
+        List<AmountDto> amountDtos = orderMapper.amountSumByCompleteTime(chargeType, startTime, endTime);
         return calDollarAmount(amountDtos);
     }
 
@@ -150,20 +151,36 @@ public class OrderService extends ServiceImpl<OrderMapper,Order> {
         return calDollarAmount(amountDtos);
     }
 
+    public BigDecimal amountDollarSumByChargeType(Long uid, ChargeType chargeType) {
+        List<AmountDto> amountDtos = orderMapper.amountSumByUidAndChargeType(uid, chargeType);
+        return calDollarAmount(amountDtos);
+    }
+
     public Order getOrderNo(String orderNo) {
         LambdaQueryWrapper<Order> query = new LambdaQueryWrapper<Order>().eq(Order::getOrderNo, orderNo);
         return orderMapper.selectOne(query);
     }
 
-    public BigDecimal calDollarAmount(List<AmountDto> amountDtos){
-        if(CollectionUtils.isEmpty(amountDtos)){
+    public BigDecimal calDollarAmount(List<AmountDto> amountDtos) {
+        Optional.ofNullable(amountDtos).ifPresent(a -> a.remove(null));
+        if (CollectionUtils.isEmpty(amountDtos)) {
             return BigDecimal.ZERO;
         }
-       return amountDtos.stream().map( amountDto -> {
-            BigDecimal amount = Optional.ofNullable(amountDto.getAmount()).orElse(BigDecimal.ZERO);
-            return currencyService.getDollarRate(amountDto.getCoin()).multiply(amount);
-        }).reduce(BigDecimal.ZERO,BigDecimal::add);
+        return amountDtos.stream()
+                .filter(index -> Objects.nonNull(index.getCoin()))
+                .map(amountDto -> {
+                    BigDecimal amount = Optional.ofNullable(amountDto.getAmount()).orElse(BigDecimal.ZERO);
+                    return currencyService.getDollarRate(amountDto.getCoin()).multiply(amount);
+                }).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
+    public void deleteByOrderNo(Long uid, String orderNo) {
+        LambdaQueryWrapper<Order> query = new LambdaQueryWrapper<Order>()
+                .eq(Order::getUid, uid)
+                .eq(Order::getOrderNo, orderNo);
+        orderMapper.delete(query);
+    }
+
     @Resource
     private OrderMapper orderMapper;
     @Resource

@@ -39,63 +39,66 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
 
     /**
      * 根据产品类型、状态获取利息总额
-     * @param uid uid
+     *
+     * @param uid  uid
      * @param type 产品类型
      */
-    public BigDecimal getYesterdayDailyDollarAmount(Long uid, ProductType type){
+    public BigDecimal getYesterdayDailyDollarAmount(Long uid, ProductType type) {
 
         LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
         LocalDateTime yesterdayZero = todayZero.plusDays(-1);
 
-        List<FinancialIncomeDailyDTO> dailyIncomeLogs = financialIncomeDailyMapper.listByUidAndType(uid,type,yesterdayZero,todayZero);
+        List<FinancialIncomeDailyDTO> dailyIncomeLogs = financialIncomeDailyMapper.listByUidAndType(uid, type, yesterdayZero, todayZero);
 
-        if(CollectionUtils.isEmpty(dailyIncomeLogs)){
+        if (CollectionUtils.isEmpty(dailyIncomeLogs)) {
             return BigDecimal.ZERO;
         }
 
-        return dailyIncomeLogs.stream().map(log-> log.getIncomeAmount().multiply(currencyService.getDollarRate(log.getCoin())))
-                .reduce(BigDecimal.ZERO,BigDecimal::add);
+        return dailyIncomeLogs.stream().map(log -> log.getIncomeAmount().multiply(currencyService.getDollarRate(log.getCoin())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Transactional
-    public void insertIncomeDaily(Long uid, Long recordId, BigDecimal amount){
+    public void insertIncomeDaily(Long uid, Long recordId, BigDecimal amount, BigDecimal calIncomeAmount,
+                                  BigDecimal rate, String orderNo) {
         LocalDateTime yesterdayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(-1);
         LambdaQueryWrapper<FinancialIncomeDaily> queryWrapper = new LambdaQueryWrapper<FinancialIncomeDaily>()
                 .eq(FinancialIncomeDaily::getUid, uid)
                 .eq(FinancialIncomeDaily::getRecordId, recordId)
-                .eq(FinancialIncomeDaily::getFinishTime,yesterdayZero);
+                .eq(FinancialIncomeDaily::getFinishTime, yesterdayZero);
         FinancialIncomeDaily incomeDaily = financialIncomeDailyMapper.selectOne(queryWrapper);
-        if(Objects.nonNull(incomeDaily)){
-            log.error("recordId:{},已经计算过当日利息，请排查问题",recordId);
+        if (Objects.nonNull(incomeDaily)) {
+            log.error("recordId:{},已经计算过当日利息，请排查问题", recordId);
             ErrorCodeEnum.SYSTEM_ERROR.throwException();
         }
         FinancialIncomeDaily incomeDailyInsert = FinancialIncomeDaily.builder()
                 .id(IdGenerator.financialIncomeDailyId())
                 .uid(uid).recordId(recordId).incomeAmount(amount)
                 .createTime(LocalDateTime.now()).finishTime(yesterdayZero)
+                .orderNo(orderNo).rate(rate).amount(calIncomeAmount)
                 .build();
         financialIncomeDailyMapper.insert(incomeDailyInsert);
     }
 
-    public List<FinancialIncomeDaily> selectListByRecordIds(Long uid, List<Long> recordIds, LocalDateTime finishTime){
+    public List<FinancialIncomeDaily> selectListByRecordIds(Long uid, List<Long> recordIds, LocalDateTime finishTime) {
         LambdaQueryWrapper<FinancialIncomeDaily> query = new LambdaQueryWrapper<FinancialIncomeDaily>()
                 .eq(FinancialIncomeDaily::getUid, uid)
                 .in(FinancialIncomeDaily::getRecordId, recordIds)
-                .orderByDesc( FinancialIncomeDaily:: getFinishTime);
-        if(Objects.nonNull(finishTime)){
-           query = query.eq(FinancialIncomeDaily:: getFinishTime,finishTime);
+                .orderByDesc(FinancialIncomeDaily::getFinishTime);
+        if (Objects.nonNull(finishTime)) {
+            query = query.eq(FinancialIncomeDaily::getFinishTime, finishTime);
         }
         return financialIncomeDailyMapper.selectList(query);
     }
 
-    public IPage<FinancialIncomeDaily> pageByRecordId(IPage<FinancialIncomeDaily> page,Long uid, List<Long> recordIds, LocalDateTime finishTime){
+    public IPage<FinancialIncomeDaily> pageByRecordId(IPage<FinancialIncomeDaily> page, Long uid, List<Long> recordIds, LocalDateTime finishTime) {
         LambdaQueryWrapper<FinancialIncomeDaily> query = new LambdaQueryWrapper<FinancialIncomeDaily>()
                 .eq(FinancialIncomeDaily::getUid, uid)
                 .in(FinancialIncomeDaily::getRecordId, recordIds)
-                .orderByDesc( FinancialIncomeDaily:: getFinishTime);
-        if(Objects.nonNull(finishTime)){
-           query = query.eq(FinancialIncomeDaily:: getFinishTime,finishTime);
+                .orderByDesc(FinancialIncomeDaily::getFinishTime);
+        if (Objects.nonNull(finishTime)) {
+            query = query.eq(FinancialIncomeDaily::getFinishTime, finishTime);
         }
-        return financialIncomeDailyMapper.selectPage(page,query);
+        return financialIncomeDailyMapper.selectPage(page, query);
     }
 }

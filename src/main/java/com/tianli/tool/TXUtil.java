@@ -1,6 +1,5 @@
 package com.tianli.tool;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.URLUtil;
@@ -8,13 +7,10 @@ import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.tianli.chain.enums.ChainType;
-import com.tianli.wallet.vo.TXBlockQueryVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -49,31 +45,6 @@ public class TXUtil {
             log.error("获取最新区块报错:{}", e.toString());
         }
         return blockNumber;
-    }
-
-    /**
-     * 根据指定的区块查询
-     */
-    public static List<TXBlockQueryVo> blockQuery(String url, ChainType txChainTypeEnum, List<String> contractAddress, Long blockNumber) {
-        List<TXBlockQueryVo> txBlockQueryVos = null;
-        if (StringUtils.isBlank(url) || ObjectUtil.isNull(txChainTypeEnum) || CollUtil.isEmpty(contractAddress) || blockNumber < 0) {
-            return Collections.emptyList();
-        }
-        try {
-            String result = HttpUtil.post(url, JSONUtil.toJsonStr(MapTool.Map()
-                    .put(CHAIN_TYPE, txChainTypeEnum.name())
-                    .put("contracts", contractAddress)
-                    .put("blockNumber", blockNumber)));
-            JSONObject jsonObject = JSONUtil.parseObj(result);
-            Object data = jsonObject.get("data");
-            if (ObjectUtil.isNotNull(data)) {
-                txBlockQueryVos = JSONUtil.toList(JSONUtil.parseArray(data), TXBlockQueryVo.class);
-            }
-        } catch (Exception e) {
-            log.error("根据区块查询失败,错误:{}", e.toString());
-        }
-
-        return txBlockQueryVos;
     }
 
     /**

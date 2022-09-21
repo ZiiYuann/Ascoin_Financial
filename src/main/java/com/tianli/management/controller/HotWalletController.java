@@ -2,10 +2,10 @@ package com.tianli.management.controller;
 
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
-import com.tianli.management.entity.HotWalletDetailed;
 import com.tianli.management.query.HotWalletDetailedIoUQuery;
 import com.tianli.management.query.HotWalletDetailedPQuery;
 import com.tianli.management.service.HotWalletDetailedService;
+import com.tianli.management.entity.HotWalletDetailed;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.web.bind.annotation.*;

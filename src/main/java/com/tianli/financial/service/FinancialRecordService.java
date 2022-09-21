@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.base.MoreObjects;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -43,16 +44,45 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     private CurrencyService currencyService;
     @Resource
     private OrderService orderService;
+    @Resource
+    private FinancialProductService financialProductService;
 
     /**
      * 赎回金额
      */
     @Transactional
-    public void redeem(Long recordId, BigDecimal redeemAmount) {
-        if (financialRecordMapper.reduce(recordId, redeemAmount, LocalDateTime.now()) < 0) {
-            log.error("赎回异常，recordId:{},amount:{}", recordId, redeemAmount);
-            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
+    public void redeem(Long recordId, BigDecimal redeemAmount, BigDecimal originalHoldAmount) {
+
+        FinancialRecord record = financialRecordMapper.selectById(recordId);
+
+        // 减少产品额度
+        financialProductService.reduceUseQuota(record.getProductId(), redeemAmount);
+
+        // 如果存在待记利息金额，优先扣除
+        if (record.getWaitAmount().compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal reduceIncomeAmount = BigDecimal.ZERO;
+            BigDecimal reduceWaitAmount;
+
+            if (record.getWaitAmount().compareTo(redeemAmount) > 0) {
+                reduceWaitAmount = redeemAmount;
+            } else {
+                reduceWaitAmount = record.getWaitAmount();
+                reduceIncomeAmount = redeemAmount.subtract(reduceWaitAmount);
+            }
+
+            if (financialRecordMapper.reduce2(recordId, reduceIncomeAmount, reduceWaitAmount, originalHoldAmount) < 0) {
+                log.error("赎回异常，recordId:{},amount:{}", recordId, redeemAmount);
+                ErrorCodeEnum.throwException("用户申购记录金额发生变化，请重试");
+            }
+            return;
         }
+
+        if (financialRecordMapper.reduce(recordId, redeemAmount, originalHoldAmount) < 0) {
+            log.error("赎回异常，recordId:{},amount:{}", recordId, redeemAmount);
+            ErrorCodeEnum.throwException("用户申购记录金额发生变化，请重试");
+        }
+
+
     }
 
     /**
@@ -80,17 +110,34 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         return Optional.ofNullable(financialRecordMapper.selectList(query)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
     }
 
-    public Boolean isNewUser(Long uid){
-        FinancialRecord record = financialRecordMapper
-                .selectOne(new LambdaQueryWrapper<FinancialRecord>().eq(FinancialRecord::getUid, uid).last("limit 1"));
-        return Objects.isNull(record);
+    public List<FinancialRecord> selectByProductId(Long productId, Long uid) {
+        if (Objects.isNull(productId)) {
+            ErrorCodeEnum.CURRENCY_NOT_SUPPORT.throwException();
+        }
+
+        LambdaQueryWrapper<FinancialRecord> query = new LambdaQueryWrapper<FinancialRecord>()
+                .eq(FinancialRecord::getProductId, productId)
+                .eq(FinancialRecord::getUid, uid);
+
+        return Optional.ofNullable(financialRecordMapper.selectList(query)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
     }
 
     /**
-     * 获取不同产品已经使用的总额度
+     * 每个产品第一个有效持有记录id long,long   productId,recordId
      */
-    public Map<Long, BigDecimal> getUseQuota(List<Long> productIds) {
-        return getUseQuota(productIds, null);
+    public Map<Long, Long> firstProcessRecordMap(List<Long> productIds, Long uid) {
+        if (CollectionUtils.isEmpty(productIds)) {
+            return new HashMap<>();
+        }
+        final Map<Long, Long> result = new HashMap<>();
+        financialRecordMapper.firstProcessRecordMap(productIds, uid).forEach(index -> result.put((Long) index.get("product_id"), (Long) index.get("record_id")));
+        return result;
+    }
+
+    public Boolean isNewUser(Long uid) {
+        FinancialRecord record = financialRecordMapper
+                .selectOne(new LambdaQueryWrapper<FinancialRecord>().eq(FinancialRecord::getUid, uid).last("limit 1"));
+        return Objects.isNull(record);
     }
 
     public Map<Long, BigDecimal> getUseQuota(List<Long> productIds, Long uid) {
@@ -99,7 +146,9 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         }
 
         var query =
-                new LambdaQueryWrapper<FinancialRecord>().in(FinancialRecord::getProductId, productIds);
+                new LambdaQueryWrapper<FinancialRecord>()
+                        .eq(FinancialRecord :: getStatus,RecordStatus.PROCESS)
+                        .in(FinancialRecord::getProductId, productIds);
 
         if (Objects.nonNull(uid)) {
             query = query.eq(FinancialRecord::getUid, uid);
@@ -124,10 +173,14 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     /**
      * 生成记录
      */
-    public FinancialRecord generateFinancialRecord(Long uid, FinancialProduct product, BigDecimal amount,boolean autoRenewal) {
+    public FinancialRecord generateFinancialRecord(Long uid, FinancialProduct product, BigDecimal amount, boolean autoRenewal) {
+        return generateFinancialRecord(null,uid,product,amount,autoRenewal);
+    }
+
+    public FinancialRecord generateFinancialRecord(Long id,Long uid, FinancialProduct product, BigDecimal amount, boolean autoRenewal) {
         LocalDateTime startIncomeTime = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(1);
         FinancialRecord record = FinancialRecord.builder()
-                .id(CommonFunction.generalId())
+                .id(MoreObjects.firstNonNull(id,CommonFunction.generalId()))
                 .productId(product.getId())
                 .riskType(product.getRiskType())
                 .businessType(product.getBusinessType())
@@ -144,6 +197,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
                 .productNameEn(product.getNameEn())
                 .logo(product.getLogo())
                 .autoRenewal(autoRenewal)
+                .waitAmount(amount)
                 .build();
         int i = financialRecordMapper.insert(record);
         if (i <= 0) {
@@ -196,7 +250,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         var query = new LambdaQueryWrapper<FinancialRecord>()
                 .eq(FinancialRecord::getUid, uid)
                 .eq(FinancialRecord::getStatus, status)
-                .orderByDesc(FinancialRecord :: getHoldAmount);
+                .orderByDesc(FinancialRecord::getHoldAmount);
 
         if (Objects.nonNull(type)) {
             query = query.eq(FinancialRecord::getProductType, type);
@@ -281,13 +335,45 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      * 获取产品相关的汇总信息
      */
     @SuppressWarnings("unchecked")
-    public Map<Long, ProductSummaryDataDto> getProductSummaryDataDtoMap(List<Long> productIds){
-        if(CollectionUtils.isEmpty(productIds)){
+    public Map<Long, ProductSummaryDataDto> getProductSummaryDataDtoMap(List<Long> productIds) {
+        if (CollectionUtils.isEmpty(productIds)) {
             return MapUtils.EMPTY_MAP;
         }
         return Optional.ofNullable(financialRecordMapper.listProductSummaryDataDto(productIds))
                 .orElse(new ArrayList<>())
                 .stream()
-                .collect(Collectors.toMap(ProductSummaryDataDto ::getProductId, o->o));
+                .collect(Collectors.toMap(ProductSummaryDataDto::getProductId, o -> o));
     }
+
+    /**
+     * 增加待记利息金额
+     */
+    public void increaseWaitAmount(Long recordId, BigDecimal amount, BigDecimal originalAmount) {
+        int i = financialRecordMapper.increaseWaitAmount(recordId, amount, originalAmount);
+        if (i <= 0) {
+            ErrorCodeEnum.throwException("待金额金额发生变动，请重试");
+        }
+    }
+
+    /**
+     * 增加记录利息
+     */
+    public void increaseIncomeAmount(Long recordId, BigDecimal amount, BigDecimal originalAmount) {
+        int i = financialRecordMapper.increaseIncomeAmount(recordId, amount, originalAmount);
+        if (i <= 0) {
+            ErrorCodeEnum.throwException("记录金额金额发生变动，请重试");
+        }
+    }
+
+    /**
+     * 修改record的年化利率
+     */
+    public void updateRateByProductId(Long productId, BigDecimal rate) {
+        int hour = LocalDateTime.now().getHour();
+        if (hour <= 2) {
+            ErrorCodeEnum.throwException("计算利息时间段不允许修改产品年华利率");
+        }
+        financialRecordMapper.updateRateByProductId(productId, rate);
+    }
+
 }

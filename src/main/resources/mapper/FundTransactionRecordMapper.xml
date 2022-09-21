@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianli.fund.dao.FundTransactionRecordMapper">
+
+    <select id="selectTransactionAmount" resultType="com.tianli.fund.dto.FundTransactionAmountDTO">
+        select
+        sum(if(type = 'purchase',a.transaction_amount,0 ) ) purchaseAmount,
+        sum(if(type = 'redemption',a.transaction_amount,0 ) ) redemptionAmount,
+        a.coin
+        from
+        fund_transaction_record a
+        left join wallet_agent_product b on a.product_id = b.product_id
+        <include refid="fundTransactionQuery"/>
+        group by coin
+    </select>
+
+    <select id="selectTransactionPage" resultType="com.tianli.fund.vo.FundTransactionRecordVO">
+        select
+        a.id,
+        a.uid,
+        a.fund_id as fundId,
+        a.product_id as productId,
+        a.product_name as productName,
+        c.product_name_en as productNameEn,
+        a.coin,
+        c.rate,
+        a.transaction_amount as transactionAmount,
+        a.type,
+        a.status,
+        a.create_time as createTime
+        from
+        wallet_agent_product b
+        inner join fund_transaction_record a on a.product_id = b.product_id
+        inner join fund_record c on a.fund_id = c.id
+        <include refid="fundTransactionQuery"/>
+        order by a.create_time desc
+    </select>
+
+    <select id="selectWaitRedemptionCount" resultType="int">
+        select count(*)
+        from fund_transaction_record a
+                 left join
+             wallet_agent_product b on a.product_id = b.product_id
+        where b.agent_id = #{agentId}
+          and a.status = 3
+    </select>
+
+
+    <sql id="fundTransactionQuery">
+        <where>
+            1=1
+            <if test="query.agentId != null">
+                and b.agent_id = #{query.agentId}
+            </if>
+
+            <if test="query.uid != null">
+                and a.uid = #{query.uid}
+            </if>
+
+            <if test="query.queryProductId != null and query.queryProductId != ''">
+                and a.product_id like concat('%',#{query.queryProductId},'%')
+            </if>
+            <if test="query.queryUid != null and query.queryUid != ''">
+                and a.uid like concat('%',#{query.queryUid},'%')
+            </if>
+            <if test="query.queryFundId != null and query.queryFundId != ''">
+                and a.fund_id like concat('%',#{query.queryFundId},'%')
+            </if>
+
+            <if test="query.type != null">
+                and a.type = #{query.type}
+            </if>
+            <if test="query.status != null">
+                and a.status = #{query.status}
+            </if>
+            <if test="query.startTime != null ">
+                and a.create_time >= #{query.startTime}
+            </if>
+            <if test="query.endTime != null">
+                and a.create_time &lt;= #{query.endTime}
+            </if>
+
+        </where>
+    </sql>
+</mapper>

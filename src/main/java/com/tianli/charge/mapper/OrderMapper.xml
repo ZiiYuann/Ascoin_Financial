@@ -116,6 +116,15 @@
 
     </select>
 
+    <select id="amountSumByUidAndChargeType" resultType="com.tianli.management.dto.AmountDto">
+        SELECT ifnull(sum(amount),0.0) as amount ,coin FROM `order`
+        WHERE
+            type=#{chargeType}
+            and uid = #{uid}
+            and status = 'chain_success'
+        group by coin
+    </select>
+
     <sql id="FinancialChargeQuery">
         <if test="query.uid != null">
             AND o.uid like concat('%',#{query.uid},'%')

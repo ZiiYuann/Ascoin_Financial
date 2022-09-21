@@ -6,34 +6,95 @@
 
     <update id="reduce">
         UPDATE financial_record
-        SET redeem_time =#{now},
-            update_time = #{now},
-            hold_amount = hold_amount - #{amount}
-        where id = #{recordId}
+        SET redeem_time   = now(),
+            update_time   = now(),
+            hold_amount   = hold_amount - #{amount},
+            income_amount = income_amount - #{amount}
+        WHERE id = #{recordId}
+          AND hold_amount = #{originalHoldAmount}
+          AND `status` = 'PROCESS'
+    </update>
+
+    <update id="reduce2">
+        UPDATE financial_record
+        SET redeem_time   = now(),
+            update_time   = now(),
+            hold_amount   = hold_amount - (#{incomeAmount} + #{waitAmount}),
+            income_amount = income_amount - #{incomeAmount},
+            wait_amount   = wait_amount - #{waitAmount}
+        WHERE id = #{recordId}
+          AND hold_amount = #{originalHoldAmount}
+          AND `status` = 'PROCESS'
+    </update>
+
+    <update id="increase">
+        UPDATE financial_record
+        SET hold_amount = hold_amount + #{amount},
+            update_time = #{now}
+        WHERE id = #{recordId}
+          AND hold_amount = #{originalAmount}
+          AND `status` = 'PROCESS'
+    </update>
+    <update id="increaseWaitAmount">
+        UPDATE financial_record
+        SET wait_amount = wait_amount + #{amount},
+            hold_amount = hold_amount + #{amount},
+            update_time = now()
+        WHERE id = #{recordId}
+          AND wait_amount = #{originalAmount}
+          AND `status` = 'PROCESS'
+    </update>
+    <update id="increaseIncomeAmount">
+        UPDATE financial_record
+        SET income_amount = income_amount + #{amount},
+            wait_amount   = 0,
+            update_time   = now()
+        WHERE id = #{recordId}
+          AND income_amount = #{originalAmount}
+          AND `status` = 'PROCESS'
+    </update>
+    <update id="updateRateByProductId">
+        UPDATE financial_record
+        SET rate = #{rate}
+        WHERE product_id = #{productId}
+          AND `status` = 'PROCESS'
     </update>
 
     <select id="countProcess" resultType="com.tianli.management.dto.AmountDto">
         SELECT hold_amount as amount,
-               coin
+        coin
         FROM financial_record
         <where>
             <if test="productType != null">
                 product_type = #{productType}
             </if>
-             AND status = 'PROCESS'
+            AND status = 'PROCESS'
         </where>
     </select>
     <select id="listProductSummaryDataDto" resultType="com.tianli.management.dto.ProductSummaryDataDto">
         SELECT
-               product_id ,
-               sum(hold_amount) as use_quota,
-               count(distinct uid) as hold_user_count
+        product_id ,
+        sum(hold_amount) as use_quota,
+        count(distinct uid) as hold_user_count
         FROM financial_record
-        WHERE  product_id in
+        WHERE product_id in
         <foreach collection="productIds" item="item" open="(" close=")" separator=",">
             #{item}
         </foreach>
         AND status = 'PROCESS'
+        GROUP BY product_id
+    </select>
+    <select id="firstProcessRecordMap" resultType="java.util.Map">
+        SELECT
+        product_id ,
+        max(id) as record_id
+        FROM financial_record
+        WHERE product_id in
+        <foreach collection="productIds" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        AND status = 'PROCESS'
+        AND uid = #{uid}
         GROUP BY product_id
     </select>
 </mapper>

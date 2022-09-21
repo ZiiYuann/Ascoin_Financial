@@ -12,7 +12,12 @@ public enum ProductType {
     /**
      * 活期
      */
-    current((byte) 1);
+    current((byte) 1),
+
+    /**
+     *基金
+     */
+    fund((byte)2);
 
     ProductType(byte type) {
         this.type = type;

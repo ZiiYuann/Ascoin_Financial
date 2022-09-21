@@ -27,18 +27,22 @@ import com.tianli.charge.query.RedeemQuery;
 import com.tianli.charge.query.WithdrawQuery;
 import com.tianli.charge.vo.OrderBaseVO;
 import com.tianli.charge.vo.OrderChargeInfoVO;
+import com.tianli.charge.vo.OrderRechargeDetailsVo;
 import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
+import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
+import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.mconfig.ConfigService;
@@ -79,13 +83,13 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         List<TRONTokenReq> tokenReqs = JSONUtil.toList(jsonArray, TRONTokenReq.class);
         List<TRONTokenReq> mainTokenReqs = JSONUtil.toList(standardCurrencyArray, TRONTokenReq.class);
-        rechargeOperation(tokenReqs,chainType,false);
-        rechargeOperation(mainTokenReqs,chainType,true);
+        rechargeOperation(tokenReqs, chainType, false);
+        rechargeOperation(mainTokenReqs, chainType, true);
 
     }
 
-    private void rechargeOperation(List<TRONTokenReq> tronTokenReqs,ChainType chainType,boolean mainToken) {
-        if(CollectionUtils.isEmpty(tronTokenReqs)){
+    private void rechargeOperation(List<TRONTokenReq> tronTokenReqs, ChainType chainType, boolean mainToken) {
+        if (CollectionUtils.isEmpty(tronTokenReqs)) {
             return;
         }
         for (TRONTokenReq req : tronTokenReqs) {
@@ -106,7 +110,11 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                     , tokenAdapter.getNetwork(), finalAmount, orderNo, CurrencyLogDes.充值.name());
             // 操作归集信息
             walletImputationService.insert(uid, address, tokenAdapter, req, finalAmount);
+
+            asyncService.async(() -> orderAdvanceService.handlerRechargeEvent(uid, req, finalAmount, tokenAdapter));
+
         }
+
     }
 
     /**
@@ -115,18 +123,18 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      * @param str 提现信息
      */
     @Transactional
-    public void withdrawCallback(ChainType chainType,String str) {
+    public void withdrawCallback(ChainType chainType, String str) {
         var jsonArray = JSONUtil.parseObj(str).getJSONArray("token");
         var standardCurrencyArray = JSONUtil.parseObj(str).getJSONArray("standardCurrency");
 
         List<TRONTokenReq> tokenReqs = JSONUtil.toList(jsonArray, TRONTokenReq.class);
         List<TRONTokenReq> mainTokenReqs = JSONUtil.toList(standardCurrencyArray, TRONTokenReq.class);
-        withdrawOperation(tokenReqs,chainType,false);
-        withdrawOperation(mainTokenReqs,chainType,true);
+        withdrawOperation(tokenReqs, chainType, false);
+        withdrawOperation(mainTokenReqs, chainType, true);
     }
 
-    private void withdrawOperation(List<TRONTokenReq> tronTokenReqs,ChainType chainType,boolean mainToken) {
-        if(CollectionUtils.isEmpty(tronTokenReqs)){
+    private void withdrawOperation(List<TRONTokenReq> tronTokenReqs, ChainType chainType, boolean mainToken) {
+        if (CollectionUtils.isEmpty(tronTokenReqs)) {
             return;
         }
         for (TRONTokenReq req : tronTokenReqs) {
@@ -153,7 +161,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         TokenAdapter tokenAdapter = TokenAdapter.get(query.getCoin(), query.getNetwork());
 
         boolean validAddress = contractAdapter.getOne(tokenAdapter.getNetwork()).isValidAddress(query.getTo());
-        if(!validAddress){
+        if (!validAddress) {
             ErrorCodeEnum.throwException("地址校验失败");
         }
         // 计算手续费  实际手续费 = 提现数额 * 手续费率 + 固定手续费数额
@@ -303,7 +311,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         accountBalanceService.increase(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount(), order.getOrderNo(), CurrencyLogDes.赎回.name());
 
         // 减少产品持有
-        financialRecordService.redeem(record.getId(), query.getRedeemAmount());
+        financialRecordService.redeem(record.getId(), query.getRedeemAmount(), record.getHoldAmount());
 
         // 更新记录状态
         FinancialRecord recordLatest = financialRecordService.selectById(recordId, uid);
@@ -368,7 +376,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .eq(Order::getUid, uid)
                 .eq(Order::getOrderNo, orderNo);
         Order order = Optional.ofNullable(orderService.getOne(queryWrapper)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
-        if (!ChargeType.purchase.equals(order.getType()) && !ChargeType.redeem.equals(order.getType()) && !ChargeType.transfer.equals(order.getType())) {
+        if (!ChargeType.purchase.equals(order.getType()) && !ChargeType.redeem.equals(order.getType())
+                && !ChargeType.transfer.equals(order.getType())) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
 
@@ -379,10 +388,17 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         orderBaseVO.setOrderNo(order.getOrderNo());
         orderBaseVO.setAmount(order.getAmount());
         orderBaseVO.setProductId(record.getProductId());
+
+        // 对于活期记录来说，因为持有是累加的，导致持有记录表中的申购时间是不对的，需要取订单表
+        if (orderBaseVO instanceof OrderRechargeDetailsVo) {
+            OrderRechargeDetailsVo orderBase = (OrderRechargeDetailsVo) orderBaseVO;
+            orderBase.setPurchaseTime(order.getCreateTime());
+        }
         return orderBaseVO;
     }
 
     private OrderBaseVO getOrderBaseVO(Order order, FinancialRecord record) {
+        FinancialProduct product = financialProductService.getById(record.getProductId());
         switch (order.getType()) {
             case purchase:
             case transfer:
@@ -391,6 +407,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 orderRechargeDetailsVo.setExpectIncome(record.getHoldAmount().multiply(record.getRate())
                         .multiply(BigDecimal.valueOf(record.getProductTerm().getDay()))
                         .divide(BigDecimal.valueOf(365), 8, RoundingMode.DOWN));
+                orderRechargeDetailsVo.setRateType(product.getRateType());
+                orderRechargeDetailsVo.setMaxRate(product.getMaxRate());
+                orderRechargeDetailsVo.setMinRate(product.getMinRate());
                 return orderRechargeDetailsVo;
             case redeem:
                 var orderRedeemDetailsVO = chargeConverter.toOrderRedeemDetailsVO(record);
@@ -476,7 +495,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .eq(Order::getUid, uid)
                 .eq(Order::getCoin, currencyCoin)
                 .orderByDesc(Order::getCreateTime)
-                .eq(false,Order ::getStatus,ChargeStatus.chain_fail);
+                .eq(false, Order::getStatus, ChargeStatus.chain_fail);
         if (Objects.nonNull(chargeGroup)) {
             wrapper = wrapper.in(Order::getType, chargeGroup.getChargeTypes());
         }
@@ -524,10 +543,16 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     @Resource
     private FinancialRecordService financialRecordService;
     @Resource
+    private FinancialProductService financialProductService;
+    @Resource
     private WalletImputationService walletImputationService;
     @Resource
     private ContractAdapter contractAdapter;
     @Resource
     private ChainService chainService;
+    @Resource
+    private OrderAdvanceService orderAdvanceService;
+    @Resource
+    private AsyncService asyncService;
 
 }

@@ -1,14 +1,10 @@
 package com.tianli.financial.vo;
 
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.fasterxml.jackson.annotation.JacksonAnnotation;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.*;
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -86,18 +82,24 @@ public class FinancialProductVO {
     /**
      * 申购时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime purchaseTime;
+
+    /**
+     * 已经使用基础额度（假数据）
+     */
+    private BigDecimal baseUseQuota;
 
     /**
      * 记息时间
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime startIncomeTime;
 
     /**
      * 结算时间
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime settleTime;
 
     /**
@@ -119,4 +121,24 @@ public class FinancialProductVO {
      * 风险类型
      */
     private RiskType riskType;
+
+    /**
+     * 利率类型
+     */
+    private byte rateType;
+
+    /**
+     * 持有金额 == userPersonQuota 字端，前端不理解，额外加一个便于他们理解
+     */
+    private BigDecimal holdAmount;
+
+    /**
+     * 可以赎回的recordId
+     */
+    private Long recordId;
+
+    private BigDecimal maxRate;
+
+    private BigDecimal minRate;
+
 }

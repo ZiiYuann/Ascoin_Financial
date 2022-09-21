@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianli.fund.dao.FundRecordMapper">
+    <update id="updateRateByProductId">
+        UPDATE fund_record
+        SET rate = #{rate}
+        WHERE product_id = #{productId}
+          AND `status` = 'PROCESS'
+    </update>
+
+    <select id="selectDistinctUidPage" resultType="com.tianli.management.vo.FundUserRecordVO">
+        select
+        distinct a.uid
+        from
+        wallet_agent_product b
+        inner join
+        fund_record a on a.product_id = b.product_id
+        <where>
+            <if test="query.queryUid != null and query.queryUid != ''">
+                a.uid like concat('%',#{query.queryUid},'%')
+            </if>
+            <if test="query.agentId != null">
+                and b.agent_id = #{query.agentId}
+            </if>
+        </where>
+        order by a.create_time
+    </select>
+
+
+    <select id="selectHoldAmount" resultType="com.tianli.management.dto.AmountDto">
+        SELECT sum(a.hold_amount) amount,a.coin
+        FROM
+        wallet_agent_product b
+        inner JOIN fund_record a on a.product_id = b.product_id
+        <where>
+            <if test="query.agentId != null">
+                b.agent_id = #{query.agentId}
+            </if>
+            <if test="query.productId != null">
+                and a.product_id = #{query.productId}
+            </if>
+        </where>
+        group by a.coin
+    </select>
+
+    <select id="selectHoldAmountSum" resultType="decimal">
+        SELECT ifnull(sum(hold_amount),0)
+        FROM fund_record
+        <where>
+            <if test="productId != null">
+                product_id = #{productId}
+            </if>
+            <if test="uid != null">
+                and uid = #{uid}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectHoldUserCount" resultType="int">
+        SELECT count(DISTINCT a.uid)
+
+        FROM wallet_agent_product b
+        INNER JOIN fund_record a on a.product_id = b.product_id
+        <where>
+            a.status = 'PROCESS'
+            <if test="query.agentId != null">
+                and b.agent_id = #{query.agentId}
+            </if>
+            <if test="query.productId != null">
+                and b.product_id = #{query.productId}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectFundUserHoldDto" resultType="com.tianli.management.dto.FundUserHoldDto">
+
+        select
+        coin,
+        SUM(hold_amount) as holdAmount,
+        sum(cumulative_income_amount) interestAmount,
+        SUM(wait_income_amount) as waitInterestAmount,
+        SUM(income_amount) as payInterestAmount
+        from fund_record a where product_id in
+        (
+        select product_id from wallet_agent_product
+        <where>
+            <if test="agentId != null">
+                and agent_id = #{agentId}
+            </if>
+        </where>
+        ) and `status` = 'PROCESS'
+
+        <if test="queryUid != null and queryUid != ''">
+            and uid like concat('%',#{queryUid},'%')
+        </if>
+        GROUP BY coin
+
+    </select>
+    <select id="holdAmountSumByUid" resultType="com.tianli.management.dto.AmountDto">
+
+        select sum(r.hold_amount) amount, r.coin
+        from fund_record r
+        left join wallet_agent_product p on r.product_id=p.product_id
+        where r.uid = #{uid}
+        <if test="agentId != null">
+           and p.agent_id = #{agentId}
+        </if>
+        and r.status = 'PROCESS'
+        group by r.coin
+    </select>
+</mapper>

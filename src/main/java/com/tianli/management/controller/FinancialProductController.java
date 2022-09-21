@@ -6,11 +6,13 @@ import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialProduct;
+import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.*;
 import com.tianli.management.service.FinancialBoardProductService;
+import com.tianli.management.vo.FundProductBindDropdownVO;
 import com.tianli.management.vo.MFinancialProductVO;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
@@ -92,7 +94,7 @@ public class FinancialProductController {
     @GetMapping("/orders")
     @AdminPrivilege(and = Privilege.理财配置)
     public Result orders(PageQuery<OrderFinancialVO> page, FinancialOrdersQuery query) {
-        query.setDefaultChargeType(List.of(ChargeType.purchase,ChargeType.redeem,ChargeType.transfer,ChargeType.settle));
+        query.setDefaultChargeType(List.of(ChargeType.purchase, ChargeType.redeem, ChargeType.transfer, ChargeType.settle));
         IPage<OrderFinancialVO> financialOrderVOIPage = financialService.orderPage(page.page(), query);
         return Result.success(financialOrderVOIPage);
     }
@@ -104,7 +106,7 @@ public class FinancialProductController {
     @GetMapping("/record/income")
     @AdminPrivilege(and = Privilege.理财配置)
     public Result income(PageQuery<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
-        return Result.success(financialService.incomeRecord(page.page(), query));
+        return Result.success(financialService.incomeRecordPage(page.page(), query));
     }
 
     /**
@@ -113,7 +115,7 @@ public class FinancialProductController {
     @GetMapping("/record/income/data")
     @AdminPrivilege(and = Privilege.理财配置)
     public Result incomeData(FinancialProductIncomeQuery query) {
-        return Result.success(financialService.summaryIncomeByQuery(query));
+        return Result.success(financialService.incomeSummaryData(query));
     }
 
     /**
@@ -126,5 +128,12 @@ public class FinancialProductController {
         return Result.success();
     }
 
-
+    /**
+     * 产品下拉
+     */
+    @GetMapping("/product/dropdown")
+    public Result dropdownList(ProductType type) {
+        List<FundProductBindDropdownVO> dropdownVOS = financialService.fundProductBindDropdownList(type);
+        return Result.success(dropdownVOS);
+    }
 }

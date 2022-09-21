@@ -5,14 +5,12 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.chain.converter.ChainConverter;
 import com.tianli.chain.entity.WalletImputationLog;
-import com.tianli.chain.enums.ImputationStatus;
 import com.tianli.chain.mapper.WalletImputationLogMapper;
 import com.tianli.chain.vo.WalletImputationLogVO;
 import com.tianli.management.query.WalletImputationLogQuery;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.List;
 import java.util.Objects;
 
 /**

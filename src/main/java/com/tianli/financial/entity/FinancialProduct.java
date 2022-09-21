@@ -97,4 +97,25 @@ public class FinancialProduct {
      */
     private boolean deleted;
 
+    /**
+     * 总使用额度
+     */
+    private BigDecimal useQuota;
+
+    /**
+     * 利率类型 0 正常 1阶梯
+     */
+    private byte rateType;
+
+    /**
+     * 最大利率
+     */
+    private BigDecimal maxRate;
+
+    /**
+     * 最小利率
+     */
+    private BigDecimal minRate;
+
+
 }

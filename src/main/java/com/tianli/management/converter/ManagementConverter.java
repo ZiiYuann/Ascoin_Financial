@@ -1,16 +1,15 @@
 package com.tianli.management.converter;
 
 
+import com.tianli.management.entity.HotWalletDetailed;
+import com.tianli.management.query.HotWalletDetailedIoUQuery;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.entity.FinancialBoardWallet;
-import com.tianli.management.entity.HotWalletDetailed;
-import com.tianli.management.query.HotWalletDetailedIoUQuery;
 import com.tianli.management.vo.*;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface ManagementConverter {

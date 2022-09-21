@@ -45,4 +45,10 @@ public class FinancialIncomeDaily {
      */
     private LocalDateTime createTime;
 
+    private String orderNo;
+
+    private BigDecimal rate;
+
+    private BigDecimal amount;
+
 }

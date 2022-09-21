@@ -10,6 +10,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author chenb
@@ -73,8 +74,6 @@ public class FinancialProductEditQuery {
     /**
      * 参考年化
      */
-    @NotNull(message = "日利率不能为空")
-    @DecimalMin(value = "0.00000001", message = "日利率填写有误")
     private BigDecimal rate;
 
     /**
@@ -106,4 +105,14 @@ public class FinancialProductEditQuery {
      * 最小申购限额
      */
     private BigDecimal limitPurchaseQuota;
+
+    /**
+     * 利率类型
+     */
+    private byte rateType;
+
+    /**
+     * 阶梯汇率
+     */
+    private List<FinancialProductLadderRateIoUQuery> ladderRates;
 }

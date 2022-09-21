@@ -2,25 +2,18 @@ package com.tianli.financial.service.impl;
 
 import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tianli.account.entity.AccountBalance;
-import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
-import com.tianli.charge.entity.Order;
-import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
-import com.tianli.common.CommonFunction;
-import com.tianli.common.RedisLockConstants;
-import com.tianli.common.RedisService;
 import com.tianli.common.blockchain.CurrencyCoin;
-import com.tianli.currency.log.CurrencyLogDes;
-import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
+import com.tianli.financial.dto.ProductRateDTO;
 import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
@@ -29,7 +22,6 @@ import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
-import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.*;
 import com.tianli.financial.vo.*;
 import com.tianli.management.entity.FinancialBoardProduct;
@@ -39,89 +31,29 @@ import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.query.TimeQuery;
 import com.tianli.management.service.FinancialBoardProductService;
 import com.tianli.management.service.FinancialBoardWalletService;
+import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.FinancialUserInfoVO;
+import com.tianli.management.vo.FundProductBindDropdownVO;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class FinancialServiceImpl implements FinancialService {
 
-    @Override
-    @Transactional
-    public FinancialPurchaseResultVO purchase(PurchaseQuery purchaseQuery) {
-        // 如果产品处于要下线的情况，不允许购买
-        Long productId = purchaseQuery.getProductId();
-        boolean exists = redisService.exists(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + productId);
-        if (exists) {
-            ErrorCodeEnum.PRODUCT_CAN_NOT_BUY.throwException();
-        }
-
-        Long uid = requestInitService.uid();
-
-        FinancialProduct product = financialProductService.getById(productId);
-        validProduct(product, purchaseQuery.getAmount());
-
-        BigDecimal amount = purchaseQuery.getAmount();
-        validRemainAmount(uid, purchaseQuery.getCoin(), amount);
-
-
-        BigDecimal totalUse = financialRecordService.getUseQuota(List.of(productId)).getOrDefault(productId, BigDecimal.ZERO);
-        BigDecimal personUse = financialRecordService.getUseQuota(List.of(productId), uid).getOrDefault(productId, BigDecimal.ZERO);
-
-
-        if (product.getPersonQuota() != null && product.getPersonQuota().compareTo(BigDecimal.ZERO) > 0 &&
-                purchaseQuery.getAmount().add(personUse).compareTo(product.getPersonQuota()) > 0) {
-            ErrorCodeEnum.throwException("用户申购金额超过个人限额");
-        }
-
-        if (product.getTotalQuota() != null && product.getTotalQuota().compareTo(BigDecimal.ZERO) > 0 &&
-                purchaseQuery.getAmount().add(totalUse).compareTo(product.getTotalQuota()) > 0) {
-            ErrorCodeEnum.throwException("用户申购金额超过总限购额");
-        }
-
-
-        // 生成一笔订单记录(进行中)
-        Order order = Order.builder()
-                .uid(uid)
-                .coin(product.getCoin())
-                .relatedId(null)
-                .orderNo(AccountChangeType.purchase.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
-                .amount(amount)
-                .type(ChargeType.purchase)
-                .status(ChargeStatus.created)
-                .createTime(LocalDateTime.now())
-                .completeTime(LocalDateTime.now())
-                .build();
-        orderService.save(order);
-        // 减少余额
-        accountBalanceService.decrease(uid, ChargeType.purchase, product.getCoin(), amount, order.getOrderNo(), CurrencyLogDes.申购.name());
-        // 确认完毕后生成申购记录
-        FinancialRecord financialRecord = financialRecordService.generateFinancialRecord(uid, product, amount, purchaseQuery.isAutoCurrent());
-        // 修改订单状态
-        order.setStatus(ChargeStatus.chain_success);
-        order.setRelatedId(financialRecord.getId());
-        orderService.saveOrUpdate(order);
-
-        FinancialPurchaseResultVO financialPurchaseResultVO = financialConverter.toFinancialPurchaseResultVO(financialRecord);
-        financialPurchaseResultVO.setName(product.getName());
-        financialPurchaseResultVO.setStatusDes(order.getStatus().name());
-        financialPurchaseResultVO.setOrderNo(order.getOrderNo());
-        return financialPurchaseResultVO;
-    }
 
     @Override
     public DollarIncomeVO income(Long uid) {
@@ -162,9 +94,10 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IncomeByRecordIdVO incomeByRecordId(Long uid, Long recordId) {
+    public RecordIncomeVO recordIncome(Long uid, Long recordId) {
         FinancialRecord record = financialRecordService.selectById(recordId, uid);
-        IncomeByRecordIdVO incomeByRecordIdVO = financialConverter.toIncomeByRecordIdVO(record);
+        RecordIncomeVO incomeByRecordIdVO = financialConverter.toIncomeByRecordIdVO(record);
+        FinancialProduct product = financialProductService.getById(record.getProductId());
 
         LambdaQueryWrapper<FinancialIncomeDaily> incomeDailyQuery = new LambdaQueryWrapper<FinancialIncomeDaily>().eq(FinancialIncomeDaily::getUid, uid)
                 .eq(FinancialIncomeDaily::getRecordId, recordId)
@@ -182,12 +115,16 @@ public class FinancialServiceImpl implements FinancialService {
         incomeByRecordIdVO.setRecordStatus(record.getStatus());
         incomeByRecordIdVO.setAutoRenewal(record.isAutoRenewal());
         incomeByRecordIdVO.setProductId(record.getProductId());
+        incomeByRecordIdVO.setMaxRate(product.getMaxRate());
+        incomeByRecordIdVO.setMinRate(product.getMinRate());
+        incomeByRecordIdVO.setRateType(product.getRateType());
+        incomeByRecordIdVO.setRate(product.getRate());
 
         return incomeByRecordIdVO;
     }
 
     @Override
-    public IPage<HoldProductVo> myHold(IPage<FinancialRecord> page, Long uid, ProductType type) {
+    public IPage<HoldProductVo> holdProductPage(IPage<FinancialRecord> page, Long uid, ProductType type) {
 
         var financialRecords = financialRecordService.selectListPage(page, uid, type, RecordStatus.PROCESS);
         if (CollectionUtils.isEmpty(financialRecords.getRecords())) {
@@ -226,7 +163,7 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IPage<FinancialIncomeDailyVO> incomeDetails(IPage<FinancialIncomeDaily> page, Long uid, Long recordId) {
+    public IPage<FinancialIncomeDailyVO> dailyIncomePage(IPage<FinancialIncomeDaily> page, Long uid, Long recordId) {
         FinancialRecord financialRecord = financialRecordService.selectById(recordId, uid);
         var dailyIncomeLogs = financialIncomeDailyService.pageByRecordId(page, uid, List.of(recordId), null);
         return dailyIncomeLogs.convert(income -> {
@@ -237,60 +174,57 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public void validProduct(FinancialProduct financialProduct, BigDecimal purchaseAmount) {
-        if (Objects.isNull(financialProduct) || ProductStatus.open != financialProduct.getStatus()) {
-            ErrorCodeEnum.NOT_OPEN.throwException();
-        }
-
-        if (purchaseAmount.compareTo(financialProduct.getLimitPurchaseQuota()) < 0) {
-            throw ErrorCodeEnum.PURCHASE_AMOUNT_TO_SMALL.generalException("最小金额为:" + financialProduct.getLimitPurchaseQuota());
-        }
-    }
-
-    @Override
-    public void validRemainAmount(Long uid, CurrencyCoin currencyCoin, BigDecimal amount) {
-        AccountBalance accountBalanceBalance = accountBalanceService.getAndInit(uid, currencyCoin);
-        if (accountBalanceBalance.getRemain().compareTo(amount) < 0) {
-            ErrorCodeEnum.CREDIT_LACK.throwException();
-        }
-    }
-
-    @Override
     public IPage<OrderFinancialVO> orderPage(Page<OrderFinancialVO> page, FinancialOrdersQuery financialOrdersQuery) {
         return orderService.selectByPage(page, financialOrdersQuery);
     }
 
     @Override
-    public IPage<FinancialIncomeAccrueDTO> incomeRecord(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
+    public IPage<FinancialIncomeAccrueDTO> incomeRecordPage(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
         return financialIncomeAccrueService.incomeRecord(page, query);
     }
 
     @Override
-    public FinancialSummaryDataVO summaryIncomeByQuery(FinancialProductIncomeQuery query) {
+    public FinancialSummaryDataVO incomeSummaryData(FinancialProductIncomeQuery query) {
         return FinancialSummaryDataVO.builder()
                 .incomeAmount(Optional.ofNullable(financialIncomeAccrueService.summaryIncomeByQuery(query)).orElse(BigDecimal.ZERO))
                 .build();
     }
 
     @Override
+    public IPage<RateScopeVO> summaryProducts(Page<FinancialProduct> page, ProductType productType) {
+
+        IPage<ProductRateDTO> productRateDTOS = financialProductService.listProductRateDTO(page, productType);
+        List<FinancialProductVO> financialProductVOs = getFinancialProductVOs(productType);
+        var productMap = financialProductVOs.stream()
+                .collect(Collectors.groupingBy(FinancialProductVO::getCoin, Collectors.toList()));
+
+        return productRateDTOS.convert(productRateDTO -> {
+            RateScopeVO financialProductRateVO = new RateScopeVO();
+            financialProductRateVO.setCoin(productRateDTO.getCoin());
+            financialProductRateVO.setLogo(productRateDTO.getCoin().getLogoPath());
+            financialProductRateVO.setMaxRate(productRateDTO.getMaxRate());
+            financialProductRateVO.setMinRate(productRateDTO.getMinRate());
+            List<FinancialProductVO> productVOS = productMap.getOrDefault(productRateDTO.getCoin(), new ArrayList<>());
+            financialProductRateVO.setProducts(productVOS);
+            return financialProductRateVO;
+        });
+
+    }
+
+    @Override
     public IPage<FinancialProductVO> products(Page<FinancialProduct> page, ProductType type) {
+
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
                 .eq(FinancialProduct::getStatus, ProductStatus.open)
-                .orderByDesc(FinancialProduct::getRate);
+                .orderByAsc(FinancialProduct::getType) // 活期优先
+                .orderByDesc(FinancialProduct::getRate); // 年化利率降序
 
         return getFinancialProductVOIPage(page, type, query);
 
     }
 
     @Override
-    public IPage<FinancialProductVO> activitiesProducts(Page<FinancialProduct> page, BusinessType type) {
-        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
-                .eq(FinancialProduct::getBusinessType, ProductStatus.open);
-        return getFinancialProductVOIPage(page, null, query);
-    }
-
-    @Override
-    public IPage<FinancialUserInfoVO> user(String uid, IPage<Address> page) {
+    public IPage<FinancialUserInfoVO> financialUserPage(String uid, IPage<Address> page) {
 
         LambdaQueryWrapper<Address> queryWrapper = new LambdaQueryWrapper<>();
 
@@ -326,9 +260,9 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public FinancialSummaryDataVO userData(String uid) {
+    public FinancialSummaryDataVO userSummaryData(String uid) {
         IPage<Address> page = new Page<>(1, Integer.MAX_VALUE);
-        var userInfos = user(uid, page).getRecords();
+        var userInfos = financialUserPage(uid, page).getRecords();
 
         BigDecimal rechargeAmount = BigDecimal.ZERO;
         BigDecimal withdrawAmount = BigDecimal.ZERO;
@@ -355,58 +289,216 @@ public class FinancialServiceImpl implements FinancialService {
         LocalDateTime time = query.getTime();
         LocalDateTime dateTime = TimeTool.minDay(time);
         FinancialBoardProduct financialBoardProduct =
-                financialBoardProductService.getFinancialBoardProduct(dateTime,dateTime.plusDays(1), null);
+                financialBoardProductService.getFinancialBoardProduct(dateTime, dateTime.plusDays(1), null);
         FinancialBoardWallet financialBoardWallet =
                 financialBoardWalletService.getFinancialBoardWallet(dateTime, dateTime.plusDays(1), null);
         financialBoardProduct.setCreateTime(dateTime.toLocalDate());
         financialBoardWallet.setCreateTime(dateTime.toLocalDate());
-        financialBoardProductService.update(financialBoardProduct,new LambdaQueryWrapper<FinancialBoardProduct>()
-                .eq(FinancialBoardProduct :: getCreateTime,dateTime));
-        financialBoardWalletService.update(financialBoardWallet,new LambdaQueryWrapper<FinancialBoardWallet>()
-                .eq(FinancialBoardWallet :: getCreateTime,dateTime));
+        financialBoardProductService.update(financialBoardProduct, new LambdaQueryWrapper<FinancialBoardProduct>()
+                .eq(FinancialBoardProduct::getCreateTime, dateTime));
+        financialBoardWalletService.update(financialBoardWallet, new LambdaQueryWrapper<FinancialBoardWallet>()
+                .eq(FinancialBoardWallet::getCreateTime, dateTime));
+    }
+
+    public CurrentProductPurchaseVO currentProductDetails(Long productId) {
+        FinancialProductVO financialProductVO = getFinancialProductVOs(productId).get(0);
+        CurrentProductPurchaseVO productVO = financialConverter.toFinancialProductDetailsVO(financialProductVO);
+
+        if (productVO.getRateType() == 1) {
+            productVO.setLadderRates(financialProductLadderRateService.listByProductId(productId)
+                    .stream().map(financialConverter::toProductLadderRateVO).collect(Collectors.toList()));
+        }
+
+        return productVO;
+    }
+
+    @Override
+    public FixedProductsPurchaseVO fixedProductDetails(CurrencyCoin coin) {
+        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
+                .eq(FinancialProduct::getCoin, coin)
+                .eq(FinancialProduct::getType, ProductType.fixed)
+                .eq(FinancialProduct::getStatus, ProductStatus.open);
+        IPage<FinancialProductVO> financialProductVOIPage =
+                getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), null, query);
+
+        List<FinancialProductVO> productVOS = financialProductVOIPage.getRecords()
+                .stream().filter(FinancialProductVO::isAllowPurchase).collect(Collectors.toList());
+        FixedProductsPurchaseVO fixedProductsPurchaseVO = new FixedProductsPurchaseVO();
+        fixedProductsPurchaseVO.setProducts(productVOS);
+        fixedProductsPurchaseVO.setTerms(productVOS.stream().map(FinancialProductVO::getTerm).collect(Collectors.toList()));
+        return fixedProductsPurchaseVO;
+    }
+
+    @Override
+    public List<FundProductBindDropdownVO> fundProductBindDropdownList(ProductType type) {
+
+        List<Long> bindProductIds = walletAgentProductService.listProductIdExcludeAgentId(null);
+
+        LambdaQueryWrapper<FinancialProduct> queryWrapper = new QueryWrapper<FinancialProduct>().lambda()
+                .eq(FinancialProduct::getType, type)
+                .eq(FinancialProduct::getStatus, ProductStatus.close)
+                .eq(FinancialProduct::isDeleted, false);
+
+
+        if (CollectionUtils.isNotEmpty(bindProductIds)) {
+            queryWrapper = queryWrapper.notIn(FinancialProduct::getId, bindProductIds);
+        }
+
+
+        List<FinancialProduct> financialProducts = financialProductService.list(queryWrapper);
+        return financialProducts.stream()
+                .map(financialProduct ->
+                        new FundProductBindDropdownVO(financialProduct.getId(), financialProduct.getName(), financialProduct.getNameEn()))
+                .collect(Collectors.toList());
+    }
+
+    private List<FinancialProductVO> getFinancialProductVOs(Long productId) {
+        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
+                .eq(FinancialProduct::getId, productId);
+        return getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), null, query).getRecords();
+    }
+
+    private List<FinancialProductVO> getFinancialProductVOs(ProductType productType) {
+        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
+                .eq(false, FinancialProduct::getType, ProductType.fund)
+                .eq(FinancialProduct::getStatus, ProductStatus.open)
+                .eq(FinancialProduct::isDeleted, false)
+                .orderByAsc(FinancialProduct::getType) // 活期优先
+                .orderByDesc(FinancialProduct::getRate); // 年化利率降序;
+        return getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), productType, query).getRecords();
     }
 
     private IPage<FinancialProductVO> getFinancialProductVOIPage(Page<FinancialProduct> page, ProductType type, LambdaQueryWrapper<FinancialProduct> query) {
         if (Objects.nonNull(type)) {
-            query.eq(FinancialProduct::getType, type);
+            query = query.eq(FinancialProduct::getType, type);
+        }
+
+        if (Objects.isNull(type)) {
+            query = query.in(FinancialProduct::getType, List.of(ProductType.current, ProductType.fixed));
         }
 
 
         var list = financialProductService.page(page, query);
-        List<Long> productId = list.getRecords().stream().map(FinancialProduct::getId).distinct().collect(Collectors.toList());
+        List<Long> productIds = list.getRecords().stream().map(FinancialProduct::getId).distinct().collect(Collectors.toList());
 
         Boolean isNewUser = financialRecordService.isNewUser(requestInitService.uid());
 
-        Map<Long, BigDecimal> useQuotaMap = financialRecordService.getUseQuota(productId);
-        Map<Long, BigDecimal> usePersonQuotaMap = financialRecordService.getUseQuota(productId, requestInitService.uid());
+        Map<Long, Long> firstProcessRecordMap = financialRecordService.firstProcessRecordMap(productIds, requestInitService.uid());
+        Map<Long, BigDecimal> usePersonQuotaMap = financialRecordService.getUseQuota(productIds, requestInitService.uid());
+
         return list.convert(product -> {
-            BigDecimal useQuota = useQuotaMap.getOrDefault(product.getId(), BigDecimal.ZERO);
             BigDecimal usePersonQuota = usePersonQuotaMap.getOrDefault(product.getId(), BigDecimal.ZERO);
-
+            BigDecimal totalQuota = product.getTotalQuota();
+            BigDecimal personQuota = product.getPersonQuota();
+            BigDecimal useQuota = product.getUseQuota();
+            var accountBalance = accountBalanceService.getAndInit(requestInitService.uid(), product.getCoin());
+            // 设置额度信息
             FinancialProductVO financialProductVO = financialConverter.toFinancialProductVO(product);
-            financialProductVO.setUseQuota(useQuota);
             financialProductVO.setUserPersonQuota(usePersonQuota);
-            if (Objects.isNull(product.getPersonQuota()) && Objects.isNull(product.getTotalQuota())) {
-                financialProductVO.setAllowPurchase(true);
-            }
+            financialProductVO.setHoldAmount(usePersonQuota);
+            // 设置是否可以申购
+            boolean allowPurchase =
+                    checkAllowPurchase(usePersonQuota, useQuota, personQuota, totalQuota, product.getBusinessType(), isNewUser);
+            financialProductVO.setAllowPurchase(allowPurchase);
 
-            if (Objects.nonNull(product.getPersonQuota()) && Objects.nonNull(product.getTotalQuota())) {
-                financialProductVO.setAllowPurchase(usePersonQuota.compareTo(product.getPersonQuota()) < 0 && useQuota.compareTo(product.getTotalQuota()) < 0);
+            // 设置假数据
+            BigDecimal baseDataAmount = getBaseDataAmount(product.getId(), totalQuota, useQuota);
+            if (Objects.nonNull(baseDataAmount)) {
+                financialProductVO.setUseQuota(useQuota.add(baseDataAmount));
+                financialProductVO.setBaseUseQuota(baseDataAmount);
             }
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime startIncomeTime = now.plusDays(1);
+            // 开始记息时间
+            financialProductVO.setStartIncomeTime(startIncomeTime);
+            // 申购时间
+            financialProductVO.setPurchaseTime(now);
+            // 收益发放时间
+            financialProductVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
 
-            if (Objects.nonNull(product.getPersonQuota()) && Objects.isNull(product.getTotalQuota())) {
-                financialProductVO.setAllowPurchase(usePersonQuota.compareTo(product.getPersonQuota()) < 0);
-            }
-            if (Objects.isNull(product.getPersonQuota()) && Objects.nonNull(product.getTotalQuota())) {
-                financialProductVO.setAllowPurchase(useQuota.compareTo(product.getTotalQuota()) < 0);
-            }
-            if (BusinessType.benefits.equals(product.getBusinessType()) && !isNewUser ){
-                financialProductVO.setAllowPurchase(false);
-            }
+            // 设置第一个有效可数据的record id
+            financialProductVO.setRecordId(firstProcessRecordMap.get(product.getId()));
 
-                return financialProductVO;
+            financialProductVO.setAvailableBalance(accountBalance.getRemain());
+
+            return financialProductVO;
         });
     }
+
+    /**
+     * 判断是否可以申购
+     *
+     * @param usePersonQuota 个人使用额度
+     * @param useQuota       总使用额度
+     * @param personQuota    限度个人额度
+     * @param totalQuota     限定使用额度
+     * @return true or false
+     */
+    private boolean checkAllowPurchase(BigDecimal usePersonQuota,
+                                       BigDecimal useQuota,
+                                       BigDecimal personQuota,
+                                       BigDecimal totalQuota,
+                                       BusinessType businessType,
+                                       boolean isNewUser) {
+
+        // 如果是新用户福利产品，仅限新用户
+        if (BusinessType.benefits.equals(businessType) && !isNewUser) {
+            return false;
+        }
+
+        // 如果个人额度和总额度都不存在，直接可以购买
+        if (Objects.isNull(personQuota) && Objects.isNull(totalQuota)) {
+            return true;
+        }
+
+        // 如果存在个人额度不存在总额度 比较个人额度
+        if (Objects.nonNull(personQuota) && Objects.isNull(totalQuota)) {
+            return usePersonQuota.compareTo(personQuota) < 0;
+        }
+
+        // 如果存在总额度不存在个人额度 比较总额度
+        if (Objects.isNull(personQuota)) {
+            return useQuota.compareTo(totalQuota) < 0;
+        }
+
+        // 如果个人额度和总额度都存在 比较两者
+        return usePersonQuota.compareTo(personQuota) < 0 && useQuota.compareTo(totalQuota) < 0;
+
+    }
+
+    /**
+     * 获取假数据基础数据
+     */
+    private BigDecimal getBaseDataAmount(Long productId, BigDecimal limitQuota, BigDecimal useQuota) {
+        if (Objects.isNull(limitQuota) || BigDecimal.ZERO.compareTo(limitQuota) == 0) {
+            return null;
+        }
+        useQuota = Optional.ofNullable(useQuota).orElse(BigDecimal.ZERO);
+        // 实际比例
+        BigDecimal realRate = useQuota.divide(limitQuota, 4, RoundingMode.HALF_UP);
+        // 期望比例
+        BigDecimal expectRate = BigDecimal.valueOf(0.5f);
+        var baseRate = BigDecimal.valueOf(productId % 4).multiply(BigDecimal.valueOf(0.05f));
+        if (realRate.compareTo(expectRate) >= 0) {
+            return null;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        int dayOfMonth = now.getDayOfMonth();
+        int month = now.getMonthValue();
+        String monthAndDay = now.format(DateTimeFormatter.ofPattern("MMdd"));
+        long randomNum = (Integer.parseInt(monthAndDay) + dayOfMonth * 100 + month * 100 + productId) % 65;
+        randomNum = randomNum + 300;
+
+        // 获取一个每天固定的随机比例 365 以内
+        BigDecimal randomRate = BigDecimal.valueOf(randomNum).divide(BigDecimal.valueOf(365L), 4, RoundingMode.HALF_DOWN);
+
+        // 调整比例 = 差值比例 - 差值比例 * 0.2 * 每天固定随机比例
+        BigDecimal adjustRate = expectRate.multiply(BigDecimal.valueOf(0.6f).multiply(randomRate)).add(baseRate);
+
+        return limitQuota.multiply(adjustRate);
+    }
+
 
     @Resource
     private AccountBalanceService accountBalanceService;
@@ -427,9 +519,12 @@ public class FinancialServiceImpl implements FinancialService {
     @Resource
     private AddressService addressService;
     @Resource
-    private RedisService redisService;
-    @Resource
     private FinancialBoardProductService financialBoardProductService;
     @Resource
     private FinancialBoardWalletService financialBoardWalletService;
+    @Resource
+    private FinancialProductLadderRateService financialProductLadderRateService;
+    @Resource
+    private IWalletAgentProductService walletAgentProductService;
+
 }

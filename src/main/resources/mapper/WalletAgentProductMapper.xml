@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianli.management.dao.WalletAgentProductMapper">
+
+    <select id="selectPage" resultType="com.tianli.agent.management.vo.FundProductStatisticsVO">
+        SELECT
+        b.id productId,
+        b.name productName,
+        b.type as type,
+        b.coin as coin,
+        b.rate as rate
+        FROM wallet_agent_product a
+        left join financial_product b on a.product_id = b.id
+        WHERE a.agent_id = #{agentId}
+
+        <if test="query.startTime != null">
+            and a.create_time >= #{query.startTime}
+        </if>
+        <if test="query.endTime != null">
+            and a.create_time &lt;= #{query.endTime}
+        </if>
+
+    </select>
+
+</mapper>

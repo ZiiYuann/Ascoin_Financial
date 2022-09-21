@@ -55,4 +55,9 @@ public class ConfigConstants {
      */
     public static final String PUSH_RECHARGE_CONDITION = "_push_recharge_condition";
 
+    /**
+     * 是否开启webhook 异常推送
+     */
+    public static final String OPEN_WEBHOOK_EXCEPTION_PUSH = "open_webhook_exception_push";
+
 }
