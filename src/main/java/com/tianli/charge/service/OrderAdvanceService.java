@@ -130,58 +130,65 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
      */
     @Transactional
     public void handlerRechargeEvent(Long uid, TRONTokenReq req, BigDecimal finalAmount, TokenAdapter tokenAdapter) {
-        var query = new LambdaQueryWrapper<OrderAdvance>()
-                .eq(OrderAdvance::getUid, uid)
-                .eq(OrderAdvance::getTxid, req.getHash())
-                .eq(OrderAdvance::getFinish, 0);
-        OrderAdvance orderAdvance = baseMapper.selectOne(query);
-        if (Objects.isNull(orderAdvance)) {
-            return;
+
+        try {
+            Thread.sleep(5000);
+
+            var query = new LambdaQueryWrapper<OrderAdvance>()
+                    .eq(OrderAdvance::getUid, uid)
+                    .eq(OrderAdvance::getTxid, req.getHash())
+                    .eq(OrderAdvance::getFinish, 0);
+            OrderAdvance orderAdvance = baseMapper.selectOne(query);
+            if (Objects.isNull(orderAdvance)) {
+                return;
+            }
+
+            // 增加尝试次数【不受本身事务的影响】
+            addTryTimes(orderAdvance.getId());
+
+            Long productId = orderAdvance.getProductId();
+            FinancialProduct product = financialProductService.getById(productId);
+            if (Objects.isNull(product)) {
+                log.error("预订单产品不存在，请注意");
+                return;
+            }
+
+            if (ProductStatus.close.equals(product.getStatus())) {
+                log.error("预订单产品处于关闭状态，无法申购");
+                return;
+            }
+
+            if (!product.getCoin().equals(tokenAdapter.getCurrencyCoin())) {
+                log.error("申购产品币别类型与充值币别不符合");
+                return;
+            }
+
+            if (orderAdvance.getAmount().compareTo(finalAmount) != 0) {
+                log.error("充值金额与预订单金额不符合");
+                return;
+            }
+
+            webHookService.dingTalkSend("监测到预购订单消费事件", req.getHash() + ",时间：" + LocalDateTime.now());
+
+            PurchaseQuery purchaseQuery = PurchaseQuery.builder()
+                    .coin(orderAdvance.getCoin())
+                    .term(orderAdvance.getTerm())
+                    .amount(orderAdvance.getAmount())
+                    .autoCurrent(orderAdvance.isAutoCurrent())
+                    .productId(orderAdvance.getProductId()).build();
+
+            Order order = orderService.getOrderNo(AccountChangeType.advance_purchase.getPrefix() + orderAdvance.getId());
+            financialProductService.purchase(uid, purchaseQuery, FinancialPurchaseResultVO.class, order);
+
+            // 预订单状态设置为完成
+            orderAdvance.setFinish(1);
+            baseMapper.updateById(orderAdvance);
+
+            order.setStatus(ChargeStatus.chain_success);
+            orderService.updateById(order);
+        } catch (Exception e) {
+            webHookService.dingTalkSend("预购订单异常", e);
         }
-
-        // 增加尝试次数【不受本身事务的影响】
-        addTryTimes(orderAdvance.getId());
-
-        Long productId = orderAdvance.getProductId();
-        FinancialProduct product = financialProductService.getById(productId);
-        if (Objects.isNull(product)) {
-            log.error("预订单产品不存在，请注意");
-            return;
-        }
-
-        if (ProductStatus.close.equals(product.getStatus())) {
-            log.error("预订单产品处于关闭状态，无法申购");
-            return;
-        }
-
-        if (!product.getCoin().equals(tokenAdapter.getCurrencyCoin())) {
-            log.error("申购产品币别类型与充值币别不符合");
-            return;
-        }
-
-        if (orderAdvance.getAmount().compareTo(finalAmount) != 0) {
-            log.error("充值金额与预订单金额不符合");
-            return;
-        }
-
-        webHookService.dingTalkSend("监测到预购订单消费事件", req.getHash() + ",时间：" + LocalDateTime.now());
-
-        PurchaseQuery purchaseQuery = PurchaseQuery.builder()
-                .coin(orderAdvance.getCoin())
-                .term(orderAdvance.getTerm())
-                .amount(orderAdvance.getAmount())
-                .autoCurrent(orderAdvance.isAutoCurrent())
-                .productId(orderAdvance.getProductId()).build();
-
-        Order order = orderService.getOrderNo(AccountChangeType.advance_purchase.getPrefix() + orderAdvance.getId());
-        financialProductService.purchase(uid, purchaseQuery, FinancialPurchaseResultVO.class, order);
-
-        // 预订单状态设置为完成
-        orderAdvance.setFinish(1);
-        baseMapper.updateById(orderAdvance);
-
-        order.setStatus(ChargeStatus.chain_success);
-        orderService.updateById(order);
     }
 
     /**
