@@ -58,3 +58,9 @@ secret:
 mybatis:
   mapper-locations: classpath:***/*/*.xml
 
+
+
+logging:
+  level:
+    com:
+      tianli: debug

@@ -43,7 +43,7 @@ public class OrderAdvanceTask {
     @Resource
     private WebHookService webHookService;
 
-    @Scheduled(cron = "0 0/15 * * * ?")
+    @Scheduled(cron = "0 0/1 * * * ?")
     public void incomeTasks() {
         List<Order> advanceOrders = Optional.ofNullable(orderService.list(new LambdaQueryWrapper<Order>()
                 .eq(Order::getType, ChargeType.purchase)
@@ -60,7 +60,7 @@ public class OrderAdvanceTask {
 
         OrderAdvance orderAdvance = orderAdvanceService.getById(relatedId);
 
-        if (Objects.isNull(orderAdvance) ) {
+        if (Objects.isNull(orderAdvance)) {
             order.setStatus(ChargeStatus.chain_fail);
             orderService.updateById(order);
             return;
@@ -84,23 +84,22 @@ public class OrderAdvanceTask {
         boolean success = contract.successByHash(txid);
         if (success) {
             webHookService.dingTalkSend("奇怪的申购订单" + orderAdvance.getTxid(), new RuntimeException());
+        }
+
+
+        if (orderAdvance.getTryTimes() == 2) {
+            orderAdvance.setFinish(2);
+            orderAdvanceService.updateById(orderAdvance);
+
+            order.setStatus(ChargeStatus.chain_fail);
+            orderService.updateById(order);
             return;
         }
-
-        if (!success) {
-            if (orderAdvance.getTryTimes() == 2) {
-                orderAdvance.setFinish(2);
-                orderAdvanceService.updateById(orderAdvance);
-
-                order.setStatus(ChargeStatus.chain_fail);
-                orderService.updateById(order);
-                return;
-            }
-            orderAdvanceService.addTryTimes(orderAdvance.getId());
-        }
-
-
+        orderAdvanceService.addTryTimes(orderAdvance.getId());
     }
 
 
 }
+
+
+
