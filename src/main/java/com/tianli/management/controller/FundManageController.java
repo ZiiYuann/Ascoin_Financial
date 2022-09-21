@@ -106,7 +106,7 @@ public class FundManageController {
      * 收益审核记录
      */
     @GetMapping("/income/audit/{id}")
-    @AdminPrivilege(and = Privilege.基金管理)
+    @AdminPrivilege(api = "/management/fund/income/audit/id")
     public Result incomeAuditRecord(@PathVariable Long id) {
         List<FundReviewVO> fundReviewVOS = fundIncomeRecordService.getIncomeAuditRecord(id);
         return Result.success(fundReviewVOS);
@@ -116,7 +116,7 @@ public class FundManageController {
      * 赎回审核记录
      */
     @GetMapping("/redemption/audit/{id}")
-    @AdminPrivilege(and = Privilege.基金管理)
+    @AdminPrivilege(api = "/management/fund/redemption/audit/id")
     public Result redemptionAuditRecord(@PathVariable Long id) {
         List<FundReviewVO> fundReviewVOS = fundTransactionRecordService.getRedemptionAuditRecord(id);
         return Result.success(fundReviewVOS);
