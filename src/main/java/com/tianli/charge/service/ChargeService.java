@@ -27,6 +27,7 @@ import com.tianli.charge.query.RedeemQuery;
 import com.tianli.charge.query.WithdrawQuery;
 import com.tianli.charge.vo.OrderBaseVO;
 import com.tianli.charge.vo.OrderChargeInfoVO;
+import com.tianli.charge.vo.OrderRechargeDetailsVo;
 import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
@@ -387,6 +388,12 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         orderBaseVO.setOrderNo(order.getOrderNo());
         orderBaseVO.setAmount(order.getAmount());
         orderBaseVO.setProductId(record.getProductId());
+
+        // 对于活期记录来说，因为持有是累加的，导致持有记录表中的申购时间是不对的，需要取订单表
+        if (orderBaseVO instanceof OrderRechargeDetailsVo) {
+            OrderRechargeDetailsVo orderBase = (OrderRechargeDetailsVo) orderBaseVO;
+            orderBase.setPurchaseTime(order.getCreateTime());
+        }
         return orderBaseVO;
     }
 
