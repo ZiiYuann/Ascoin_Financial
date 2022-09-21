@@ -1,6 +1,7 @@
 package com.tianli.management.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.google.common.base.MoreObjects;
 import com.tianli.exception.Result;
 import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.entity.FinancialIncomeDaily;
@@ -67,7 +68,7 @@ public class TestController {
 
         configService.get("taskTest");
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = MoreObjects.firstNonNull(query.getNow(), LocalDateTime.now());
         LocalDateTime nowZero = TimeTool.minDay(now);
         LambdaQueryWrapper<FundRecord> eq = new LambdaQueryWrapper<FundRecord>()
                 .eq(FundRecord::getUid, query.getUid());

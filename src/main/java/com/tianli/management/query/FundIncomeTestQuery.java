@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 /**
  * @author chenb
  * @apiNote
@@ -17,5 +19,7 @@ public class FundIncomeTestQuery {
     private Long uid;
 
     private Long recordId;
+
+    private LocalDateTime now;
 }
 
