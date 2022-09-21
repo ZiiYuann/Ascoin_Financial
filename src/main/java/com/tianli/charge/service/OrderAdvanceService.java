@@ -12,6 +12,7 @@ import com.tianli.charge.mapper.OrderAdvanceMapper;
 import com.tianli.charge.query.GenerateOrderAdvanceQuery;
 import com.tianli.charge.vo.OrderBaseVO;
 import com.tianli.common.CommonFunction;
+import com.tianli.common.WebHookService;
 import com.tianli.common.annotation.NoRepeatCommit;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.financial.entity.FinancialProduct;
@@ -50,6 +51,8 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
     private FinancialRecordService financialRecordService;
     @Resource
     private ChargeService chargeService;
+    @Resource
+    private WebHookService webHookService;
 
     /**
      * 生成预订单
@@ -117,6 +120,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
         financialRecord.setLocalPurchase(true);
         financialRecordService.updateById(financialRecord);
 
+        webHookService.dingTalkSend("监测到预购订单申购事件", query.getTxid() + ",时间：" + LocalDateTime.now());
         return chargeService.orderDetails(requestInitService.uid()
                 , AccountChangeType.advance_purchase.getPrefix() + query.getId());
     }
@@ -160,6 +164,8 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
             return;
         }
 
+        webHookService.dingTalkSend("监测到预购订单消费事件", req.getHash() + ",时间：" + LocalDateTime.now());
+
         PurchaseQuery purchaseQuery = PurchaseQuery.builder()
                 .coin(orderAdvance.getCoin())
                 .term(orderAdvance.getTerm())
@@ -185,4 +191,5 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
     public void addTryTimes(Long id) {
         baseMapper.addTryTimes(id);
     }
+
 }
