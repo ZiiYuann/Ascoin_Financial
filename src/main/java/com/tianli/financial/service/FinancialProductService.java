@@ -150,9 +150,19 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
                 ErrorCodeEnum.throwException("配置为阶段利率模式，阶段利率列表不能为空");
             }
             financialProductLadderRateService.insert(productDO.getId(), ladderRates);
+            var maxOptional = ladderRates.stream().map(FinancialProductLadderRateIoUQuery::getRate).max(BigDecimal::compareTo);
+            var minOptional = ladderRates.stream().map(FinancialProductLadderRateIoUQuery::getRate).min(BigDecimal::compareTo);
             productDO.setRate(ladderRates.get(0).getRate());
-            productDO.setMinRate(productDO.getRate());
-            productDO.setMaxRate(ladderRates.get(ladderRates.size() - 1).getRate());
+            BigDecimal max = BigDecimal.ZERO;
+            BigDecimal min = BigDecimal.ZERO;
+            if (maxOptional.isPresent()){
+                max = maxOptional.get();
+            }
+            if (minOptional.isPresent()){
+                min = minOptional.get();
+            }
+            productDO.setMinRate(min);
+            productDO.setMaxRate(max);
             super.saveOrUpdate(productDO);
         }
 
