@@ -95,14 +95,15 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
 
         // 预订单和持有record 订单id一致
         FinancialRecord financialRecord =
-                financialRecordService.generateFinancialRecord(orderAdvance.getId(), uid, product, query.getAmount(), query.isAutoCurrent());
+                financialRecordService.generateFinancialRecord(orderAdvance.getId(), uid, product, orderAdvance.getAmount()
+                        , orderAdvance.isAutoCurrent());
 
         // 生成一笔预订单记录
         Order order = Order.builder()
                 .uid(requestInitService.uid())
                 .coin(product.getCoin())
                 .orderNo(AccountChangeType.advance_purchase.getPrefix() + orderAdvance.getId())
-                .amount(query.getAmount())
+                .amount(orderAdvance.getAmount())
                 .type(ChargeType.purchase)
                 .status(ChargeStatus.created)
                 .createTime(LocalDateTime.now())
