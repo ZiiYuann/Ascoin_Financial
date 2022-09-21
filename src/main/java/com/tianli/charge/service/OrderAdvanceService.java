@@ -11,6 +11,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderAdvanceMapper;
 import com.tianli.charge.query.GenerateOrderAdvanceQuery;
 import com.tianli.charge.vo.OrderBaseVO;
+import com.tianli.common.CommonFunction;
 import com.tianli.common.annotation.NoRepeatCommit;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.financial.entity.FinancialProduct;
@@ -61,12 +62,8 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
 
         FinancialProduct product = financialProductService.getById(query.getProductId());
 
-        // 预订单和持有record 订单id一致
-        FinancialRecord financialRecord =
-                financialRecordService.generateFinancialRecord(uid, product, query.getAmount(), query.isAutoCurrent());
-
         OrderAdvance orderAdvance = OrderAdvance.builder()
-                .id(financialRecord.getId())
+                .id(CommonFunction.generalId())
                 .amount(query.getAmount())
                 .uid(uid)
                 .createTime(LocalDateTime.now())
@@ -76,6 +73,29 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                 .autoCurrent(query.isAutoCurrent())
                 .build();
         baseMapper.insert(orderAdvance);
+
+        return orderAdvance.getId();
+    }
+
+    /**
+     * 更新预订单
+     */
+    @Transactional
+    public OrderBaseVO updateOrderAdvance(GenerateOrderAdvanceQuery query) {
+        OrderAdvance orderAdvance = baseMapper.selectById(query.getId());
+        orderAdvance.setTxid(query.getTxid());
+        orderAdvance.setNetwork(query.getNetwork());
+        baseMapper.updateById(orderAdvance);
+
+        Long uid = orderAdvance.getUid();
+        Long productId = orderAdvance.getProductId();
+
+        FinancialProduct product = financialProductService.getById(productId);
+
+
+        // 预订单和持有record 订单id一致
+        FinancialRecord financialRecord =
+                financialRecordService.generateFinancialRecord(orderAdvance.getId(), uid, product, query.getAmount(), query.isAutoCurrent());
 
         // 生成一笔预订单记录
         Order order = Order.builder()
@@ -95,19 +115,6 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
         financialRecord.setStatus(RecordStatus.SUCCESS);
         financialRecord.setLocalPurchase(true);
         financialRecordService.updateById(financialRecord);
-
-        return orderAdvance.getId();
-    }
-
-    /**
-     * 更新预订单
-     */
-    @Transactional
-    public OrderBaseVO updateOrderAdvance(GenerateOrderAdvanceQuery query) {
-        OrderAdvance orderAdvance = baseMapper.selectById(query.getId());
-        orderAdvance.setTxid(query.getTxid());
-        orderAdvance.setNetwork(query.getNetwork());
-        baseMapper.updateById(orderAdvance);
 
         return chargeService.orderDetails(requestInitService.uid()
                 , AccountChangeType.advance_purchase.getPrefix() + query.getId());

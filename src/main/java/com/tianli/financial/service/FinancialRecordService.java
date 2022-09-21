@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.base.MoreObjects;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -173,9 +174,13 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      * 生成记录
      */
     public FinancialRecord generateFinancialRecord(Long uid, FinancialProduct product, BigDecimal amount, boolean autoRenewal) {
+        return generateFinancialRecord(null,uid,product,amount,autoRenewal);
+    }
+
+    public FinancialRecord generateFinancialRecord(Long id,Long uid, FinancialProduct product, BigDecimal amount, boolean autoRenewal) {
         LocalDateTime startIncomeTime = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(1);
         FinancialRecord record = FinancialRecord.builder()
-                .id(CommonFunction.generalId())
+                .id(MoreObjects.firstNonNull(id,CommonFunction.generalId()))
                 .productId(product.getId())
                 .riskType(product.getRiskType())
                 .businessType(product.getBusinessType())

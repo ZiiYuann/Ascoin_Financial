@@ -85,9 +85,11 @@ public class TestController {
 
             if (CollectionUtils.isNotEmpty(incomeRecords)) {
                 FundIncomeRecord fundIncomeRecordFirst = incomeRecords.get(0);
-                FundIncomeRecord fundIncomeRecordLast = incomeRecords.get(incomeRecords.size() - 1);
-                fundIncomeRecordFirst.setCreateTime(fundIncomeRecordLast.getCreateTime().plusDays(-1));
-                fundIncomeRecordService.updateById(fundIncomeRecordFirst);
+                if(fundIncomeRecordFirst.getCreateTime().equals(nowZero)){
+                    FundIncomeRecord fundIncomeRecordLast = incomeRecords.get(incomeRecords.size() - 1);
+                    fundIncomeRecordFirst.setCreateTime(fundIncomeRecordLast.getCreateTime().plusDays(-1));
+                    fundIncomeRecordService.updateById(fundIncomeRecordFirst);
+                }
             }
 
             // 计息时间为4天后，所以手动修改为5天前
