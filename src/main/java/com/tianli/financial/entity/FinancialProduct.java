@@ -1,5 +1,7 @@
 package com.tianli.financial.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.*;
 import lombok.Builder;
@@ -70,16 +72,19 @@ public class FinancialProduct {
     /**
      * 个人额度
      */
+    @TableField(fill = FieldFill.UPDATE)
     private BigDecimal personQuota;
 
     /**
      * 总额度
      */
+    @TableField(fill = FieldFill.UPDATE)
     private BigDecimal totalQuota;
 
     /**
      * 最低申购额度
      */
+    @TableField(fill = FieldFill.UPDATE)
     private BigDecimal limitPurchaseQuota;
 
     /**
