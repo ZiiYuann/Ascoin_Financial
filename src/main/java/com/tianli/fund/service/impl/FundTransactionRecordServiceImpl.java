@@ -1,7 +1,9 @@
 package com.tianli.fund.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.agent.management.auth.AgentContent;
@@ -16,34 +18,39 @@ import com.tianli.common.PageQuery;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.service.FinancialProductService;
-import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.fund.contant.FundTransactionStatus;
 import com.tianli.fund.convert.FundRecordConvert;
 import com.tianli.fund.dao.FundTransactionRecordMapper;
 import com.tianli.fund.dto.FundTransactionAmountDTO;
+import com.tianli.fund.entity.FundIncomeRecord;
+import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.entity.FundReview;
 import com.tianli.fund.entity.FundTransactionRecord;
 import com.tianli.fund.enums.FundReviewStatus;
 import com.tianli.fund.enums.FundReviewType;
 import com.tianli.fund.enums.FundTransactionType;
 import com.tianli.fund.query.FundTransactionQuery;
+import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.fund.service.IFundReviewService;
 import com.tianli.fund.service.IFundTransactionRecordService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.fund.vo.FundTransactionRecordVO;
 import com.tianli.management.dto.AmountDto;
+import com.tianli.management.entity.WalletAgentProduct;
+import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.management.service.IWalletAgentService;
 import com.tianli.management.vo.FundTransactionAmountVO;
 import com.tianli.management.vo.WalletAgentVO;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -74,6 +81,10 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     private FinancialProductService financialProductService;
     @Resource
     private IWalletAgentService walletAgentService;
+    @Resource
+    private IWalletAgentProductService walletAgentProductService;
+    @Resource
+    private IFundIncomeRecordService fundIncomeRecordService;
 
 
     @Override
@@ -101,6 +112,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     }
 
     @Override
+    @Transactional
     public void redemptionAudit(FundAuditBO bo) {
         Long agentId = AgentContent.getAgentId();
         WalletAgentVO agentVO = walletAgentService.getById(agentId);
@@ -108,74 +120,136 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
         FundReviewStatus status = bo.getStatus();
         List<Long> ids = bo.getIds();
         ids.forEach(id -> {
+            // 判断交易记录是否存在
             FundTransactionRecord fundTransactionRecord = fundTransactionRecordMapper.selectById(id);
-            if (Objects.isNull(fundTransactionRecord) ||
-                    !fundTransactionRecord.getStatus().equals(FundTransactionStatus.wait_audit))
-                ErrorCodeEnum.TRANSACTION_NOT_EXIST.throwException();
+            Optional.ofNullable(fundTransactionRecord).orElseThrow(ErrorCodeEnum.TRANSACTION_NOT_EXIST::generalException);
+            // 判断交易记录是否为待审核
+            if (!fundTransactionRecord.getStatus().equals(FundTransactionStatus.wait_audit)) {
+                ErrorCodeEnum.STATUS_NOT_WAIT.throwException();
+            }
+            // 判断持有记录是否存在
+            Long fundId = fundTransactionRecord.getFundId();
+            FundRecord fundRecord = fundRecordService.getById(fundId);
+            Optional.ofNullable(fundRecord).orElseThrow(ErrorCodeEnum.FUND_RECORD_NOT_EXIST::generalException);
+            // 判断产品和代理人绑定关系是否存在
+            Long productId = fundRecord.getProductId();
+            WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(productId);
+            Optional.ofNullable(walletAgentProduct).orElseThrow(ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST::generalException);
+            // 判断产品是否是此代理人关联产品
+            if (!walletAgentProduct.getAgentId().equals(agentId)) {
+                ErrorCodeEnum.NOT_CURRENT_AGENT.throwException();
+            }
+
+
             Long uid = fundTransactionRecord.getUid();
             if (status == FundReviewStatus.success) {
-                //生成一笔订单
-                Order agentOrder = Order.builder()
-                        .uid(agentVO.getUid())
-                        .coin(fundTransactionRecord.getCoin())
-                        .relatedId(fundTransactionRecord.getId())
-                        .orderNo(AccountChangeType.agent_fund_redeem.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
-                        .amount(fundTransactionRecord.getTransactionAmount())
-                        .type(ChargeType.agent_fund_redeem)
-                        .status(ChargeStatus.chain_success)
-                        .createTime(LocalDateTime.now())
-                        .completeTime(LocalDateTime.now())
-                        .build();
-                orderService.save(agentOrder);
-                // 减少余额
-                accountBalanceService.decrease(agentVO.getUid(), ChargeType.agent_fund_redeem, fundTransactionRecord.getCoin(), fundTransactionRecord.getTransactionAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金赎回.name());
-
-                //生成一笔订单
-                Order order = Order.builder()
-                        .uid(uid)
-                        .coin(fundTransactionRecord.getCoin())
-                        .relatedId(fundTransactionRecord.getId())
-                        .orderNo(AccountChangeType.fund_redeem.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
-                        .amount(fundTransactionRecord.getTransactionAmount())
-                        .type(ChargeType.fund_redeem)
-                        .status(ChargeStatus.chain_success)
-                        .createTime(LocalDateTime.now())
-                        .completeTime(LocalDateTime.now())
-                        .build();
-                orderService.save(order);
-                // 增加余额
-                accountBalanceService.increase(uid, ChargeType.fund_redeem, fundTransactionRecord.getCoin(), fundTransactionRecord.getTransactionAmount(), order.getOrderNo(), CurrencyLogDes.代理基金赎回.name());
-
-                FundReview fundReview = FundReview.builder()
-                        .rId(id)
-                        .type(FundReviewType.redemption)
-                        .status(FundReviewStatus.success)
-                        .remark(bo.getRemark())
-                        .createTime(LocalDateTime.now())
-                        .build();
-                fundReviewService.save(fundReview);
-
-                fundTransactionRecord.setStatus(FundTransactionStatus.success);
-                fundTransactionRecordMapper.updateById(fundTransactionRecord);
-
-                financialProductService.reduceUseQuota(fundTransactionRecord.getProductId(), fundTransactionRecord.getTransactionAmount());
-            } else {
-
-                FundReview fundReview = FundReview.builder()
-                        .rId(id)
-                        .type(FundReviewType.redemption)
-                        .status(FundReviewStatus.fail)
-                        .remark(bo.getRemark())
-                        .createTime(LocalDateTime.now())
-                        .build();
-                fundReviewService.save(fundReview);
-
-                fundTransactionRecord.setStatus(FundTransactionStatus.fail);
-                fundTransactionRecordMapper.updateById(fundTransactionRecord);
-                fundRecordService.increaseAmount(fundTransactionRecord.getFundId(), fundTransactionRecord.getTransactionAmount());
+                redeemExaminePass(agentVO, uid, fundTransactionRecord, bo);
             }
+
+            if (status != FundReviewStatus.success) {
+                redeemExamineFail(fundTransactionRecord, bo);
+            }
+
+            redeemFinishOperation(fundId);
+
         });
 
+    }
+
+    /**
+     * 赎回完毕操作,如果赎回金额到0，且全部审核通过，则修改利息发放状态为待发放
+     */
+    private void redeemFinishOperation(Long fundId) {
+
+        FundRecord fundRecord = fundRecordService.getById(fundId);
+        if (BigDecimal.ZERO.compareTo(fundRecord.getHoldAmount()) != 0) {
+            return;
+        }
+
+        List<FundTransactionRecord> fundTransactionRecords =
+                fundTransactionRecordMapper.selectList(new LambdaQueryWrapper<FundTransactionRecord>()
+                        .eq(FundTransactionRecord::getFundId, fundRecord.getId())
+                        .eq(FundTransactionRecord::getType, FundTransactionType.redemption)
+                        .eq(FundTransactionRecord::getStatus, FundTransactionStatus.wait_audit));
+        if (CollectionUtils.isNotEmpty(fundTransactionRecords)) {
+            return;
+        }
+
+        List<FundIncomeRecord> fundIncomeRecords = fundIncomeRecordService.list(new LambdaQueryWrapper<FundIncomeRecord>()
+                .eq(FundIncomeRecord::getFundId, fundRecord.getId())
+                .eq(FundIncomeRecord::getStatus, 1));
+
+        fundIncomeRecords.forEach(incomeRecord -> incomeRecord.setStatus(2));
+        fundIncomeRecordService.updateBatchById(fundIncomeRecords);
+    }
+
+    /**
+     * 赎回审核未通过
+     */
+    private void redeemExamineFail(FundTransactionRecord fundTransactionRecord, FundAuditBO fundAuditBO) {
+        FundReview fundReview = FundReview.builder()
+                .rId(fundTransactionRecord.getId())
+                .type(FundReviewType.redemption)
+                .status(FundReviewStatus.fail)
+                .remark(fundAuditBO.getRemark())
+                .createTime(LocalDateTime.now())
+                .build();
+        fundReviewService.save(fundReview);
+
+        fundTransactionRecord.setStatus(FundTransactionStatus.fail);
+        fundTransactionRecordMapper.updateById(fundTransactionRecord);
+        fundRecordService.increaseAmount(fundTransactionRecord.getFundId(), fundTransactionRecord.getTransactionAmount());
+    }
+
+    /**
+     * 赎回审核通过
+     */
+    private void redeemExaminePass(WalletAgentVO agentVO, Long uid, FundTransactionRecord fundTransactionRecord, FundAuditBO fundAuditBO) {
+        //生成一笔订单
+        Order agentOrder = Order.builder()
+                .uid(agentVO.getUid())
+                .coin(fundTransactionRecord.getCoin())
+                .relatedId(fundTransactionRecord.getId())
+                .orderNo(AccountChangeType.agent_fund_redeem.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
+                .amount(fundTransactionRecord.getTransactionAmount())
+                .type(ChargeType.agent_fund_redeem)
+                .status(ChargeStatus.chain_success)
+                .createTime(LocalDateTime.now())
+                .completeTime(LocalDateTime.now())
+                .build();
+        orderService.save(agentOrder);
+        // 减少余额
+        accountBalanceService.decrease(agentVO.getUid(), ChargeType.agent_fund_redeem, fundTransactionRecord.getCoin(), fundTransactionRecord.getTransactionAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金赎回.name());
+
+        //生成一笔订单
+        Order order = Order.builder()
+                .uid(uid)
+                .coin(fundTransactionRecord.getCoin())
+                .relatedId(fundTransactionRecord.getId())
+                .orderNo(AccountChangeType.fund_redeem.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
+                .amount(fundTransactionRecord.getTransactionAmount())
+                .type(ChargeType.fund_redeem)
+                .status(ChargeStatus.chain_success)
+                .createTime(LocalDateTime.now())
+                .completeTime(LocalDateTime.now())
+                .build();
+        orderService.save(order);
+        // 增加余额
+        accountBalanceService.increase(uid, ChargeType.fund_redeem, fundTransactionRecord.getCoin(), fundTransactionRecord.getTransactionAmount(), order.getOrderNo(), CurrencyLogDes.代理基金赎回.name());
+
+        FundReview fundReview = FundReview.builder()
+                .rId(fundTransactionRecord.getId())
+                .type(FundReviewType.redemption)
+                .status(FundReviewStatus.success)
+                .remark(fundAuditBO.getRemark())
+                .createTime(LocalDateTime.now())
+                .build();
+        fundReviewService.save(fundReview);
+
+        fundTransactionRecord.setStatus(FundTransactionStatus.success);
+        fundTransactionRecordMapper.updateById(fundTransactionRecord);
+
+        financialProductService.reduceUseQuota(fundTransactionRecord.getProductId(), fundTransactionRecord.getTransactionAmount());
     }
 
     @Override

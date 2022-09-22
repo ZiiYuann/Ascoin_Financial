@@ -85,7 +85,7 @@ public class TestController {
 
             if (CollectionUtils.isNotEmpty(incomeRecords)) {
                 FundIncomeRecord fundIncomeRecordFirst = incomeRecords.get(0);
-                if(fundIncomeRecordFirst.getCreateTime().equals(nowZero)){
+                if (fundIncomeRecordFirst.getCreateTime().equals(nowZero)) {
                     FundIncomeRecord fundIncomeRecordLast = incomeRecords.get(incomeRecords.size() - 1);
                     fundIncomeRecordFirst.setCreateTime(fundIncomeRecordLast.getCreateTime().plusDays(-1));
                     fundIncomeRecordService.updateById(fundIncomeRecordFirst);
@@ -93,7 +93,7 @@ public class TestController {
             }
 
             // 计息时间为4天后，所以手动修改为5天前
-            record.setCreateTime(now.plusDays(-8));
+            record.setCreateTime(MoreObjects.firstNonNull(query.getCreateTime(), now.plusDays(-8)));
             // 利息修改为前一天的时间
             for (int i = 0; i < incomeRecords.size(); i++) {
                 FundIncomeRecord fundIncomeRecord = incomeRecords.get(i);

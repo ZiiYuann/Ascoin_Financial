@@ -21,5 +21,7 @@ public class FundIncomeTestQuery {
     private Long recordId;
 
     private LocalDateTime now;
+
+    private LocalDateTime createTime;
 }
 

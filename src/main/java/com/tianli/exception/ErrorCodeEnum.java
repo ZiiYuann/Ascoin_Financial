@@ -101,7 +101,7 @@ public enum ErrorCodeEnum {
 
     /*** －－－－－－业务错误码-基金相关－－－－－－*/
     AGENT_ALREADY_BIND(3601, "用户已有代理信息"),
-    AGENT_PRODUCT_NOT_EXIST(3602, "产品不存在"),
+    AGENT_PRODUCT_NOT_EXIST(3602, "基金产品不存在"),
     AGENT_PRODUCT_ALREADY_BIND(3603, "产品已经绑定"),
     AGENT_NOT_EXIST(3604, "代理信息不存在"),
     PURCHASE_GT_PERSON_QUOTA(3605, "申购金额大于个人限额"),
@@ -109,7 +109,7 @@ public enum ErrorCodeEnum {
     REFERRAL_CODE_ERROR(3604, "推荐码错误"),
     FUND_NOT_EXIST(3606, "基金不存在"),
     REDEMPTION_GT_HOLD(3607, "赎回金额大于持有金额"),
-    TRANSACTION_NOT_EXIST(3608, "交易记录不存在或状态错误"),
+    TRANSACTION_NOT_EXIST(3608, "交易记录不存"),
     INCOME_NOT_EXIST(3609, "收益记录不存在"),
     INCOME_STATUS_ERROR(3609, "收益记录状态错误"),
     PRODUCT_NOT_CLOSE(3610, "产品未下线"),
@@ -119,7 +119,12 @@ public enum ErrorCodeEnum {
     BENEFITS_NOT_BUY(3614, "仅限新用户可申购"),
     FUND_PRODUCT_OPEN_NEED_AGENT(3615, "基金产品上线必须绑定代理人"),
     FUND_PRODUCT_REPEAT_BIND(3616, "基金产品不允许重复绑定代理人"),
-    AGENT_NOT_ACTIVE(3617, "代理人云钱包未激活");
+    AGENT_NOT_ACTIVE(3617, "代理人云钱包未激活"),
+    STATUS_NOT_WAIT(3618, "状态不是待审核"),
+    FUND_RECORD_NOT_EXIST(3619, "基金持有记录不存在"),
+    NOT_CURRENT_AGENT(3620, "不是当前代理人记录"),
+
+    ;
     private int errorNo;
 
     private String errorMsg;

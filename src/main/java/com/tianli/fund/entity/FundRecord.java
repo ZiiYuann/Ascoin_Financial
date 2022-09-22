@@ -115,4 +115,5 @@ public class FundRecord extends Model<FundRecord> {
      */
     private ProductType type;
 
+
 }

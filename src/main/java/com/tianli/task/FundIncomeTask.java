@@ -1,5 +1,6 @@
 package com.tianli.task;
 
+import cn.hutool.Hutool;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.common.RedisLockConstants;
@@ -68,25 +69,29 @@ public class FundIncomeTask {
     @Transactional
     public void calculateIncome(FundRecord fundRecord, LocalDateTime now) {
         LocalDateTime todayZero = TimeTool.minDay(now);
-
-        // 查询已经计算的收益信息
-        List<FundIncomeRecord> fundIncomeRecords = fundIncomeRecordService.list(new QueryWrapper<FundIncomeRecord>().lambda()
-                .eq(FundIncomeRecord::getFundId, fundRecord.getId())
-                .eq(FundIncomeRecord::getStatus, FundIncomeStatus.calculated)
-                .between(FundIncomeRecord::getCreateTime, todayZero.plusDays(-7), todayZero.plusDays(-1)));
-
-        // 如果利息周期已经存在7天，则修改状态为待审核
-        if (fundIncomeRecords.size() == 7) {
-            fundIncomeRecords.forEach(fundIncomeRecord -> {
-                fundIncomeRecord.setStatus(FundIncomeStatus.wait_audit);
-                fundIncomeRecordService.updateById(fundIncomeRecord);
-            });
+        LocalDateTime createTime = fundRecord.getCreateTime();
+        // t + 4 是开始记录利息的时间  1号12点申购 5号开始计算利息 6号开始发5号利息
+        LocalDateTime startIncomeTime = TimeTool.minDay(createTime).plusDays(5);
+        long cha = 0L;
+        if (startIncomeTime.compareTo(todayZero) < 0 && (cha = startIncomeTime.until(todayZero, ChronoUnit.DAYS)) >= 7) {
+            if (cha % 7 == 0) {
+                // 查询已经计算的收益信息
+                List<FundIncomeRecord> fundIncomeRecords = fundIncomeRecordService.list(new QueryWrapper<FundIncomeRecord>().lambda()
+                        .eq(FundIncomeRecord::getFundId, fundRecord.getId())
+                        .eq(FundIncomeRecord::getStatus, FundIncomeStatus.calculated)
+                        .between(FundIncomeRecord::getCreateTime, todayZero.plusDays(-7), todayZero.plusDays(-1)));
+                fundIncomeRecords.forEach(fundIncomeRecord -> {
+                    fundIncomeRecord.setStatus(FundIncomeStatus.wait_audit);
+                    fundIncomeRecordService.updateById(fundIncomeRecord);
+                });
+            }
         }
 
-
-        LocalDateTime createTime = fundRecord.getCreateTime();
         //四天后开始计息
         if (createTime.toLocalDate().plusDays(1).until(now, ChronoUnit.DAYS) >= FundCycle.interestCalculationCycle) {
+            if (BigDecimal.ZERO.compareTo(fundRecord.getHoldAmount()) == 0) {
+                return;
+            }
             BigDecimal dailyIncome = fundRecordService.dailyIncome(fundRecord.getHoldAmount(), fundRecord.getRate());
             //收益记录
             FundIncomeRecord incomeRecord = FundIncomeRecord.builder()
