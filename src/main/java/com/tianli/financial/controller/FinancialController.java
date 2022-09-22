@@ -22,6 +22,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/financial")
@@ -80,6 +81,12 @@ public class FinancialController {
     public Result expectIncome(Long productId, BigDecimal amount) {
         FinancialProduct product = financialProductService.getById(productId);
         ExpectIncomeVO expectIncomeVO = new ExpectIncomeVO();
+
+        if (Objects.isNull(product)) {
+            expectIncomeVO.setExpectIncome(BigDecimal.ZERO);
+            return Result.instance().setData(expectIncomeVO);
+        }
+
 
         if (product.getRateType() == 1) {
             BigDecimal income = financialProductLadderRateService.calLadderIncome(productId, amount);
