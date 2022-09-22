@@ -140,8 +140,9 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
                 }
             }
 
-            product.setUpdateTime(LocalDateTime.now());
-            super.saveOrUpdate(productDO);
+            productDO.setUpdateTime(LocalDateTime.now());
+
+            super.updateById(productDO);
         }
 
         List<FinancialProductLadderRateIoUQuery> ladderRates = financialProductQuery.getLadderRates();
@@ -155,15 +156,17 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
             productDO.setRate(ladderRates.get(0).getRate());
             BigDecimal max = BigDecimal.ZERO;
             BigDecimal min = BigDecimal.ZERO;
-            if (maxOptional.isPresent()){
+            if (maxOptional.isPresent()) {
                 max = maxOptional.get();
             }
-            if (minOptional.isPresent()){
+            if (minOptional.isPresent()) {
                 min = minOptional.get();
             }
             productDO.setMinRate(min);
             productDO.setMaxRate(max);
-            super.saveOrUpdate(productDO);
+            super.updateById(productDO);
+
+
         }
 
 
