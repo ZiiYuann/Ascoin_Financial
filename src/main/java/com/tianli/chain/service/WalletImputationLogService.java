@@ -33,6 +33,7 @@ public class WalletImputationLogService extends ServiceImpl<WalletImputationLogM
 
         LambdaQueryWrapper<WalletImputationLog> queryWrapper = new LambdaQueryWrapper<>();
 
+
         if(Objects.nonNull(query.getTxid())){
             queryWrapper = queryWrapper.like(WalletImputationLog :: getTxid,query.getTxid());
         }
@@ -48,6 +49,8 @@ public class WalletImputationLogService extends ServiceImpl<WalletImputationLogM
         if(Objects.nonNull(query.getStatus())) {
             queryWrapper = queryWrapper.eq(WalletImputationLog :: getStatus,query.getStatus());
         }
+
+        queryWrapper = queryWrapper.orderByDesc(WalletImputationLog :: getCreateTime);
 
         return walletImputationLogMapper.selectPage(page, queryWrapper).convert(chainConverter::toWalletImputationLogVO);
     }
