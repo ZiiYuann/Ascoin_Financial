@@ -38,6 +38,6 @@ public class WebHookTemplate {
                     "赎回状态：成功。如不是本人操作，请及时前往后台修改密码。";
 
     public static String FUND_INCOME_PUSH =
-            "你于#{time} 对用户ID#{uid} 的收益进行了发放，发放利息：#{amount} #{coin}，" +
+            "你于#{time} 对收益进行了发放，发放利息：#{amount} #{coin}，" +
                     "发放状态：成功。";
 }
