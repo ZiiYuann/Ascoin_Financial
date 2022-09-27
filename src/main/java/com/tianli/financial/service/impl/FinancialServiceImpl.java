@@ -374,11 +374,6 @@ public class FinancialServiceImpl implements FinancialService {
             query = query.eq(FinancialProduct::getType, type);
         }
 
-        if (Objects.isNull(type)) {
-            query = query.in(FinancialProduct::getType, List.of(ProductType.current, ProductType.fixed));
-        }
-
-
         var list = financialProductService.page(page, query);
         List<Long> productIds = list.getRecords().stream().map(FinancialProduct::getId).distinct().collect(Collectors.toList());
 
