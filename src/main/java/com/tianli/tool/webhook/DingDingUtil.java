@@ -1,5 +1,6 @@
-package com.tianli.tool;
+package com.tianli.tool.webhook;
 
+import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
@@ -30,15 +31,15 @@ public class DingDingUtil {
         client = HttpClients.createDefault();
     }
 
-    public static String postWithJson(Object message) {
+    public static String linkType(Object message,String token,String secret) {
 
         JSONObject msg = new JSONObject();
         msg.putOnce("msgtype", "link");
         msg.putOnce("link", message);
         try {
-            HttpPost httpPost = new HttpPost(getSign());
+            HttpPost httpPost = new HttpPost(getSign(token,secret));
             httpPost.setHeader("Content-Type", "application/json; charset=UTF-8");
-            httpPost.setEntity(new StringEntity(msg.toString(),StandardCharsets.UTF_8));
+            httpPost.setEntity(new StringEntity(msg.toString(), StandardCharsets.UTF_8));
             HttpResponse execute = client.execute(httpPost);
             return EntityUtils.toString(execute.getEntity());
         } catch (Exception e) {
@@ -47,9 +48,25 @@ public class DingDingUtil {
         return null;
     }
 
-    private static String getSign() throws Exception {
-        String token = "1a1216a39f18e8022b6795014424a9fcf5d62a5f00d3666c11127b21841eb718";
-        String secret = "SEC52152f460aaf1c4c77592f46674aadf9592fcca6d99974b0b7fb74cd66f20be3";
+    public static String textType(Object message,String token,String secret) {
+        JSONObject msg = new JSONObject();
+        msg.putOnce("msgtype", "text");
+        JSONObject content = new JSONObject();
+        content.set("content", message);
+        msg.putOnce("text", content);
+        try {
+            HttpPost httpPost = new HttpPost(getSign(token,secret));
+            httpPost.setHeader("Content-Type", "application/json; charset=UTF-8");
+            httpPost.setEntity(new StringEntity(msg.toString(), StandardCharsets.UTF_8));
+            HttpResponse execute = client.execute(httpPost);
+            return EntityUtils.toString(execute.getEntity());
+        } catch (Exception e) {
+            log.error("消息发送失败！");
+        }
+        return null;
+    }
+
+    private static String getSign(String token,String secret) throws Exception {
         String baseUrl = "https://oapi.dingtalk.com/robot/send?access_token=";
         long timestamp = System.currentTimeMillis();
         String stringToSign = timestamp + "\n" + secret;
@@ -59,5 +76,6 @@ public class DingDingUtil {
         return baseUrl + token + "&timestamp=" + timestamp + "&sign=" +
                 URLEncoder.encode(new String(Base64.encodeBase64(signData)), StandardCharsets.UTF_8);
     }
+
 
 }

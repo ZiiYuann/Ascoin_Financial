@@ -12,6 +12,8 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
+import com.tianli.common.webhook.WebHookService;
+import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialProduct;
@@ -51,6 +53,7 @@ import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.management.vo.FundUserRecordVO;
 import com.tianli.management.vo.HoldUserAmount;
 import com.tianli.sso.init.RequestInitService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,8 +62,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -96,7 +101,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     private FinancialProductService financialProductService;
 
     @Resource
-    private FinancialRecordService financialRecordService;
+    private WebHookService webHookService;
 
     @Resource
     private AccountBalanceService accountBalanceService;
@@ -201,6 +206,30 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
             ErrorCodeEnum.PURCHASE_GT_PERSON_QUOTA.throwException();
         }
 
+    }
+
+    @Override
+    public void finishPurchase(Long uid, FinancialProduct product, PurchaseQuery purchaseQuery) {
+
+        // 发送消息
+        String fundPurchaseTemplate = WebHookTemplate.FUND_PURCHASE;
+
+        String[] searchList = new String[5];
+        searchList[0] = "#{uid}";
+        searchList[1] = "#{productName}";
+        searchList[2] = "#{amount}";
+        searchList[3] = "#{coin}";
+        searchList[4] = "#{time}";
+
+        String[] replacementList = new String[5];
+        replacementList[0] = uid + "";
+        replacementList[1] = product.getName();
+        replacementList[2] = purchaseQuery.getAmount().doubleValue() + "";
+        replacementList[3] = product.getCoin().getName();
+        replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
+        webHookService.fundSend(s);
     }
 
     @Override
@@ -421,6 +450,24 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
                 .transactionAmount(redemptionAmount)
                 .createTime(LocalDateTime.now()).build();
         fundTransactionRecordService.save(transactionRecord);
+
+
+        // 发送消息
+        String fundPurchaseTemplate = WebHookTemplate.FUND_REDEEM;
+        String[] searchList = new String[5];
+        searchList[0] = "#{uid}";
+        searchList[1] = "#{productName}";
+        searchList[2] = "#{amount}";
+        searchList[3] = "#{coin}";
+        searchList[4] = "#{time}";
+        String[] replacementList = new String[5];
+        replacementList[0] = fundRecord.getUid() + "";
+        replacementList[1] = fundRecord.getProductName();
+        replacementList[2] = redemptionAmount.doubleValue() + "";
+        replacementList[3] = fundRecord.getCoin().getName();
+        replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
+        webHookService.fundSend(s);
 
         return FundTransactionRecordVO.builder()
                 .id(transactionRecord.getId())

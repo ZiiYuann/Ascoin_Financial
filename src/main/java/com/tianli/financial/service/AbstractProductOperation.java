@@ -59,6 +59,7 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
         // finish operation
         financialProductService.increaseUseQuota(product.getId(), purchaseQuery.getAmount(), product.getUseQuota());
 
+        finishPurchase(uid,product, purchaseQuery);
 
         if (!o.getClass().equals(rClass)) {
             throw new UnsupportedOperationException();
@@ -77,7 +78,7 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
      * @param uid           uid
      * @param purchaseQuery 申购参数
      * @param order         外部order
-     * @param <R> r
+     * @param <R>           r
      * @return
      */
     public abstract <R> R purchaseOperation(Long uid, PurchaseQuery purchaseQuery, Order order);
@@ -155,5 +156,7 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
         throw new UnsupportedOperationException();
     }
 
+    public void finishPurchase(Long uid,FinancialProduct product, PurchaseQuery purchaseQuery) {
 
+    }
 }
