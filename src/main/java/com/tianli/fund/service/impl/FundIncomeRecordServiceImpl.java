@@ -192,7 +192,7 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
                 searchList[1] = "#{amount}";
                 searchList[2] = "#{coin}";
                 searchList[3] = "#{time}";
-                String[] replacementList = new String[5];
+                String[] replacementList = new String[4];
                 replacementList[0] = uid + "";
                 replacementList[1] = fundIncomeRecord.getInterestAmount().doubleValue() + "";
                 replacementList[2] = fundIncomeRecord.getCoin().getName();

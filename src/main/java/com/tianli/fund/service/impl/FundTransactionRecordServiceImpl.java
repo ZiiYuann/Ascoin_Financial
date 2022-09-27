@@ -259,12 +259,12 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
 
         // 发送消息
         String fundPurchaseTemplate = WebHookTemplate.FUND_EXAMINE;
-        String[] searchList = new String[5];
+        String[] searchList = new String[4];
         searchList[0] = "#{uid}";
         searchList[1] = "#{amount}";
         searchList[2] = "#{coin}";
         searchList[3] = "#{time}";
-        String[] replacementList = new String[5];
+        String[] replacementList = new String[4];
         replacementList[0] = uid + "";
         replacementList[1] = fundTransactionRecord.getTransactionAmount().doubleValue() + "";
         replacementList[2] = fundTransactionRecord.getCoin().getName();
