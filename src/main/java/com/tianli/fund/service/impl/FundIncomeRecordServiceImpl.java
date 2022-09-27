@@ -15,6 +15,8 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
+import com.tianli.common.webhook.WebHookService;
+import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.fund.contant.FundIncomeStatus;
@@ -35,12 +37,14 @@ import com.tianli.management.dto.AmountDto;
 import com.tianli.management.service.IWalletAgentService;
 import com.tianli.management.vo.FundIncomeAmountVO;
 import com.tianli.management.vo.WalletAgentVO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -71,6 +75,8 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     private IFundRecordService fundRecordService;
     @Resource
     private IWalletAgentService walletAgentService;
+    @Resource
+    private WebHookService webHookService;
 
     @Override
     public List<AmountDto> getAmountByUidAndStatus(Long uid, Long agentId, Integer status) {
@@ -178,6 +184,22 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
 //                fundRecord.setCumulativeIncomeAmount(fundRecord.getCumulativeIncomeAmount().add(fundIncomeRecord.getInterestAmount()));
                 fundRecordService.updateById(fundRecord);
                 fundIncomeRecord.setOrderNo(order.getOrderNo());
+
+                // 发送消息
+                String fundPurchaseTemplate = WebHookTemplate.FUND_INCOME_PUSH;
+                String[] searchList = new String[4];
+                searchList[0] = "#{uid}";
+                searchList[1] = "#{amount}";
+                searchList[2] = "#{coin}";
+                searchList[3] = "#{time}";
+                String[] replacementList = new String[5];
+                replacementList[0] = uid + "";
+                replacementList[1] = fundIncomeRecord.getInterestAmount().doubleValue() + "";
+                replacementList[2] = fundIncomeRecord.getCoin().getName();
+                replacementList[3] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
+                webHookService.fundSend(s);
+
             }
 
             this.updateById(fundIncomeRecord);

@@ -1,9 +1,10 @@
 package com.tianli.task;
 
-import cn.hutool.Hutool;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.common.RedisLockConstants;
+import com.tianli.common.webhook.WebHookService;
+import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.fund.contant.FundCycle;
 import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.entity.FundIncomeRecord;
@@ -13,18 +14,20 @@ import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RAtomicLong;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -34,13 +37,13 @@ import java.util.List;
 public class FundIncomeTask {
 
 
-    @Autowired
+    @Resource
     private IFundRecordService fundRecordService;
-
-    @Autowired
+    @Resource
     private IFundIncomeRecordService fundIncomeRecordService;
-
-    @Autowired
+    @Resource
+    private WebHookService webHookService;
+    @Resource
     private RedissonClient redissonClient;
 
     @Scheduled(cron = "0 0 0 1/20 * ? ")
@@ -84,6 +87,23 @@ public class FundIncomeTask {
                     fundIncomeRecord.setStatus(FundIncomeStatus.wait_audit);
                     fundIncomeRecordService.updateById(fundIncomeRecord);
                 });
+
+                // 发送消息
+                String fundPurchaseTemplate = WebHookTemplate.FUND_INCOME;
+                String[] searchList = new String[5];
+                searchList[0] = "#{uid}";
+                searchList[1] = "#{holdAmount}";
+                searchList[2] = "#{incomeAmount}";
+                searchList[3] = "#{coin}";
+                searchList[4] = "#{time}";
+                String[] replacementList = new String[5];
+                replacementList[0] = fundRecord.getUid() + "";
+                replacementList[1] = fundRecord.getHoldAmount().doubleValue() + "";
+                replacementList[2] = fundRecord.getWaitIncomeAmount().doubleValue() + "";
+                replacementList[3] = fundRecord.getCoin().getName();
+                replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
+                webHookService.fundSend(s);
             }
         }
 

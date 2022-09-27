@@ -1,6 +1,6 @@
 package com.tianli.exception;
 
-import com.tianli.common.WebHookService;
+import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.async.AsyncService;
 import com.tianli.tool.ApplicationContextTool;
 import org.springframework.validation.BindingResult;

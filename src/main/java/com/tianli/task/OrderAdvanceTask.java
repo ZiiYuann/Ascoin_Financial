@@ -10,7 +10,7 @@ import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderAdvanceService;
 import com.tianli.charge.service.OrderService;
-import com.tianli.common.WebHookService;
+import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.blockchain.NetworkType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Scheduled;
