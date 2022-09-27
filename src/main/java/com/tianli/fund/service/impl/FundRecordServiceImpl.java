@@ -1,6 +1,7 @@
 package com.tianli.fund.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.account.entity.AccountBalance;
@@ -64,10 +65,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -508,6 +506,16 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         fundRecordMapper.updateRateByProductId(id, rate);
     }
 
+    @Override
+    public List<FundRecord> listByUidAndProductId(Long uid, Long productId) {
+        LambdaQueryWrapper<FundRecord> eq = new LambdaQueryWrapper<FundRecord>()
+                .eq(FundRecord::getUid, uid)
+                .eq(FundRecord::getProductId, productId)
+                .eq(false, FundRecord::getHoldAmount, BigDecimal.ZERO);
+
+        return Optional.ofNullable(fundRecordMapper.selectList(eq)).orElse(new ArrayList<>());
+    }
+
 
     @Override
     public void validProduct(FinancialProduct financialProduct, PurchaseQuery purchaseQuery) {
@@ -521,4 +529,6 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
             ErrorCodeEnum.REFERRAL_CODE_ERROR.throwException();
 
     }
+
+
 }
