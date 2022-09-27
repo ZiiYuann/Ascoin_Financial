@@ -40,14 +40,16 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public BigDecimal getDollarRate(CurrencyCoin currencyCoin) {
-        switch (currencyCoin){
+        switch (currencyCoin) {
             case usdc:
-            case usdt: return BigDecimal.valueOf(digitalCurrencyExchange.usdtPrice(NationalCurrencyEnum.USD));
-            case bnb : return BigDecimal.valueOf(digitalCurrencyExchange.usdtPrice(NationalCurrencyEnum.USD))
-                    .multiply(BigDecimal.valueOf(digitalCurrencyExchange.bnbUsdtPrice()));
-            case eth: return BigDecimal.valueOf(digitalCurrencyExchange.usdtPrice(NationalCurrencyEnum.USD))
-                    .multiply(BigDecimal.valueOf(digitalCurrencyExchange.ethUsdtPrice()));
-            default: break;
+            case usdt:
+                return BigDecimal.valueOf(digitalCurrencyExchange.usdtPrice(NationalCurrencyEnum.USD));
+            case bnb:
+                return BigDecimal.valueOf(digitalCurrencyExchange.bnbUsdtPrice());
+            case eth:
+                return BigDecimal.valueOf(digitalCurrencyExchange.ethUsdtPrice());
+            default:
+                break;
         }
         throw ErrorCodeEnum.CURRENCY_NOT_SUPPORT.generalException();
     }
@@ -55,10 +57,10 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public EnumMap<CurrencyCoin, BigDecimal> getDollarRateMap() {
         EnumMap<CurrencyCoin, BigDecimal> rateMap = new EnumMap<>(CurrencyCoin.class);
-        rateMap.put(CurrencyCoin.usdt,this.getDollarRate(CurrencyCoin.usdt));
-        rateMap.put(CurrencyCoin.usdc,this.getDollarRate(CurrencyCoin.usdc));
-        rateMap.put(CurrencyCoin.bnb,this.getDollarRate(CurrencyCoin.bnb));
-        rateMap.put(CurrencyCoin.eth,this.getDollarRate(CurrencyCoin.eth));
+        rateMap.put(CurrencyCoin.usdt, this.getDollarRate(CurrencyCoin.usdt));
+        rateMap.put(CurrencyCoin.usdc, this.getDollarRate(CurrencyCoin.usdc));
+        rateMap.put(CurrencyCoin.bnb, this.getDollarRate(CurrencyCoin.bnb));
+        rateMap.put(CurrencyCoin.eth, this.getDollarRate(CurrencyCoin.eth));
         // 设置其他类型的汇率
         return rateMap;
     }

@@ -94,6 +94,8 @@ public class OrderChargeInfoVO {
 
     private String typeNameEn;
 
+    private BigDecimal usdtAmount;
+
     public String getTypeName() {
         return type.getNameZn();
     }

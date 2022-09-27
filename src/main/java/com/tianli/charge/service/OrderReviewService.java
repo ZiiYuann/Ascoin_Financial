@@ -41,10 +41,14 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
             ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "未找到相关的审核记录，请校验");
         }
 
+        Long relatedId = order.getRelatedId();
+        OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(relatedId);
+
         OrderReview orderReview = Optional.ofNullable(orderReviewMapper.selectById(reviewId))
                 .orElseThrow(() -> ErrorCodeEnum.ARGUEMENT_ERROR.generalException("未找到对应的审核记录:" + reviewId));
-
-        return chargeConverter.toOrderReviewVO(orderReview);
+        OrderReviewVO orderReviewVO = chargeConverter.toOrderReviewVO(orderReview);
+        orderReviewVO.setTxid(orderChargeInfo.getTxid());
+        return orderReviewVO;
     }
 
     @Transactional

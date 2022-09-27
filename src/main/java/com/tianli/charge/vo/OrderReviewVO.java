@@ -32,6 +32,8 @@ public class OrderReviewVO {
      */
     private ChargeStatus status;
 
+    private String txid;
+
     /**
      * 审核时间
      */
