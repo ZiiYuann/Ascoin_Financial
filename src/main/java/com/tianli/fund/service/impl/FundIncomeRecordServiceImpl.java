@@ -195,18 +195,21 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
             this.updateById(fundIncomeRecord);
         });
 
-        // 发送消息
-        String fundPurchaseTemplate = WebHookTemplate.FUND_INCOME_PUSH;
-        String[] searchList = new String[3];
-        searchList[0] = "#{time}";
-        searchList[1] = "#{amount}";
-        searchList[2] = "#{coin}";
-        String[] replacementList = new String[3];
-        replacementList[0] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        replacementList[1] = totalAmount.stream().reduce(BigDecimal.ZERO,BigDecimal::add).doubleValue() + "";
-        replacementList[2] = CurrencyCoin.usdt.getName();
-        String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
-        webHookService.fundSend(s);
+        if (status == FundReviewStatus.success) {
+            // 发送消息
+            String fundPurchaseTemplate = WebHookTemplate.FUND_INCOME_PUSH;
+            String[] searchList = new String[3];
+            searchList[0] = "#{time}";
+            searchList[1] = "#{amount}";
+            searchList[2] = "#{coin}";
+            String[] replacementList = new String[3];
+            replacementList[0] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            replacementList[1] = totalAmount.stream().reduce(BigDecimal.ZERO, BigDecimal::add).doubleValue() + "";
+            replacementList[2] = CurrencyCoin.usdt.getName();
+            String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
+            webHookService.fundSend(s);
+        }
+
     }
 
     @Override
