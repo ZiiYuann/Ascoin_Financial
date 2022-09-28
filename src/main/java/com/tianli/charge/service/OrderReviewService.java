@@ -12,14 +12,17 @@ import com.tianli.charge.mapper.OrderReviewMapper;
 import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.vo.OrderReviewVO;
 import com.tianli.common.CommonFunction;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.entity.HotWalletDetailed;
 import com.tianli.management.enums.HotWalletOperationType;
 import com.tianli.management.service.HotWalletDetailedService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
@@ -76,11 +79,20 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
 
         // 审核通过需要上链
         if (query.isPass()) {
-//            chargeService.withdrawChain(order);
-            // 更新order相关链信息
             OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
-            orderChargeInfo.setTxid(query.getHash());
-            orderChargeInfoService.updateById(orderChargeInfo);
+            // 如果传入的hash值为空说明是自动转账
+            if (StringUtils.isBlank(query.getHash())) {
+                BigDecimal uAmount = currencyService.getDollarRate(orderChargeInfo.getCoin()).multiply(orderChargeInfo.getFee());
+                if (uAmount.compareTo(BigDecimal.valueOf(5000L)) > 0) {
+                    ErrorCodeEnum.AUTO_PASS_ERROR.throwException();
+                }
+                chargeService.withdrawChain(order);
+            } else {
+                // 更新order相关链信息
+                orderChargeInfo.setTxid(query.getHash());
+                orderChargeInfoService.updateById(orderChargeInfo);
+            }
+
 
             // 操作余额信息
             accountBalanceService.reduce(order.getUid(), ChargeType.withdraw, order.getCoin()
@@ -124,5 +136,9 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
     private OrderChargeInfoService orderChargeInfoService;
     @Resource
     private HotWalletDetailedService hotWalletDetailedService;
+    @Resource
+    private ChargeService chargeService;
+    @Resource
+    private CurrencyService currencyService;
 
 }

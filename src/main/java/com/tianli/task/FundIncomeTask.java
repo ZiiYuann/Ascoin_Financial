@@ -124,7 +124,8 @@ public class FundIncomeTask {
                     .holdAmount(fundRecord.getHoldAmount())
                     .interestAmount(dailyIncome)
                     .status(FundIncomeStatus.calculated)
-                    .createTime(todayZero)
+                    // 收益的记录时间为计息当日的时间
+                    .createTime(todayZero.plusDays(-1))
                     .build();
             fundIncomeRecordService.save(incomeRecord);
 

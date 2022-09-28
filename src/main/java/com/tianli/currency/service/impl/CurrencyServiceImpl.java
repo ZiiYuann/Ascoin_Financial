@@ -43,7 +43,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         switch (currencyCoin) {
             case usdc:
             case usdt:
-                return BigDecimal.valueOf(digitalCurrencyExchange.usdtPrice(NationalCurrencyEnum.USD));
+                return BigDecimal.ONE;
             case bnb:
                 return BigDecimal.valueOf(digitalCurrencyExchange.bnbUsdtPrice());
             case eth:

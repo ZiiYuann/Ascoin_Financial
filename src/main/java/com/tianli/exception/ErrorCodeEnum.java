@@ -77,7 +77,9 @@ public enum ErrorCodeEnum {
     UPLOAD_DATACENTER_ERROR(3106, "链接数据中心失败, 请稍后重试"),
     PRODUCT_USER_HOLD(3107, "用户持有中，不可删除"),
     PRODUCT_CAN_NOT_BUY(3108, "产品暂时不可购买"),
-    PRODUCT_CAN_NOT_EDIT(3108, "产品暂时不可修改"),
+    PRODUCT_CAN_NOT_EDIT(3109, "产品暂时不可修改"),
+    AUTO_PASS_ERROR(3110, "自动审核提现超过5000$上限"),
+
 
     /*** －－－－－－业务错误码-现货交易－－－－－－*/
     TRADE_FAIL(3400, "交易失败"),
