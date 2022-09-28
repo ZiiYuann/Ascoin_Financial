@@ -27,7 +27,12 @@ import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.fund.bo.FundPurchaseBO;
+import com.tianli.fund.contant.FundTransactionStatus;
+import com.tianli.fund.entity.FundRecord;
+import com.tianli.fund.entity.FundTransactionRecord;
+import com.tianli.fund.enums.FundRecordStatus;
 import com.tianli.fund.enums.FundTransactionType;
+import com.tianli.fund.service.IFundTransactionRecordService;
 import com.tianli.fund.service.impl.FundRecordServiceImpl;
 import com.tianli.fund.vo.FundTransactionRecordVO;
 import com.tianli.management.entity.WalletAgentProduct;
@@ -66,6 +71,8 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
     private IWalletAgentProductService walletAgentProductService;
     @Resource
     private FundRecordServiceImpl fundRecordService;
+    @Resource
+    private IFundTransactionRecordService fundTransactionRecordService;
 
 
     /**
@@ -148,6 +155,39 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
 
 
         if (ProductType.fund.equals(product.getType())) {
+
+            FundRecord fundRecord = FundRecord.builder()
+                    .id(orderAdvance.getId())
+                    .uid(uid)
+                    .productId(productId)
+                    .productName(product.getName())
+                    .productNameEn(product.getNameEn())
+                    .coin(product.getCoin())
+                    .logo(product.getLogo())
+                    .holdAmount(orderAdvance.getAmount())
+                    .riskType(product.getRiskType())
+                    .businessType(product.getBusinessType())
+                    .rate(product.getRate())
+                    .status(FundRecordStatus.SUCCESS)
+                    .createTime(LocalDateTime.now())
+                    .type(ProductType.fund)
+                    .build();
+            fundRecordService.save(fundRecord);
+
+            //交易记录
+            FundTransactionRecord transactionRecord = FundTransactionRecord.builder()
+                    .id(orderAdvance.getId())
+                    .uid(uid)
+                    .fundId(fundRecord.getId())
+                    .productId(fundRecord.getProductId())
+                    .productName(fundRecord.getProductName())
+                    .coin(fundRecord.getCoin())
+                    .rate(fundRecord.getRate())
+                    .type(FundTransactionType.purchase)
+                    .status(FundTransactionStatus.processing)
+                    .transactionAmount(orderAdvance.getAmount())
+                    .createTime(order.getCreateTime()).build();
+            fundTransactionRecordService.save(transactionRecord);
 
             OrderFundTransactionVO orderFundTransactionVO = OrderFundTransactionVO.builder()
                     .status(2)

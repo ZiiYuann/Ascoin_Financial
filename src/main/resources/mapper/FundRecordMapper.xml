@@ -16,8 +16,9 @@
         inner join
         fund_record a on a.product_id = b.product_id
         <where>
+            a.status = 'PROCESS'
             <if test="query.queryUid != null and query.queryUid != ''">
-                a.uid like concat('%',#{query.queryUid},'%')
+              and  a.uid like concat('%',#{query.queryUid},'%')
             </if>
             <if test="query.agentId != null">
                 and b.agent_id = #{query.agentId}
@@ -33,8 +34,9 @@
         wallet_agent_product b
         inner JOIN fund_record a on a.product_id = b.product_id
         <where>
+            a.status = 'PROCESS'
             <if test="query.agentId != null">
-                b.agent_id = #{query.agentId}
+               and b.agent_id = #{query.agentId}
             </if>
             <if test="query.productId != null">
                 and a.product_id = #{query.productId}
@@ -47,8 +49,9 @@
         SELECT ifnull(sum(hold_amount),0)
         FROM fund_record
         <where>
+            status = 'PROCESS'
             <if test="productId != null">
-                product_id = #{productId}
+               and product_id = #{productId}
             </if>
             <if test="uid != null">
                 and uid = #{uid}

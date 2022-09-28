@@ -23,8 +23,6 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.AbstractProductOperation;
 import com.tianli.financial.service.FinancialProductService;
-import com.tianli.financial.service.FinancialRecordService;
-import com.tianli.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.fund.bo.FundPurchaseBO;
 import com.tianli.fund.bo.FundRedemptionBO;
 import com.tianli.fund.contant.FundCycle;
@@ -65,7 +63,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -125,25 +126,38 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         Long productId = purchaseQuery.getProductId();
         var financialProduct = financialProductService.getById(productId);
         WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(productId);
+        boolean advance = false;
+
+        if (Objects.nonNull(order) && order.getOrderNo().startsWith(AccountChangeType.advance_purchase.getPrefix())) {
+            advance = true;
+        }
 
         BigDecimal purchaseAmount = purchaseQuery.getAmount();
-        //持有记录
-        FundRecord fundRecord = FundRecord.builder()
-                .uid(uid)
-                .productId(productId)
-                .productName(financialProduct.getName())
-                .productNameEn(financialProduct.getNameEn())
-                .coin(financialProduct.getCoin())
-                .logo(financialProduct.getLogo())
-                .holdAmount(purchaseAmount)
-                .riskType(financialProduct.getRiskType())
-                .businessType(financialProduct.getBusinessType())
-                .rate(financialProduct.getRate())
-                .status(FundRecordStatus.PROCESS)
-                .createTime(LocalDateTime.now())
-                .type(ProductType.fund)
-                .build();
+        FundRecord fundRecord;
+
+        // 持有记录
+        if (advance) {
+            fundRecord = this.getById(order.getRelatedId());
+            fundRecord.setStatus(FundRecordStatus.SUCCESS);
+        } else {
+            fundRecord = FundRecord.builder()
+                    .uid(uid)
+                    .productId(productId)
+                    .productName(financialProduct.getName())
+                    .productNameEn(financialProduct.getNameEn())
+                    .coin(financialProduct.getCoin())
+                    .logo(financialProduct.getLogo())
+                    .holdAmount(purchaseAmount)
+                    .riskType(financialProduct.getRiskType())
+                    .businessType(financialProduct.getBusinessType())
+                    .rate(financialProduct.getRate())
+                    .status(FundRecordStatus.PROCESS)
+                    .createTime(LocalDateTime.now())
+                    .type(ProductType.fund)
+                    .build();
+        }
         this.save(fundRecord);
+
 
         if (Objects.isNull(order)) {
             //生成一笔订单
@@ -160,6 +174,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
                     .build();
             orderService.save(order);
         }
+
         // 减少余额
         accountBalanceService.decrease(uid, ChargeType.fund_purchase, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.基金申购.name());
         //代理人钱包
@@ -178,18 +193,26 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
                 .build();
         orderService.save(agentOrder);
         accountBalanceService.increase(agentAccountBalance.getUid(), ChargeType.agent_fund_sale, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.代理基金销售.name());
+
         //交易记录
-        FundTransactionRecord transactionRecord = FundTransactionRecord.builder()
-                .uid(uid)
-                .fundId(fundRecord.getId())
-                .productId(fundRecord.getProductId())
-                .productName(fundRecord.getProductName())
-                .coin(fundRecord.getCoin())
-                .rate(fundRecord.getRate())
-                .type(FundTransactionType.purchase)
-                .status(FundTransactionStatus.success)
-                .transactionAmount(purchaseAmount)
-                .createTime(LocalDateTime.now()).build();
+        FundTransactionRecord transactionRecord;
+        if (advance) {
+            transactionRecord = fundTransactionRecordService.getById(order.getRelatedId());
+            transactionRecord.setStatus(FundTransactionStatus.success);
+        } else {
+            transactionRecord = FundTransactionRecord.builder()
+                    .uid(uid)
+                    .fundId(fundRecord.getId())
+                    .productId(fundRecord.getProductId())
+                    .productName(fundRecord.getProductName())
+                    .coin(fundRecord.getCoin())
+                    .rate(fundRecord.getRate())
+                    .type(FundTransactionType.purchase)
+                    .status(FundTransactionStatus.success)
+                    .transactionAmount(purchaseAmount)
+                    .createTime(LocalDateTime.now()).build();
+        }
+
         fundTransactionRecordService.save(transactionRecord);
 
         return fundRecordConvert.toFundTransactionVO(transactionRecord);
@@ -511,6 +534,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         LambdaQueryWrapper<FundRecord> eq = new LambdaQueryWrapper<FundRecord>()
                 .eq(FundRecord::getUid, uid)
                 .eq(FundRecord::getProductId, productId)
+                .eq(FundRecord::getStatus, FundRecordStatus.PROCESS)
                 .eq(false, FundRecord::getHoldAmount, BigDecimal.ZERO);
 
         return Optional.ofNullable(fundRecordMapper.selectList(eq)).orElse(new ArrayList<>());
