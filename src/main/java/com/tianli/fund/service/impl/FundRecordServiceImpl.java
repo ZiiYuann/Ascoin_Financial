@@ -138,7 +138,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         // 持有记录
         if (advance) {
             fundRecord = this.getById(order.getRelatedId());
-            fundRecord.setStatus(FundRecordStatus.SUCCESS);
+            fundRecord.setStatus(FundRecordStatus.PROCESS);
             this.updateById(fundRecord);
         } else {
             fundRecord = FundRecord.builder()

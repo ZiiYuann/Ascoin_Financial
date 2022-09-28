@@ -83,7 +83,7 @@ public class OrderAdvanceTask {
             fundTransactionRecordService.updateById(fundTransactionRecord);
         }
 
-        if (orderAdvance.getCreateTime().until(LocalDateTime.now(), ChronoUnit.MINUTES) > 5) {
+        if (orderAdvance.getCreateTime().until(LocalDateTime.now(), ChronoUnit.MINUTES) > 10) {
             if (StringUtils.isBlank(orderAdvance.getTxid())) {
                 orderAdvance.setFinish(2);
                 orderAdvanceService.updateById(orderAdvance);
@@ -103,16 +103,10 @@ public class OrderAdvanceTask {
             webHookService.dingTalkSend("奇怪的申购订单" + orderAdvance.getTxid(), new RuntimeException());
         }
 
-
-        if (orderAdvance.getTryTimes() == 2) {
-            orderAdvance.setFinish(2);
-            orderAdvanceService.updateById(orderAdvance);
-
-            order.setStatus(ChargeStatus.chain_fail);
-            orderService.updateById(order);
-            return;
-        }
-        orderAdvanceService.addTryTimes(orderAdvance.getId());
+        orderAdvance.setFinish(2);
+        orderAdvanceService.updateById(orderAdvance);
+        order.setStatus(ChargeStatus.chain_fail);
+        orderService.updateById(order);
     }
 
 
