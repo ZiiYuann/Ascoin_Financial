@@ -12,6 +12,12 @@ import com.tianli.charge.service.OrderAdvanceService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.blockchain.NetworkType;
+import com.tianli.financial.entity.FinancialProduct;
+import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.service.FinancialProductService;
+import com.tianli.fund.contant.FundTransactionStatus;
+import com.tianli.fund.entity.FundTransactionRecord;
+import com.tianli.fund.service.IFundTransactionRecordService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -42,6 +48,10 @@ public class OrderAdvanceTask {
     private ContractAdapter contractAdapter;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private FinancialProductService financialProductService;
+    @Resource
+    private IFundTransactionRecordService fundTransactionRecordService;
 
     @Scheduled(cron = "0 0/15 * * * ?")
     public void incomeTasks() {
@@ -59,11 +69,18 @@ public class OrderAdvanceTask {
         Long relatedId = order.getRelatedId();
 
         OrderAdvance orderAdvance = orderAdvanceService.getById(relatedId);
-
         if (Objects.isNull(orderAdvance)) {
             order.setStatus(ChargeStatus.chain_fail);
             orderService.updateById(order);
             return;
+        }
+
+        Long productId = orderAdvance.getProductId();
+        FinancialProduct product = financialProductService.getById(productId);
+        if (ProductType.fund.equals(product.getType())) {
+            FundTransactionRecord fundTransactionRecord = fundTransactionRecordService.getById(order.getRelatedId());
+            fundTransactionRecord.setStatus(FundTransactionStatus.fail);
+            fundTransactionRecordService.updateById(fundTransactionRecord);
         }
 
         if (orderAdvance.getCreateTime().until(LocalDateTime.now(), ChronoUnit.MINUTES) > 5) {
