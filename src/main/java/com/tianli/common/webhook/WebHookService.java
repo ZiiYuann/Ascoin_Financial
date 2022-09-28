@@ -40,16 +40,16 @@ public class WebHookService {
     }
 
     public void dingTalkSend(String msg) {
-        asyncService.async(() -> this.dingTalkSendOperation(msg,null,null));
+        asyncService.async(() -> this.dingTalkSendOperation(msg, null, null));
     }
 
     /**
      * 基金相关的通知，以后优化
      */
     public void fundSend(String msg) {
-//        asyncService.async(() -> this.dingTalkSendOperation(msg,"e9ba9212c2bfebc948d844dc7d5ba72a82acf79be36cbc46d5e507a8fa13c"
-//                ,"SEC46e08bbc82c43cfa0a35aba643eef004cfe78ac774790eba341a21b7079b6d03"));
-        asyncService.async(() -> this.dingTalkSendOperation(msg,null,null));
+        asyncService.async(() -> this.dingTalkSendOperation(msg, "e9ba9212c2bfebc948d844dc7d5ba72a82acf79be36cbc46d5e507a8fa13c"
+                , "SEC46e08bbc82c43cfa0a35aba643eef004cfe78ac774790eba341a21b7079b6d03"));
+//        asyncService.async(() -> this.dingTalkSendOperation(msg,null,null));
     }
 
     private void dingTalkSendOperation(String msg, Exception e) {
@@ -78,7 +78,7 @@ public class WebHookService {
         String dev = configService._get("dev");
 
         if (StringUtils.isBlank(token) || StringUtils.isBlank(secret)) {
-            DingDingUtil.textType(MoreObjects.firstNonNull(dev, "") + ":" + msg,
+            DingDingUtil.textType(MoreObjects.firstNonNull(dev, "") + msg,
                     "1a1216a39f18e8022b6795014424a9fcf5d62a5f00d3666c11127b21841eb718"
                     , "SEC52152f460aaf1c4c77592f46674aadf9592fcca6d99974b0b7fb74cd66f20be3");
             return;
