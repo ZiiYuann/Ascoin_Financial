@@ -414,7 +414,7 @@ public class FinancialServiceImpl implements FinancialService {
 
             // 设置假数据
             BigDecimal baseDataAmount = getBaseDataAmount(product.getId(), totalQuota, useQuota);
-            if (Objects.nonNull(baseDataAmount)) {
+            if (Objects.nonNull(baseDataAmount) & !ProductType.fund.equals(product.getType())) {
                 financialProductVO.setUseQuota(useQuota.add(baseDataAmount));
                 financialProductVO.setBaseUseQuota(baseDataAmount);
             }

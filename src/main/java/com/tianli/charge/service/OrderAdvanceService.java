@@ -27,6 +27,7 @@ import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.fund.bo.FundPurchaseBO;
+import com.tianli.fund.enums.FundTransactionType;
 import com.tianli.fund.service.impl.FundRecordServiceImpl;
 import com.tianli.fund.vo.FundTransactionRecordVO;
 import com.tianli.management.entity.WalletAgentProduct;
@@ -159,6 +160,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                     .build();
             orderFundTransactionVO.setProductName(product.getName());
             orderFundTransactionVO.setProductNameEn(product.getNameEn());
+            orderFundTransactionVO.setType(FundTransactionType.purchase);
             webHookService.dingTalkSend("监测到基金预购订单申购事件" + query.getTxid() + ",时间：" + LocalDateTime.now());
             return orderFundTransactionVO;
         }

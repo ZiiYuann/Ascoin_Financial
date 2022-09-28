@@ -54,4 +54,6 @@ public class OrderFundTransactionVO extends OrderBaseVO {
      * 状态
      */
     private Integer status;
+
+    private FundTransactionType type;
 }
