@@ -28,7 +28,7 @@ public class OrderFundTransactionVO extends OrderBaseVO {
     /**
      * 年化率
      */
-    private BigDecimal rate;
+    private double rate;
 
     /**
      * id

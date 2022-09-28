@@ -151,7 +151,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
             OrderFundTransactionVO orderFundTransactionVO = OrderFundTransactionVO.builder()
                     .status(2)
                     .createTime(order.getCreateTime())
-                    .rate(product.getRate())
+                    .rate(product.getRate().doubleValue())
                     .coin(product.getCoin())
                     .id(orderAdvance.getId())
                     .transactionAmount(orderAdvance.getAmount())
@@ -209,25 +209,25 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
 
             webHookService.dingTalkSend("监测到预购订单消费事件" + req.getHash() + ",时间：" + LocalDateTime.now());
 
-            PurchaseQuery purchaseQuery = PurchaseQuery.builder()
-                    .coin(orderAdvance.getCoin())
-                    .term(orderAdvance.getTerm())
-                    .amount(orderAdvance.getAmount())
-                    .autoCurrent(orderAdvance.isAutoCurrent())
-                    .productId(orderAdvance.getProductId()).build();
 
             Order order = orderService.getOrderNo(AccountChangeType.advance_purchase.getPrefix() + orderAdvance.getId());
 
             if (ProductType.fund.equals(product.getType())) {
                 WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(productId);
                 FundPurchaseBO fundPurchaseBO = new FundPurchaseBO();
-                fundPurchaseBO.setProductId(purchaseQuery.getProductId());
+                fundPurchaseBO.setProductId(orderAdvance.getProductId());
                 fundPurchaseBO.setReferralCode(walletAgentProduct.getReferralCode());
                 fundPurchaseBO.setPurchaseAmount(orderAdvance.getAmount());
                 fundRecordService.purchase(uid, fundPurchaseBO, FundTransactionRecordVO.class, order);
             }
 
             if (!ProductType.fund.equals(product.getType())) {
+                PurchaseQuery purchaseQuery = PurchaseQuery.builder()
+                        .coin(orderAdvance.getCoin())
+                        .term(orderAdvance.getTerm())
+                        .amount(orderAdvance.getAmount())
+                        .autoCurrent(orderAdvance.isAutoCurrent())
+                        .productId(orderAdvance.getProductId()).build();
                 financialProductService.purchase(uid, purchaseQuery, FinancialPurchaseResultVO.class, order);
             }
 
