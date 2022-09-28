@@ -79,7 +79,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
         if (ProductType.fund.equals(product.getType())) {
             WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(product.getId());
             if (!walletAgentProduct.getReferralCode().equals(query.getReferralCode())) {
-                ErrorCodeEnum.FUND_NOT_EXIST.throwException();
+                ErrorCodeEnum.REFERRAL_CODE_ERROR.throwException();
             }
         }
 
