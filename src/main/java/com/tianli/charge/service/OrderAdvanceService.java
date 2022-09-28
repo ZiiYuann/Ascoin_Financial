@@ -11,6 +11,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderAdvanceMapper;
 import com.tianli.charge.query.GenerateOrderAdvanceQuery;
 import com.tianli.charge.vo.OrderBaseVO;
+import com.tianli.charge.vo.OrderFundTransactionVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.annotation.NoRepeatCommit;
 import com.tianli.common.webhook.WebHookService;
@@ -65,6 +66,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
     @Resource
     private FundRecordServiceImpl fundRecordService;
 
+
     /**
      * 生成预订单
      */
@@ -113,12 +115,6 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
 
         FinancialProduct product = financialProductService.getById(productId);
 
-
-        // 预订单和持有record 订单id一致
-        FinancialRecord financialRecord =
-                financialRecordService.generateFinancialRecord(orderAdvance.getId(), uid, product, orderAdvance.getAmount()
-                        , orderAdvance.isAutoCurrent());
-
         // 生成一笔预订单记录
         Order order = Order.builder()
                 .uid(requestInitService.uid())
@@ -133,14 +129,39 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                 .build();
         orderService.save(order);
 
-        // 预订单
-        financialRecord.setStatus(RecordStatus.SUCCESS);
-        financialRecord.setLocalPurchase(true);
-        financialRecordService.updateById(financialRecord);
+        if (!ProductType.fund.equals(product.getType())) {
+            // 预订单和持有record 订单id一致
+            FinancialRecord financialRecord =
+                    financialRecordService.generateFinancialRecord(orderAdvance.getId(), uid, product, orderAdvance.getAmount()
+                            , orderAdvance.isAutoCurrent());
 
-        webHookService.dingTalkSend("监测到预购订单申购事件" + query.getTxid() + ",时间：" + LocalDateTime.now());
-        return chargeService.orderDetails(requestInitService.uid()
-                , AccountChangeType.advance_purchase.getPrefix() + query.getId());
+            // 预订单
+            financialRecord.setStatus(RecordStatus.SUCCESS);
+            financialRecord.setLocalPurchase(true);
+            financialRecordService.updateById(financialRecord);
+            webHookService.dingTalkSend("监测到理财预购订单申购事件" + query.getTxid() + ",时间：" + LocalDateTime.now());
+            return chargeService.orderDetails(requestInitService.uid()
+                    , AccountChangeType.advance_purchase.getPrefix() + query.getId());
+
+        }
+
+
+        if (ProductType.fund.equals(product.getType())) {
+
+            OrderFundTransactionVO orderFundTransactionVO = OrderFundTransactionVO.builder()
+                    .status(2)
+                    .createTime(order.getCreateTime())
+                    .rate(product.getRate())
+                    .coin(product.getCoin())
+                    .id(orderAdvance.getId())
+                    .transactionAmount(orderAdvance.getAmount())
+                    .expectedIncome(fundRecordService.dailyIncome(orderAdvance.getAmount(), product.getRate())).build();
+
+            webHookService.dingTalkSend("监测到基金预购订单申购事件" + query.getTxid() + ",时间：" + LocalDateTime.now());
+            return orderFundTransactionVO;
+        }
+
+        return null;
     }
 
     /**
