@@ -200,6 +200,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
             if (ProductType.fund.equals(product.getType())) {
                 WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(productId);
                 FundPurchaseBO fundPurchaseBO = (FundPurchaseBO) purchaseQuery;
+                fundPurchaseBO.setProductId(purchaseQuery.getProductId());
                 fundPurchaseBO.setReferralCode(walletAgentProduct.getReferralCode());
                 fundPurchaseBO.setPurchaseAmount(orderAdvance.getAmount());
                 fundRecordService.purchase(uid, fundPurchaseBO, FundTransactionRecordVO.class);
