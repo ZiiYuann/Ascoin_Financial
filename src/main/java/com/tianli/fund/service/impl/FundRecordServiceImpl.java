@@ -139,6 +139,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         if (advance) {
             fundRecord = this.getById(order.getRelatedId());
             fundRecord.setStatus(FundRecordStatus.SUCCESS);
+            this.updateById(fundRecord);
         } else {
             fundRecord = FundRecord.builder()
                     .uid(uid)
@@ -155,8 +156,9 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
                     .createTime(LocalDateTime.now())
                     .type(ProductType.fund)
                     .build();
+            this.save(fundRecord);
+
         }
-        this.save(fundRecord);
 
 
         if (Objects.isNull(order)) {
@@ -199,6 +201,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         if (advance) {
             transactionRecord = fundTransactionRecordService.getById(order.getRelatedId());
             transactionRecord.setStatus(FundTransactionStatus.success);
+            fundTransactionRecordService.updateById(transactionRecord);
         } else {
             transactionRecord = FundTransactionRecord.builder()
                     .uid(uid)
@@ -211,9 +214,9 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
                     .status(FundTransactionStatus.success)
                     .transactionAmount(purchaseAmount)
                     .createTime(LocalDateTime.now()).build();
+            fundTransactionRecordService.save(transactionRecord);
         }
 
-        fundTransactionRecordService.save(transactionRecord);
 
         return fundRecordConvert.toFundTransactionVO(transactionRecord);
     }
