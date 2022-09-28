@@ -126,11 +126,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         Long productId = purchaseQuery.getProductId();
         var financialProduct = financialProductService.getById(productId);
         WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(productId);
-        boolean advance = false;
-
-        if (Objects.nonNull(order) && order.getOrderNo().startsWith(AccountChangeType.advance_purchase.getPrefix())) {
-            advance = true;
-        }
+        boolean advance = Objects.nonNull(order) && order.getOrderNo().startsWith(AccountChangeType.advance_purchase.getPrefix());
 
         BigDecimal purchaseAmount = purchaseQuery.getAmount();
         FundRecord fundRecord;
@@ -298,7 +294,6 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         if (Objects.isNull(product) || !product.getType().equals(ProductType.fund))
             ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
         Long uid = requestInitService.uid();
-        BigDecimal totalAmount = fundRecordMapper.selectHoldAmountSum(productId, null);
         BigDecimal personHoldAmount = fundRecordMapper.selectHoldAmountSum(productId, uid);
         AccountBalance accountBalance = accountBalanceService.getAndInit(uid, product.getCoin());
         return FundApplyPageVO.builder()
@@ -313,7 +308,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
                 .personQuota(product.getPersonQuota())
                 .personHoldAmount(personHoldAmount)
                 .totalQuota(product.getTotalQuota())
-                .totalHoldAmount(totalAmount)
+                .totalHoldAmount(product.getUseQuota())
                 .purchaseTime(LocalDate.now())
                 .interestCalculationTime(LocalDate.now().plusDays(FundCycle.interestCalculationCycle))
                 .incomeDistributionTime(LocalDate.now().plusDays(FundCycle.incomeDistributionCycle))
