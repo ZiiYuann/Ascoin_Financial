@@ -11,6 +11,7 @@
         fund_transaction_record a
         left join wallet_agent_product b on a.product_id = b.product_id
         <include refid="fundTransactionQuery"/>
+        and a.status = 1
         group by coin
     </select>
 
