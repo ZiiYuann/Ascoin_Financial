@@ -54,4 +54,11 @@ public class FundProductVO {
      * 业务类型
      */
     private BusinessType businessType;
+
+    /**
+     * 总使用额度
+     */
+    private BigDecimal useQuota;
+
+    private BigDecimal totalQuota;
 }
