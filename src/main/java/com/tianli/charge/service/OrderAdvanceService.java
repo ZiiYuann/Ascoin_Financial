@@ -172,7 +172,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                     .createTime(LocalDateTime.now())
                     .type(ProductType.fund)
                     .build();
-            fundRecordService.save(fundRecord);
+            fundRecordService.getBaseMapper().insert(fundRecord);
 
             //交易记录
             FundTransactionRecord transactionRecord = FundTransactionRecord.builder()
@@ -187,7 +187,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                     .status(FundTransactionStatus.processing)
                     .transactionAmount(orderAdvance.getAmount())
                     .createTime(order.getCreateTime()).build();
-            fundTransactionRecordService.save(transactionRecord);
+            fundTransactionRecordService.getBaseMapper().insert(transactionRecord);
 
             OrderFundTransactionVO orderFundTransactionVO = OrderFundTransactionVO.builder()
                     .status(2)
