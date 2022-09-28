@@ -47,8 +47,8 @@ public class WebHookService {
      * 基金相关的通知，以后优化
      */
     public void fundSend(String msg) {
-        asyncService.async(() -> this.dingTalkSendOperation(msg, "e9ba9212c2bfebc948d844dc7d5ba72a82acf79be36cbc46d5e507a8fa13c"
-                , "SEC46e08bbc82c43cfa0a35aba643eef004cfe78ac774790eba341a21b7079b6d03"));
+        asyncService.async(() -> this.dingTalkSendOperation(msg, "e2462fc274c10ebd0cdc8e3c3e68da89da9cc98fb839ce000c50e96b233bc7e5"
+                , "SEC8063b75ee9ef2a2ca0bc8df4a727aeca30a30eeddaef0b8635acbc3585d4b925"));
 //        asyncService.async(() -> this.dingTalkSendOperation(msg,null,null));
     }
 
