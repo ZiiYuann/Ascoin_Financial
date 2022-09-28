@@ -155,8 +155,10 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                     .coin(product.getCoin())
                     .id(orderAdvance.getId())
                     .transactionAmount(orderAdvance.getAmount())
-                    .expectedIncome(fundRecordService.dailyIncome(orderAdvance.getAmount(), product.getRate())).build();
-
+                    .expectedIncome(fundRecordService.dailyIncome(orderAdvance.getAmount(), product.getRate()))
+                    .build();
+            orderFundTransactionVO.setProductName(product.getName());
+            orderFundTransactionVO.setProductNameEn(product.getNameEn());
             webHookService.dingTalkSend("监测到基金预购订单申购事件" + query.getTxid() + ",时间：" + LocalDateTime.now());
             return orderFundTransactionVO;
         }
