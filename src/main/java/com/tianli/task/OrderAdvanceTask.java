@@ -53,7 +53,7 @@ public class OrderAdvanceTask {
     @Resource
     private IFundTransactionRecordService fundTransactionRecordService;
 
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0/15 * * * ?")
     public void incomeTasks() {
         List<Order> advanceOrders = Optional.ofNullable(orderService.list(new LambdaQueryWrapper<Order>()
                 .eq(Order::getType, ChargeType.purchase)
@@ -83,7 +83,7 @@ public class OrderAdvanceTask {
             fundTransactionRecordService.updateById(fundTransactionRecord);
         }
 
-        if (orderAdvance.getCreateTime().until(LocalDateTime.now(), ChronoUnit.MINUTES) > 1) {
+        if (orderAdvance.getCreateTime().until(LocalDateTime.now(), ChronoUnit.MINUTES) > 10) {
             if (StringUtils.isBlank(orderAdvance.getTxid())) {
                 orderAdvance.setFinish(2);
                 orderAdvanceService.updateById(orderAdvance);

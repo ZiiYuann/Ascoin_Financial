@@ -30,6 +30,8 @@ class BootTest {
     private FinancialIncomeTask financialIncomeTask;
     @Resource
     private FinancialRecordService financialRecordService;
+    @Resource
+    private TronTriggerContract tronTriggerContract;
 
     @Test
     void getStatusByHash() {
@@ -63,6 +65,13 @@ class BootTest {
 
         }
     }
+
+    @Test
+    void contract() throws InterruptedException {
+        boolean success = tronTriggerContract.successByHash("8d85c058340a602f08751361a5ca7aaa91871ade2812c86cab4c50e2ba6c05d5");
+    }
+
+
 
 
 }
