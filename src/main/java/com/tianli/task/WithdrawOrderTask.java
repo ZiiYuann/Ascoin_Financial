@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 
@@ -44,21 +45,21 @@ public class WithdrawOrderTask {
                 .eq(Order::getStatus, ChargeStatus.chaining);
 
         List<Order> orders = orderService.list(queryWrapper);
-        if (CollectionUtils.isNotEmpty(orders)) {
-            webHookService.dingTalkSend("监测到异常提现订单，现在进行补偿操作");
-        }
         orders.forEach(this::operation);
     }
 
     @Transactional
     public void operation(Order order) {
+
         Long relatedId = order.getRelatedId();
         OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(relatedId);
         if (Objects.isNull(orderChargeInfo) || StringUtils.isBlank(orderChargeInfo.getTxid())) {
             webHookService.dingTalkSend("异常提现订单:" + order.getOrderNo() + "不存在链信息，或者不存在txid");
             return;
         }
-
+        if (orderChargeInfo.getCreateTime().until(LocalDateTime.now(), ChronoUnit.MINUTES) < 15) {
+            return;
+        }
         String txid = orderChargeInfo.getTxid();
         boolean success = contractAdapter.getOne(orderChargeInfo.getNetwork()).successByHash(txid);
         if (success) {
@@ -70,5 +71,10 @@ public class WithdrawOrderTask {
         order.setCompleteTime(LocalDateTime.now());
         orderService.updateById(order);
         webHookService.dingTalkSend("异常提现订单:" + order.getOrderNo() + " 修改订单状态为：fail");
+    }
+
+    public static void main(String[] args) {
+        System.out.println(LocalDateTime.now().plusMinutes(-10).until(LocalDateTime.now(), ChronoUnit.MINUTES));
+
     }
 }
