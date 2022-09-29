@@ -72,7 +72,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
     }
 
     public Result mainTokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter) {
-       return sendRawTransactionWithDefaultParam(to,null,val, BigInteger.valueOf(Long.parseLong(getTransferGasLimit())),"主笔转账："+ tokenAdapter.name());
+       return sendRawTransactionWithDefaultParam(to,"",val, BigInteger.valueOf(Long.parseLong(getTransferGasLimit())),"主笔转账："+ tokenAdapter.name());
     }
 
     /**
