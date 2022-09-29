@@ -40,12 +40,12 @@ public class WebHookService {
     }
 
     public void dingTalkSend(String msg, WebHookToken webHookToken) {
-        asyncService.async(() -> this.dingTalkSendOperation(msg, webHookToken));
+        String dev = configService._get("dev");
+        asyncService.async(() -> this.dingTalkSendOperation(MoreObjects.firstNonNull(dev, "") + msg, webHookToken));
     }
 
     public void dingTalkSend(String msg) {
-        String dev = configService._get("dev");
-        dingTalkSend(MoreObjects.firstNonNull(dev, "") + msg, WebHookToken.BUG_PUSH);
+        dingTalkSend(msg, WebHookToken.BUG_PUSH);
     }
 
     /**
