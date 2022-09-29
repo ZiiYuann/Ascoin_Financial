@@ -245,7 +245,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         replacementList[0] = uid + "";
         replacementList[1] = product.getName();
         replacementList[2] = purchaseQuery.getAmount().doubleValue() + "";
-        replacementList[3] = product.getCoin().getName();
+        replacementList[3] = product.getCoin().getAlias();
         replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
@@ -483,7 +483,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         replacementList[0] = fundRecord.getUid() + "";
         replacementList[1] = fundRecord.getProductName();
         replacementList[2] = redemptionAmount.doubleValue() + "";
-        replacementList[3] = fundRecord.getCoin().getName();
+        replacementList[3] = fundRecord.getCoin().getAlias();
         replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
         webHookService.fundSend(s);
