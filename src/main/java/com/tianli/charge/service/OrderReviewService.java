@@ -84,7 +84,10 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
             if (uAmount.compareTo(BigDecimal.valueOf(5000L)) > 0) {
                 ErrorCodeEnum.AUTO_PASS_ERROR.throwException();
             }
+
             chargeService.withdrawChain(order);
+            order.setStatus(ChargeStatus.chaining);
+            orderService.saveOrUpdate(order);
             // 上链数据通过回调操作，直接返回
             return;
         }
@@ -96,7 +99,6 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
             withdrawSuccess(order, orderChargeInfo);
             // 更新订单状态
             order.setStatus(ChargeStatus.chain_success);
-            orderService.saveOrUpdate(order);
         }
 
         // 审核不通过需要解冻金额
