@@ -45,7 +45,7 @@ public class WithdrawOrderTask {
 
         List<Order> orders = orderService.list(queryWrapper);
         if (CollectionUtils.isNotEmpty(orders)) {
-            webHookService.fundSend("监测到异常提现订单，现在进行补偿操作");
+            webHookService.dingTalkSend("监测到异常提现订单，现在进行补偿操作");
         }
         orders.forEach(this::operation);
     }
@@ -55,19 +55,20 @@ public class WithdrawOrderTask {
         Long relatedId = order.getRelatedId();
         OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(relatedId);
         if (Objects.isNull(orderChargeInfo) || StringUtils.isBlank(orderChargeInfo.getTxid())) {
-            webHookService.fundSend("异常提现订单:" + order.getOrderNo());
+            webHookService.dingTalkSend("异常提现订单:" + order.getOrderNo() + "不存在链信息，或者不存在txid");
             return;
         }
 
         String txid = orderChargeInfo.getTxid();
         boolean success = contractAdapter.getOne(orderChargeInfo.getNetwork()).successByHash(txid);
         if (success) {
-            webHookService.fundSend("异常提现订单:" + order.getOrderNo() + " 此订单交易成功，但是订单状态未修改，请及时排除问题");
+            webHookService.dingTalkSend("异常提现订单:" + order.getOrderNo() + " 此订单交易成功，但是订单状态未修改，请及时排除问题");
             return;
         }
 
         order.setStatus(ChargeStatus.chain_fail);
         order.setCompleteTime(LocalDateTime.now());
         orderService.updateById(order);
+        webHookService.dingTalkSend("异常提现订单:" + order.getOrderNo() + " 修改订单状态为：fail");
     }
 }
