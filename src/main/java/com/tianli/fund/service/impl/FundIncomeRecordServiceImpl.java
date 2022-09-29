@@ -203,7 +203,7 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
         searchList[2] = "#{coin}";
         String[] replacementList = new String[3];
         replacementList[0] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        replacementList[1] = totalAmount.stream().reduce(BigDecimal.ZERO,BigDecimal::add).doubleValue() + "";
+        replacementList[1] = totalAmount.stream().reduce(BigDecimal.ZERO,BigDecimal::add).toPlainString();
         replacementList[2] = CurrencyCoin.usdt.getAlias();
         String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
         webHookService.fundSend(s);

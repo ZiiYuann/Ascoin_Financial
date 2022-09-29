@@ -98,8 +98,8 @@ public class FundIncomeTask {
                 searchList[4] = "#{time}";
                 String[] replacementList = new String[5];
                 replacementList[0] = fundRecord.getUid() + "";
-                replacementList[1] = fundRecord.getHoldAmount().doubleValue() + "";
-                replacementList[2] = fundRecord.getWaitIncomeAmount().doubleValue() + "";
+                replacementList[1] = fundRecord.getHoldAmount().toPlainString();
+                replacementList[2] = fundRecord.getWaitIncomeAmount().toPlainString();
                 replacementList[3] = fundRecord.getCoin().getAlias();
                 replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                 String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
