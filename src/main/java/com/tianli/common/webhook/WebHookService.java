@@ -44,7 +44,8 @@ public class WebHookService {
     }
 
     public void dingTalkSend(String msg) {
-        dingTalkSend(msg, WebHookToken.BUG_PUSH);
+        String dev = configService._get("dev");
+        dingTalkSend(MoreObjects.firstNonNull(dev, "") + msg, WebHookToken.BUG_PUSH);
     }
 
     /**
