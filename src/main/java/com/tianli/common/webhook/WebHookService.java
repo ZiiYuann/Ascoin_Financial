@@ -36,23 +36,30 @@ public class WebHookService {
 
     public void dingTalkSend(String msg, Exception e) {
         log.error(msg + ":" + e.getMessage());
-        asyncService.async(() -> this.dingTalkSendOperation(msg, e));
+        asyncService.async(() -> this.bugMsgSend(msg, e));
+    }
+
+    public void dingTalkSend(String msg, WebHookToken webHookToken) {
+        asyncService.async(() -> this.dingTalkSendOperation(msg, webHookToken));
     }
 
     public void dingTalkSend(String msg) {
-        asyncService.async(() -> this.dingTalkSendOperation(msg, null, null));
+        dingTalkSend(msg, WebHookToken.BUG_PUSH);
     }
 
     /**
      * 基金相关的通知，以后优化
      */
     public void fundSend(String msg) {
-//        asyncService.async(() -> this.dingTalkSendOperation(msg,"e9ba9212c2bfebc948d844dc7d5ba72a82acf79be36cbc46d5e507a8fa13c"
-//                ,"SEC46e08bbc82c43cfa0a35aba643eef004cfe78ac774790eba341a21b7079b6d03"));
-        asyncService.async(() -> this.dingTalkSendOperation(msg, null, null));
+        String dev = configService._get("dev");
+        if (StringUtils.isBlank(dev)) {
+            asyncService.async(() -> this.dingTalkSendOperation(msg, WebHookToken.FUND_PRODUCT));
+        } else {
+            asyncService.async(() -> this.dingTalkSendOperation(msg, WebHookToken.BUG_PUSH));
+        }
     }
 
-    private void dingTalkSendOperation(String msg, Exception e) {
+    private void bugMsgSend(String msg, Exception e) {
         boolean openWebHook = Boolean.parseBoolean(configService.getOrDefaultNoCache(ConfigConstants.OPEN_WEBHOOK_EXCEPTION_PUSH, "false"));
         if (!openWebHook) {
             return;
@@ -66,25 +73,15 @@ public class WebHookService {
         jb.putOnce("title", MoreObjects.firstNonNull(dev, "") + (StringUtils.isBlank(msg) ? "异常信息" : msg));
         jb.putOnce("messageUrl", urlPre + "/api/errMmp/" + id);
         jb.putOnce("text", ExceptionUtil.getMessage(e));
-        DingDingUtil.linkType(jb, "1a1216a39f18e8022b6795014424a9fcf5d62a5f00d3666c11127b21841eb718"
-                , "SEC52152f460aaf1c4c77592f46674aadf9592fcca6d99974b0b7fb74cd66f20be3");
+        DingDingUtil.linkType(jb, WebHookToken.BUG_PUSH.getToken(), WebHookToken.BUG_PUSH.getSecret());
     }
 
-    private void dingTalkSendOperation(String msg, String token, String secret) {
+    private void dingTalkSendOperation(String msg, WebHookToken webHookToken) {
         boolean openWebHook = Boolean.parseBoolean(configService.getOrDefaultNoCache(ConfigConstants.OPEN_WEBHOOK_EXCEPTION_PUSH, "false"));
         if (!openWebHook) {
             return;
         }
-        String dev = configService._get("dev");
-
-        if (StringUtils.isBlank(token) || StringUtils.isBlank(secret)) {
-            DingDingUtil.textType(MoreObjects.firstNonNull(dev, "") + msg,
-                    "1a1216a39f18e8022b6795014424a9fcf5d62a5f00d3666c11127b21841eb718"
-                    , "SEC52152f460aaf1c4c77592f46674aadf9592fcca6d99974b0b7fb74cd66f20be3");
-            return;
-        }
-        DingDingUtil.textType(msg, token, secret);
-
+        DingDingUtil.textType(msg, webHookToken.getToken(), webHookToken.getSecret());
     }
 
 }

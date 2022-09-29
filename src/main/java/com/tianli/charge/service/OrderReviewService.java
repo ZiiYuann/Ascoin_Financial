@@ -77,51 +77,58 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
 
         order.setReviewerId(orderReview.getId());
 
-        // 审核通过需要上链
-        if (query.isPass()) {
-            OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
-            // 如果传入的hash值为空说明是自动转账
-            if (StringUtils.isBlank(query.getHash())) {
-                BigDecimal uAmount = currencyService.getDollarRate(orderChargeInfo.getCoin()).multiply(orderChargeInfo.getFee());
-                if (uAmount.compareTo(BigDecimal.valueOf(5000L)) > 0) {
-                    ErrorCodeEnum.AUTO_PASS_ERROR.throwException();
-                }
-                chargeService.withdrawChain(order);
-            } else {
-                // 更新order相关链信息
-                orderChargeInfo.setTxid(query.getHash());
-                orderChargeInfoService.updateById(orderChargeInfo);
+        OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
+        // 审核通过需要上链 如果传入的hash值为空说明是自动转账
+        if (query.isPass() && StringUtils.isBlank(query.getHash())) {
+            BigDecimal uAmount = currencyService.getDollarRate(orderChargeInfo.getCoin()).multiply(orderChargeInfo.getFee());
+            if (uAmount.compareTo(BigDecimal.valueOf(5000L)) > 0) {
+                ErrorCodeEnum.AUTO_PASS_ERROR.throwException();
             }
+            chargeService.withdrawChain(order);
+            // 上链数据通过回调操作，直接返回
+            return;
+        }
 
-
-            // 操作余额信息
-            accountBalanceService.reduce(order.getUid(), ChargeType.withdraw, order.getCoin()
-                    , orderChargeInfo.getNetwork(), orderChargeInfo.getFee(), order.getOrderNo(), "提现成功扣除");
+        if (query.isPass() && StringUtils.isNotBlank(query.getHash())) {
+            // 更新order相关链信息
+            orderChargeInfo.setTxid(query.getHash());
+            orderChargeInfoService.updateById(orderChargeInfo);
+            withdrawSuccess(order, orderChargeInfo);
+            // 更新订单状态
             order.setStatus(ChargeStatus.chain_success);
-
-            // 插入热钱包操作数据表
-            HotWalletDetailed hotWalletDetailed = HotWalletDetailed.builder()
-                    .id(CommonFunction.generalId())
-                    .uid(orderChargeInfo.getUid() + "")
-                    .amount(orderChargeInfo.getFee())
-                    .coin(orderChargeInfo.getCoin())
-                    .chain(orderChargeInfo.getNetwork().getChainType())
-                    .fromAddress(orderChargeInfo.getFromAddress())
-                    .toAddress(orderChargeInfo.getToAddress())
-                    .hash(orderChargeInfo.getTxid())
-                    .type(HotWalletOperationType.user_withdraw)
-                    .createTime(LocalDateTime.now()).build();
-            hotWalletDetailedService.insert(hotWalletDetailed);
+            orderService.saveOrUpdate(order);
         }
 
         // 审核不通过需要解冻金额
         if (!query.isPass()) {
-            order.setStatus(ChargeStatus.review_fail);
             accountBalanceService.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), orderNo, "提现申请未通过");
+
+            order.setStatus(ChargeStatus.review_fail);
+            order.setCompleteTime(LocalDateTime.now());
+            orderService.saveOrUpdate(order);
         }
 
-        order.setCompleteTime(LocalDateTime.now());
-        orderService.saveOrUpdate(order);
+    }
+
+    @Transactional
+    public void withdrawSuccess(Order order, OrderChargeInfo orderChargeInfo) {
+        // 操作余额信息
+        accountBalanceService.reduce(order.getUid(), ChargeType.withdraw, order.getCoin()
+                , orderChargeInfo.getNetwork(), orderChargeInfo.getFee(), order.getOrderNo(), "提现成功扣除");
+
+        // 插入热钱包操作数据表
+        HotWalletDetailed hotWalletDetailed = HotWalletDetailed.builder()
+                .id(CommonFunction.generalId())
+                .uid(orderChargeInfo.getUid() + "")
+                .amount(orderChargeInfo.getFee())
+                .coin(orderChargeInfo.getCoin())
+                .chain(orderChargeInfo.getNetwork().getChainType())
+                .fromAddress(orderChargeInfo.getFromAddress())
+                .toAddress(orderChargeInfo.getToAddress())
+                .hash(orderChargeInfo.getTxid())
+                .type(HotWalletOperationType.user_withdraw)
+                .createTime(LocalDateTime.now()).build();
+        hotWalletDetailedService.insert(hotWalletDetailed);
     }
 
     @Resource

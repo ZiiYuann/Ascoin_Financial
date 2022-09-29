@@ -129,7 +129,7 @@ public class FinancialWalletController {
     }
 
     /**
-     * 【云钱包提币管理】审核
+     * 【云钱包提币管理】提现审核
      */
     @PostMapping("/order/withdraw/review")
     @AdminPrivilege

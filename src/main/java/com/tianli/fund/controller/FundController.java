@@ -186,8 +186,8 @@ public class FundController {
         if (StringUtils.isNotBlank(dev)) {
             quotas.add("0.1");
             quotas.add("0.2");
-            quotas.add("0.5");
-            quotas.add("0.1");
+            quotas.add("0.3");
+            quotas.add("0.4");
         }
         return Result.success(quotas);
     }
