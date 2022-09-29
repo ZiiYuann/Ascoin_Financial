@@ -97,14 +97,12 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
             orderChargeInfo.setTxid(query.getHash());
             orderChargeInfoService.updateById(orderChargeInfo);
             withdrawSuccess(order, orderChargeInfo);
-            // 更新订单状态
-            order.setStatus(ChargeStatus.chain_success);
+            return;
         }
 
         // 审核不通过需要解冻金额
         if (!query.isPass()) {
             accountBalanceService.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), orderNo, "提现申请未通过");
-
             order.setStatus(ChargeStatus.review_fail);
             order.setCompleteTime(LocalDateTime.now());
             orderService.saveOrUpdate(order);
@@ -131,6 +129,10 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
                 .type(HotWalletOperationType.user_withdraw)
                 .createTime(LocalDateTime.now()).build();
         hotWalletDetailedService.insert(hotWalletDetailed);
+
+        order.setStatus(ChargeStatus.chain_success);
+        order.setCompleteTime(LocalDateTime.now());
+        orderService.saveOrUpdate(order);
     }
 
     @Resource
