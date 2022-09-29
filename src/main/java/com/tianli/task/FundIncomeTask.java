@@ -82,7 +82,7 @@ public class FundIncomeTask {
                 List<FundIncomeRecord> fundIncomeRecords = fundIncomeRecordService.list(new QueryWrapper<FundIncomeRecord>().lambda()
                         .eq(FundIncomeRecord::getFundId, fundRecord.getId())
                         .eq(FundIncomeRecord::getStatus, FundIncomeStatus.calculated)
-                        .between(FundIncomeRecord::getCreateTime, todayZero.plusDays(-7), todayZero.plusDays(-1)));
+                        .between(FundIncomeRecord::getCreateTime, todayZero.plusDays(-8), todayZero.plusDays(-1)));
                 fundIncomeRecords.forEach(fundIncomeRecord -> {
                     fundIncomeRecord.setStatus(FundIncomeStatus.wait_audit);
                     fundIncomeRecordService.updateById(fundIncomeRecord);
@@ -98,9 +98,9 @@ public class FundIncomeTask {
                 searchList[4] = "#{time}";
                 String[] replacementList = new String[5];
                 replacementList[0] = fundRecord.getUid() + "";
-                replacementList[1] = fundRecord.getHoldAmount().doubleValue() + "";
-                replacementList[2] = fundRecord.getWaitIncomeAmount().doubleValue() + "";
-                replacementList[3] = fundRecord.getCoin().getName();
+                replacementList[1] = fundRecord.getHoldAmount().toPlainString();
+                replacementList[2] = fundRecord.getWaitIncomeAmount().toPlainString();
+                replacementList[3] = fundRecord.getCoin().getAlias();
                 replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                 String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
                 webHookService.fundSend(s);
@@ -124,7 +124,8 @@ public class FundIncomeTask {
                     .holdAmount(fundRecord.getHoldAmount())
                     .interestAmount(dailyIncome)
                     .status(FundIncomeStatus.calculated)
-                    .createTime(todayZero)
+                    // 收益的记录时间为计息当日的时间
+                    .createTime(todayZero.plusDays(-1))
                     .build();
             fundIncomeRecordService.save(incomeRecord);
 

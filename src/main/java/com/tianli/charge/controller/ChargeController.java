@@ -125,7 +125,6 @@ public class ChargeController {
         if ((Long.parseLong(timestamp) + 10) < l) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
-        log.info("验签成功， {},充值信息为：{}", sign, str);
 
         ChainCallbackLog chainCallbackLog = chainCallbackLogService.insert(ChargeType.withdraw, chain, str);
         try {

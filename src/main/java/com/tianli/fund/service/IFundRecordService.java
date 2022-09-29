@@ -17,6 +17,7 @@ import com.tianli.management.vo.FundUserRecordVO;
 import com.tianli.management.vo.HoldUserAmount;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * <p>
@@ -65,4 +66,5 @@ public interface IFundRecordService extends IService<FundRecord> {
 
     void updateRateByProductId(Long id, BigDecimal rate);
 
+    List<FundRecord> listByUidAndProductId(Long uid, Long productId);
 }

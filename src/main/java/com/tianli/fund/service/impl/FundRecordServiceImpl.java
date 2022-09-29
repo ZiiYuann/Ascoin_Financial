@@ -1,6 +1,7 @@
 package com.tianli.fund.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.account.entity.AccountBalance;
@@ -22,8 +23,6 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.AbstractProductOperation;
 import com.tianli.financial.service.FinancialProductService;
-import com.tianli.financial.service.FinancialRecordService;
-import com.tianli.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.fund.bo.FundPurchaseBO;
 import com.tianli.fund.bo.FundRedemptionBO;
 import com.tianli.fund.contant.FundCycle;
@@ -68,6 +67,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -127,25 +127,36 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         Long productId = purchaseQuery.getProductId();
         var financialProduct = financialProductService.getById(productId);
         WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(productId);
+        boolean advance = Objects.nonNull(order) && order.getOrderNo().startsWith(AccountChangeType.advance_purchase.getPrefix());
 
         BigDecimal purchaseAmount = purchaseQuery.getAmount();
-        //持有记录
-        FundRecord fundRecord = FundRecord.builder()
-                .uid(uid)
-                .productId(productId)
-                .productName(financialProduct.getName())
-                .productNameEn(financialProduct.getNameEn())
-                .coin(financialProduct.getCoin())
-                .logo(financialProduct.getLogo())
-                .holdAmount(purchaseAmount)
-                .riskType(financialProduct.getRiskType())
-                .businessType(financialProduct.getBusinessType())
-                .rate(financialProduct.getRate())
-                .status(FundRecordStatus.PROCESS)
-                .createTime(LocalDateTime.now())
-                .type(ProductType.fund)
-                .build();
-        this.save(fundRecord);
+        FundRecord fundRecord;
+
+        // 持有记录
+        if (advance) {
+            fundRecord = this.getById(order.getRelatedId());
+            fundRecord.setStatus(FundRecordStatus.PROCESS);
+            this.updateById(fundRecord);
+        } else {
+            fundRecord = FundRecord.builder()
+                    .uid(uid)
+                    .productId(productId)
+                    .productName(financialProduct.getName())
+                    .productNameEn(financialProduct.getNameEn())
+                    .coin(financialProduct.getCoin())
+                    .logo(financialProduct.getLogo())
+                    .holdAmount(purchaseAmount)
+                    .riskType(financialProduct.getRiskType())
+                    .businessType(financialProduct.getBusinessType())
+                    .rate(financialProduct.getRate())
+                    .status(FundRecordStatus.PROCESS)
+                    .createTime(LocalDateTime.now())
+                    .type(ProductType.fund)
+                    .build();
+            this.save(fundRecord);
+
+        }
+
 
         if (Objects.isNull(order)) {
             //生成一笔订单
@@ -162,6 +173,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
                     .build();
             orderService.save(order);
         }
+
         // 减少余额
         accountBalanceService.decrease(uid, ChargeType.fund_purchase, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.基金申购.name());
         //代理人钱包
@@ -180,19 +192,28 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
                 .build();
         orderService.save(agentOrder);
         accountBalanceService.increase(agentAccountBalance.getUid(), ChargeType.agent_fund_sale, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.代理基金销售.name());
+
         //交易记录
-        FundTransactionRecord transactionRecord = FundTransactionRecord.builder()
-                .uid(uid)
-                .fundId(fundRecord.getId())
-                .productId(fundRecord.getProductId())
-                .productName(fundRecord.getProductName())
-                .coin(fundRecord.getCoin())
-                .rate(fundRecord.getRate())
-                .type(FundTransactionType.purchase)
-                .status(FundTransactionStatus.success)
-                .transactionAmount(purchaseAmount)
-                .createTime(LocalDateTime.now()).build();
-        fundTransactionRecordService.save(transactionRecord);
+        FundTransactionRecord transactionRecord;
+        if (advance) {
+            transactionRecord = fundTransactionRecordService.getById(order.getRelatedId());
+            transactionRecord.setStatus(FundTransactionStatus.success);
+            fundTransactionRecordService.updateById(transactionRecord);
+        } else {
+            transactionRecord = FundTransactionRecord.builder()
+                    .uid(uid)
+                    .fundId(fundRecord.getId())
+                    .productId(fundRecord.getProductId())
+                    .productName(fundRecord.getProductName())
+                    .coin(fundRecord.getCoin())
+                    .rate(fundRecord.getRate())
+                    .type(FundTransactionType.purchase)
+                    .status(FundTransactionStatus.success)
+                    .transactionAmount(purchaseAmount)
+                    .createTime(LocalDateTime.now()).build();
+            fundTransactionRecordService.save(transactionRecord);
+        }
+
 
         return fundRecordConvert.toFundTransactionVO(transactionRecord);
     }
@@ -224,8 +245,8 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         String[] replacementList = new String[5];
         replacementList[0] = uid + "";
         replacementList[1] = product.getName();
-        replacementList[2] = purchaseQuery.getAmount().doubleValue() + "";
-        replacementList[3] = product.getCoin().getName();
+        replacementList[2] = purchaseQuery.getAmount().toPlainString();
+        replacementList[3] = product.getCoin().getAlias();
         replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
@@ -274,7 +295,6 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         if (Objects.isNull(product) || !product.getType().equals(ProductType.fund))
             ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
         Long uid = requestInitService.uid();
-        BigDecimal totalAmount = fundRecordMapper.selectHoldAmountSum(productId, null);
         BigDecimal personHoldAmount = fundRecordMapper.selectHoldAmountSum(productId, uid);
         AccountBalance accountBalance = accountBalanceService.getAndInit(uid, product.getCoin());
         return FundApplyPageVO.builder()
@@ -289,7 +309,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
                 .personQuota(product.getPersonQuota())
                 .personHoldAmount(personHoldAmount)
                 .totalQuota(product.getTotalQuota())
-                .totalHoldAmount(totalAmount)
+                .totalHoldAmount(product.getUseQuota())
                 .purchaseTime(LocalDate.now())
                 .interestCalculationTime(LocalDate.now().plusDays(FundCycle.interestCalculationCycle))
                 .incomeDistributionTime(LocalDate.now().plusDays(FundCycle.incomeDistributionCycle))
@@ -463,8 +483,8 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         String[] replacementList = new String[5];
         replacementList[0] = fundRecord.getUid() + "";
         replacementList[1] = fundRecord.getProductName();
-        replacementList[2] = redemptionAmount.doubleValue() + "";
-        replacementList[3] = fundRecord.getCoin().getName();
+        replacementList[2] = redemptionAmount.toPlainString();
+        replacementList[3] = fundRecord.getCoin().getAlias();
         replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
         webHookService.fundSend(s);
@@ -508,6 +528,17 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         fundRecordMapper.updateRateByProductId(id, rate);
     }
 
+    @Override
+    public List<FundRecord> listByUidAndProductId(Long uid, Long productId) {
+        LambdaQueryWrapper<FundRecord> eq = new LambdaQueryWrapper<FundRecord>()
+                .eq(FundRecord::getUid, uid)
+                .eq(FundRecord::getProductId, productId)
+                .eq(FundRecord::getStatus, FundRecordStatus.PROCESS)
+                .eq(false, FundRecord::getHoldAmount, BigDecimal.ZERO);
+
+        return Optional.ofNullable(fundRecordMapper.selectList(eq)).orElse(new ArrayList<>());
+    }
+
 
     @Override
     public void validProduct(FinancialProduct financialProduct, PurchaseQuery purchaseQuery) {
@@ -521,4 +552,6 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
             ErrorCodeEnum.REFERRAL_CODE_ERROR.throwException();
 
     }
+
+
 }

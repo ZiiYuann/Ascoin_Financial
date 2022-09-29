@@ -24,6 +24,8 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.service.*;
 import com.tianli.financial.vo.*;
+import com.tianli.fund.entity.FundRecord;
+import com.tianli.fund.service.IFundRecordService;
 import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.query.FinancialOrdersQuery;
@@ -360,7 +362,6 @@ public class FinancialServiceImpl implements FinancialService {
 
     private List<FinancialProductVO> getFinancialProductVOs(ProductType productType) {
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
-                .eq(false, FinancialProduct::getType, ProductType.fund)
                 .eq(FinancialProduct::getStatus, ProductStatus.open)
                 .eq(FinancialProduct::isDeleted, false)
                 .orderByAsc(FinancialProduct::getType) // 活期优先
@@ -372,11 +373,6 @@ public class FinancialServiceImpl implements FinancialService {
         if (Objects.nonNull(type)) {
             query = query.eq(FinancialProduct::getType, type);
         }
-
-        if (Objects.isNull(type)) {
-            query = query.in(FinancialProduct::getType, List.of(ProductType.current, ProductType.fixed));
-        }
-
 
         var list = financialProductService.page(page, query);
         List<Long> productIds = list.getRecords().stream().map(FinancialProduct::getId).distinct().collect(Collectors.toList());
@@ -394,8 +390,23 @@ public class FinancialServiceImpl implements FinancialService {
             var accountBalance = accountBalanceService.getAndInit(requestInitService.uid(), product.getCoin());
             // 设置额度信息
             FinancialProductVO financialProductVO = financialConverter.toFinancialProductVO(product);
-            financialProductVO.setUserPersonQuota(usePersonQuota);
-            financialProductVO.setHoldAmount(usePersonQuota);
+
+            if (ProductType.fund.equals(product.getType())) {
+                List<FundRecord> fundRecords = fundRecordService.listByUidAndProductId(requestInitService.uid(), product.getId());
+                if (CollectionUtils.isNotEmpty(fundRecords)) {
+                    BigDecimal holdAmount = fundRecords.stream().map(FundRecord::getHoldAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    financialProductVO.setUserPersonQuota(holdAmount);
+                    financialProductVO.setHoldAmount(holdAmount);
+                    financialProductVO.setRecordId(fundRecords.get(0).getId());
+                }
+
+            } else {
+                financialProductVO.setUserPersonQuota(usePersonQuota);
+                financialProductVO.setHoldAmount(usePersonQuota);
+                // 设置第一个有效可数据的record id
+                financialProductVO.setRecordId(firstProcessRecordMap.get(product.getId()));
+            }
+
             // 设置是否可以申购
             boolean allowPurchase =
                     checkAllowPurchase(usePersonQuota, useQuota, personQuota, totalQuota, product.getBusinessType(), isNewUser);
@@ -403,7 +414,7 @@ public class FinancialServiceImpl implements FinancialService {
 
             // 设置假数据
             BigDecimal baseDataAmount = getBaseDataAmount(product.getId(), totalQuota, useQuota);
-            if (Objects.nonNull(baseDataAmount)) {
+            if (Objects.nonNull(baseDataAmount) & !ProductType.fund.equals(product.getType())) {
                 financialProductVO.setUseQuota(useQuota.add(baseDataAmount));
                 financialProductVO.setBaseUseQuota(baseDataAmount);
             }
@@ -415,9 +426,6 @@ public class FinancialServiceImpl implements FinancialService {
             financialProductVO.setPurchaseTime(now);
             // 收益发放时间
             financialProductVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
-
-            // 设置第一个有效可数据的record id
-            financialProductVO.setRecordId(firstProcessRecordMap.get(product.getId()));
 
             financialProductVO.setAvailableBalance(accountBalance.getRemain());
 
@@ -526,5 +534,7 @@ public class FinancialServiceImpl implements FinancialService {
     private FinancialProductLadderRateService financialProductLadderRateService;
     @Resource
     private IWalletAgentProductService walletAgentProductService;
+    @Resource
+    private IFundRecordService fundRecordService;
 
 }

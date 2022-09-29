@@ -17,7 +17,9 @@ import com.tianli.fund.query.FundIncomeQuery;
 import com.tianli.fund.query.FundTransactionQuery;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.fund.vo.*;
+import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
+import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +27,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <p>
@@ -46,12 +50,14 @@ public class FundController {
 
     @Resource
     private RequestInitService requestInitService;
+    @Resource
+    private ConfigService configService;
 
     /**
      * 主页面持有统计
      */
     @GetMapping("/main/statistics")
-    public Result mainPage(){
+    public Result mainPage() {
         FundMainPageVO fundMainPageVO = fundRecordService.mainPage();
         return Result.success(fundMainPageVO);
     }
@@ -60,7 +66,7 @@ public class FundController {
      * 主页面产品列表
      */
     @GetMapping("/main/products")
-    public Result productList(PageQuery<FinancialProduct> page){
+    public Result productList(PageQuery<FinancialProduct> page) {
         IPage<FundProductVO> fundProductPage = fundRecordService.productPage(page);
         return Result.success(fundProductPage);
     }
@@ -69,7 +75,7 @@ public class FundController {
      * 用户持有
      */
     @GetMapping("/main/hold")
-    public Result holdProductList(PageQuery<FundRecord> page){
+    public Result holdProductList(PageQuery<FundRecord> page) {
         IPage<FundRecordVO> recordPage = fundRecordService.fundRecordPage(page);
         return Result.success(recordPage);
     }
@@ -78,7 +84,7 @@ public class FundController {
      * 申购页面
      */
     @GetMapping("/apply/page")
-    public Result applyPage(@RequestParam Long productId,@RequestParam(defaultValue = "0") BigDecimal purchaseAmount){
+    public Result applyPage(@RequestParam Long productId, @RequestParam(defaultValue = "0") BigDecimal purchaseAmount) {
         FundApplyPageVO fundApplyPageVO = fundRecordService.applyPage(productId, purchaseAmount);
         return Result.success(fundApplyPageVO);
     }
@@ -87,14 +93,14 @@ public class FundController {
      * 基金申购
      */
     @PostMapping("/purchase")
-    public Result purchase(@RequestBody @Valid FundPurchaseBO bo){
+    public Result purchase(@RequestBody @Valid FundPurchaseBO bo) {
         Long uid = requestInitService.uid();
         RLock lock = redissonClient.getLock(RedisLockConstants.FUND_CREATE_LOCK + uid);
         lock.lock();
-        try{
+        try {
             FundTransactionRecordVO purchase = fundRecordService.purchase(bo);
             return Result.success(purchase);
-        }finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -103,7 +109,7 @@ public class FundController {
      * 持有详情
      */
     @GetMapping("/detail/{id}")
-    public Result detail(@PathVariable Long id){
+    public Result detail(@PathVariable Long id) {
         FundRecordVO detail = fundRecordService.detail(id);
         return Result.success(detail);
     }
@@ -112,7 +118,7 @@ public class FundController {
      * 收益明细
      */
     @GetMapping("/income/record")
-    public Result incomeRecord(PageQuery<FundIncomeRecord> page , FundIncomeQuery query){
+    public Result incomeRecord(PageQuery<FundIncomeRecord> page, FundIncomeQuery query) {
         IPage<FundIncomeRecordVO> fundIncomeRecordPage = fundRecordService.incomeRecord(page, query);
         return Result.success(fundIncomeRecordPage);
     }
@@ -121,7 +127,7 @@ public class FundController {
      * 收益明细
      */
     @GetMapping("/incomes")
-    public Result incomes(PageQuery<FundIncomeRecord> page , FundIncomeQuery query){
+    public Result incomes(PageQuery<FundIncomeRecord> page, FundIncomeQuery query) {
         IPage<FundIncomeRecordVO> fundIncomeRecordPage = fundRecordService.incomeSummary(page, query);
         return Result.success(fundIncomeRecordPage);
     }
@@ -130,7 +136,7 @@ public class FundController {
      * 赎回页面
      */
     @GetMapping("/redemption/page")
-    public Result redemptionPage(Long id){
+    public Result redemptionPage(Long id) {
         FundRecordVO fundRecordVO = fundRecordService.redemptionPage(id);
         return Result.success(fundRecordVO);
     }
@@ -139,22 +145,22 @@ public class FundController {
      * 基金赎回
      */
     @PostMapping("/apply/redemption")
-    public Result applyRedemption(@RequestBody @Valid FundRedemptionBO bo){
+    public Result applyRedemption(@RequestBody @Valid FundRedemptionBO bo) {
         RLock lock = redissonClient.getLock(RedisLockConstants.FUND_UPDATE_LOCK + bo.getId());
         lock.lock();
         try {
             FundTransactionRecordVO fundTransactionRecordVO = fundRecordService.applyRedemption(bo);
             return Result.success(fundTransactionRecordVO);
-        }finally {
+        } finally {
             lock.unlock();
         }
     }
 
     /**
-     *交易记录
+     * 交易记录
      */
     @GetMapping("/transaction/record")
-    public Result transactionRecord(PageQuery<FundTransactionRecord> page , FundTransactionQuery query){
+    public Result transactionRecord(PageQuery<FundTransactionRecord> page, FundTransactionQuery query) {
         Long uid = requestInitService.uid();
         query.setUid(uid);
         IPage<FundTransactionRecordVO> transactionRecordPage = fundRecordService.transactionRecord(page, query);
@@ -162,10 +168,10 @@ public class FundController {
     }
 
     /**
-     *交易记录详情
+     * 交易记录详情
      */
     @GetMapping("/transaction/detail/{transactionId}")
-    public Result transactionDetail(@PathVariable Long transactionId){
+    public Result transactionDetail(@PathVariable Long transactionId) {
         FundTransactionRecordVO fundTransactionRecordVO = fundRecordService.transactionDetail(transactionId);
         return Result.success(fundTransactionRecordVO);
     }
@@ -174,8 +180,16 @@ public class FundController {
      * 申购或赎回配置列表
      */
     @GetMapping("/quota/config")
-    public Result quota(){
-        return Result.success(FundQuota.quotas);
+    public Result quota() {
+        List<String> quotas = new ArrayList<>(FundQuota.quotas);
+        String dev = configService._get("dev");
+        if (StringUtils.isNotBlank(dev)) {
+            quotas.add("0.1");
+            quotas.add("0.2");
+            quotas.add("0.3");
+            quotas.add("0.4");
+        }
+        return Result.success(quotas);
     }
 
 }

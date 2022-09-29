@@ -34,6 +34,8 @@ import com.tianli.common.ConfigConstants;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
+import com.tianli.common.webhook.WebHookService;
+import com.tianli.common.webhook.WebHookToken;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
@@ -47,7 +49,6 @@ import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
-import com.tianli.task.RetryScheduledExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -139,18 +140,12 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             return;
         }
         for (TRONTokenReq req : tronTokenReqs) {
-            TokenAdapter tokenAdapter = mainToken ? ChainType.getTokenAdapter(chainType) : TokenAdapter.getToken(req.getContractAddress());
             OrderChargeInfo orderChargeInfo = orderChargeInfoService.getByTxid(req.getHash());
-            Long uid = orderChargeInfo.getUid();
+            if (Objects.isNull(orderChargeInfo)) {
+                return;
+            }
             Order order = orderService.getOrderByHash(req.getHash());
-
-            // 操作余额信息
-            accountBalanceService.reduce(uid, ChargeType.withdraw, tokenAdapter.getCurrencyCoin()
-                    , tokenAdapter.getNetwork(), orderChargeInfo.getFee(), order.getOrderNo(), "提现成功扣除");
-            order.setStatus(ChargeStatus.chain_success);
-
-            order.setCompleteTime(LocalDateTime.now());
-            orderService.saveOrUpdate(order);
+            orderReviewService.withdrawSuccess(order, orderChargeInfo);
         }
     }
 
@@ -225,6 +220,14 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         //冻结提现数额
         accountBalanceService.freeze(uid, ChargeType.withdraw, tokenAdapter.getCurrencyCoin()
                 , tokenAdapter.getNetwork(), withdrawAmount, order.getOrderNo(), CurrencyLogDes.提现.name());
+
+        StringBuilder msg = new StringBuilder()
+                .append("监测到用户提现申请,请管理员尽快处理，金额：")
+                .append(query.getAmount())
+                .append(" ").append(query.getCoin().getAlias())
+                .append("，时间：")
+                .append(LocalDateTime.now());
+        webHookService.dingTalkSend(msg.toString(), WebHookToken.FINANCIAL_PRODUCT);
     }
 
     /**
@@ -555,5 +558,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     private OrderAdvanceService orderAdvanceService;
     @Resource
     private AsyncService asyncService;
+    @Resource
+    private OrderReviewService orderReviewService;
+    @Resource
+    private WebHookService webHookService;
 
 }

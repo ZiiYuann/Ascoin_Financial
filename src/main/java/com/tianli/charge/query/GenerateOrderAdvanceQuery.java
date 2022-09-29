@@ -34,4 +34,6 @@ public class GenerateOrderAdvanceQuery {
     private PurchaseTerm term;
 
     private NetworkType network;
+
+    private String referralCode;
 }

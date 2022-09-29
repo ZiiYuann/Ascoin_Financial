@@ -16,12 +16,15 @@ import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.service.OrderReviewService;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.common.PageQuery;
+import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.Result;
 import com.tianli.management.service.FinancialBoardWalletService;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.query.*;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -52,6 +55,8 @@ public class FinancialWalletController {
     private OrderReviewService orderReviewService;
     @Resource
     private ChainCallbackLogService chainCallbackLogService;
+    @Resource
+    private RedissonClient redissonClient;
 
     /**
      * 【云钱包数据展板】
@@ -124,12 +129,18 @@ public class FinancialWalletController {
     }
 
     /**
-     * 【云钱包提币管理】审核
+     * 【云钱包提币管理】提现审核
      */
     @PostMapping("/order/withdraw/review")
     @AdminPrivilege
     public Result orderReview(@RequestBody @Valid OrderReviewQuery query) {
-        orderReviewService.review(query);
+        RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW_REVIEW + query.getOrderNo());
+        try {
+            lock.lock();
+            orderReviewService.review(query);
+        } finally {
+            lock.unlock();
+        }
         return Result.success();
     }
 

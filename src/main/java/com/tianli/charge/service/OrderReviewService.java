@@ -12,14 +12,17 @@ import com.tianli.charge.mapper.OrderReviewMapper;
 import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.vo.OrderReviewVO;
 import com.tianli.common.CommonFunction;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.entity.HotWalletDetailed;
 import com.tianli.management.enums.HotWalletOperationType;
 import com.tianli.management.service.HotWalletDetailedService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,10 +44,14 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
             ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "未找到相关的审核记录，请校验");
         }
 
+        Long relatedId = order.getRelatedId();
+        OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(relatedId);
+
         OrderReview orderReview = Optional.ofNullable(orderReviewMapper.selectById(reviewId))
                 .orElseThrow(() -> ErrorCodeEnum.ARGUEMENT_ERROR.generalException("未找到对应的审核记录:" + reviewId));
-
-        return chargeConverter.toOrderReviewVO(orderReview);
+        OrderReviewVO orderReviewVO = chargeConverter.toOrderReviewVO(orderReview);
+        orderReviewVO.setTxid(orderChargeInfo.getTxid());
+        return orderReviewVO;
     }
 
     @Transactional
@@ -70,40 +77,60 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
 
         order.setReviewerId(orderReview.getId());
 
-        // 审核通过需要上链
-        if (query.isPass()) {
-//            chargeService.withdrawChain(order);
+        OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
+        // 审核通过需要上链 如果传入的hash值为空说明是自动转账
+        if (query.isPass() && StringUtils.isBlank(query.getHash())) {
+            BigDecimal uAmount = currencyService.getDollarRate(orderChargeInfo.getCoin()).multiply(orderChargeInfo.getFee());
+            if (uAmount.compareTo(BigDecimal.valueOf(5000L)) > 0) {
+                ErrorCodeEnum.AUTO_PASS_ERROR.throwException();
+            }
+
+            chargeService.withdrawChain(order);
+            order.setStatus(ChargeStatus.chaining);
+            orderService.saveOrUpdate(order);
+            // 上链数据通过回调操作，直接返回
+            return;
+        }
+
+        if (query.isPass() && StringUtils.isNotBlank(query.getHash())) {
             // 更新order相关链信息
-            OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
             orderChargeInfo.setTxid(query.getHash());
             orderChargeInfoService.updateById(orderChargeInfo);
-
-            // 操作余额信息
-            accountBalanceService.reduce(order.getUid(), ChargeType.withdraw, order.getCoin()
-                    , orderChargeInfo.getNetwork(), orderChargeInfo.getFee(), order.getOrderNo(), "提现成功扣除");
-            order.setStatus(ChargeStatus.chain_success);
-
-            // 插入热钱包操作数据表
-            HotWalletDetailed hotWalletDetailed = HotWalletDetailed.builder()
-                    .id(CommonFunction.generalId())
-                    .uid(orderChargeInfo.getUid() + "")
-                    .amount(orderChargeInfo.getFee())
-                    .coin(orderChargeInfo.getCoin())
-                    .chain(orderChargeInfo.getNetwork().getChainType())
-                    .fromAddress(orderChargeInfo.getFromAddress())
-                    .toAddress(orderChargeInfo.getToAddress())
-                    .hash(orderChargeInfo.getTxid())
-                    .type(HotWalletOperationType.user_withdraw)
-                    .createTime(LocalDateTime.now()).build();
-            hotWalletDetailedService.insert(hotWalletDetailed);
+            withdrawSuccess(order, orderChargeInfo);
+            return;
         }
 
         // 审核不通过需要解冻金额
         if (!query.isPass()) {
-            order.setStatus(ChargeStatus.review_fail);
             accountBalanceService.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), orderNo, "提现申请未通过");
+            order.setStatus(ChargeStatus.review_fail);
+            order.setCompleteTime(LocalDateTime.now());
+            orderService.saveOrUpdate(order);
         }
 
+    }
+
+    @Transactional
+    public void withdrawSuccess(Order order, OrderChargeInfo orderChargeInfo) {
+        // 操作余额信息
+        accountBalanceService.reduce(order.getUid(), ChargeType.withdraw, order.getCoin()
+                , orderChargeInfo.getNetwork(), orderChargeInfo.getFee(), order.getOrderNo(), "提现成功扣除");
+
+        // 插入热钱包操作数据表
+        HotWalletDetailed hotWalletDetailed = HotWalletDetailed.builder()
+                .id(CommonFunction.generalId())
+                .uid(orderChargeInfo.getUid() + "")
+                .amount(orderChargeInfo.getFee())
+                .coin(orderChargeInfo.getCoin())
+                .chain(orderChargeInfo.getNetwork().getChainType())
+                .fromAddress(orderChargeInfo.getFromAddress())
+                .toAddress(orderChargeInfo.getToAddress())
+                .hash(orderChargeInfo.getTxid())
+                .type(HotWalletOperationType.user_withdraw)
+                .createTime(LocalDateTime.now()).build();
+        hotWalletDetailedService.insert(hotWalletDetailed);
+
+        order.setStatus(ChargeStatus.chain_success);
         order.setCompleteTime(LocalDateTime.now());
         orderService.saveOrUpdate(order);
     }
@@ -120,5 +147,9 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
     private OrderChargeInfoService orderChargeInfoService;
     @Resource
     private HotWalletDetailedService hotWalletDetailedService;
+    @Resource
+    private ChargeService chargeService;
+    @Resource
+    private CurrencyService currencyService;
 
 }

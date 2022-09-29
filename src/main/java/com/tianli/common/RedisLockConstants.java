@@ -38,6 +38,7 @@ public class RedisLockConstants {
     public static String PRODUCT_REDEEM = "product:redeem:";
     public static String PRODUCT_PURCHASE = "product:purchase:";
     public static String PRODUCT_WITHDRAW = "product:withdraw:";
+    public static String PRODUCT_WITHDRAW_REVIEW = "product:withdraw:review:";
 
 
 }

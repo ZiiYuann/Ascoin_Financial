@@ -106,6 +106,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
             BigDecimal amount = Optional.ofNullable(orderChargeInfoVO.getAmount()).orElse(BigDecimal.ZERO);
             BigDecimal serviceAmount = Optional.ofNullable(orderChargeInfoVO.getServiceAmount()).orElse(BigDecimal.ZERO);
             orderChargeInfoVO.setAccountAmount(amount.subtract(serviceAmount));
+            orderChargeInfoVO.setUsdtAmount(currencyService.getDollarRate(orderChargeInfoVO.getCoin()).multiply(amount));
             return orderChargeInfoVO;
         });
         return orderChargeInfoVOIPage;
