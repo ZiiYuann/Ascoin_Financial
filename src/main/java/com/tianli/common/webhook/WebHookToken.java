@@ -6,8 +6,8 @@ public enum WebHookToken {
             , "SEC4f2b3d7b20432f7aa3a6cf9144a15be0e17e38919d576dfac9ca2fa6b4b877f5"),
 
     // 基金正式通知
-    FUND_PRODUCT("e9ba9212c2bfebc948d844dc7d5ba72a82acf79be36cbc46d5e507a8fa13c",
-            "SEC46e08bbc82c43cfa0a35aba643eef004cfe78ac774790eba341a21b7079b6d03"),
+    FUND_PRODUCT("e2462fc274c10ebd0cdc8e3c3e68da89da9cc98fb839ce000c50e96b233bc7e5",
+            "SEC8063b75ee9ef2a2ca0bc8df4a727aeca30a30eeddaef0b8635acbc3585d4b925"),
 
     // 异常通知 && 测试通知
     BUG_PUSH("1a1216a39f18e8022b6795014424a9fcf5d62a5f00d3666c11127b21841eb718"
