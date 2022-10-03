@@ -2,6 +2,7 @@ package com.tianli.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.common.base.MoreObjects;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
@@ -12,6 +13,7 @@ import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.enums.FundRecordStatus;
 import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
+import com.tianli.management.query.FundIncomeCompensateQuery;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
@@ -46,8 +48,7 @@ public class FundIncomeTask {
     @Resource
     private RedissonClient redissonClient;
 
-    @Scheduled(cron = "0 0 0 1/20 * ? ")
-//    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 5 0 1/1 * ? ")
     public void incomeTasks() {
         log.info("========执行基金计算利息定时任务========");
         LocalDateTime now = LocalDateTime.now();
@@ -134,6 +135,44 @@ public class FundIncomeTask {
             // 增加待发放利息
             fundRecord.setWaitIncomeAmount(fundRecord.getWaitIncomeAmount().add(dailyIncome));
 
+        }
+        fundRecordService.updateById(fundRecord);
+    }
+
+    @Transactional
+    public void incomeCompensate(FundIncomeCompensateQuery query) {
+        LocalDateTime todayZero = TimeTool.minDay(query.getNow());
+        var fundRecord = fundRecordService.getById(query.getFundId());
+        LocalDateTime createTime = fundRecord.getCreateTime();
+
+        BigDecimal holdAmount  = MoreObjects.firstNonNull(query.getAmount(),fundRecord.getHoldAmount());
+        //四天后开始计息
+        if (createTime.toLocalDate().plusDays(1).until(query.getNow(), ChronoUnit.DAYS) >= FundCycle.interestCalculationCycle) {
+            if (BigDecimal.ZERO.compareTo(holdAmount) == 0) {
+                return;
+            }
+            BigDecimal dailyIncome = fundRecordService.dailyIncome(holdAmount, fundRecord.getRate());
+            //收益记录
+            FundIncomeRecord incomeRecord = FundIncomeRecord.builder()
+                    .uid(fundRecord.getUid())
+                    .fundId(fundRecord.getId())
+                    .productId(fundRecord.getProductId())
+                    .productName(fundRecord.getProductName())
+                    .coin(fundRecord.getCoin())
+                    .rate(fundRecord.getRate())
+                    .holdAmount(fundRecord.getHoldAmount())
+                    .interestAmount(dailyIncome)
+                    .status(query.getStatus())
+                    // 收益的记录时间为计息当日的时间
+                    .createTime(todayZero.plusDays(-1))
+                    .build();
+            fundIncomeRecordService.save(incomeRecord);
+
+            //累计收益
+            fundRecord.setCumulativeIncomeAmount(fundRecord.getCumulativeIncomeAmount().add(dailyIncome));
+            // 增加待发放利息
+            fundRecord.setWaitIncomeAmount(fundRecord.getWaitIncomeAmount().add(dailyIncome));
+            webHookService.dingTalkSend("补偿利息 fundId:" + query.getFundId()+"  金额:" + dailyIncome.toPlainString());
         }
         fundRecordService.updateById(fundRecord);
     }

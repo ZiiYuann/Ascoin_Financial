@@ -15,6 +15,7 @@ import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
+import com.tianli.management.query.FundIncomeCompensateQuery;
 import com.tianli.management.query.FundIncomeTestQuery;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.task.FinancialIncomeTask;
@@ -59,6 +60,16 @@ public class TestController {
     private FinancialIncomeDailyService financialIncomeDailyService;
     @Resource
     private FinancialIncomeAccrueService financialIncomeAccrueService;
+
+
+    /**
+     * 基金补偿
+     */
+    @PutMapping("/fund/compensate")
+    public Result fundIncomeCompensate(@RequestBody FundIncomeCompensateQuery query) {
+        fundIncomeTask.incomeCompensate(query);
+        return Result.success();
+    }
 
     /**
      * 交易记录
@@ -159,5 +170,6 @@ public class TestController {
 
         return Result.success();
     }
+
 
 }
