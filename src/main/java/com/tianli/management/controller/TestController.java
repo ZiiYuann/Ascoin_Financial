@@ -62,14 +62,14 @@ public class TestController {
     private FinancialIncomeAccrueService financialIncomeAccrueService;
 
 
-//    /**
-//     * 基金补偿
-//     */
-//    @PutMapping("/fund/compensate")
-//    public Result fundIncomeCompensate(@RequestBody FundIncomeCompensateQuery query) {
-//        fundIncomeTask.incomeCompensate(query);
-//        return Result.success();
-//    }
+    /**
+     * 基金补偿
+     */
+    @PutMapping("/fund/compensate")
+    public Result fundIncomeCompensate(@RequestBody FundIncomeCompensateQuery query) {
+        fundIncomeTask.incomeCompensate(query);
+        return Result.success();
+    }
 
     /**
      * 交易记录
