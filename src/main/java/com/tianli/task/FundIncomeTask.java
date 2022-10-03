@@ -75,7 +75,7 @@ public class FundIncomeTask {
         LocalDateTime todayZero = TimeTool.minDay(now);
         LocalDateTime createTime = fundRecord.getCreateTime();
         // t + 4 是开始记录利息的时间  1号12点申购 5号开始计算利息 6号开始发5号利息
-        LocalDateTime startIncomeTime = TimeTool.minDay(createTime).plusDays(5);
+        LocalDateTime startIncomeTime = TimeTool.minDay(createTime).plusDays(4);
         long cha = 0L;
         if (startIncomeTime.compareTo(todayZero) < 0 && (cha = startIncomeTime.until(todayZero, ChronoUnit.DAYS)) >= 7) {
             if (cha % 7 == 0) {
@@ -108,8 +108,9 @@ public class FundIncomeTask {
             }
         }
 
-        //四天后开始计息
-        if (createTime.toLocalDate().plusDays(1).until(now, ChronoUnit.DAYS) >= FundCycle.interestCalculationCycle) {
+        // 四天后开始计息 createTime 25号 createTime.toLocalDate().plusDays(1) 26号 26 27 28 等待 29开始 30发放
+        //
+        if (createTime.toLocalDate().until(now, ChronoUnit.DAYS) >= FundCycle.interestCalculationCycle) {
             if (BigDecimal.ZERO.compareTo(fundRecord.getHoldAmount()) == 0) {
                 return;
             }
@@ -147,7 +148,7 @@ public class FundIncomeTask {
 
         BigDecimal holdAmount  = MoreObjects.firstNonNull(query.getAmount(),fundRecord.getHoldAmount());
         //四天后开始计息
-        if (createTime.toLocalDate().plusDays(1).until(query.getNow(), ChronoUnit.DAYS) >= FundCycle.interestCalculationCycle) {
+        if (createTime.toLocalDate().until(query.getNow(), ChronoUnit.DAYS) >= FundCycle.interestCalculationCycle) {
             if (BigDecimal.ZERO.compareTo(holdAmount) == 0) {
                 return;
             }
