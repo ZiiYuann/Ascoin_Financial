@@ -447,8 +447,8 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
             this.updateById(fundRecord);
         }
 
-        // 记息时间 T 为 申购时间第二天零
-        LocalDate startIncomeTime = fundRecord.getCreateTime().toLocalDate().plusDays(1);
+        // t（申购第二天零点） + 3 是开始记录利息的时间  1号12点申购 5号开始计算利息 6号开始发5号利息
+        LocalDate startIncomeTime = fundRecord.getCreateTime().toLocalDate().plusDays(4);
         if (startIncomeTime.until(LocalDateTime.now(), ChronoUnit.DAYS) < FundCycle.interestAuditCycle) {
             ErrorCodeEnum.REDEMPTION_CYCLE_ERROR.throwException();
         }
