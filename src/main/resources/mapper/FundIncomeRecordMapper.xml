@@ -27,7 +27,8 @@
         a.interest_amount interestAmount,
         a.status,
         a.create_time createTime,
-        b.logo
+        b.logo,
+        b.id as fund_id
         from fund_income_record a
         inner JOIN fund_record b on a.fund_id = b.id
         inner join wallet_agent_product c on b.product_id = c.product_id
@@ -54,7 +55,7 @@
         inner join wallet_agent_product c on b.product_id = c.product_id
         <include refid="query"/>
         group by b.id
-        order by  interestAmount desc
+        order by interestAmount desc
 
     </select>
 
