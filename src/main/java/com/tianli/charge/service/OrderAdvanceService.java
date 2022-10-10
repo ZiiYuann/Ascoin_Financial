@@ -13,7 +13,6 @@ import com.tianli.charge.query.GenerateOrderAdvanceQuery;
 import com.tianli.charge.vo.OrderBaseVO;
 import com.tianli.charge.vo.OrderFundTransactionVO;
 import com.tianli.common.CommonFunction;
-import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.annotation.NoRepeatCommit;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.enums.TokenAdapter;
@@ -280,6 +279,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
             baseMapper.updateById(orderAdvance);
 
             order.setStatus(ChargeStatus.chain_success);
+            order.setCompleteTime(LocalDateTime.now());
             orderService.updateById(order);
         } catch (Exception e) {
             webHookService.dingTalkSend("预购订单异常", e);
