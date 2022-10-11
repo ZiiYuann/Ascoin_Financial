@@ -20,6 +20,7 @@ import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.convert.FundRecordConvert;
 import com.tianli.fund.dao.FundIncomeRecordMapper;
@@ -218,6 +219,28 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
         if (Objects.isNull(incomeRecord)) ErrorCodeEnum.INCOME_NOT_EXIST.throwException();
         List<FundReview> fundReviews = fundReviewService.getListByRid(id);
         return fundReviews.stream().map(fundReview -> fundRecordConvert.toReviewVO(fundReview)).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void rollback(Long id) {
+        FundIncomeRecord fundIncomeRecord = fundIncomeRecordMapper.selectById(id);
+        if (fundIncomeRecord.getStatus() != 1) {
+            ErrorCodeEnum.throwException("利息不为已经计算");
+        }
+
+        BigDecimal needRollbackAmount = fundIncomeRecord.getInterestAmount();
+
+        // 回滚利息
+        Long fundId = fundIncomeRecord.getFundId();
+        FundRecord fundRecord = fundRecordService.getById(fundId);
+        BigDecimal waitIncomeAmount = fundRecord.getWaitIncomeAmount();
+        BigDecimal cumulativeIncomeAmount = fundRecord.getCumulativeIncomeAmount();
+        fundRecord.setWaitIncomeAmount(waitIncomeAmount.subtract(needRollbackAmount));
+        fundRecord.setCumulativeIncomeAmount(cumulativeIncomeAmount.subtract(needRollbackAmount));
+        fundRecordService.updateById(fundRecord);
+
+        fundIncomeRecord.deleteById(id);
     }
 
     /**

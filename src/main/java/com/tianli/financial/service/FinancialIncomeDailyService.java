@@ -101,4 +101,6 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
         }
         return financialIncomeDailyMapper.selectPage(page, query);
     }
+
+
 }

@@ -22,10 +22,7 @@ import com.tianli.task.FinancialIncomeTask;
 import com.tianli.task.FundIncomeTask;
 import com.tianli.tool.time.TimeTool;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -171,5 +168,10 @@ public class TestController {
         return Result.success();
     }
 
+    @PostMapping("/fund/income/rollback")
+    public Result incomeRollback(Long incomeId) {
+        fundIncomeRecordService.rollback(incomeId);
+        return Result.success();
+    }
 
 }

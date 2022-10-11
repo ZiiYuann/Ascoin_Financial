@@ -41,4 +41,6 @@ public interface IFundIncomeRecordService extends IService<FundIncomeRecord> {
     void incomeAudit(FundAuditBO bo);
 
     List<FundReviewVO> getIncomeAuditRecord(Long id);
+
+    void rollback(Long id);
 }
