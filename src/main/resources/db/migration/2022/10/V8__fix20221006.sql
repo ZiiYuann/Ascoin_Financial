@@ -1,0 +1,2 @@
+-- 修复部分数据
+update fund_income_record  set status = 2 where id in (1577691336268709890,1577691334125420545,1577691338281975809);

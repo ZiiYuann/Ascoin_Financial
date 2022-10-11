@@ -77,6 +77,36 @@ public class FundIncomeTask {
         // t + 4 是开始记录利息的时间  1号12点申购 5号开始计算利息 6号开始发5号利息
         LocalDateTime startIncomeTime = TimeTool.minDay(createTime).plusDays(4);
         long cha = 0L;
+        // 四天后开始计息 createTime 25号 createTime.toLocalDate().plusDays(1) 26号 26 27 28 等待 29开始 30发放
+        //
+        if (createTime.toLocalDate().until(now, ChronoUnit.DAYS) >= FundCycle.interestCalculationCycle) {
+            if (BigDecimal.ZERO.compareTo(fundRecord.getHoldAmount()) == 0) {
+                return;
+            }
+            BigDecimal dailyIncome = fundRecordService.dailyIncome(fundRecord.getHoldAmount(), fundRecord.getRate());
+            //收益记录
+            FundIncomeRecord incomeRecord = FundIncomeRecord.builder()
+                    .uid(fundRecord.getUid())
+                    .fundId(fundRecord.getId())
+                    .productId(fundRecord.getProductId())
+                    .productName(fundRecord.getProductName())
+                    .coin(fundRecord.getCoin())
+                    .rate(fundRecord.getRate())
+                    .holdAmount(fundRecord.getHoldAmount())
+                    .interestAmount(dailyIncome)
+                    .status(FundIncomeStatus.calculated)
+                    // 收益的记录时间为计息当日的时间
+                    .createTime(todayZero.plusDays(-1))
+                    .build();
+            fundIncomeRecordService.save(incomeRecord);
+
+            //累计收益
+            fundRecord.setCumulativeIncomeAmount(fundRecord.getCumulativeIncomeAmount().add(dailyIncome));
+            // 增加待发放利息
+            fundRecord.setWaitIncomeAmount(fundRecord.getWaitIncomeAmount().add(dailyIncome));
+
+        }
+
         if (startIncomeTime.compareTo(todayZero) < 0 && (cha = startIncomeTime.until(todayZero, ChronoUnit.DAYS)) >= 7) {
             if (cha % 7 == 0) {
                 // 查询已经计算的收益信息
@@ -108,35 +138,6 @@ public class FundIncomeTask {
             }
         }
 
-        // 四天后开始计息 createTime 25号 createTime.toLocalDate().plusDays(1) 26号 26 27 28 等待 29开始 30发放
-        //
-        if (createTime.plusDays(1).toLocalDate().until(now, ChronoUnit.DAYS) >= FundCycle.interestCalculationCycle) {
-            if (BigDecimal.ZERO.compareTo(fundRecord.getHoldAmount()) == 0) {
-                return;
-            }
-            BigDecimal dailyIncome = fundRecordService.dailyIncome(fundRecord.getHoldAmount(), fundRecord.getRate());
-            //收益记录
-            FundIncomeRecord incomeRecord = FundIncomeRecord.builder()
-                    .uid(fundRecord.getUid())
-                    .fundId(fundRecord.getId())
-                    .productId(fundRecord.getProductId())
-                    .productName(fundRecord.getProductName())
-                    .coin(fundRecord.getCoin())
-                    .rate(fundRecord.getRate())
-                    .holdAmount(fundRecord.getHoldAmount())
-                    .interestAmount(dailyIncome)
-                    .status(FundIncomeStatus.calculated)
-                    // 收益的记录时间为计息当日的时间
-                    .createTime(todayZero.plusDays(-1))
-                    .build();
-            fundIncomeRecordService.save(incomeRecord);
-
-            //累计收益
-            fundRecord.setCumulativeIncomeAmount(fundRecord.getCumulativeIncomeAmount().add(dailyIncome));
-            // 增加待发放利息
-            fundRecord.setWaitIncomeAmount(fundRecord.getWaitIncomeAmount().add(dailyIncome));
-
-        }
         fundRecordService.updateById(fundRecord);
     }
 
