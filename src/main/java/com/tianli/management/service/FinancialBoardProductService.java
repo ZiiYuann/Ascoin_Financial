@@ -97,12 +97,12 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
 
     public FinancialProductBoardSummaryVO productBoard(FinancialBoardQuery query) {
         // 按用户输入时间
-        FinancialBoardProduct financialBoardProduct = this.getFinancialBoardProduct(query.getStartTime(),query.getEndTime(), null);
+        FinancialBoardProduct financialBoardProduct = this.getFinancialBoardProduct(query.getStartTime(), query.getEndTime(), null);
 
         // 本日数据 实时查询
         LocalDateTime todayBegin = TimeTool.minDay(LocalDateTime.now());
         LocalDateTime todayEnd = todayBegin.plusDays(1);
-        FinancialBoardProduct financialBoardProductToday = getFinancialBoardProduct(todayBegin,todayEnd, null);
+        FinancialBoardProduct financialBoardProductToday = getFinancialBoardProduct(todayBegin, todayEnd, null);
         financialBoardProductToday.setCreateTime(todayBegin.toLocalDate());
 
         int offsetDay = -13;
@@ -122,10 +122,10 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
         // 添加当日数据
         financialProductBoards13.add(financialBoardProductToday);
         financialProductBoards13.stream().forEach(o -> {
-                    FinancialProductBoardVO financialProductBoardVO = managementConverter.toVO(o);
-                    String dateTimeStr = financialProductBoardVO.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    financialProductBoardVOMap.put(dateTimeStr, financialProductBoardVO);
-                });
+            FinancialProductBoardVO financialProductBoardVO = managementConverter.toVO(o);
+            String dateTimeStr = financialProductBoardVO.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            financialProductBoardVOMap.put(dateTimeStr, financialProductBoardVO);
+        });
 
         FinancialProductBoardSummaryVO financialProductBoardSummaryVO =
                 managementConverter.toFinancialProductBoardSummaryVO(financialBoardProduct);

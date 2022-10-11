@@ -129,7 +129,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                 .coin(product.getCoin())
                 .orderNo(AccountChangeType.advance_purchase.getPrefix() + orderAdvance.getId())
                 .amount(orderAdvance.getAmount())
-                .type(ChargeType.purchase)
+                .type(ProductType.fund.equals(product.getType()) ? ChargeType.fund_purchase : ChargeType.purchase)
                 .status(ChargeStatus.created)
                 .createTime(LocalDateTime.now())
                 .status(ChargeStatus.chaining)
