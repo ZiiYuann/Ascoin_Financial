@@ -83,7 +83,7 @@ public class FundIncomeTask {
                 List<FundIncomeRecord> fundIncomeRecords = fundIncomeRecordService.list(new QueryWrapper<FundIncomeRecord>().lambda()
                         .eq(FundIncomeRecord::getFundId, fundRecord.getId())
                         .eq(FundIncomeRecord::getStatus, FundIncomeStatus.calculated)
-                        .between(FundIncomeRecord::getCreateTime, todayZero.plusDays(-8), todayZero.plusDays(-1)));
+                        .between(FundIncomeRecord::getCreateTime, todayZero.plusDays(-7), todayZero.plusDays(-1)));
                 fundIncomeRecords.forEach(fundIncomeRecord -> {
                     fundIncomeRecord.setStatus(FundIncomeStatus.wait_audit);
                     fundIncomeRecordService.updateById(fundIncomeRecord);
