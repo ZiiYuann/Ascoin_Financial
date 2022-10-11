@@ -225,9 +225,6 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     @Transactional
     public void rollback(Long id) {
         FundIncomeRecord fundIncomeRecord = fundIncomeRecordMapper.selectById(id);
-        if (fundIncomeRecord.getStatus() != 1) {
-            ErrorCodeEnum.throwException("利息不为已经计算");
-        }
 
         BigDecimal needRollbackAmount = fundIncomeRecord.getInterestAmount();
 
