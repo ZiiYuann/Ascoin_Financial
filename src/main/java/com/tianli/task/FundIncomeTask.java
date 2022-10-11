@@ -79,7 +79,7 @@ public class FundIncomeTask {
         long cha = 0L;
         // 四天后开始计息 createTime 25号 createTime.toLocalDate().plusDays(1) 26号 26 27 28 等待 29开始 30发放
         //
-        if (createTime.toLocalDate().until(now, ChronoUnit.DAYS) >= FundCycle.interestCalculationCycle) {
+        if (createTime.plusDays(1).toLocalDate().until(now, ChronoUnit.DAYS) >= FundCycle.interestCalculationCycle) {
             if (BigDecimal.ZERO.compareTo(fundRecord.getHoldAmount()) == 0) {
                 return;
             }
