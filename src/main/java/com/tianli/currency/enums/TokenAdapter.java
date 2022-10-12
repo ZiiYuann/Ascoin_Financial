@@ -88,7 +88,7 @@ public enum TokenAdapter {
      */
     public static TokenAdapter getToken(String contractAddress) {
         for (TokenAdapter type : TokenAdapter.values()) {
-            if (type.getContractAddress().equals(contractAddress)) {
+            if (type.getContractAddress().equalsIgnoreCase(contractAddress)) {
                 return type;
             }
         }
