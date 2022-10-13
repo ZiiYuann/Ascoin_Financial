@@ -1,5 +1,6 @@
 package com.tianli.account.controller;
 
+import cn.hutool.json.JSONUtil;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
@@ -54,14 +55,25 @@ public class AccountController {
     }
 
     /**
+     * 激活钱包
+     */
+    @PostMapping("/activate/uid")
+    public Result activateWalletByUid(@RequestBody String str) {
+        Long uid = JSONUtil.parse(str).getByPath("uid", Long.class);
+        // todo 验证uid是否可靠
+        addressService.activityAccount(uid);
+        return Result.success().setData(true);
+    }
+
+    /**
      * 钱包激活状态
      */
     @GetMapping("/status")
     public Result status() {
         Long uid = requestInitService.uid();
         Address address = addressService.get(uid);
-        Map<String,Boolean> result = new HashMap<>();
-        result.put("activate",Objects.nonNull(address));
+        Map<String, Boolean> result = new HashMap<>();
+        result.put("activate", Objects.nonNull(address));
         return Result.success().setData(result);
     }
 
@@ -95,7 +107,7 @@ public class AccountController {
         String amount = configService.get(tokenAdapter.name() + "_withdraw_fixed_amount");
         HashMap<String, String> rateMap = new HashMap<>();
         DecimalFormat decimalFormat = new DecimalFormat("#.########");
-        rateMap.put("serviceAmount",decimalFormat.format(Double.parseDouble(amount)));
+        rateMap.put("serviceAmount", decimalFormat.format(Double.parseDouble(amount)));
         return Result.success().setData(rateMap);
     }
 
@@ -107,7 +119,7 @@ public class AccountController {
         TokenAdapter tokenAdapter = TokenAdapter.get(coin, networkType);
         String amount = configService.get(tokenAdapter.name() + "_withdraw_min_amount");
         HashMap<String, String> rateMap = new HashMap<>();
-        rateMap.put("withdrawLimitAmount",BigDecimal.valueOf(Double.parseDouble(amount)).toString());
+        rateMap.put("withdrawLimitAmount", BigDecimal.valueOf(Double.parseDouble(amount)).toString());
         return Result.success().setData(rateMap);
     }
 
@@ -135,7 +147,7 @@ public class AccountController {
     @GetMapping("/balance/{coin}")
     public Result accountBalance(@PathVariable CurrencyCoin coin) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(accountBalanceService.getVO(uid,coin));
+        return Result.instance().setData(accountBalanceService.getVO(uid, coin));
     }
 
     /**
@@ -144,7 +156,7 @@ public class AccountController {
     @GetMapping("/balance/details")
     public Result accountBalanceDetails(PageQuery<Order> query, ChargeGroup chargeGroup, CurrencyCoin coin) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(chargeService.pageByChargeGroup(uid,coin, chargeGroup, query.page()));
+        return Result.instance().setData(chargeService.pageByChargeGroup(uid, coin, chargeGroup, query.page()));
     }
 
 }
