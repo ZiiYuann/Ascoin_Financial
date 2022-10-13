@@ -61,8 +61,7 @@ public class AccountController {
     public Result activateWalletByUid(@RequestBody String str) {
         Long uid = JSONUtil.parse(str).getByPath("uid", Long.class);
         // todo 验证uid是否可靠
-        addressService.activityAccount(uid);
-        return Result.success().setData(true);
+        return Result.success().setData(addressService.activityAccount(uid));
     }
 
     /**
