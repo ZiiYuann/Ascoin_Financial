@@ -60,7 +60,6 @@ public class AccountController {
     @PostMapping("/activate/uid")
     public Result activateWalletByUid(@RequestBody String str) {
         Long uid = JSONUtil.parse(str).getByPath("uid", Long.class);
-        // todo 验证uid是否可靠
         return Result.success().setData(addressService.activityAccount(uid));
     }
 

@@ -1,12 +1,13 @@
 package com.tianli.address;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.mapper.AddressMapper;
 import com.tianli.chain.dto.CallbackPathDTO;
 import com.tianli.chain.service.ChainService;
-import com.tianli.chain.service.contract.*;
+import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.NetworkType;
@@ -15,13 +16,21 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
+
+import static com.tianli.sso.service.SSOService.WALLET_NEWS_SERVER_URL;
 
 /**
  * <p>
@@ -47,7 +56,8 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
      * 激活钱包，并且会推送数据到数据中心
      */
     @Transactional
-    public Address activityAccount(Long uid){
+    public Address activityAccount(Long uid) {
+        validUid(uid);
         Address address = getAndInit(uid);
         chainService.pushCondition(address, new CallbackPathDTO("/api/charge/recharge"));
         return address;
@@ -58,7 +68,7 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
      */
     @SneakyThrows
     @Transactional
-    public Address getAndInit(long uid){
+    public Address getAndInit(long uid) {
         redisLock.lock("AddressService.get_" + uid + "_", 1L, TimeUnit.MINUTES);
         Address address = this.get(uid);
         if (address != null) return address;
@@ -66,7 +76,8 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
         String bsc = baseContractService.getOne(NetworkType.bep20).computeAddress(generalId);
         String tron = baseContractService.getOne(NetworkType.trc20).computeAddress(generalId);
         String eth = baseContractService.getOne(NetworkType.erc20).computeAddress(generalId);
-        if (StringUtils.isEmpty(bsc) || StringUtils.isEmpty(tron) || StringUtils.isEmpty(eth)) ErrorCodeEnum.NETWORK_ERROR.throwException();
+        if (StringUtils.isEmpty(bsc) || StringUtils.isEmpty(tron) || StringUtils.isEmpty(eth))
+            ErrorCodeEnum.NETWORK_ERROR.throwException();
         address = Address.builder()
                 .id(generalId)
                 .uid(uid)
@@ -82,19 +93,19 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
     /**
      * 获取用户云钱包地址
      */
-    public Address get(long uid){
+    public Address get(long uid) {
         return super.getOne(new LambdaQueryWrapper<Address>().eq(Address::getUid, uid));
     }
 
     /**
      * 获取系统钱包地址
      */
-    public Address getConfigAddress(){
+    public Address getConfigAddress() {
         String bscWalletAddress = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
         String ethWalletAddress = configService.get(ConfigConstants.ETH_MAIN_WALLET_ADDRESS);
         String tronWalletAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
 
-       return Address.builder()
+        return Address.builder()
                 .bsc(bscWalletAddress)
                 .eth(ethWalletAddress)
                 .tron(tronWalletAddress)
@@ -113,10 +124,36 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
         return baseMapper.getByBsc(toAddress);
     }
 
-    public BigInteger activeCount(LocalDateTime startTime ,LocalDateTime endTime){
+    public BigInteger activeCount(LocalDateTime startTime, LocalDateTime endTime) {
         LambdaQueryWrapper<Address> queryWrapper =
                 new LambdaQueryWrapper<Address>().between(Address::getCreateTime, startTime, endTime);
         Integer integer = baseMapper.selectCount(queryWrapper);
         return BigInteger.valueOf(integer);
+    }
+
+
+    /**
+     * 校验uid是否有效
+     *
+     * @param uid 用户uid
+     */
+    private void validUid(Long uid) {
+        HttpClient client = HttpClientBuilder.create().build();
+        String walletNewsServerUrl = configService.getOrDefault(WALLET_NEWS_SERVER_URL, "https://wallet-news.giantdt.com");
+        // 注册域名
+        try {
+            HttpGet httpGet = new HttpGet(walletNewsServerUrl + "/api/user/verify/uid?uid=" + uid);
+            HttpResponse response = client.execute(httpGet);
+            String s = EntityUtils.toString(response.getEntity());
+            Boolean exist = JSONUtil.parse(s).getByPath("data.exist", Boolean.class);
+
+            if (!exist) {
+                ErrorCodeEnum.throwException("uid 校验不存在");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            ErrorCodeEnum.throwException("http 调用异常");
+        }
     }
 }
