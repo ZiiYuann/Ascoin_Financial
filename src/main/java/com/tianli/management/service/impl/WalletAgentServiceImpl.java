@@ -78,6 +78,11 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
         // 校验代理人钱包是否激活
         Optional.ofNullable(addressService.get(uid)).orElseThrow(ErrorCodeEnum.AGENT_NOT_ACTIVE::generalException);
 
+        WalletAgent walletAgentByName = getByAgentName(bo.getAgentName());
+        if (Objects.nonNull(walletAgentByName)){
+            ErrorCodeEnum.throwException("代理人用户名重复");
+        }
+
         Integer count = walletAgentMapper.selectCountByUid(bo.getUid());
         if (count > 0) ErrorCodeEnum.AGENT_ALREADY_BIND.throwException();
         List<WalletAgentBO.Product> products = bo.getProducts();
