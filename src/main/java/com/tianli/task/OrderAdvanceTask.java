@@ -7,11 +7,10 @@ import com.tianli.chain.service.contract.ContractOperation;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderAdvance;
 import com.tianli.charge.enums.ChargeStatus;
-import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderAdvanceService;
 import com.tianli.charge.service.OrderService;
-import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.blockchain.NetworkType;
+import com.tianli.common.webhook.WebHookService;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.service.FinancialProductService;
@@ -28,9 +27,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -60,8 +57,6 @@ public class OrderAdvanceTask {
                 .eq(Order::getStatus, ChargeStatus.chaining)
                 .likeRight(Order::getOrderNo, AccountChangeType.advance_purchase.getPrefix()))).orElse(new ArrayList<>());
 
-        List<String> orderNos = advanceOrders.stream().map(Order::getOrderNo).collect(Collectors.toList());
-        webHookService.dingTalkSend("检测到异常申购预订单" + StringUtils.join(orderNos,","));
         advanceOrders.forEach(this::scanChainOperation);
     }
 
@@ -71,38 +66,31 @@ public class OrderAdvanceTask {
         Long relatedId = order.getRelatedId();
 
         OrderAdvance orderAdvance = orderAdvanceService.getById(relatedId);
-        if (Objects.isNull(orderAdvance)) {
-            order.setStatus(ChargeStatus.chain_fail);
-            orderService.updateById(order);
+        if (orderAdvance.getCreateTime().until(LocalDateTime.now(), ChronoUnit.MINUTES) < 20) {
             return;
         }
 
+        webHookService.dingTalkSend("检测到异常申购预订单" + order.getOrderNo());
+
+
         Long productId = orderAdvance.getProductId();
         FinancialProduct product = financialProductService.getById(productId);
+
+        // 基金订单处理
         if (ProductType.fund.equals(product.getType())) {
             FundTransactionRecord fundTransactionRecord = fundTransactionRecordService.getById(order.getRelatedId());
             fundTransactionRecord.setStatus(FundTransactionStatus.fail);
             fundTransactionRecordService.updateById(fundTransactionRecord);
         }
 
-        if (orderAdvance.getCreateTime().until(LocalDateTime.now(), ChronoUnit.MINUTES) > 10) {
-            if (StringUtils.isBlank(orderAdvance.getTxid())) {
-                orderAdvance.setFinish(2);
-                orderAdvanceService.updateById(orderAdvance);
-                order.setStatus(ChargeStatus.chain_fail);
-                orderService.updateById(order);
-                return;
+        if (StringUtils.isNotBlank(orderAdvance.getTxid())){
+            String txid = orderAdvance.getTxid();
+            NetworkType network = orderAdvance.getNetwork();
+            ContractOperation contract = contractAdapter.getOne(network);
+            boolean success = contract.successByHash(txid);
+            if (success) {
+                webHookService.dingTalkSend("奇怪的申购订单" + orderAdvance.getTxid(), new RuntimeException());
             }
-        }
-
-        String txid = orderAdvance.getTxid();
-        NetworkType network = orderAdvance.getNetwork();
-
-        ContractOperation contract = contractAdapter.getOne(network);
-
-        boolean success = contract.successByHash(txid);
-        if (success) {
-            webHookService.dingTalkSend("奇怪的申购订单" + orderAdvance.getTxid(), new RuntimeException());
         }
 
         orderAdvance.setFinish(2);
@@ -110,7 +98,6 @@ public class OrderAdvanceTask {
         order.setStatus(ChargeStatus.chain_fail);
         orderService.updateById(order);
     }
-
 
 }
 
