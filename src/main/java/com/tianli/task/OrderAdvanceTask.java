@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -56,10 +57,11 @@ public class OrderAdvanceTask {
     @Scheduled(cron = "0 0/15 * * * ?")
     public void incomeTasks() {
         List<Order> advanceOrders = Optional.ofNullable(orderService.list(new LambdaQueryWrapper<Order>()
-                .eq(Order::getType, ChargeType.purchase)
                 .eq(Order::getStatus, ChargeStatus.chaining)
                 .likeRight(Order::getOrderNo, AccountChangeType.advance_purchase.getPrefix()))).orElse(new ArrayList<>());
 
+        List<String> orderNos = advanceOrders.stream().map(Order::getOrderNo).collect(Collectors.toList());
+        webHookService.dingTalkSend("检测到异常申购预订单" + StringUtils.join(orderNos,","));
         advanceOrders.forEach(this::scanChainOperation);
     }
 

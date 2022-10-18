@@ -38,6 +38,7 @@ import com.tianli.fund.vo.FundTransactionRecordVO;
 import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.sso.init.RequestInitService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -113,6 +114,11 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
      */
     @Transactional
     public OrderBaseVO updateOrderAdvance(GenerateOrderAdvanceQuery query) {
+
+        if (StringUtils.isBlank(query.getTxid())) {
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
+        }
+
         OrderAdvance orderAdvance = baseMapper.selectById(query.getId());
         orderAdvance.setTxid(query.getTxid());
         orderAdvance.setNetwork(query.getNetwork());
