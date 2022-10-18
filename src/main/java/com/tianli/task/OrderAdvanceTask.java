@@ -70,7 +70,8 @@ public class OrderAdvanceTask {
             return;
         }
 
-        webHookService.dingTalkSend("检测到异常申购预订单" + order.getOrderNo());
+        webHookService.dingTalkSend("检测到异常申购预订单" + order.getOrderNo() + "  ,"
+                + orderAdvance.getNetwork() + ":" + orderAdvance.getTxid());
 
 
         Long productId = orderAdvance.getProductId();
@@ -83,7 +84,7 @@ public class OrderAdvanceTask {
             fundTransactionRecordService.updateById(fundTransactionRecord);
         }
 
-        if (StringUtils.isNotBlank(orderAdvance.getTxid())){
+        if (StringUtils.isNotBlank(orderAdvance.getTxid())) {
             String txid = orderAdvance.getTxid();
             NetworkType network = orderAdvance.getNetwork();
             ContractOperation contract = contractAdapter.getOne(network);
