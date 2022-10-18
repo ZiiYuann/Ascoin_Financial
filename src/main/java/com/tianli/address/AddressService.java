@@ -57,7 +57,7 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
      */
     @Transactional
     public Address activityAccount(Long uid) {
-        validUid(uid);
+//        validUid(uid);
         Address address = getAndInit(uid);
         chainService.pushCondition(address, new CallbackPathDTO("/api/charge/recharge"));
         return address;
