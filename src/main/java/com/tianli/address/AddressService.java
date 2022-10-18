@@ -3,6 +3,7 @@ package com.tianli.address;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.account.query.IdsQuery;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.mapper.AddressMapper;
 import com.tianli.chain.dto.CallbackPathDTO;
@@ -12,6 +13,7 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.lock.RedisLock;
+import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
 import lombok.SneakyThrows;
@@ -28,6 +30,7 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.tianli.sso.service.SSOService.WALLET_NEWS_SERVER_URL;
@@ -51,17 +54,40 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
     private ConfigService configService;
     @Resource
     private ChainService chainService;
+    @Resource
+    private WebHookService webHookService;
 
     /**
      * 激活钱包，并且会推送数据到数据中心
      */
     @Transactional
-    public Address activityAccount(Long uid) {
-        validUid(uid);
+    public Address activityAccount(Long uid, boolean valid) {
+        if (valid) {
+            validUid(uid);
+        }
         Address address = getAndInit(uid);
         chainService.pushCondition(address, new CallbackPathDTO("/api/charge/recharge"));
         return address;
     }
+
+    @Transactional
+    public Address activityAccount(Long uid) {
+        return activityAccount(uid, true);
+    }
+
+    public void activityAccount(IdsQuery idsQuery) {
+        List<Long> ids = idsQuery.getIds();
+
+        ids.forEach(id -> {
+            try {
+                activityAccount(id, false);
+            } catch (Exception e) {
+                webHookService.dingTalkSend("uid 激活失败：" + id);
+            }
+        });
+
+    }
+
 
     /**
      * 获取用户的账户地址 如果没有的话会初始化

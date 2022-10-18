@@ -1,6 +1,7 @@
 package com.tianli.account.controller;
 
 import cn.hutool.json.JSONUtil;
+import com.tianli.account.query.IdsQuery;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
@@ -61,6 +62,15 @@ public class AccountController {
     public Result activateWalletByUid(@RequestBody String str) {
         Long uid = JSONUtil.parse(str).getByPath("uid", Long.class);
         return Result.success().setData(addressService.activityAccount(uid));
+    }
+
+    /**
+     * 激活钱包
+     */
+    @PostMapping("/activate/uids")
+    public Result activateWalletByUid(@RequestBody IdsQuery idsQuery) {
+        addressService.activityAccount(idsQuery);
+        return Result.success();
     }
 
     /**
