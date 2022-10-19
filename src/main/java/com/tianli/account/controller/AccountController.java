@@ -12,6 +12,7 @@ import com.tianli.charge.service.ChargeService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
+import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
@@ -45,6 +46,8 @@ public class AccountController {
     private ChargeService chargeService;
     @Resource
     private ConfigService configService;
+    @Resource
+    private WebHookService webHookService;
 
     /**
      * 激活钱包
@@ -69,7 +72,12 @@ public class AccountController {
      */
     @PostMapping("/activate/uids")
     public Result activateWalletByUid(@RequestBody IdsQuery idsQuery) {
-        addressService.activityAccount(idsQuery);
+        try {
+            addressService.activityAccount(idsQuery);
+        } catch (Exception e) {
+            webHookService.dingTalkSend("激活程序异常", e);
+            throw e;
+        }
         return Result.success();
     }
 

@@ -78,7 +78,7 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
     public void activityAccount(IdsQuery idsQuery) {
         List<Long> ids = idsQuery.getIds();
 
-        ids.forEach(id -> {
+        ids.parallelStream().forEach(id -> {
             try {
                 activityAccount(id, false);
             } catch (Exception e) {
