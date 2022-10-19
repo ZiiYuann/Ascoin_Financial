@@ -3,6 +3,7 @@ package com.tianli.chain.service;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.tianli.address.PushHttpClient;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.mapper.AddressMapper;
 import com.tianli.chain.dto.CallbackPathDTO;
@@ -50,11 +51,9 @@ import java.util.Optional;
 public class ChainService {
 
     private static final String RECHARGE_ADDRESS = "/api/charge/recharge";
-//    private static final String WITHDRAW_ADDRESS = "/api/charge/withdraw";
 
     @PostConstruct
     public void pushConditionInit() {
-        HttpClient client = HttpClientBuilder.create().build();
         String dataCenterCallBackRegisterPath = configService.get(ConfigConstants.DATA_CENTER_URL_REGISTER_PATH);
         String pre = configService.get(ConfigConstants.SYSTEM_URL_PATH_PREFIX);
 
@@ -75,7 +74,7 @@ public class ChainService {
                     HttpPost rechargeRegisterPost = new HttpPost(rechargeUriBuilder.build());
                     rechargeRegisterPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
                     log.info("推送钱包【充值回调】注册地址信息为: 【{}】", pre + RECHARGE_ADDRESS);
-                    HttpResponse rechargeRegisterRep = client.execute(rechargeRegisterPost);
+                    HttpResponse rechargeRegisterRep = PushHttpClient.getClient().execute(rechargeRegisterPost);
                     this.handlerRep(rechargeRegisterRep.getEntity());
 
 //            var withdrawUriBuilder = new URIBuilder(dataCenterCallBackRegisterPath);
@@ -207,7 +206,7 @@ public class ChainService {
     }
 
     private void httpPush(List<TxConditionReq> txConditionReqs, String url) {
-        HttpClient client = HttpClientBuilder.create().build();
+
         String dataCenterUrlPath = configService.get(ConfigConstants.DATA_CENTER_URL_PUSH_PATH);
         // 注册域名
         try {
@@ -224,7 +223,7 @@ public class ChainService {
             httpPost.setEntity(new InputStreamEntity(new ByteArrayInputStream(bytes), bytes.length));
 
             log.info("推送钱包地址监控信息为: 【{}】", jsonStr);
-            HttpResponse response = client.execute(httpPost);
+            HttpResponse response = PushHttpClient.getClient().execute(httpPost);
             this.handlerRep(response.getEntity());
         } catch (IOException e) {
             e.printStackTrace();
