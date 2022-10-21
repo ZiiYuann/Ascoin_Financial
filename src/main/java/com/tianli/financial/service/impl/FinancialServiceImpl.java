@@ -28,6 +28,7 @@ import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.entity.FinancialBoardWallet;
+import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.query.TimeQuery;
@@ -41,6 +42,7 @@ import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -263,20 +265,45 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     public FinancialSummaryDataVO userSummaryData(String uid) {
-        IPage<Address> page = new Page<>(1, Integer.MAX_VALUE);
-        var userInfos = financialUserPage(uid, page).getRecords();
-
         BigDecimal rechargeAmount = BigDecimal.ZERO;
         BigDecimal withdrawAmount = BigDecimal.ZERO;
         BigDecimal moneyAmount = BigDecimal.ZERO;
         BigDecimal incomeAmount = BigDecimal.ZERO;
 
-        for (FinancialUserInfoVO financialUserInfoVO : userInfos) {
-            rechargeAmount = rechargeAmount.add(financialUserInfoVO.getRechargeAmount());
-            withdrawAmount = withdrawAmount.add(financialUserInfoVO.getWithdrawAmount());
-            moneyAmount = moneyAmount.add(financialUserInfoVO.getMoneyAmount());
-            incomeAmount = incomeAmount.add(financialUserInfoVO.getProfitAndLossAmount());
+        if (StringUtils.isNotBlank(uid)) {
+            IPage<Address> page = new Page<>(1, 10);
+            var userInfos = financialUserPage(uid, page).getRecords();
+
+
+            for (FinancialUserInfoVO financialUserInfoVO : userInfos) {
+                rechargeAmount = rechargeAmount.add(financialUserInfoVO.getRechargeAmount());
+                withdrawAmount = withdrawAmount.add(financialUserInfoVO.getWithdrawAmount());
+                moneyAmount = moneyAmount.add(financialUserInfoVO.getMoneyAmount());
+                incomeAmount = incomeAmount.add(financialUserInfoVO.getProfitAndLossAmount());
+            }
+            return FinancialSummaryDataVO.builder()
+                    .rechargeAmount(rechargeAmount)
+                    .withdrawAmount(withdrawAmount)
+                    .moneyAmount(moneyAmount)
+                    .incomeAmount(incomeAmount)
+                    .build();
         }
+
+        FinancialChargeQuery query = new FinancialChargeQuery();
+
+        // 充值
+        query.setChargeType(ChargeType.recharge);
+        rechargeAmount = orderService.orderAmountDollarSum(query);
+        // 提现
+        query.setChargeType(ChargeType.withdraw);
+        withdrawAmount = orderService.orderAmountDollarSum(query);
+        // 持有数量
+        BigDecimal currentAmount = financialRecordService.holdAmountDollar(ProductType.current);
+        BigDecimal fixedAmount = financialRecordService.holdAmountDollar(ProductType.fixed);
+        moneyAmount = moneyAmount.add(currentAmount).add(fixedAmount);
+        // 累计盈亏
+        incomeAmount = financialIncomeAccrueService.summaryIncomeByQuery(new FinancialProductIncomeQuery());
+
         return FinancialSummaryDataVO.builder()
                 .rechargeAmount(rechargeAmount)
                 .withdrawAmount(withdrawAmount)
