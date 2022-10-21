@@ -22,6 +22,8 @@ import com.tianli.task.FinancialIncomeTask;
 import com.tianli.task.FundIncomeTask;
 import com.tianli.tool.time.TimeTool;
 import org.apache.commons.collections4.CollectionUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -57,6 +59,8 @@ public class TestController {
     private FinancialIncomeDailyService financialIncomeDailyService;
     @Resource
     private FinancialIncomeAccrueService financialIncomeAccrueService;
+    @Resource
+    private RedissonClient redissonClient;
 
 
     /**
@@ -173,5 +177,15 @@ public class TestController {
         fundIncomeRecordService.rollback(incomeId);
         return Result.success();
     }
+
+    @PostMapping("/buy")
+    public Result buy() throws InterruptedException {
+        RLock lock = redissonClient.getLock("test-lock");
+        lock.lock();
+        Thread.sleep(20);
+        lock.unlock();
+        return Result.success();
+    }
+
 
 }

@@ -75,6 +75,8 @@ public class Order {
     /**
      * 不同类型的交易关联不同的附录表
      *
+     * 红包发送：红包id
+     * 抢红包 ： 抢红包记录id
      */
     private Long relatedId;
 

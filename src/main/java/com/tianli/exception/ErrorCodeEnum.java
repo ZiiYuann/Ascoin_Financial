@@ -126,6 +126,16 @@ public enum ErrorCodeEnum {
     FUND_RECORD_NOT_EXIST(3619, "基金持有记录不存在"),
     NOT_CURRENT_AGENT(3620, "不是当前代理人记录"),
 
+    /*** －－－－－－业务错误码-红包相关－－－－－－*/
+    RED_AMOUNT_EXCEED_LIMIT_100(3701, "红包总额价值不得超过100U"),
+    RED_NOT_EXIST(3702, "红包不存在"),
+    RED_RECHARGE_NOT_ARRIVE(3703, "链上红包充值未到账或失败，请到账后手动发放"),
+    RED_STATUS_ERROR(3704, "红包状态异常"),
+    RED_RECEIVE_NOT_ALLOW(3705, "红包没权限领取"),
+
+
+
+
     ;
     private int errorNo;
 

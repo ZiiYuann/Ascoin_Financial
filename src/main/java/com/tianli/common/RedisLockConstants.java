@@ -40,5 +40,7 @@ public class RedisLockConstants {
     public static String PRODUCT_WITHDRAW = "product:withdraw:";
     public static String PRODUCT_WITHDRAW_REVIEW = "product:withdraw:review:";
 
+    public static String RED_ENVELOPE_GIVE = "red:envelope:give:";
+
 
 }
