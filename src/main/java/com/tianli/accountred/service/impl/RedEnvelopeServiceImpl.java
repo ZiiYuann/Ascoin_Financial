@@ -286,6 +286,9 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         Object cache = redisService.get(RedisConstants.RED_ENVELOPE + id);
         if (Objects.isNull(cache)) {
             RedEnvelope redEnvelope = this.getById(id);
+            if (Objects.isNull(redEnvelope)) {
+                ErrorCodeEnum.RED_NOT_EXIST.throwException();
+            }
             setRedisCache(redEnvelope);
             return redEnvelope;
         }
