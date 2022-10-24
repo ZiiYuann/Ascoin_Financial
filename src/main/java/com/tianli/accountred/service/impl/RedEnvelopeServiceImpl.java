@@ -158,15 +158,15 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         if (Objects.isNull(order) || !ChargeType.recharge.equals(order.getType()) ||
                 !ChargeStatus.chain_success.equals(order.getStatus())) {
             redEnvelope.setStatus(RedEnvelopeStatus.FAIL);
-            this.save(redEnvelope);
-            ErrorCodeEnum.RED_RECHARGE_NOT_ARRIVE.throwException();
+            this.saveOrUpdate(redEnvelope);
+            return null;
         }
 
 
         redEnvelope.setTxid(query.getTxid());
         redEnvelope.setStatus(RedEnvelopeStatus.PROCESS);
         this.spiltRedEnvelope(uid, redEnvelope);
-        this.save(redEnvelope);
+        this.saveOrUpdate(redEnvelope);
 
         setRedisCache(redEnvelope);
         return query.getId();

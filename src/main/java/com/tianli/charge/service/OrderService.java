@@ -68,6 +68,10 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
 
     public Order getOrderByHash(String hash) {
         OrderChargeInfo orderChargeInfo = this.getOrderChargeByTxid(hash);
+
+        if (Objects.isNull(orderChargeInfo)){
+            return null;
+        }
         return orderMapper.selectOne(new LambdaQueryWrapper<Order>().eq(Order::getRelatedId, orderChargeInfo.getId()));
     }
 

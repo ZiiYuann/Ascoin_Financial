@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.Objects;
 
 /**
  * @author chenb
@@ -68,8 +69,19 @@ public class RedEnvelopeController {
     @PostMapping("/give/txid")
     public Result giveTxid(@RequestBody @Valid RedEnvelopeChainQuery query) {
         Long uid = requestInitService.uid();
-        Long shortUid = requestInitService.uid();
-        return Result.success().setData(new RedEnvelopeGiveVO(redEnvelopeService.give(uid, shortUid, query)));
+        Long shortUid = requestInitService.get().getUserInfo().getChatId();
+        RLock lock = redissonClient.getLock(RedisLockConstants.RED_ENVELOPE_GIVE + uid);
+        try {
+            lock.lock();
+            Long id = redEnvelopeService.give(uid, shortUid, query);
+            if (Objects.nonNull(id)){
+                return Result.success().setData(new RedEnvelopeGiveVO(id));
+            }else {
+                return Result.fail("发红包失败");
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
