@@ -38,6 +38,7 @@ CREATE TABLE `red_envelope_spilt_get_record` (
                                                  `coin` varchar(20) NOT NULL COMMENT '币种',
                                                  `amount` decimal(20,8) NOT NULL COMMENT '金额',
                                                  `receive_time` datetime NOT NULL COMMENT '领取时间',
+                                                 `type` varchar(20) NOT NULL COMMENT '红包类型',
                                                  PRIMARY KEY (`id`),
                                                  UNIQUE KEY `uniqe` (`rid`,`s_rid`) COMMENT '领取记录唯一索引'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='红包领取记录表';

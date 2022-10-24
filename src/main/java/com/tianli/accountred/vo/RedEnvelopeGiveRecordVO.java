@@ -36,6 +36,6 @@ public class RedEnvelopeGiveRecordVO {
 
     private BigDecimal totalAmount;
 
-    private RedEnvelopeType redEnvelopeType;
+    private RedEnvelopeType type;
 
 }

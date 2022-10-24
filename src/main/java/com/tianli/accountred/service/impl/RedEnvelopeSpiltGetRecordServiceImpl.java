@@ -81,6 +81,7 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
                 .coin(redEnvelopeGetQuery.getRedEnvelope().getCoin())
                 .sRid(uuid)
                 .rid(redEnvelopeGetQuery.getRid())
+                .type(redEnvelopeGetQuery.getRedEnvelope().getType())
                 .receiveTime(redEnvelopeSpilt.getReceiveTime())
                 .build();
 
