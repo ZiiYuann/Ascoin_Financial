@@ -132,6 +132,8 @@ public enum ErrorCodeEnum {
     RED_RECHARGE_NOT_ARRIVE(3703, "链上红包充值未到账或失败，请到账后手动发放"),
     RED_STATUS_ERROR(3704, "红包状态异常"),
     RED_RECEIVE_NOT_ALLOW(3705, "红包没权限领取"),
+    RED_LIMIT_AMOUNT(3706, "单个红包数额不得低于0.000001"),
+
 
 
 

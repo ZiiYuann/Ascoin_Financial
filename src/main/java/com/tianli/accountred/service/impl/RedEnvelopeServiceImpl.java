@@ -84,7 +84,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
     @Override
     @Transactional
-    public Long give(Long uid, RedEnvelopeIoUQuery query) {
+    public Long give(Long uid, Long shortUid, RedEnvelopeIoUQuery query) {
 
         boolean walletWay = RedEnvelopeWay.WALLET.equals(query.getWay());
         // 生成红包
@@ -94,6 +94,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         redEnvelope.setId(CommonFunction.generalId());
         redEnvelope.setStatus(walletWay ? RedEnvelopeStatus.PROCESS : RedEnvelopeStatus.WAIT);
         redEnvelope.setUid(uid);
+        redEnvelope.setShortUid(shortUid);
         this.save(redEnvelope);
 
         if (walletWay) {
@@ -139,7 +140,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     @Override
     @SneakyThrows
     @Transactional
-    public Long give(Long uid, RedEnvelopeChainQuery query) {
+    public Long give(Long uid, Long shortUid, RedEnvelopeChainQuery query) {
         RedEnvelope redEnvelope = this.getByIdWithCache(query.getId());
         Optional.ofNullable(redEnvelope).orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
 
@@ -172,7 +173,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     }
 
     @Override
-    public RedEnvelopeGetVO get(Long uid, RedEnvelopeGetQuery query) {
+    public RedEnvelopeGetVO get(Long uid, Long shortUid, RedEnvelopeGetQuery query) {
 
         // 判断红包缓存是否存在
         RedEnvelope redEnvelope = this.getByIdWithCache(query.getRid());
@@ -194,7 +195,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
         query.setRedEnvelope(redEnvelope);
 
-        return service.getOperation(uid, query, redEnvelope);
+        return service.getOperation(uid, shortUid, query, redEnvelope);
     }
 
     @Override
@@ -214,7 +215,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     }
 
     @Transactional
-    public RedEnvelopeGetVO getOperation(Long uid, RedEnvelopeGetQuery query, RedEnvelope redEnvelope) {
+    public RedEnvelopeGetVO getOperation(Long uid, Long shortUid, RedEnvelopeGetQuery query, RedEnvelope redEnvelope) {
         String receivedKey = RedisConstants.SPILT_RED_ENVELOPE_GET + query.getRid() + ":" + uid;
         String spiltRedKey = RedisConstants.SPILT_RED_ENVELOPE + query.getRid();
         // 此lua脚本的用处 1、判断用户是否已经抢过红包 2、判断拆分红包是否还有剩余
@@ -249,7 +250,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         }
 
         // 领取子红包（创建订单，余额操作）
-        RedEnvelopeSpilt redEnvelopeSpilt = redEnvelopeSpiltService.getRedEnvelopeSpilt(uid, result, query);
+        RedEnvelopeSpilt redEnvelopeSpilt = redEnvelopeSpiltService.getRedEnvelopeSpilt(uid, shortUid, result, query);
         // 增加已经领取红包个数
         int i = this.getBaseMapper().increaseReceiveNum(query.getRid());
         if (i == 0) {
@@ -303,7 +304,9 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
      * 校验发红包
      */
     private void validGiveRedEnvelope(Long uid, BigDecimal totalAmount, CurrencyCoin coin) {
-        if (totalAmount.compareTo(BigDecimal.valueOf(100L)) > 0) {
+
+        BigDecimal uAmount = currencyService.getDollarRate(coin).multiply(totalAmount);
+        if (uAmount.compareTo(BigDecimal.valueOf(100L)) > 0) {
             ErrorCodeEnum.RED_AMOUNT_EXCEED_LIMIT_100.throwException();
         }
 

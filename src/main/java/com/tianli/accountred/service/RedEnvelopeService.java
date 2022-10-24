@@ -21,20 +21,21 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
     /**
      * 发红包(对于上链红包来说还有二次调用)
      *
-     * @param uid   用户id
-     * @param query 发红包参数
+     * @param uid      用户id
+     * @param shortUid 用户id
+     * @param query    发红包参数
      */
-    Long give(Long uid, RedEnvelopeIoUQuery query);
+    Long give(Long uid, Long shortUid, RedEnvelopeIoUQuery query);
 
     /**
      * 链上红包发放
      */
-    Long give(Long uid, RedEnvelopeChainQuery query);
+    Long give(Long uid, Long shortUid, RedEnvelopeChainQuery query);
 
     /**
      * 抢红包
      */
-    RedEnvelopeGetVO get(Long uid, RedEnvelopeGetQuery query);
+    RedEnvelopeGetVO get(Long uid, Long shortUid, RedEnvelopeGetQuery query);
 
     /**
      * 抢红包详情

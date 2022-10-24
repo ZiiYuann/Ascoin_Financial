@@ -4,6 +4,7 @@ ALTER TABLE `financial`.`order`
 CREATE TABLE `red_envelope` (
                                 `id` bigint NOT NULL,
                                 `uid` bigint NOT NULL,
+                                `short_uid` bigint NOT NULL COMMENT '用户id短码',
                                 `flag` varchar(255) NOT NULL COMMENT '红包唯一标示符号 群号、或者hash啥的',
                                 `coin` varchar(10) NOT NULL COMMENT '币别',
                                 `amount` decimal(20,8) NOT NULL COMMENT 'NORMAL：单个红包金额 RANDOM：红包总金额',
@@ -33,6 +34,7 @@ CREATE TABLE `red_envelope_spilt_get_record` (
                                                  `rid` bigint NOT NULL COMMENT '红包id',
                                                  `s_rid` varbinary(64) NOT NULL COMMENT '子红包uuid',
                                                  `uid` bigint NOT NULL COMMENT '用户id',
+                                                 `short_uid` bigint NOT NULL COMMENT '用户id短码',
                                                  `coin` varchar(20) NOT NULL COMMENT '币种',
                                                  `amount` decimal(20,8) NOT NULL COMMENT '金额',
                                                  `receive_time` datetime NOT NULL COMMENT '领取时间',

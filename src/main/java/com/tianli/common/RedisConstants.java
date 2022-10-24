@@ -8,12 +8,12 @@ public class RedisConstants {
     /**
      * 拆分红包
      */
-    public static String SPILT_RED_ENVELOPE = "spilt:red:";
+    public static String SPILT_RED_ENVELOPE = "red:spilt:";
 
     /**
      * 拆分红包领取
      */
-    public static String SPILT_RED_ENVELOPE_GET = "spilt:red:get:";
+    public static String SPILT_RED_ENVELOPE_GET = "red:spilt:get:";
 
     /**
      * 红包

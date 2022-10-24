@@ -1,8 +1,6 @@
 package com.tianli.accountred.vo;
 
 import com.tianli.accountred.enums.RedEnvelopeStatus;
-import com.tianli.accountred.enums.RedEnvelopeType;
-import com.tianli.accountred.enums.RedEnvelopeWay;
 import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,7 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -28,6 +25,8 @@ public class RedEnvelopeGetDetailsVO {
      * 红包持有者名称
      */
     private Long uid;
+
+    private Long shortUid;
 
     /**
      * 币别

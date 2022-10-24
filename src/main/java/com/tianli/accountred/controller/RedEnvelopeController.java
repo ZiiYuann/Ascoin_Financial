@@ -43,10 +43,11 @@ public class RedEnvelopeController {
     @PostMapping("/give")
     public Result give(@RequestBody @Valid RedEnvelopeIoUQuery query) {
         Long uid = requestInitService.uid();
+        Long shortUid = requestInitService.get().getUserInfo().getChatId();
         RLock lock = redissonClient.getLock(RedisLockConstants.RED_ENVELOPE_GIVE + uid);
         try {
             lock.lock();
-            return Result.success().setData(new RedEnvelopeGiveVO(redEnvelopeService.give(uid, query)));
+            return Result.success().setData(new RedEnvelopeGiveVO(redEnvelopeService.give(uid, shortUid, query)));
         } finally {
             lock.unlock();
         }
@@ -67,7 +68,8 @@ public class RedEnvelopeController {
     @PostMapping("/give/txid")
     public Result giveTxid(@RequestBody @Valid RedEnvelopeChainQuery query) {
         Long uid = requestInitService.uid();
-        return Result.success().setData(new RedEnvelopeGiveVO(redEnvelopeService.give(uid, query)));
+        Long shortUid = requestInitService.uid();
+        return Result.success().setData(new RedEnvelopeGiveVO(redEnvelopeService.give(uid, shortUid, query)));
     }
 
     /**
@@ -76,7 +78,8 @@ public class RedEnvelopeController {
     @PostMapping("/get")
     public Result get(@RequestBody @Valid RedEnvelopeGetQuery query) {
         Long uid = requestInitService.uid();
-        return Result.success().setData(redEnvelopeService.get(uid, query));
+        Long shortUid = requestInitService.get().getUserInfo().getChatId();
+        return Result.success().setData(redEnvelopeService.get(uid, shortUid, query));
     }
 
     /**

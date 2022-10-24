@@ -40,6 +40,8 @@ public class RedEnvelopeGetVO {
 
     private Long uid;
 
+    private Long shortUid;
+
     private String coinUrl;
 
     public RedEnvelopeGetVO(RedEnvelopeStatus status,CurrencyCoin coin) {

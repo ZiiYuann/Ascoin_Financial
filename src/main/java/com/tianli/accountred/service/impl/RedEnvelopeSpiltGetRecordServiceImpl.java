@@ -1,6 +1,5 @@
 package com.tianli.accountred.service.impl;
 
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -15,7 +14,6 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,13 +70,14 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
 
     @Override
     @Transactional
-    public RedEnvelopeSpiltGetRecord redEnvelopeSpiltGetRecordFlow(Long uid, String uuid
+    public RedEnvelopeSpiltGetRecord redEnvelopeSpiltGetRecordFlow(Long uid, Long shortUid, String uuid
             , RedEnvelopeGetQuery redEnvelopeGetQuery, RedEnvelopeSpilt redEnvelopeSpilt) {
 
         RedEnvelopeSpiltGetRecord redEnvelopeSpiltGetRecord = RedEnvelopeSpiltGetRecord.builder()
                 .amount(redEnvelopeSpilt.getAmount())
                 .id(CommonFunction.generalId())
                 .uid(uid)
+                .shortUid(shortUid)
                 .coin(redEnvelopeGetQuery.getRedEnvelope().getCoin())
                 .sRid(uuid)
                 .rid(redEnvelopeGetQuery.getRid())

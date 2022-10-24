@@ -35,6 +35,8 @@ public class RedEnvelope {
      */
     private Long uid;
 
+    private Long shortUid;
+
     /**
      * 红包唯一标示符号 群号、或者hash啥的
      */

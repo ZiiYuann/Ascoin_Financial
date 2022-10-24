@@ -71,10 +71,10 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
 
     @Override
     @Transactional
-    public RedEnvelopeSpilt getRedEnvelopeSpilt(Long uid, String uuid, RedEnvelopeGetQuery redEnvelopeGetQuery) {
+    public RedEnvelopeSpilt getRedEnvelopeSpilt(Long uid,Long shortUid, String uuid, RedEnvelopeGetQuery redEnvelopeGetQuery) {
         // 如果qps高可以异步转账
         LocalDateTime receiveTime = LocalDateTime.now();
-
+        uuid = uuid.replace("\"","");
         // 修改拆分（子）红包的状态
         int i = this.getBaseMapper().receive(redEnvelopeGetQuery.getRid(), uuid, receiveTime);
         if (i == 0) {
@@ -85,7 +85,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
 
 
         RedEnvelopeSpiltGetRecord redEnvelopeSpiltGetRecord =
-                redEnvelopeSpiltGetRecordService.redEnvelopeSpiltGetRecordFlow(uid, uuid, redEnvelopeGetQuery, redEnvelopeSpilt);
+                redEnvelopeSpiltGetRecordService.redEnvelopeSpiltGetRecordFlow(uid,shortUid, uuid, redEnvelopeGetQuery, redEnvelopeSpilt);
 
         CurrencyCoin coin = redEnvelopeGetQuery.getRedEnvelope().getCoin();
         // 红包订单

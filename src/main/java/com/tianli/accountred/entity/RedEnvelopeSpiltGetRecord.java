@@ -29,6 +29,8 @@ public class RedEnvelopeSpiltGetRecord {
 
     private Long uid;
 
+    private Long shortUid;
+
     private String sRid;
 
     private CurrencyCoin coin;

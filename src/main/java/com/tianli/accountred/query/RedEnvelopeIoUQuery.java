@@ -31,7 +31,6 @@ public class RedEnvelopeIoUQuery extends IoUQuery {
     private CurrencyCoin coin;
 
     @NotNull
-    @DecimalMin(value = "0.000001" ,message = "单个红包数额不得低于0.000001")
     private BigDecimal amount;
 
     @Min(value = 1)
@@ -45,12 +44,21 @@ public class RedEnvelopeIoUQuery extends IoUQuery {
 
     public BigDecimal getTotalAmount() {
         BigDecimal totalAmount = null;
+        BigDecimal limitAmount = new BigDecimal("0.000001");
         switch (this.getType()) {
             case NORMAL:
             case PRIVATE:
+                if (limitAmount.compareTo(this.getAmount()) > 0) {
+                    ErrorCodeEnum.RED_LIMIT_AMOUNT.throwException();
+                }
+
                 totalAmount = this.getAmount().multiply(BigDecimal.valueOf(this.getNum()));
                 break;
             case RANDOM:
+                if (limitAmount.multiply(BigDecimal.valueOf(num)).compareTo(this.getAmount()) > 0) {
+                    ErrorCodeEnum.RED_LIMIT_AMOUNT.throwException();
+                }
+
                 totalAmount = this.getAmount();
                 break;
             default:
