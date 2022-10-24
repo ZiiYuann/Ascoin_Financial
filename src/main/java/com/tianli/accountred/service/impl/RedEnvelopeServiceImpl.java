@@ -33,6 +33,7 @@ import com.tianli.common.PageQuery;
 import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisService;
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.tool.ApplicationContextTool;
@@ -77,6 +78,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     private StringRedisTemplate stringRedisTemplate;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private WebHookService webHookService;
 
 
     @Override
@@ -93,12 +96,11 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         redEnvelope.setUid(uid);
         this.save(redEnvelope);
 
-        setRedisCache(redEnvelope);
-
         if (walletWay) {
             spiltRedEnvelope(uid, redEnvelope);
         }
 
+        setRedisCache(redEnvelope);
         return redEnvelope.getId();
     }
 
@@ -163,8 +165,9 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         redEnvelope.setTxid(query.getTxid());
         redEnvelope.setStatus(RedEnvelopeStatus.PROCESS);
         this.spiltRedEnvelope(uid, redEnvelope);
-
         this.save(redEnvelope);
+
+        setRedisCache(redEnvelope);
         return query.getId();
     }
 
@@ -228,8 +231,15 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
         redisScript.setResultType(String.class);
         redisScript.setScriptText(script);
-        String result =
-                stringRedisTemplate.opsForValue().getOperations().execute(redisScript, List.of(receivedKey, spiltRedKey));
+        String result;
+        try {
+            result = stringRedisTemplate.opsForValue().getOperations().execute(redisScript, List.of(receivedKey, spiltRedKey));
+        } catch (Exception e) {
+            // 防止由于网络波动导致的红包异常 暂时做通知处理，如果情况比较多，后续进行补偿
+            webHookService.dingTalkSend("领取红包状态异常，请及时处理，红包id：" + query.getRid() + " uid：" + uid, e);
+            throw e;
+        }
+
 
         if (RedEnvelopeStatus.FINISH.name().equals(result)) {
             return new RedEnvelopeGetVO(RedEnvelopeStatus.FINISH, redEnvelope.getCoin());
@@ -238,6 +248,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             return new RedEnvelopeGetVO(RedEnvelopeStatus.RECEIVED, redEnvelope.getCoin());
         }
 
+        // 领取子红包（创建订单，余额操作）
         RedEnvelopeSpilt redEnvelopeSpilt = redEnvelopeSpiltService.getRedEnvelopeSpilt(uid, result, query);
         // 增加已经领取红包个数
         int i = this.getBaseMapper().increaseReceiveNum(query.getRid());
@@ -255,7 +266,9 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         redEnvelopeGetVO.setReceiveAmount(redEnvelopeSpilt.getAmount());
         redEnvelopeGetVO.setUReceiveAmount(currencyService.getDollarRate(redEnvelope.getCoin()).multiply(redEnvelopeSpilt.getAmount()));
 
-        deleteCache(query.getRid());
+        // 删除红包以及领取记录以及当前红包领取记录的缓存
+        redisTemplate.delete(RedisConstants.RED_ENVELOPE + query.getRid());
+        redisTemplate.delete(RedisConstants.RED_ENVELOPE_GET_RECORD + query.getRid());
         return redEnvelopeGetVO;
     }
 
@@ -277,13 +290,6 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             return redEnvelope;
         }
         return (RedEnvelope) cache;
-    }
-
-    /**
-     * 获取红包信息（缓存）
-     */
-    private void deleteCache(Long id) {
-        redisTemplate.delete(RedisConstants.RED_ENVELOPE + id);
     }
 
     private void setRedisCache(RedEnvelope redEnvelope) {

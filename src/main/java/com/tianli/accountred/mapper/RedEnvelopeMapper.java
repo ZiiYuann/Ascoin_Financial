@@ -9,6 +9,6 @@ import org.apache.ibatis.annotations.Update;
 @Mapper
 public interface RedEnvelopeMapper extends BaseMapper<RedEnvelope> {
 
-    @Update("UPDATE  red_envelope SET receive_num = receive_num + 1 WHERE id = #{id} and receive_num < num ")
+    @Update("UPDATE  red_envelope SET receive_num = receive_num + 1 WHERE id = #{id} and receive_num < num  and status = 'PROCESS' ")
     int increaseReceiveNum(@Param("id") Long id);
 }

@@ -70,6 +70,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     }
 
     @Override
+    @Transactional
     public RedEnvelopeSpilt getRedEnvelopeSpilt(Long uid, String uuid, RedEnvelopeGetQuery redEnvelopeGetQuery) {
         // 如果qps高可以异步转账
         LocalDateTime receiveTime = LocalDateTime.now();

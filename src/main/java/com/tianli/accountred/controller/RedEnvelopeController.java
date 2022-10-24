@@ -80,7 +80,7 @@ public class RedEnvelopeController {
     }
 
     /**
-     * 抢红包
+     * 抢红包详情
      */
     @GetMapping("/get/details/{id}")
     public Result get(@PathVariable Long id) {
