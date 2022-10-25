@@ -280,7 +280,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     @Override
     public IPage<RedEnvelopeGiveRecordVO> giveRecord(Long uid, PageQuery<RedEnvelope> pageQuery) {
         Page<RedEnvelope> page = this.page(pageQuery.page()
-                , new LambdaQueryWrapper<RedEnvelope>().eq(RedEnvelope::getUid, uid));
+                , new LambdaQueryWrapper<RedEnvelope>().eq(RedEnvelope::getUid, uid)
+                        .eq(false, RedEnvelope::getStatus, RedEnvelopeStatus.WAIT));
         return page.convert(redEnvelopeConvert::toRedEnvelopeGiveRecordVO);
     }
 
