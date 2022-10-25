@@ -142,6 +142,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         RedEnvelope redEnvelope = this.getByIdWithCache(query.getId());
         Optional.ofNullable(redEnvelope).orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
 
+        redEnvelope.setTxid(query.getTxid());
         // 判断是否有充值订单，轮询5次充值订单
         Order order = null;
         for (int i = 0; i < 3; i++) {
@@ -160,14 +161,13 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             return Result.fail("红包发送失败，充值失败或者上链时间过长");
         }
 
-        if (order.getAmount().compareTo(redEnvelope.getTotalAmount()) != 0) {
+        if (order.getAmount().compareTo(redEnvelope.getTotalAmount()) != 0 || !order.getCoin().equals(redEnvelope.getCoin())) {
             redEnvelope.setStatus(RedEnvelopeStatus.FAIL);
             this.saveOrUpdate(redEnvelope);
-            return Result.fail("红包发送失败，充值金额与红包金额不一致");
+            return Result.fail("红包发送失败，充值金额与红包金额不一致或者币别不一致");
         }
 
 
-        redEnvelope.setTxid(query.getTxid());
         redEnvelope.setStatus(RedEnvelopeStatus.PROCESS);
         this.spiltRedEnvelope(uid, redEnvelope);
         this.saveOrUpdate(redEnvelope);

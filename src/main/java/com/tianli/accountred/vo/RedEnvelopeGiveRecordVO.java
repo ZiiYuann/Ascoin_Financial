@@ -38,4 +38,5 @@ public class RedEnvelopeGiveRecordVO {
 
     private RedEnvelopeType type;
 
+    private String flag;
 }
