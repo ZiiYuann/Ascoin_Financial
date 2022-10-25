@@ -83,6 +83,7 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
                 .rid(redEnvelopeGetQuery.getRid())
                 .type(redEnvelopeGetQuery.getRedEnvelope().getType())
                 .receiveTime(redEnvelopeSpilt.getReceiveTime())
+                .deviceNumber(redEnvelopeGetQuery.getDeviceNumber())
                 .build();
 
         this.save(redEnvelopeSpiltGetRecord);

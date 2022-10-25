@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -66,13 +65,18 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
         return true;
     }
 
-    public Order getOrderByHash(String hash) {
+    public Order getOrderByHash(String hash,ChargeType chargeType) {
         OrderChargeInfo orderChargeInfo = this.getOrderChargeByTxid(hash);
 
         if (Objects.isNull(orderChargeInfo)){
             return null;
         }
-        return orderMapper.selectOne(new LambdaQueryWrapper<Order>().eq(Order::getRelatedId, orderChargeInfo.getId()));
+
+        LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
+                .eq(Order::getRelatedId, orderChargeInfo.getId())
+                .eq(Order :: getType,chargeType);
+
+        return orderMapper.selectOne(queryWrapper);
     }
 
     /**
@@ -161,7 +165,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
         return calDollarAmount(amountDtos);
     }
 
-    public Order getOrderNo(String orderNo) {
+    public Order getByOrderNo(String orderNo) {
         LambdaQueryWrapper<Order> query = new LambdaQueryWrapper<Order>().eq(Order::getOrderNo, orderNo);
         return orderMapper.selectOne(query);
     }

@@ -10,6 +10,7 @@ import com.tianli.accountred.vo.RedEnvelopeGetDetailsVO;
 import com.tianli.accountred.vo.RedEnvelopeGetVO;
 import com.tianli.accountred.vo.RedEnvelopeGiveRecordVO;
 import com.tianli.common.PageQuery;
+import com.tianli.exception.Result;
 
 /**
  * @author chenb
@@ -25,12 +26,12 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
      * @param shortUid 用户id
      * @param query    发红包参数
      */
-    Long give(Long uid, Long shortUid, RedEnvelopeIoUQuery query);
+    Result give(Long uid, Long shortUid, RedEnvelopeIoUQuery query);
 
     /**
      * 链上红包发放
      */
-    Long give(Long uid, Long shortUid, RedEnvelopeChainQuery query);
+    Result give(Long uid, Long shortUid, RedEnvelopeChainQuery query);
 
     /**
      * 抢红包

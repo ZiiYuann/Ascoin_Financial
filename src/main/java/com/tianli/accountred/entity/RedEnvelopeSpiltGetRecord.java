@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 
 /**
  * 领取明细
+ *
  * @author chenb
  * @apiNote
  * @since 2022-10-20
@@ -41,5 +42,7 @@ public class RedEnvelopeSpiltGetRecord {
     private LocalDateTime receiveTime;
 
     private RedEnvelopeType type;
+
+    private String deviceNumber;
 
 }

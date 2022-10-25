@@ -7,7 +7,6 @@ import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.query.RedEnvelopeIoUQuery;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
-import com.tianli.accountred.vo.RedEnvelopeGiveVO;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.Result;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.util.Objects;
 
 /**
  * @author chenb
@@ -48,7 +46,7 @@ public class RedEnvelopeController {
         RLock lock = redissonClient.getLock(RedisLockConstants.RED_ENVELOPE_GIVE + uid);
         try {
             lock.lock();
-            return Result.success().setData(new RedEnvelopeGiveVO(redEnvelopeService.give(uid, shortUid, query)));
+            return redEnvelopeService.give(uid, shortUid, query);
         } finally {
             lock.unlock();
         }
@@ -69,16 +67,10 @@ public class RedEnvelopeController {
     @PostMapping("/give/txid")
     public Result giveTxid(@RequestBody @Valid RedEnvelopeChainQuery query) {
         Long uid = requestInitService.uid();
-        Long shortUid = requestInitService.get().getUserInfo().getChatId();
         RLock lock = redissonClient.getLock(RedisLockConstants.RED_ENVELOPE_GIVE + uid);
         try {
             lock.lock();
-            Long id = redEnvelopeService.give(uid, shortUid, query);
-            if (Objects.nonNull(id)){
-                return Result.success().setData(new RedEnvelopeGiveVO(id));
-            }else {
-                return Result.fail("发红包失败");
-            }
+            return redEnvelopeService.give(uid, requestInitService.get().getUserInfo().getChatId(), query);
         } finally {
             lock.unlock();
         }

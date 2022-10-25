@@ -253,7 +253,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
 
             webHookService.dingTalkSend("监测到预购订单消费事件" + req.getHash() + ",时间：" + LocalDateTime.now());
 
-            Order order = orderService.getOrderNo(AccountChangeType.advance_purchase.getPrefix() + orderAdvance.getId());
+            Order order = orderService.getByOrderNo(AccountChangeType.advance_purchase.getPrefix() + orderAdvance.getId());
 
             if (ProductType.fund.equals(product.getType())) {
                 WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(productId);

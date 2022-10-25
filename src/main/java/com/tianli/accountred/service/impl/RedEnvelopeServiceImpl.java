@@ -20,10 +20,7 @@ import com.tianli.accountred.query.RedEnvelopeIoUQuery;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
 import com.tianli.accountred.service.RedEnvelopeSpiltService;
-import com.tianli.accountred.vo.RedEnvelopeGetDetailsVO;
-import com.tianli.accountred.vo.RedEnvelopeGetVO;
-import com.tianli.accountred.vo.RedEnvelopeGiveRecordVO;
-import com.tianli.accountred.vo.RedEnvelopeSpiltGetRecordVO;
+import com.tianli.accountred.vo.*;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
@@ -36,6 +33,7 @@ import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.exception.Result;
 import com.tianli.tool.ApplicationContextTool;
 import lombok.SneakyThrows;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -84,7 +82,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
     @Override
     @Transactional
-    public Long give(Long uid, Long shortUid, RedEnvelopeIoUQuery query) {
+    public Result give(Long uid, Long shortUid, RedEnvelopeIoUQuery query) {
 
         boolean walletWay = RedEnvelopeWay.WALLET.equals(query.getWay());
         // 生成红包
@@ -102,7 +100,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         }
 
         setRedisCache(redEnvelope);
-        return redEnvelope.getId();
+        return Result.success(new RedEnvelopeGiveVO(redEnvelope.getId()));
     }
 
     /**
@@ -140,14 +138,14 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     @Override
     @SneakyThrows
     @Transactional
-    public Long give(Long uid, Long shortUid, RedEnvelopeChainQuery query) {
+    public Result give(Long uid, Long shortUid, RedEnvelopeChainQuery query) {
         RedEnvelope redEnvelope = this.getByIdWithCache(query.getId());
         Optional.ofNullable(redEnvelope).orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
 
         // 判断是否有充值订单，轮询5次充值订单
         Order order = null;
         for (int i = 0; i < 3; i++) {
-            order = orderService.getOrderByHash(query.getTxid());
+            order = orderService.getOrderByHash(query.getTxid(), ChargeType.recharge);
             if (Objects.nonNull(order)) {
                 break;
             }
@@ -159,7 +157,13 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                 !ChargeStatus.chain_success.equals(order.getStatus())) {
             redEnvelope.setStatus(RedEnvelopeStatus.FAIL);
             this.saveOrUpdate(redEnvelope);
-            return null;
+            return Result.fail("红包发送失败，充值失败或者上链时间过长");
+        }
+
+        if (order.getAmount().compareTo(redEnvelope.getTotalAmount()) != 0) {
+            redEnvelope.setStatus(RedEnvelopeStatus.FAIL);
+            this.saveOrUpdate(redEnvelope);
+            return Result.fail("红包发送失败，充值金额与红包金额不一致");
         }
 
 
@@ -169,7 +173,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         this.saveOrUpdate(redEnvelope);
 
         setRedisCache(redEnvelope);
-        return query.getId();
+        return Result.success(new RedEnvelopeGiveVO(redEnvelope.getId()));
     }
 
     @Override
