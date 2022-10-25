@@ -2,11 +2,7 @@ package com.tianli.task;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
-import com.tianli.address.AddressService;
-import com.tianli.charge.service.OrderService;
 import com.tianli.exception.ErrCodeException;
-import com.tianli.financial.service.FinancialIncomeAccrueService;
-import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.service.FinancialBoardProductService;
@@ -18,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,22 +30,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FinancialBoardTask {
 
     @Resource
-    private OrderService orderService;
-    @Resource
     private FinancialBoardProductService financialBoardProductService;
     @Resource
     private FinancialBoardWalletService financialBoardWalletService;
-    @Resource
-    private FinancialIncomeAccrueService financialIncomeAccrueService;
-    @Resource
-    private FinancialRecordService financialRecordService;
-    @Resource
-    private AddressService addressService;
 
-    //    @Scheduled(cron = "0 0/1 * * * ?")
-    public void taskTest() {
-        boardTask(DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(0));
-    }
 
     @Scheduled(cron = "0 0 0 1/1 * ? ")
     public void task() {
