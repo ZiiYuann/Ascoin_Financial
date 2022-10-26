@@ -145,7 +145,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         redEnvelope.setTxid(query.getTxid());
         // 判断是否有充值订单，轮询5次充值订单
         Order order = null;
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 8; i++) {
             order = orderService.getOrderByHash(query.getTxid(), ChargeType.recharge);
             if (Objects.nonNull(order)) {
                 break;
@@ -167,6 +167,11 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             return Result.fail("红包发送失败，充值金额与红包金额不一致或者币别不一致");
         }
 
+        if (!order.getUid().equals(redEnvelope.getUid())) {
+            redEnvelope.setStatus(RedEnvelopeStatus.FAIL);
+            this.saveOrUpdate(redEnvelope);
+            return Result.fail("充值订单用户和充值用户不一致");
+        }
 
         redEnvelope.setStatus(RedEnvelopeStatus.PROCESS);
         this.spiltRedEnvelope(uid, redEnvelope);
