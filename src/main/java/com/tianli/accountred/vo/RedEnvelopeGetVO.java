@@ -1,5 +1,7 @@
 package com.tianli.accountred.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tianli.accountred.enums.RedEnvelopeStatus;
 import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.AllArgsConstructor;
@@ -34,6 +36,7 @@ public class RedEnvelopeGetVO {
     /**
      * 领取到到金额 折合u
      */
+    @JsonProperty
     private BigDecimal uReceiveAmount;
 
     private CurrencyCoin coin;
@@ -47,6 +50,11 @@ public class RedEnvelopeGetVO {
     public RedEnvelopeGetVO(RedEnvelopeStatus status,CurrencyCoin coin) {
         this.status = status;
         this.coin = coin;
+    }
+
+    @JsonIgnore
+    public BigDecimal getureceiveAmount() {
+        return uReceiveAmount;
     }
 
     public String getCoinUrl() {

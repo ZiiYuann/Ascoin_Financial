@@ -193,7 +193,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         RedEnvelope redEnvelope = this.getByIdWithCache(query.getRid());
         Optional.ofNullable(redEnvelope).orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
         if (!redEnvelope.getFlag().equals(query.getFlag())) {
-            ErrorCodeEnum.RED_STATUS_ERROR.throwException();
+            ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
         }
 
         // 等待、失败、过期、结束
