@@ -12,6 +12,7 @@ import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.enums.RedEnvelopeStatus;
+import com.tianli.accountred.enums.RedEnvelopeType;
 import com.tianli.accountred.enums.RedEnvelopeWay;
 import com.tianli.accountred.mapper.RedEnvelopeMapper;
 import com.tianli.accountred.query.RedEnvelopeChainQuery;
@@ -200,6 +201,12 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         if (!redEnvelope.getFlag().equals(query.getFlag())) {
             ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
         }
+
+        // 如果是私聊红包，判断领取对象和红包标示是否一致
+        if (RedEnvelopeType.PRIVATE.equals(redEnvelope.getType()) && !String.valueOf(shortUid).equals(redEnvelope.getFlag())) {
+            ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
+        }
+
 
         // 等待、失败、过期、结束
         if (RedEnvelopeStatus.WAIT.equals(redEnvelope.getStatus())
