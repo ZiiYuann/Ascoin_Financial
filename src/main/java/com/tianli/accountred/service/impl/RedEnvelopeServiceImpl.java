@@ -37,6 +37,7 @@ import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.ApplicationContextTool;
 import lombok.SneakyThrows;
+import org.apache.ibatis.session.SqlSession;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -82,6 +83,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     private WebHookService webHookService;
     @Resource
     private ConfigService configService;
+    @Resource
+    private SqlSession sqlSession;
 
 
     @Override
@@ -156,6 +159,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                 break;
             }
             Thread.sleep(1000);
+            // 手动清除一级缓存
+            sqlSession.clearCache();
         }
 
         // 判断订单状态
