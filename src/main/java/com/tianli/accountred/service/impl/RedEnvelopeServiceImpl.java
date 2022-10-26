@@ -41,6 +41,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -140,7 +141,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
     @Override
     @SneakyThrows
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Result give(Long uid, Long shortUid, RedEnvelopeChainQuery query) {
         RedEnvelope redEnvelope = this.getByIdWithCache(query.getId());
         Optional.ofNullable(redEnvelope).orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
