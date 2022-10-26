@@ -34,6 +34,7 @@ import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.ApplicationContextTool;
 import lombok.SneakyThrows;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -78,6 +79,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     private CurrencyService currencyService;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private ConfigService configService;
 
 
     @Override
@@ -143,9 +146,10 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         Optional.ofNullable(redEnvelope).orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
 
         redEnvelope.setTxid(query.getTxid());
+        long waitTime = Long.parseLong(configService.getOrDefault("red_envelope_wait_time", "10"));
         // 判断是否有充值订单，轮询5次充值订单
         Order order = null;
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < waitTime; i++) {
             order = orderService.getOrderByHash(query.getTxid(), ChargeType.recharge);
             if (Objects.nonNull(order)) {
                 break;
