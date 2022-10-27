@@ -366,7 +366,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         accountBalanceService.increase(redEnvelope.getUid(), ChargeType.red_back, redEnvelope.getCoin(), rollbackAmount
                 , order.getOrderNo(), "红包到期回退");
 
-        this.finish(redEnvelope.getId());
+        this.overdue(redEnvelope.getId());
     }
 
 
@@ -385,6 +385,17 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         }
         return (RedEnvelope) cache;
     }
+
+    /**
+     * 把红包状态设置过期
+     */
+    private void overdue(Long id) {
+        int i = this.getBaseMapper().overdue(id);
+        if (i == 0) {
+            ErrorCodeEnum.RED_STATUS_ERROR.throwException();
+        }
+    }
+
 
     /**
      * 把红包状态设置为结束
