@@ -1,5 +1,6 @@
 package com.tianli.accountred.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
@@ -71,10 +72,10 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
 
     @Override
     @Transactional
-    public RedEnvelopeSpilt getRedEnvelopeSpilt(Long uid,Long shortUid, String uuid, RedEnvelopeGetQuery redEnvelopeGetQuery) {
+    public RedEnvelopeSpilt getRedEnvelopeSpilt(Long uid, Long shortUid, String uuid, RedEnvelopeGetQuery redEnvelopeGetQuery) {
         // 如果qps高可以异步转账
         LocalDateTime receiveTime = LocalDateTime.now();
-        uuid = uuid.replace("\"","");
+        uuid = uuid.replace("\"", "");
         // 修改拆分（子）红包的状态
         int i = this.getBaseMapper().receive(redEnvelopeGetQuery.getRid(), uuid, receiveTime);
         if (i == 0) {
@@ -85,7 +86,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
 
 
         RedEnvelopeSpiltGetRecord redEnvelopeSpiltGetRecord =
-                redEnvelopeSpiltGetRecordService.redEnvelopeSpiltGetRecordFlow(uid,shortUid, uuid, redEnvelopeGetQuery, redEnvelopeSpilt);
+                redEnvelopeSpiltGetRecordService.redEnvelopeSpiltGetRecordFlow(uid, shortUid, uuid, redEnvelopeGetQuery, redEnvelopeSpilt);
 
         CurrencyCoin coin = redEnvelopeGetQuery.getRedEnvelope().getCoin();
         // 红包订单
@@ -103,8 +104,15 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 .build();
         orderService.save(order);
         // 操作账户
-        accountBalanceService.increase(uid,ChargeType.red_get,coin,redEnvelopeSpilt.getAmount(),order.getOrderNo(),"抢红包获取");
+        accountBalanceService.increase(uid, ChargeType.red_get, coin, redEnvelopeSpilt.getAmount(), order.getOrderNo(), "抢红包获取");
 
         return redEnvelopeSpilt;
+    }
+
+    @Override
+    public List<RedEnvelopeSpilt> getRedEnvelopeSpilt(Long rid, boolean receive) {
+        return this.list(new LambdaQueryWrapper<RedEnvelopeSpilt>()
+                .eq(RedEnvelopeSpilt::getRid, rid)
+                .eq(RedEnvelopeSpilt::isReceive, receive));
     }
 }

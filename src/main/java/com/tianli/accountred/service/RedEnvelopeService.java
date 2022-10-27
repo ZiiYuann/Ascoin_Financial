@@ -12,6 +12,8 @@ import com.tianli.accountred.vo.RedEnvelopeGiveRecordVO;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 
+import java.time.LocalDateTime;
+
 /**
  * @author chenb
  * @apiNote
@@ -47,6 +49,11 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
      * 发红包记录
      */
     IPage<RedEnvelopeGiveRecordVO> giveRecord(Long uid, PageQuery<RedEnvelope> pageQuery);
+
+    /**
+     * 红包到期
+     */
+    void redEnvelopeExpiration(LocalDateTime now);
 
 }
 

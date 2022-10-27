@@ -1,5 +1,5 @@
 ALTER TABLE `financial`.`order`
-    ADD UNIQUE INDEX `unqieOrderNo` (`order_no`);
+    ADD UNIQUE INDEX `unique_order_no` (`order_no`);
 
 CREATE TABLE `red_envelope`
 (
@@ -16,9 +16,12 @@ CREATE TABLE `red_envelope`
     `type`         varchar(10)                                                  NOT NULL COMMENT '红包类型 NORMAL：普通 RANDOM：手气 PRIVATE：私聊',
     `way`          varchar(10)                                                  NOT NULL COMMENT '红包方式 WALLET：钱包 CHAIN：链上',
     `create_time`  datetime                                                     NOT NULL COMMENT '红包创建时间',
+    `finish_time`  datetime                                                     NOT NULL COMMENT '红包结束时间',
     `status`       varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '红包状态',
     `txid`         varchar(255)                                                          DEFAULT NULL COMMENT '交易hash',
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    KEY `expire_index` (`status`, `create_time` DESC),
+    KEY `uid_index` (`uid`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT ='红包主表';
@@ -30,7 +33,7 @@ CREATE TABLE `red_envelope_spilt`
     `amount`       decimal(20, 8)                                               NOT NULL COMMENT '单个红包金额',
     `receive`      tinyint                                                      NOT NULL COMMENT '是否领取',
     `receive_time` datetime DEFAULT NULL COMMENT '领取时间',
-    KEY `default` (`rid`, `id`) COMMENT '默认索引'
+    KEY `default_index` (`rid`, `id`) COMMENT '默认索引'
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT ='红包拆分表';
@@ -48,7 +51,9 @@ CREATE TABLE `red_envelope_spilt_get_record`
     `type`          varchar(20)    NOT NULL COMMENT '红包类型',
     `device_number` varbinary(64)  NOT NULL COMMENT '设备号',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uniqe` (`rid`, `s_rid`) COMMENT '领取记录唯一索引'
+    UNIQUE KEY `unique_index` (`rid`, `s_rid`) COMMENT '领取记录唯一索引',
+    KEY `uid_index` (`uid`),
+    KEY `rid_index` (`rid`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT ='红包领取记录表';

@@ -38,12 +38,14 @@ import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.ApplicationContextTool;
 import lombok.SneakyThrows;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -285,8 +287,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
         redEnvelope = this.getById(query.getRid());
         if (redEnvelope.getNum() == redEnvelope.getReceiveNum()) {
-            redEnvelope.setStatus(RedEnvelopeStatus.FINISH);
-            this.updateById(redEnvelope);
+            this.finish(query.getRid());
         }
 
         RedEnvelopeGetVO redEnvelopeGetVO = new RedEnvelopeGetVO(RedEnvelopeStatus.SUCCESS, redEnvelope.getCoin());
@@ -307,6 +308,68 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         return page.convert(redEnvelopeConvert::toRedEnvelopeGiveRecordVO);
     }
 
+    @Override
+    @Transactional
+    public void redEnvelopeExpiration(LocalDateTime now) {
+        // 2022-10-10 13:00:00 创建 如果当前时间是 2022-10-11 14:00:00（-1  2022-10-10 14:00:00）
+        // plusMinutes(1) 等待缓存过期，确保过期操作内不会有人拿红包
+        LocalDateTime dateTime = now.plusDays(-1).plusMinutes(1);
+        LambdaQueryWrapper<RedEnvelope> queryWrapper = new LambdaQueryWrapper<RedEnvelope>()
+                .eq(RedEnvelope::getStatus, RedEnvelopeStatus.PROCESS)
+                .lt(RedEnvelope::getCreateTime, dateTime);
+
+        List<RedEnvelope> redEnvelopes = this.list(queryWrapper);
+        if (CollectionUtils.isNotEmpty(redEnvelopes)) {
+            redEnvelopes.forEach(redEnvelope -> {
+                try {
+                    RedEnvelopeServiceImpl bean = ApplicationContextTool.getBean(RedEnvelopeServiceImpl.class);
+                    if (Objects.isNull(bean)) {
+                        ErrorCodeEnum.SYSTEM_ERROR.throwException();
+                    }
+                    bean.redEnvelopeRollback(redEnvelope);
+                } catch (Exception e) {
+                    webHookService.dingTalkSend("红包到期回滚异常：" + redEnvelope.getId(), e);
+                }
+            });
+        }
+
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void redEnvelopeRollback(RedEnvelope redEnvelope) {
+        List<RedEnvelopeSpilt> spiltRedEnvelopes =
+                redEnvelopeSpiltService.getRedEnvelopeSpilt(redEnvelope.getId(), false);
+
+        // 进入这个方法的红包应该存在红包未领取
+        if (CollectionUtils.isEmpty(spiltRedEnvelopes)) {
+            webHookService.dingTalkSend("红包状态不为领取完，但是拆分红包不存在，请排查异常：" + redEnvelope.getId());
+            return;
+        }
+
+        BigDecimal rollbackAmount = spiltRedEnvelopes.stream().map(RedEnvelopeSpilt::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // 红包回滚订单
+        Order order = Order.builder()
+                .uid(redEnvelope.getUid())
+                .coin(redEnvelope.getCoin())
+                .orderNo(AccountChangeType.red_back.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
+                .amount(rollbackAmount)
+                .type(ChargeType.red_back)
+                .completeTime(LocalDateTime.now())
+                .createTime(LocalDateTime.now())
+                .status(ChargeStatus.chain_success)
+                .relatedId(redEnvelope.getId())
+                .build();
+        orderService.save(order);
+
+        accountBalanceService.increase(redEnvelope.getUid(), ChargeType.red_back, redEnvelope.getCoin(), rollbackAmount
+                , order.getOrderNo(), "红包到期回退");
+
+        this.finish(redEnvelope.getId());
+    }
+
+
     /**
      * 获取红包信息（缓存）
      */
@@ -321,6 +384,16 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             return redEnvelope;
         }
         return (RedEnvelope) cache;
+    }
+
+    /**
+     * 把红包状态设置为结束
+     */
+    private void finish(Long id) {
+        int i = this.getBaseMapper().finish(id);
+        if (i == 0) {
+            ErrorCodeEnum.RED_STATUS_ERROR.throwException();
+        }
     }
 
     private void setRedisCache(RedEnvelope redEnvelope) {

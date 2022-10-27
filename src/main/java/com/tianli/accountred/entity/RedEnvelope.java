@@ -91,4 +91,9 @@ public class RedEnvelope {
      */
     private LocalDateTime createTime;
 
+    /**
+     * 红包结束时间（正常结束，到期 其余状态没有）
+     */
+    private LocalDateTime finishTime;
+
 }

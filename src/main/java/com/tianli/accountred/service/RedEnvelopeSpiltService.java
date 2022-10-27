@@ -5,6 +5,8 @@ import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
 
+import java.util.List;
+
 /**
  * @author chenb
  * @apiNote
@@ -29,4 +31,13 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
      * @return 领取信息
      */
     RedEnvelopeSpilt getRedEnvelopeSpilt(Long uid, Long shortUid, String uuid, RedEnvelopeGetQuery redEnvelopeGetQuery);
+
+    /**
+     * 获取子红包
+     *
+     * @param rid     红包id
+     * @param receive 领取状态
+     * @return 红包列表
+     */
+    List<RedEnvelopeSpilt> getRedEnvelopeSpilt(Long rid, boolean receive);
 }
