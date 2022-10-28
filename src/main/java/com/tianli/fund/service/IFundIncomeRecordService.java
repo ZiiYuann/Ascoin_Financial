@@ -12,6 +12,8 @@ import com.tianli.fund.vo.FundIncomeRecordVO;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.vo.FundIncomeAmountVO;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -24,13 +26,17 @@ import java.util.List;
  */
 public interface IFundIncomeRecordService extends IService<FundIncomeRecord> {
 
-    List<AmountDto> getAmountByUidAndStatus(Long uid,Long agentId, Integer status);
+    BigDecimal amountDollar(Long uid, Long agentId, Integer status);
 
-    List<AmountDto> getAmountByUidAndStatus(Long uid,Long agentId, List<Integer> status);
+    BigDecimal amountDollar(Long uid, Integer status, LocalDateTime startTime, LocalDateTime endTime);
 
-    IPage<FundIncomeRecordVO> getPage(PageQuery<FundIncomeRecord> page , FundIncomeQuery query);
+    BigDecimal amountDollar(Long uid, Long agentId, List<Integer> status);
 
-    IPage<FundIncomeRecordVO> getSummaryPage(PageQuery<FundIncomeRecord> page , FundIncomeQuery query);
+    BigDecimal amountDollar(FundIncomeQuery query);
+
+    IPage<FundIncomeRecordVO> getPage(PageQuery<FundIncomeRecord> page, FundIncomeQuery query);
+
+    IPage<FundIncomeRecordVO> getSummaryPage(PageQuery<FundIncomeRecord> page, FundIncomeQuery query);
 
     List<FundIncomeAmountDTO> getAmount(FundIncomeQuery query);
 

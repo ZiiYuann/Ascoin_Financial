@@ -89,7 +89,7 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
         FundAmount fundAmount = getFundAmount(incomeQuery);
         FundRecordQuery fundRecordQuery = FundRecordQuery.builder().agentId(agentId).build();
         Integer holdUserCount = fundRecordService.getHoldUserCount(fundRecordQuery);
-        BigDecimal holdAmount = fundRecordService.getHoldAmount(fundRecordQuery);
+        BigDecimal holdAmount = fundRecordService.holdAmountDollar(fundRecordQuery);
         return HoldDataVO.builder()
                 .payInterestAmount(fundAmount.getPayInterestAmount())
                 .waitPayInterestAmount(fundAmount.getWaitPayInterestAmount())
@@ -104,7 +104,7 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
         return page.convert(fundProductStatisticsVO -> {
             Long productId = fundProductStatisticsVO.getProductId();
             FundRecordQuery fundRecordQuery = FundRecordQuery.builder().productId(productId).build();
-            BigDecimal holdAmount = fundRecordService.getHoldAmount(fundRecordQuery);
+            BigDecimal holdAmount = fundRecordService.holdAmountDollar(fundRecordQuery);
             Integer holdUserCount = fundRecordService.getHoldUserCount(fundRecordQuery);
             FundIncomeQuery incomeQuery = FundIncomeQuery.builder()
                     .productId(productId)

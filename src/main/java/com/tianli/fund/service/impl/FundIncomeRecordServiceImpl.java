@@ -20,7 +20,6 @@ import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.convert.FundRecordConvert;
 import com.tianli.fund.dao.FundIncomeRecordMapper;
@@ -82,18 +81,39 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     private WebHookService webHookService;
 
     @Override
-    public List<AmountDto> getAmountByUidAndStatus(Long uid, Long agentId, Integer status) {
-        return getAmountByUidAndStatus(uid, agentId, List.of(status));
+    public BigDecimal amountDollar(Long uid, Long agentId, Integer status) {
+        return amountDollar(uid, agentId, List.of(status));
     }
 
     @Override
-    public List<AmountDto> getAmountByUidAndStatus(Long uid, Long agentId, List<Integer> status) {
+    public BigDecimal amountDollar(Long uid, Integer status, LocalDateTime startTime, LocalDateTime endTime) {
+        FundIncomeQuery query = new FundIncomeQuery();
+        query.setUid(uid);
+        query.setStatus(List.of(status));
+        query.setStartTime(startTime);
+        query.setEndTime(endTime);
+        return amountDollar(query);
+    }
+
+    @Override
+    public BigDecimal amountDollar(Long uid, Long agentId, List<Integer> status) {
         FundIncomeQuery query = new FundIncomeQuery();
         query.setUid(uid);
         query.setAgentId(agentId);
         query.setStatus(status);
+        return amountDollar(query);
+    }
+
+    @Override
+    public BigDecimal amountDollar(FundIncomeQuery query) {
         List<FundIncomeAmountDTO> fundIncomeAmountDTOS = getAmount(query);
-        return fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO -> new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
+        List<AmountDto> collect =
+                fundIncomeAmountDTOS.stream()
+                        .map(fundIncomeAmountDTO ->
+                                new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin()))
+                        .collect(Collectors.toList());
+
+        return orderService.calDollarAmount(collect);
     }
 
     @Override

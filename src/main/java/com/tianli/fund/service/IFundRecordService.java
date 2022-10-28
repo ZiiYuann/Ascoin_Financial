@@ -58,7 +58,15 @@ public interface IFundRecordService extends IService<FundRecord> {
 
     BigDecimal dailyIncome(BigDecimal holdAmount, BigDecimal rate);
 
-    BigDecimal getHoldAmount(FundRecordQuery query);
+    BigDecimal holdAmountDollar(FundRecordQuery query);
+
+    /**
+     * 获取持用金额
+     * @param uid 用户id
+     * @param agentId 用户代理人id
+     * @return 持用金额u
+     */
+    BigDecimal holdAmountDollar(Long uid, Long agentId);
 
     Integer getHoldUserCount(FundRecordQuery query);
 
@@ -67,4 +75,5 @@ public interface IFundRecordService extends IService<FundRecord> {
     void updateRateByProductId(Long id, BigDecimal rate);
 
     List<FundRecord> listByUidAndProductId(Long uid, Long productId);
+
 }

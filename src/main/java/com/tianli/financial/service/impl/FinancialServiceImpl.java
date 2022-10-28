@@ -24,7 +24,9 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.service.*;
 import com.tianli.financial.vo.*;
+import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.entity.FundRecord;
+import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.entity.FinancialBoardWallet;
@@ -67,6 +69,8 @@ public class FinancialServiceImpl implements FinancialService {
         BigDecimal totalAccrueIncomeFeeDollar = BigDecimal.ZERO;
         BigDecimal totalYesterdayIncomeFeeDollar = BigDecimal.ZERO;
         EnumMap<ProductType, DollarIncomeVO> incomeMap = new EnumMap<>(ProductType.class);
+
+        // 理财数据
         for (ProductType type : types) {
             DollarIncomeVO incomeVO = new DollarIncomeVO();
             // 单类型产品持有币数量
@@ -86,6 +90,24 @@ public class FinancialServiceImpl implements FinancialService {
 
             incomeMap.put(type, incomeVO);
         }
+
+        // 基金数据
+        BigDecimal fundHoldDollarAmount = fundRecordService.holdAmountDollar(uid, null);
+        BigDecimal fundTotalIncome =
+                fundIncomeRecordService.amountDollar(uid, FundIncomeStatus.audit_success, null, null);
+        LocalDateTime time = LocalDateTime.now().plusDays(-1);
+        BigDecimal fundYesterdayIncome =
+                fundIncomeRecordService.amountDollar(uid, FundIncomeStatus.audit_success, TimeTool.minDay(time), TimeTool.maxDay(time));
+
+        DollarIncomeVO fundIncomeVo = new DollarIncomeVO();
+        fundIncomeVo.setAccrueIncomeFee(fundTotalIncome);
+        fundIncomeVo.setHoldFee(fundHoldDollarAmount);
+        fundIncomeVo.setYesterdayIncomeFee(fundYesterdayIncome);
+        incomeMap.put(ProductType.fund, fundIncomeVo);
+
+        totalHoldFeeDollar = totalHoldFeeDollar.add(fundHoldDollarAmount);
+        totalAccrueIncomeFeeDollar = totalAccrueIncomeFeeDollar.add(fundTotalIncome);
+        totalYesterdayIncomeFeeDollar = totalYesterdayIncomeFeeDollar.add(fundYesterdayIncome);
 
 
         DollarIncomeVO incomeVO = new DollarIncomeVO();
@@ -563,5 +585,7 @@ public class FinancialServiceImpl implements FinancialService {
     private IWalletAgentProductService walletAgentProductService;
     @Resource
     private IFundRecordService fundRecordService;
+    @Resource
+    private IFundIncomeRecordService fundIncomeRecordService;
 
 }
