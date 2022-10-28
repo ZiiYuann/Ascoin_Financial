@@ -55,5 +55,9 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
      */
     void redEnvelopeExpiration(LocalDateTime now);
 
+    /**
+     * 获取红包信息
+     */
+    RedEnvelopeGetVO getInfoById(Long id);
 }
 

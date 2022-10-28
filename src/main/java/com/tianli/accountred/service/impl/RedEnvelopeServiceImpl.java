@@ -337,6 +337,14 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
     }
 
+    @Override
+    public RedEnvelopeGetVO getInfoById(Long id) {
+        RedEnvelope redEnvelope = this.getByIdWithCache(id);
+        RedEnvelopeGetVO redEnvelopeGetVO = new RedEnvelopeGetVO();
+        redEnvelopeGetVO.setStatus(redEnvelope.getStatus());
+        return redEnvelopeGetVO;
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void redEnvelopeRollback(RedEnvelope redEnvelope) {
         List<RedEnvelopeSpilt> spiltRedEnvelopes =

@@ -61,6 +61,15 @@ public class RedEnvelopeController {
         return Result.success().setData(redEnvelopeService.giveRecord(uid, pageQuery));
     }
 
+
+    /**
+     * 发红包信息
+     */
+    @GetMapping("/get/{id}")
+    public Result getInfoById(@PathVariable("id") Long id) {
+        return Result.success().setData(redEnvelopeService.getInfoById(id));
+    }
+
     /**
      * 发红包
      */
