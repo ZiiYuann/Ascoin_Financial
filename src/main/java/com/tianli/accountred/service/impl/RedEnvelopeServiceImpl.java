@@ -293,6 +293,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         RedEnvelopeGetVO redEnvelopeGetVO = new RedEnvelopeGetVO(RedEnvelopeStatus.SUCCESS, redEnvelope.getCoin());
         redEnvelopeGetVO.setReceiveAmount(redEnvelopeSpilt.getAmount());
         redEnvelopeGetVO.setUReceiveAmount(currencyService.getDollarRate(redEnvelope.getCoin()).multiply(redEnvelopeSpilt.getAmount()));
+        redEnvelopeGetVO.setUid(redEnvelope.getUid());
+        redEnvelopeGetVO.setShortUid(redEnvelope.getShortUid());
 
         // 删除红包以及领取记录以及当前红包领取记录的缓存
         redisTemplate.delete(RedisConstants.RED_ENVELOPE + query.getRid());
