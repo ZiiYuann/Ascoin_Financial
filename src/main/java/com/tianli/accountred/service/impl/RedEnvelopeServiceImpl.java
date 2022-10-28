@@ -342,6 +342,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         RedEnvelope redEnvelope = this.getByIdWithCache(id);
         RedEnvelopeGetVO redEnvelopeGetVO = new RedEnvelopeGetVO();
         redEnvelopeGetVO.setStatus(redEnvelope.getStatus());
+        redEnvelopeGetVO.setCoin(redEnvelope.getCoin());
         return redEnvelopeGetVO;
     }
 
