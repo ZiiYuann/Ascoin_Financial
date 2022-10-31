@@ -297,7 +297,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         redEnvelopeGetVO.setShortUid(redEnvelope.getShortUid());
 
         // 删除红包以及领取记录以及当前红包领取记录的缓存
-        redisTemplate.delete(RedisConstants.RED_ENVELOPE + query.getRid());
+        this.deleteRedisCache(query.getRid());
         redisTemplate.delete(RedisConstants.RED_ENVELOPE_GET_RECORD + query.getRid());
         return redEnvelopeGetVO;
     }
@@ -306,7 +306,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     public IPage<RedEnvelopeGiveRecordVO> giveRecord(Long uid, PageQuery<RedEnvelope> pageQuery) {
         Page<RedEnvelope> page = this.page(pageQuery.page()
                 , new LambdaQueryWrapper<RedEnvelope>().eq(RedEnvelope::getUid, uid)
-                        .eq(false, RedEnvelope::getStatus, RedEnvelopeStatus.WAIT));
+                        .eq(false, RedEnvelope::getStatus, RedEnvelopeStatus.WAIT)
+                        .last(" order by create_time desc "));
         return page.convert(redEnvelopeConvert::toRedEnvelopeGiveRecordVO);
     }
 
@@ -378,6 +379,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                 , order.getOrderNo(), "红包到期回退");
 
         this.overdue(redEnvelope.getId());
+
     }
 
 
@@ -418,8 +420,18 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         }
     }
 
+    /**
+     * 删除红包缓存
+     */
+    private void deleteRedisCache(Long id){
+        redisTemplate.delete(RedisConstants.RED_ENVELOPE + id);
+    }
+
+    /**
+     * 增加红包缓存
+     */
     private void setRedisCache(RedEnvelope redEnvelope) {
-        redisService.set(RedisConstants.RED_ENVELOPE + redEnvelope.getId(), redEnvelope, 3L, TimeUnit.DAYS);
+        redisService.set(RedisConstants.RED_ENVELOPE + redEnvelope.getId(), redEnvelope, 1L, TimeUnit.DAYS);
     }
 
     /**
