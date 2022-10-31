@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
  * @author chenb
@@ -41,7 +40,12 @@ public class WebHookService {
 
     public void dingTalkSend(String msg, WebHookToken webHookToken) {
         String dev = configService._get("dev");
-        asyncService.async(() -> this.dingTalkSendOperation(MoreObjects.firstNonNull(dev, "") + msg, webHookToken));
+        if (StringUtils.isBlank(dev)) {
+            asyncService.async(() -> this.dingTalkSendOperation(MoreObjects.firstNonNull(dev, "") + msg, webHookToken));
+        } else {
+            asyncService.async(() -> this.dingTalkSendOperation(MoreObjects.firstNonNull(dev, "") + msg, WebHookToken.BUG_PUSH));
+        }
+
     }
 
     public void dingTalkSend(String msg) {
