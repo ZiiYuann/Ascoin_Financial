@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.common.base.MoreObjects;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
@@ -445,7 +446,7 @@ public class FinancialServiceImpl implements FinancialService {
         return list.convert(product -> {
             BigDecimal totalQuota = product.getTotalQuota();
             BigDecimal personQuota = product.getPersonQuota();
-            BigDecimal useQuota = product.getUseQuota();
+            BigDecimal useQuota = MoreObjects.firstNonNull(product.getUseQuota(),BigDecimal.ZERO);
             var accountBalance = accountBalanceService.getAndInit(requestInitService.uid(), product.getCoin());
             // 设置额度信息
             FinancialProductVO financialProductVO = financialConverter.toFinancialProductVO(product);
