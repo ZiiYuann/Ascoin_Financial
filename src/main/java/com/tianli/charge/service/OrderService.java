@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -175,11 +174,8 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
                 }).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public void deleteByOrderNo(Long uid, String orderNo) {
-        LambdaQueryWrapper<Order> query = new LambdaQueryWrapper<Order>()
-                .eq(Order::getUid, uid)
-                .eq(Order::getOrderNo, orderNo);
-        orderMapper.delete(query);
+    public void addAmount(Long id, BigDecimal amount) {
+        orderMapper.addAmount(id,amount);
     }
 
     @Resource

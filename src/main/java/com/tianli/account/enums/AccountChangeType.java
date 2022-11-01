@@ -44,7 +44,9 @@ public enum AccountChangeType {
     //基金赎回
     agent_fund_redeem("AR"),
     //基金支付利息
-    agent_fund_interest("AI");
+    agent_fund_interest("AI"),
+    transaction_reward("TR"),
+    ;
 
 
     AccountChangeType(String prefix) {

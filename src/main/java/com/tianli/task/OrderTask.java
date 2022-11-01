@@ -35,7 +35,7 @@ import java.util.Optional;
  * @since 2022-09-20
  **/
 @Component
-public class OrderAdvanceTask {
+public class OrderTask {
 
 
     @Resource
@@ -52,7 +52,7 @@ public class OrderAdvanceTask {
     private IFundTransactionRecordService fundTransactionRecordService;
 
     @Scheduled(cron = "0 0/15 * * * ?")
-    public void incomeTasks() {
+    public void advanceTask() {
         List<Order> advanceOrders = Optional.ofNullable(orderService.list(new LambdaQueryWrapper<Order>()
                 .eq(Order::getStatus, ChargeStatus.chaining)
                 .likeRight(Order::getOrderNo, AccountChangeType.advance_purchase.getPrefix()))).orElse(new ArrayList<>());
