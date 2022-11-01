@@ -54,6 +54,19 @@ public class DigitalCurrencyExchange {
 
     }
 
+    public double trxUsdtPrice() {
+        BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps("trxUsdtPrice");
+        Object o = ops.get();
+        if (o != null) return Double.valueOf(o.toString());
+        String stringResult = HttpHandler.execute(new HttpRequest().setUrl("https://api.huobi.pro/market/trade?symbol=trxusdt")).getStringResult();
+        JsonObject jsonObject = new Gson().fromJson(stringResult, JsonObject.class);
+        Double aDouble = JsonObjectTool.getAsDouble(jsonObject, "tick.data[0].price");
+        if (aDouble == null) ErrorCodeEnum.NETWORK_ERROR.throwException();
+        ops.set(aDouble, 1L, TimeUnit.MINUTES);
+        return aDouble;
+
+    }
+
     public double bnbUsdtPrice() {
         BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps("bnbUsdtPrice");
         Object o = ops.get();

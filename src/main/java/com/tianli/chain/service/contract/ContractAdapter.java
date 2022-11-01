@@ -20,11 +20,26 @@ public class ContractAdapter {
     private EthTriggerContract ethTriggerContract;
     @Resource
     private TronTriggerContract tronTriggerContract;
+    @Resource
+    private TronWeb3jContract tronWeb3jContract;
 
     public ContractOperation getOne(NetworkType networkType) {
         switch (networkType) {
             case trc20:
                 return tronTriggerContract;
+            case bep20:
+                return bscTriggerContract;
+            case erc20:
+                return ethTriggerContract;
+            default:
+                throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
+        }
+    }
+
+    public Web3jContractOperation getWeb3j(NetworkType networkType) {
+        switch (networkType) {
+            case trc20:
+                return tronWeb3jContract;
             case bep20:
                 return bscTriggerContract;
             case erc20:

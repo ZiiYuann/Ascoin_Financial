@@ -28,6 +28,7 @@ import com.tianli.management.vo.FundIncomeAmountVO;
 import com.tianli.management.vo.FundTransactionAmountVO;
 import com.tianli.management.vo.FundUserRecordVO;
 import com.tianli.management.vo.HoldUserAmount;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -75,9 +76,6 @@ public class FundAgentManagementController {
 
     /**
      * 产品概览
-     *
-     * @param page
-     * @return
      */
     @GetMapping("/product/statistics")
     @AgentPrivilege
@@ -115,6 +113,22 @@ public class FundAgentManagementController {
     @AgentPrivilege
     public Result incomeRecord(PageQuery<FundIncomeRecord> page, FundIncomeQuery query) {
         query.setAgentId(AgentContent.getAgentId());
+        if (CollectionUtils.isEmpty(query.getStatus())) {
+            query.setStatus(List.of(1, 3));
+        }
+        return Result.success(fundIncomeRecordService.getPage(page, query));
+    }
+
+    /**
+     * 收益数据
+     */
+    @GetMapping("/income/record/audit")
+    @AgentPrivilege
+    public Result auditIncomeRecord(PageQuery<FundIncomeRecord> page, FundIncomeQuery query) {
+        query.setAgentId(AgentContent.getAgentId());
+        if (CollectionUtils.isEmpty(query.getStatus())) {
+            query.setStatus(List.of(2, 4));
+        }
         return Result.success(fundIncomeRecordService.getPage(page, query));
     }
 
@@ -125,9 +139,27 @@ public class FundAgentManagementController {
     @AgentPrivilege
     public Result incomeAmount(FundIncomeQuery query) {
         query.setAgentId(AgentContent.getAgentId());
+        if (CollectionUtils.isEmpty(query.getStatus())) {
+            query.setStatus(List.of(1, 3));
+        }
         FundIncomeAmountVO incomeAmount = fundIncomeRecordService.getIncomeAmount(query);
         return Result.success(incomeAmount);
     }
+
+    /**
+     * 收益数据统计
+     */
+    @GetMapping("/income/amount/audit")
+    @AgentPrivilege
+    public Result incomeAuditAmount(FundIncomeQuery query) {
+        query.setAgentId(AgentContent.getAgentId());
+        if (CollectionUtils.isEmpty(query.getStatus())) {
+            query.setStatus(List.of(2, 4));
+        }
+        FundIncomeAmountVO incomeAmount = fundIncomeRecordService.getIncomeAmount(query);
+        return Result.success(incomeAmount);
+    }
+
 
     /**
      * 持有记录

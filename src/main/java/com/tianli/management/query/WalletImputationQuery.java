@@ -20,4 +20,6 @@ public class WalletImputationQuery {
     private NetworkType network;
 
     private ImputationStatus status;
+
+    private boolean wait;
 }

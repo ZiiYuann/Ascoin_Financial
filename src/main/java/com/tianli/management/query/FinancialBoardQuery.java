@@ -26,9 +26,9 @@ public class FinancialBoardQuery {
 
     public void calTime(){
 
-        LocalDateTime todayZero = TimeTool.StartOfTime(TimeTool.Util.DAY);
+        LocalDateTime todayZero = TimeTool.startOfTime(TimeTool.Util.DAY);
         Optional.ofNullable(timeUtil).ifPresent(util -> {
-            startTime = TimeTool.StartOfTime(timeUtil);
+            startTime = TimeTool.startOfTime(timeUtil);
             endTime = todayZero.plusDays(1);
         });
 

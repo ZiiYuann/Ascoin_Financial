@@ -200,7 +200,7 @@ public class TimeTool {
         return localDateTime.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
     }
 
-    public static LocalDateTime StartOfTime(TimeTool.Util timeUtil){
+    public static LocalDateTime startOfTime(TimeTool.Util timeUtil){
         LocalDate date;
         LocalDate now = LocalDate.now();
         switch (timeUtil){

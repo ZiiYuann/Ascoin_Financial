@@ -2,15 +2,12 @@ package com.tianli.task;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
-import com.tianli.address.AddressService;
-import com.tianli.charge.service.OrderService;
 import com.tianli.exception.ErrCodeException;
-import com.tianli.financial.service.FinancialIncomeAccrueService;
-import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.service.FinancialBoardProductService;
 import com.tianli.management.service.FinancialBoardWalletService;
+import com.tianli.management.service.WithdrawServiceFeeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -18,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,22 +31,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FinancialBoardTask {
 
     @Resource
-    private OrderService orderService;
+    private WithdrawServiceFeeService withdrawServiceFeeService;
     @Resource
     private FinancialBoardProductService financialBoardProductService;
     @Resource
     private FinancialBoardWalletService financialBoardWalletService;
-    @Resource
-    private FinancialIncomeAccrueService financialIncomeAccrueService;
-    @Resource
-    private FinancialRecordService financialRecordService;
-    @Resource
-    private AddressService addressService;
 
-    //    @Scheduled(cron = "0 0/1 * * * ?")
-    public void taskTest() {
-        boardTask(DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(0));
-    }
+
 
     @Scheduled(cron = "0 0 0 1/1 * ? ")
     public void task() {
@@ -81,13 +68,17 @@ public class FinancialBoardTask {
 
 
         FinancialBoardProduct today = financialBoardProductService.getByDate(yesterdayBegin.toLocalDate());
-        financialBoardProductService.getFinancialBoardProduct(yesterdayBegin,todayBegin , today);
+        financialBoardProductService.getFinancialBoardProduct(yesterdayBegin, todayBegin, today);
         financialBoardProductService.updateById(today);
 
 //        ========================== 云钱包数据看板 ==========================
         FinancialBoardWallet financialBoardWallet = financialBoardWalletService.getByDate(yesterdayBegin.toLocalDate());
         financialBoardWalletService.getFinancialBoardWallet(yesterdayBegin, todayBegin, financialBoardWallet);
         financialBoardWalletService.updateById(financialBoardWallet);
+
+
+        // 提现数据展板
+        withdrawServiceFeeService.init(todayBegin.toLocalDate());
     }
 
 

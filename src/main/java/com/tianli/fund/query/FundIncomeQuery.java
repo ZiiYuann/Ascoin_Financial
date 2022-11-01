@@ -23,6 +23,7 @@ public class FundIncomeQuery {
 
     private String queryProductId;
 
+    // 1-已计算 2-待审核 3-已发放 4-审核失败
     private List<Integer> status;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")

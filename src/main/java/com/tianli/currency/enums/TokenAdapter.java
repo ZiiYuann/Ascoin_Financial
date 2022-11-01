@@ -104,9 +104,9 @@ public enum TokenAdapter {
         throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
     }
 
-    public double alignment(BigInteger amount) {
+    public BigDecimal alignment(BigInteger amount) {
         if (amount == null) {
-            return 0.0;
+            return BigDecimal.ZERO;
         }
         BigDecimal decimal = new BigDecimal(amount);
         switch (this) {
@@ -115,14 +115,14 @@ public enum TokenAdapter {
             case usdc_erc20:
             case usdc_trc20:
             case trx:
-                return decimal.divide(new BigDecimal("1000000"), 8, RoundingMode.DOWN).doubleValue();
+                return decimal.divide(new BigDecimal("1000000"), 8, RoundingMode.DOWN);
             case usdt_bep20:
             case usdc_bep20:
             case bnb:
             case eth:
-                return decimal.divide(new BigDecimal("1000000000000000000"), 8, RoundingMode.DOWN).doubleValue();
+                return decimal.divide(new BigDecimal("1000000000000000000"), 8, RoundingMode.DOWN);
         }
-        return 0.0;
+        return BigDecimal.ZERO;
     }
 
     public BigDecimal alignment(BigDecimal amount) {
