@@ -15,17 +15,20 @@ import com.tianli.chain.mapper.WalletImputationMapper;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.service.contract.ContractOperation;
 import com.tianli.chain.vo.WalletImputationVO;
+import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.management.dto.AmountDto;
 import com.tianli.management.entity.HotWalletDetailed;
 import com.tianli.management.enums.HotWalletOperationType;
 import com.tianli.management.query.WalletImputationManualQuery;
 import com.tianli.management.query.WalletImputationQuery;
 import com.tianli.management.service.HotWalletDetailedService;
+import com.tianli.management.vo.ImputationAmountVO;
 import com.tianli.task.RetryScheduledExecutor;
 import com.tianli.task.RetryTaskInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +66,8 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     private HotWalletDetailedService hotWalletDetailedService;
     @Resource
     private AddressService addressService;
+    @Resource
+    private OrderService orderService;
 
 
     /**
@@ -90,7 +95,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         WalletImputation walletImputation = walletImputationMapper.selectOne(query);
 
         if (Objects.nonNull(walletImputation)) {
-            walletImputationMapper.increase(walletImputation.getId(),finalAmount);
+            walletImputationMapper.increase(walletImputation.getId(), finalAmount);
             return;
         }
 
@@ -128,7 +133,8 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         if (Objects.nonNull(query.getStatus())) {
             queryWrapper = queryWrapper.eq(WalletImputation::getStatus, query.getStatus());
         } else {
-            queryWrapper = queryWrapper.in(WalletImputation::getStatus, List.of(ImputationStatus.wait, ImputationStatus.processing));
+            queryWrapper = queryWrapper.in(WalletImputation::getStatus
+                    , List.of(ImputationStatus.wait, ImputationStatus.processing, ImputationStatus.fail));
         }
 
         return walletImputationMapper.selectPage(page, queryWrapper).convert(chainConverter::toWalletImputationVO);
@@ -207,15 +213,15 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     /**
      * 手动执行归集操作
      */
-    public String imputationOperationManual(NetworkType network,TokenAdapter tokenAdapter,List<String> addresses) {
+    public String imputationOperationManual(NetworkType network, TokenAdapter tokenAdapter, List<String> addresses) {
         LambdaQueryWrapper<Address> query;
-        if(NetworkType.trc20.equals(network)){
-            query = new LambdaQueryWrapper<Address>().in(Address :: getTron,addresses);
-        }else {
-            query = new LambdaQueryWrapper<Address>().in(Address :: getBsc,addresses);
+        if (NetworkType.trc20.equals(network)) {
+            query = new LambdaQueryWrapper<Address>().in(Address::getTron, addresses);
+        } else {
+            query = new LambdaQueryWrapper<Address>().in(Address::getBsc, addresses);
         }
         List<Long> addressIds = Optional.ofNullable(addressService.list(query)).orElse(new ArrayList<>())
-                .stream().map(Address :: getId).collect(Collectors.toList());
+                .stream().map(Address::getId).collect(Collectors.toList());
         return baseContractService.getOne(network).recycle(null, addressIds, tokenAdapter.getContractAddressList());
     }
 
@@ -284,7 +290,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     public void checkImputationStatus(Long logId, List<WalletImputation> walletImputations) {
         WalletImputationLog walletImputationLog = walletImputationLogService.getById(logId);
         if (!ImputationStatus.processing.equals(walletImputationLog.getStatus()) || StringUtils.isBlank(walletImputationLog.getTxid())) {
-           log.error("当前数据异常，请校验{}",walletImputationLog);
+            log.error("当前数据异常，请校验{}", walletImputationLog);
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
 
@@ -307,17 +313,24 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         this.updateBatchById(walletImputations);
 
 
-        if( !ImputationStatus.success.equals(status)){
+        if (!ImputationStatus.success.equals(status)) {
             return;
         }
 
         Address configAddress = addressService.getConfigAddress();
         String toAddress = null;
-        switch (network){
-            case bep20: toAddress = configAddress.getBsc(); break;
-            case erc20: toAddress = configAddress.getEth(); break;
-            case trc20: toAddress = configAddress.getTron(); break;
-            default: break;
+        switch (network) {
+            case bep20:
+                toAddress = configAddress.getBsc();
+                break;
+            case erc20:
+                toAddress = configAddress.getEth();
+                break;
+            case trc20:
+                toAddress = configAddress.getTron();
+                break;
+            default:
+                break;
         }
 
         // 插入热钱包操作数据表
@@ -335,4 +348,24 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         hotWalletDetailedService.insert(hotWalletDetailed);
     }
 
+
+    public ImputationAmountVO amount(WalletImputationQuery query) {
+        WalletImputationQuery waitQuery = new WalletImputationQuery();
+        waitQuery.setWait(true);
+        BigDecimal totalAmount = orderService.calDollarAmount(this.getBaseMapper().imputationAmount(waitQuery));
+        ImputationAmountVO imputationAmountVO = new ImputationAmountVO();
+        imputationAmountVO.setTotalAmount(totalAmount);
+
+        if (Objects.isNull(query.getStatus())) {
+            query.setWait(true);
+        }
+        List<AmountDto> amountDtos = this.getBaseMapper().imputationAmount(query);
+        Optional<AmountDto> optionalAmountDto = amountDtos.stream().filter(o -> o.getCoin().equals(query.getCoin())).findFirst();
+        if (optionalAmountDto.isPresent()) {
+            AmountDto amountDto = optionalAmountDto.get();
+            imputationAmountVO.setAmount(amountDto.getAmount());
+            imputationAmountVO.setCoin(query.getCoin());
+        }
+        return imputationAmountVO;
+    }
 }

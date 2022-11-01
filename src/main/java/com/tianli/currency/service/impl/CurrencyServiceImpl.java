@@ -48,6 +48,8 @@ public class CurrencyServiceImpl implements CurrencyService {
                 return BigDecimal.valueOf(digitalCurrencyExchange.bnbUsdtPrice());
             case eth:
                 return BigDecimal.valueOf(digitalCurrencyExchange.ethUsdtPrice());
+            case trx:
+                return BigDecimal.valueOf(digitalCurrencyExchange.trxUsdtPrice());
             default:
                 break;
         }
@@ -61,6 +63,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         rateMap.put(CurrencyCoin.usdc, this.getDollarRate(CurrencyCoin.usdc));
         rateMap.put(CurrencyCoin.bnb, this.getDollarRate(CurrencyCoin.bnb));
         rateMap.put(CurrencyCoin.eth, this.getDollarRate(CurrencyCoin.eth));
+        rateMap.put(CurrencyCoin.trx, this.getDollarRate(CurrencyCoin.trx));
         // 设置其他类型的汇率
         return rateMap;
     }

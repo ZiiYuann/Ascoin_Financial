@@ -126,7 +126,7 @@ public class FinancialController {
     }
 
     /**
-     * 我的赚币【上方】
+     * 【理财首页】上方
      */
     @GetMapping("/income")
     public Result income() {

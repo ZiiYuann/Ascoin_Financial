@@ -23,10 +23,7 @@ import org.web3j.crypto.TransactionEncoder;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.JsonRpc2_0Web3j;
 import org.web3j.protocol.core.methods.request.Transaction;
-import org.web3j.protocol.core.methods.response.EthCall;
-import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
-import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
-import org.web3j.protocol.core.methods.response.EthSendTransaction;
+import org.web3j.protocol.core.methods.response.*;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
 import party.loveit.bip44forjava.utils.Bip44Utils;
@@ -63,7 +60,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
                             new Function("transfer", List.of(new Address(to), new Uint(val)), new ArrayList<>())
                     ),
                     BigInteger.ZERO,
-                    BigInteger.valueOf(Long.parseLong(getTransferGasLimit())) ,
+                    BigInteger.valueOf(Long.parseLong(getTransferGasLimit())),
                     String.format("转账%s", tokenAdapter.getCurrencyCoin().getName()));
         } catch (Exception ignored) {
 
@@ -72,7 +69,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
     }
 
     public Result mainTokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter) {
-       return sendRawTransactionWithDefaultParam(to,"",val, BigInteger.valueOf(Long.parseLong(getTransferGasLimit())),"主笔转账："+ tokenAdapter.name());
+        return sendRawTransactionWithDefaultParam(to, "", val, BigInteger.valueOf(Long.parseLong(getTransferGasLimit())), "主笔转账：" + tokenAdapter.name());
     }
 
     /**
@@ -84,7 +81,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
 
         String data = super.buildRecycleData(toAddress, addressIds, tokenContractAddresses);
         try {
-            result = this.sendRawTransactionWithDefaultParam(this.getRecycleTriggerAddress(),data, BigInteger.ZERO,
+            result = this.sendRawTransactionWithDefaultParam(this.getRecycleTriggerAddress(), data, BigInteger.ZERO,
                     BigInteger.valueOf(Long.parseLong(getRecycleGasLimit())).multiply(BigInteger.valueOf(addressIds.size())), "归集: ");
             return (String) result.getData();
         } catch (Exception ignored) {
@@ -128,13 +125,13 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
      * @param operation 操作信息
      * @return 结果
      */
-    public Result sendRawTransactionWithDefaultParam(String to,String data ,BigInteger value, BigInteger gasLimit, String operation) {
+    public Result sendRawTransactionWithDefaultParam(String to, String data, BigInteger value, BigInteger gasLimit, String operation) {
         String password = this.getMainWalletPassword();
         String address = this.getMainWalletAddress();
         String gas = this.getGas();
         BigInteger nonce = BigInteger.valueOf(getNonce(address));
         Long chainId = this.getChainId();
-        return sendRawTransaction(nonce, chainId, to, data,value, gas, gasLimit, password, operation);
+        return sendRawTransaction(nonce, chainId, to, data, value, gas, gasLimit, password, operation);
     }
 
     /**
@@ -145,7 +142,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
      * @param to        代币转帐：代币合约地址       主币转账：to地址         归集：归集合约
      * @param data      代币转帐：数据              主币转账：null           归集：归集数据
      * @param value     代币转账：BigInteger.ZERO  主币转账：转账金额           归集：BigInteger.ZERO
-     * @param gas       单位：wei 1000000000wei = 1Gwei  矿工费 费用越大，区块链优先处理的速度越快 一次交易约消费 21000 Gwei ~= 0.000021eth
+     * @param gas       单位：wei 1000000000wei = 1G wei  矿工费 费用越大，区块链优先处理的速度越快 一次交易约消费 21000 G wei ~= 0.000021eth
      * @param gasLimit  最高的gas限制，如果交易超过了gasLimit则重置，但是已经消费的不会返回
      * @param password  私钥
      * @param operation 操作信息
@@ -159,7 +156,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
         BigInteger privateKey = Bip44Utils.getPathPrivateKey(Collections.singletonList(password), "m/44'/60'/0'/0/0");
 
         RawTransaction rawTransaction = RawTransaction.createTransaction(nonce, gasPrice, gasLimit
-                , to,value, data);
+                , to, value, data);
 
         byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, chainId, Credentials.create(ECKeyPair.create(privateKey)));
         String signedTransactionData = Numeric.toHexString(signedMessage);
@@ -208,7 +205,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
     }
 
     @Override
-    @SuppressWarnings({"unchecked","rawtypes"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public BigDecimal tokenBalance(String address, TokenAdapter tokenAdapter) {
         String balanceOf;
         try {
@@ -216,9 +213,9 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
                     null
                     , tokenAdapter.getContractAddress()
                     , new DefaultFunctionEncoder().encodeFunction(
-                    new Function("balanceOf", List.of(new Address(address)),
-                            List.of(TypeReference.create(Uint.class)))
-            ));
+                            new Function("balanceOf", List.of(new Address(address)),
+                                    List.of(TypeReference.create(Uint.class)))
+                    ));
             balanceOf = getWeb3j().ethCall(transaction, DefaultBlockParameterName.LATEST).send().getValue();
         } catch (IOException e) {
             e.printStackTrace();
@@ -229,6 +226,37 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
         );
         balanceOf = list.get(0).getValue().toString();
         return new BigDecimal(balanceOf);
+    }
+
+    /**
+     * 根据hash获取交易状态
+     *
+     * @param hash 交易hash
+     * @return 交易状态
+     */
+    public TransactionReceipt getTransactionReceipt(String hash) throws IOException {
+        var transactionReceipt =
+                getWeb3j().ethGetTransactionReceipt(hash).send().getTransactionReceipt();
+        return transactionReceipt.orElse(null);
+    }
+
+    public BigDecimal getConsumeFee(String hash) throws IOException {
+        org.web3j.protocol.core.methods.response.Transaction transaction = this.getTransaction(hash);
+        BigInteger gasUsed = getTransactionReceipt(hash).getGasUsed();
+        BigDecimal gasPrice = Convert.fromWei(new BigDecimal(transaction.getGasPrice()), Convert.Unit.GWEI);
+        return new BigDecimal(gasUsed).multiply(gasPrice).multiply(BigDecimal.valueOf(0.000000001f));
+    }
+
+    /**
+     * 根据hash获取交易状态
+     *
+     * @param hash 交易hash
+     * @return 交易状态
+     */
+    public org.web3j.protocol.core.methods.response.Transaction getTransaction(String hash) throws IOException {
+        var transaction =
+                getWeb3j().ethGetTransactionByHash(hash).send().getTransaction();
+        return transaction.orElse(null);
     }
 
     protected abstract JsonRpc2_0Web3j getWeb3j();

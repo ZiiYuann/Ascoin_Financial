@@ -19,6 +19,7 @@ import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.Result;
 import com.tianli.management.service.FinancialBoardWalletService;
+import com.tianli.management.service.WithdrawServiceFeeService;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.query.*;
 import com.tianli.sso.permission.AdminPrivilege;
@@ -57,6 +58,8 @@ public class FinancialWalletController {
     private ChainCallbackLogService chainCallbackLogService;
     @Resource
     private RedissonClient redissonClient;
+    @Resource
+    private WithdrawServiceFeeService withdrawServiceFeeService;
 
     /**
      * 【云钱包数据展板】
@@ -154,6 +157,15 @@ public class FinancialWalletController {
     }
 
     /**
+     * 【云钱包归集】待归集金额
+     */
+    @GetMapping("/imputation/amount")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result imputationAmount(WalletImputationQuery query) {
+        return Result.success(walletImputationService.amount(query));
+    }
+
+    /**
      * 【云钱包归集】手动归集
      */
     @PostMapping("/imputation")
@@ -218,6 +230,23 @@ public class FinancialWalletController {
     public Result imputationCompensateScan(Long imputationId) {
         walletImputationService.imputationCompensateScan(imputationId);
         return Result.success();
+    }
+
+    /**
+     * 提现手续费 init
+     */
+    @PostMapping("/withdraw/init")
+    public Result withdrawServiceFeeInit() {
+        withdrawServiceFeeService.init();
+        return Result.success();
+    }
+
+    /**
+     * 提现手续费展板
+     */
+    @GetMapping("/withdraw/board")
+    public Result withdrawServiceFeeBoard() {
+        return Result.success(withdrawServiceFeeService.board());
     }
 
 }
