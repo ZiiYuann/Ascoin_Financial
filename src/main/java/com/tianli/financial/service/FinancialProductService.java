@@ -36,6 +36,7 @@ import com.tianli.management.query.FinancialProductEditStatusQuery;
 import com.tianli.management.query.FinancialProductLadderRateIoUQuery;
 import com.tianli.management.query.FinancialProductsQuery;
 import com.tianli.management.service.IWalletAgentProductService;
+import com.tianli.management.vo.FundProductBindDropdownVO;
 import com.tianli.management.vo.MFinancialProductVO;
 import com.tianli.mconfig.ConfigService;
 import lombok.extern.slf4j.Slf4j;
@@ -363,4 +364,11 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
         }
     }
 
+    /**
+     * 修改产品推荐状态
+     */
+    @Transactional
+    public void modifyRecommend(Long id, Boolean recommend) {
+        financialProductMapper.modifyRecommend(id, recommend);
+    }
 }

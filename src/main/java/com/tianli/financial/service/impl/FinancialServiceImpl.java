@@ -254,6 +254,7 @@ public class FinancialServiceImpl implements FinancialService {
     public List<RecommendProductVO> recommendProducts() {
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
                 .eq(FinancialProduct::getStatus, ProductStatus.open)
+                .eq(FinancialProduct::isRecommend, true)
                 .orderByDesc(FinancialProduct::getRate); // 年化利率降序
 
         return financialProductService.list(query)
@@ -446,7 +447,7 @@ public class FinancialServiceImpl implements FinancialService {
         return list.convert(product -> {
             BigDecimal totalQuota = product.getTotalQuota();
             BigDecimal personQuota = product.getPersonQuota();
-            BigDecimal useQuota = MoreObjects.firstNonNull(product.getUseQuota(),BigDecimal.ZERO);
+            BigDecimal useQuota = MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO);
             var accountBalance = accountBalanceService.getAndInit(requestInitService.uid(), product.getCoin());
             // 设置额度信息
             FinancialProductVO financialProductVO = financialConverter.toFinancialProductVO(product);
@@ -474,9 +475,9 @@ public class FinancialServiceImpl implements FinancialService {
             }
 
             // 设置是否持有
-            financialProductVO.setHold(MoreObjects.firstNonNull(financialProductVO.getHoldAmount(),BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0);
+            financialProductVO.setHold(MoreObjects.firstNonNull(financialProductVO.getHoldAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0);
             // 设置是否售罄
-            if (Objects.nonNull(totalQuota)){
+            if (Objects.nonNull(totalQuota)) {
                 financialProductVO.setSellOut(useQuota.compareTo(totalQuota) >= 0);
             }
             // 设置假数据（基金不设置）

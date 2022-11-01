@@ -1,5 +1,7 @@
 package com.tianli.management.controller;
 
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.PageQuery;
@@ -136,4 +138,18 @@ public class FinancialProductController {
         List<FundProductBindDropdownVO> dropdownVOS = financialService.fundProductBindDropdownList(type);
         return Result.success(dropdownVOS);
     }
+
+    /**
+     * 修改产品推荐状态
+     */
+    @PutMapping("/product/recommend")
+    public Result productRecommend(@RequestBody String str) {
+        JSONObject jsonObject = JSONUtil.parseObj(str);
+        Long id = jsonObject.get("id", Long.class);
+        Boolean recommend = jsonObject.get("recommend", Boolean.class);
+        financialProductService.modifyRecommend(id, recommend);
+        return Result.success();
+    }
+
+
 }
