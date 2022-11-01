@@ -49,4 +49,9 @@ public interface IFundIncomeRecordService extends IService<FundIncomeRecord> {
     List<FundReviewVO> getIncomeAuditRecord(Long id);
 
     void rollback(Long id);
+
+    /**
+     * 基金昨日收益
+     */
+    BigDecimal yesterdayIncomeAmount(Long id);
 }

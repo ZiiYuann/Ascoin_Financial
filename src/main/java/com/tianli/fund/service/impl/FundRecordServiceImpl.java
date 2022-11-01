@@ -114,6 +114,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     @Resource
     private IFundReviewService fundReviewService;
 
+
     @Override
     @SuppressWarnings("unchecked")
     public FundTransactionRecordVO purchaseOperation(Long uid, PurchaseQuery purchaseQuery) {
@@ -327,9 +328,10 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         FundRecord fundRecord = this.getById(id);
         FundRecordVO fundRecordVO = fundRecordConvert.toFundVO(fundRecord);
         long until = fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS);
-        //七天允许赎回
-        // todo 第二天起计算七天
         fundRecordVO.setIsAllowRedemption(until >= FundCycle.interestAuditCycle);
+
+        // 设置基金昨日收益
+        fundRecordVO.setYesterdayIncomeAmount(fundIncomeRecordService.yesterdayIncomeAmount(id));
         return fundRecordVO;
     }
 

@@ -1,5 +1,6 @@
 package com.tianli.fund.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -44,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -258,6 +260,19 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
         fundRecordService.updateById(fundRecord);
 
         fundIncomeRecord.deleteById(id);
+    }
+
+    @Override
+    public BigDecimal yesterdayIncomeAmount(Long id) {
+        LambdaQueryWrapper<FundIncomeRecord> queryWrapper = new LambdaQueryWrapper<FundIncomeRecord>()
+                .eq(FundIncomeRecord::getFundId, id)
+                .eq(FundIncomeRecord::getCreateTime, LocalDate.now().plusDays(-1));
+        FundIncomeRecord fundIncomeRecord = fundIncomeRecordMapper.selectOne(queryWrapper);
+        if (Objects.nonNull(fundIncomeRecord)) {
+            return fundIncomeRecord.getInterestAmount();
+        }
+
+        return BigDecimal.ZERO;
     }
 
     /**
