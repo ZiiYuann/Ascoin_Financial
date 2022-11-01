@@ -474,7 +474,7 @@ public class FinancialServiceImpl implements FinancialService {
             }
 
             // 设置是否持有
-            financialProductVO.setHold(financialProductVO.getHoldAmount().compareTo(BigDecimal.ZERO) > 0);
+            financialProductVO.setHold(MoreObjects.firstNonNull(financialProductVO.getHoldAmount(),BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0);
             // 设置是否售罄
             if (Objects.nonNull(totalQuota)){
                 financialProductVO.setSellOut(useQuota.compareTo(totalQuota) >= 0);
