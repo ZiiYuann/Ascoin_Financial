@@ -476,8 +476,9 @@ public class FinancialServiceImpl implements FinancialService {
             // 设置是否持有
             financialProductVO.setHold(financialProductVO.getHoldAmount().compareTo(BigDecimal.ZERO) > 0);
             // 设置是否售罄
-            financialProductVO.setSellOut(useQuota.compareTo(totalQuota) >= 0);
-
+            if (Objects.nonNull(totalQuota)){
+                financialProductVO.setSellOut(useQuota.compareTo(totalQuota) >= 0);
+            }
             // 设置假数据（基金不设置）
             BigDecimal baseDataAmount = getBaseDataAmount(product.getId(), totalQuota, useQuota);
             if (Objects.nonNull(baseDataAmount) & !ProductType.fund.equals(product.getType())) {
