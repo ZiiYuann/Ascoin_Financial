@@ -41,7 +41,7 @@ public class FinancialController {
 
 
     /**
-     * 【首页】产品展示
+     * 【量化理财主页面】产品汇总列表
      */
     @GetMapping("/summary/products")
     public Result productSummary(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
@@ -49,13 +49,19 @@ public class FinancialController {
     }
 
     /**
-     * 理财产品列表
+     * 【量化理财主页面】产品列表
      */
-    // todo 上线稳定后可以删除
-    @Deprecated
     @GetMapping("/products")
     public Result products(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
         return Result.instance().setData(financialService.products(pageQuery.page(), productType));
+    }
+
+    /**
+     * 【量化理财主页面】 推荐列表
+     */
+    @GetMapping("/recommend/products")
+    public Result recommendProducts() {
+        return Result.instance().setData(financialService.recommendProducts());
     }
 
     /**

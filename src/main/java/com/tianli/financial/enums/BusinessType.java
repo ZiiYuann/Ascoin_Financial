@@ -7,5 +7,7 @@ public enum BusinessType {
     // 限时
     limited,
     // 新用户福利
-    benefits
+    benefits,
+    // 推荐
+    recommend
 }

@@ -250,6 +250,17 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
+    public List<RecommendProductVO> recommendProducts() {
+        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
+                .eq(FinancialProduct::getStatus, ProductStatus.open)
+                .orderByDesc(FinancialProduct::getRate); // 年化利率降序
+
+        return financialProductService.list(query)
+                .stream().map(financialConverter::toRecommendProductVO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public IPage<FinancialUserInfoVO> financialUserPage(String uid, IPage<Address> page) {
 
         LambdaQueryWrapper<Address> queryWrapper = new LambdaQueryWrapper<>();
@@ -429,10 +440,9 @@ public class FinancialServiceImpl implements FinancialService {
         Boolean isNewUser = financialRecordService.isNewUser(requestInitService.uid());
 
         Map<Long, Long> firstProcessRecordMap = financialRecordService.firstProcessRecordMap(productIds, requestInitService.uid());
-        Map<Long, BigDecimal> usePersonQuotaMap = financialRecordService.getUseQuota(productIds, requestInitService.uid());
+        Map<Long, BigDecimal> useFinancialPersonQuotaMap = financialRecordService.getUseQuota(productIds, requestInitService.uid());
 
         return list.convert(product -> {
-            BigDecimal usePersonQuota = usePersonQuotaMap.getOrDefault(product.getId(), BigDecimal.ZERO);
             BigDecimal totalQuota = product.getTotalQuota();
             BigDecimal personQuota = product.getPersonQuota();
             BigDecimal useQuota = product.getUseQuota();
@@ -448,20 +458,26 @@ public class FinancialServiceImpl implements FinancialService {
                     financialProductVO.setHoldAmount(holdAmount);
                     financialProductVO.setRecordId(fundRecords.get(0).getId());
                 }
+            }
 
-            } else {
+            if (!ProductType.fund.equals(product.getType())) {
+                var usePersonQuota = useFinancialPersonQuotaMap.getOrDefault(product.getId(), BigDecimal.ZERO);
                 financialProductVO.setUserPersonQuota(usePersonQuota);
                 financialProductVO.setHoldAmount(usePersonQuota);
                 // 设置第一个有效可数据的record id
                 financialProductVO.setRecordId(firstProcessRecordMap.get(product.getId()));
+                // 设置是否可以申购
+                boolean allowPurchase =
+                        checkAllowPurchase(usePersonQuota, useQuota, personQuota, totalQuota, product.getBusinessType(), isNewUser);
+                financialProductVO.setAllowPurchase(allowPurchase);
             }
 
-            // 设置是否可以申购
-            boolean allowPurchase =
-                    checkAllowPurchase(usePersonQuota, useQuota, personQuota, totalQuota, product.getBusinessType(), isNewUser);
-            financialProductVO.setAllowPurchase(allowPurchase);
+            // 设置是否持有
+            financialProductVO.setHold(financialProductVO.getHoldAmount().compareTo(BigDecimal.ZERO) > 0);
+            // 设置是否售罄
+            financialProductVO.setSellOut(useQuota.compareTo(totalQuota) >= 0);
 
-            // 设置假数据
+            // 设置假数据（基金不设置）
             BigDecimal baseDataAmount = getBaseDataAmount(product.getId(), totalQuota, useQuota);
             if (Objects.nonNull(baseDataAmount) & !ProductType.fund.equals(product.getType())) {
                 financialProductVO.setUseQuota(useQuota.add(baseDataAmount));
