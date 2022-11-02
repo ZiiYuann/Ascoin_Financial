@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.google.common.base.MoreObjects;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
@@ -329,6 +330,13 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         FundRecordVO fundRecordVO = fundRecordConvert.toFundVO(fundRecord);
         long until = fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS);
         fundRecordVO.setIsAllowRedemption(until >= FundCycle.interestAuditCycle);
+
+        FinancialProduct product = financialProductService.getById(fundRecord.getProductId());
+
+        if (Objects.nonNull(product.getTotalQuota())) {
+            BigDecimal useQuota = MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO);
+            fundRecordVO.setSellOut(useQuota.compareTo(product.getTotalQuota()) >= 0);
+        }
 
         // 设置基金昨日收益
         fundRecordVO.setYesterdayIncomeAmount(fundIncomeRecordService.yesterdayIncomeAmount(id));

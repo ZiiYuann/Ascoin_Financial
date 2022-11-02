@@ -104,4 +104,6 @@ public class FundRecordVO implements Serializable {
      */
     private Boolean isAllowRedemption;
 
+    private boolean sellOut;
+
 }

@@ -43,6 +43,11 @@ public interface FinancialService {
      */
     IPage<HoldProductVo> holdProductPage(IPage<FinancialProduct> page, Long uid, ProductType financialProductType);
 
+    /**
+     * 我的持有
+     */
+    IPage<TransactionRecordVO> transactionRecordPage(IPage<FinancialProduct> page, Long uid, ProductType financialProductType);
+
 
     /**
      * 申购的具体每日收益

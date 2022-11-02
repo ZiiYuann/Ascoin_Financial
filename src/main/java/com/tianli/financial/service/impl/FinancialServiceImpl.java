@@ -180,6 +180,11 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
+    public IPage<TransactionRecordVO> transactionRecordPage(IPage<FinancialProduct> page, Long uid, ProductType type) {
+        return productMapper.transactionRecordPage(page, uid, Objects.isNull(type) ? null : type.name());
+    }
+
+    @Override
     public IPage<FinancialIncomeDailyVO> dailyIncomePage(IPage<FinancialIncomeDaily> page, Long uid, Long recordId) {
         FinancialRecord financialRecord = financialRecordService.selectById(recordId, uid);
         var dailyIncomeLogs = financialIncomeDailyService.pageByRecordId(page, uid, List.of(recordId), null);

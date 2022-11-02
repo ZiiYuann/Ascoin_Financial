@@ -6,7 +6,6 @@ import com.tianli.exception.Result;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
-import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.RecordRenewalQuery;
 import com.tianli.financial.service.FinancialProductLadderRateService;
@@ -115,6 +114,15 @@ public class FinancialController {
     public Result myHold(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
         Long uid = requestInitService.uid();
         return Result.instance().setData(financialService.holdProductPage(pageQuery.page(), uid, productType));
+    }
+
+    /**
+     * 【我的持用】
+     */
+    @GetMapping("/transaction/records")
+    public Result transactionRecords(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(financialService.transactionRecordPage(pageQuery.page(), uid, productType));
     }
 
     /**
