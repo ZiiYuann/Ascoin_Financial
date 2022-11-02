@@ -8,6 +8,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.openapi.RewardVO;
 import com.tianli.openapi.entity.OrderRewardRecord;
 import com.tianli.openapi.query.RewardQuery;
 import com.tianli.tool.time.TimeTool;
@@ -34,7 +35,7 @@ public class OpenApiService {
     private OrderRewardRecordService orderRewardRecordService;
 
     @Transactional
-    public void reward(RewardQuery query) {
+    public RewardVO reward(RewardQuery query) {
         if (!ChargeType.transaction_reward.equals(query.getType())) {
             ErrorCodeEnum.throwException("当前接口交易类型不匹配");
         }
@@ -79,6 +80,7 @@ public class OpenApiService {
 
         accountBalanceService.increase(query.getUid(), query.getType(), query.getCoin()
                 , query.getAmount(), order.getOrderNo(), query.getType().getNameZn());
+        return new RewardVO(order.getId());
     }
 
 }

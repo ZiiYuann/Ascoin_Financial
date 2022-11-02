@@ -34,9 +34,8 @@ public class OpenApiController {
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
-
-        openApiService.reward(query);
-        return Result.success();
+        
+        return Result.success(openApiService.reward(query));
     }
 
 
