@@ -24,5 +24,5 @@ public interface ProductMapper {
      */
     IPage<HoldProductVo> holdProductPage(@Param("page") IPage<FinancialProduct> page,
                                          @Param("uid") Long uid,
-                                         @Param("type") ProductType type);
+                                         @Param("type") String type);
 }

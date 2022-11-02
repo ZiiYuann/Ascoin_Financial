@@ -10,7 +10,7 @@
         pro.type as productType
         FROM (
 
-        <if test="type != 'fix' and type != 'current' ">
+        <if test="type != 'fixed' and type != 'current' ">
             SELECT id as record_id,
             product_id,
             hold_amount,
@@ -32,6 +32,9 @@
             FROM financial_record
             WHERE `status` = 'PROCESS'
             AND uid = #{uid}
+            <if test="type == 'fixed' or type == 'current' ">
+                AND product_type  = #{type}
+            </if>
         </if>
         ) temp
         LEFT JOIN financial_product pro ON temp.product_id = pro.id

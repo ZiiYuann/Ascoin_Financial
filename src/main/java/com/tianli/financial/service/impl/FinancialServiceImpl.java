@@ -159,7 +159,7 @@ public class FinancialServiceImpl implements FinancialService {
     @Override
     public IPage<HoldProductVo> holdProductPage(IPage<FinancialProduct> page, Long uid, ProductType type) {
 
-        IPage<HoldProductVo> holdProductVoPage = productMapper.holdProductPage(page, uid, type);
+        IPage<HoldProductVo> holdProductVoPage = productMapper.holdProductPage(page, uid, type.name());
 
         EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
         holdProductVoPage.convert(holdProductVo -> {
