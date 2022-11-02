@@ -39,6 +39,7 @@ import com.tianli.management.dto.AmountDto;
 import com.tianli.management.service.IWalletAgentService;
 import com.tianli.management.vo.FundIncomeAmountVO;
 import com.tianli.management.vo.WalletAgentVO;
+import com.tianli.tool.time.TimeTool;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,6 +95,16 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
         query.setStatus(List.of(status));
         query.setStartTime(startTime);
         query.setEndTime(endTime);
+        return amountDollar(query);
+    }
+
+    @Override
+    public BigDecimal amountDollarYesterday(Long fundId) {
+        LocalDateTime time = LocalDateTime.now().plusDays(-1);
+        FundIncomeQuery query = new FundIncomeQuery();
+        query.setFundId(fundId);
+        query.setStartTime(TimeTool.minDay(time));
+        query.setEndTime( TimeTool.maxDay(time));
         return amountDollar(query);
     }
 

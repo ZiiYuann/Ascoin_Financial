@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tianli.financial.mapper.ProductMapper">
+    <select id="holdProductPage" resultType="com.tianli.financial.vo.HoldProductVo">
+        SELECT temp.*,
+        pro.`name`,
+        pro.name_en,
+        pro.coin,
+        pro.logo,
+        pro.type as productType
+        FROM (
+
+        <if test="type != 'fix' and type != 'current' ">
+            SELECT id as record_id,
+            product_id,
+            hold_amount,
+            create_time AS time
+            FROM fund_record
+            WHERE `status` = 'PROCESS'
+            AND uid = #{uid}
+        </if>
+
+        <if test="type == null ">
+            UNION
+        </if>
+
+        <if test="type != 'fund' ">
+            SELECT id as record_id,
+            product_id,
+            hold_amount,
+            purchase_time AS time
+            FROM financial_record
+            WHERE `status` = 'PROCESS'
+            AND uid = #{uid}
+        </if>
+        ) temp
+        LEFT JOIN financial_product pro ON temp.product_id = pro.id
+        ORDER BY time DESC
+    </select>
+</mapper>

@@ -109,10 +109,10 @@ public class FinancialController {
     }
 
     /**
-     * 【我的赚币】我的持用
+     * 【我的持用】
      */
     @GetMapping("/hold")
-    public Result myHold(PageQuery<FinancialRecord> pageQuery, ProductType productType) {
+    public Result myHold(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
         Long uid = requestInitService.uid();
         return Result.instance().setData(financialService.holdProductPage(pageQuery.page(), uid, productType));
     }

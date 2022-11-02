@@ -41,7 +41,7 @@ public interface FinancialService {
     /**
      * 我的持有列表信息
      */
-    IPage<HoldProductVo> holdProductPage(IPage<FinancialRecord> page, Long uid, ProductType financialProductType);
+    IPage<HoldProductVo> holdProductPage(IPage<FinancialProduct> page, Long uid, ProductType financialProductType);
 
 
     /**

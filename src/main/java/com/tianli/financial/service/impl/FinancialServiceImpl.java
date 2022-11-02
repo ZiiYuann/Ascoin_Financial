@@ -12,6 +12,7 @@ import com.tianli.address.mapper.Address;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.dto.ProductRateDTO;
@@ -23,6 +24,7 @@ import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
+import com.tianli.financial.mapper.ProductMapper;
 import com.tianli.financial.service.*;
 import com.tianli.financial.vo.*;
 import com.tianli.fund.contant.FundIncomeStatus;
@@ -85,7 +87,7 @@ public class FinancialServiceImpl implements FinancialService {
             totalAccrueIncomeFeeDollar = totalAccrueIncomeFeeDollar.add(incomeAmountDollar);
 
             // 单个类型产品昨日收益
-            BigDecimal yesterdayIncomeAmountDollar = financialIncomeDailyService.getYesterdayDailyDollarAmount(uid, type);
+            BigDecimal yesterdayIncomeAmountDollar = financialIncomeDailyService.amountDollarYesterday(uid, type);
             incomeVO.setYesterdayIncomeFee(yesterdayIncomeAmountDollar);
             totalYesterdayIncomeFeeDollar = totalYesterdayIncomeFeeDollar.add(yesterdayIncomeAmountDollar);
 
@@ -155,42 +157,26 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IPage<HoldProductVo> holdProductPage(IPage<FinancialRecord> page, Long uid, ProductType type) {
+    public IPage<HoldProductVo> holdProductPage(IPage<FinancialProduct> page, Long uid, ProductType type) {
 
-        var financialRecords = financialRecordService.selectListPage(page, uid, type, RecordStatus.PROCESS);
-        if (CollectionUtils.isEmpty(financialRecords.getRecords())) {
-            return financialRecords.convert(financialRecord -> new HoldProductVo());
-        }
+        IPage<HoldProductVo> holdProductVoPage = productMapper.holdProductPage(page, uid, type);
 
-        var recordIds = financialRecords.getRecords().stream().map(FinancialRecord::getId).collect(Collectors.toList());
-
-        var accrueIncomeMap = financialIncomeAccrueService.selectListByRecordId(recordIds).stream()
-                .collect(Collectors.toMap(FinancialIncomeAccrue::getRecordId, o -> o));
-        var dailyIncomeMap = financialIncomeDailyService.selectListByRecordIds(uid, recordIds, requestInitService.yesterday()).stream()
-                .collect(Collectors.toMap(FinancialIncomeDaily::getRecordId, o -> o));
-
-        return financialRecords.convert(financialRecord -> {
-            var holdProductVo = new HoldProductVo();
-            var accrueIncomeLog = Optional.ofNullable(accrueIncomeMap.get(financialRecord.getId())).orElse(new FinancialIncomeAccrue());
-            var dailyIncomeLog = Optional.ofNullable(dailyIncomeMap.get(financialRecord.getId())).orElse(new FinancialIncomeDaily());
-
-            holdProductVo.setRecordId(financialRecord.getId());
-            holdProductVo.setName(financialRecord.getProductName());
-            holdProductVo.setNameEn(financialRecord.getProductNameEn());
-            holdProductVo.setRate(financialRecord.getRate());
-            holdProductVo.setProductType(financialRecord.getProductType());
-            holdProductVo.setRiskType(financialRecord.getRiskType());
-            holdProductVo.setLogo(financialRecord.getLogo());
-            holdProductVo.setCoin(financialRecord.getCoin());
+        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
+        holdProductVoPage.convert(holdProductVo -> {
 
             IncomeVO incomeVO = new IncomeVO();
-            incomeVO.setHoldFee(financialRecord.getHoldAmount());
-            incomeVO.setAccrueIncomeFee(Optional.ofNullable(accrueIncomeLog.getIncomeAmount()).orElse(BigDecimal.ZERO));
-            incomeVO.setYesterdayIncomeFee(Optional.ofNullable(dailyIncomeLog.getIncomeAmount()).orElse(BigDecimal.ZERO));
+            incomeVO.setHoldFee(dollarRateMap.get(holdProductVo.getCoin()).multiply(holdProductVo.getHoldAmount()));
+            if (ProductType.fund.equals(holdProductVo.getProductType())) {
+                incomeVO.setYesterdayIncomeFee(fundIncomeRecordService.amountDollarYesterday(holdProductVo.getRecordId()));
+            }
+            if (!ProductType.fund.equals(holdProductVo.getProductType())) {
+                incomeVO.setYesterdayIncomeFee(financialIncomeDailyService.amountDollarYesterday(holdProductVo.getRecordId()));
+            }
 
             holdProductVo.setIncomeVO(incomeVO);
             return holdProductVo;
         });
+        return holdProductVoPage;
     }
 
     @Override
@@ -610,5 +596,9 @@ public class FinancialServiceImpl implements FinancialService {
     private IFundRecordService fundRecordService;
     @Resource
     private IFundIncomeRecordService fundIncomeRecordService;
+    @Resource
+    private ProductMapper productMapper;
+    @Resource
+    private CurrencyService currencyService;
 
 }
