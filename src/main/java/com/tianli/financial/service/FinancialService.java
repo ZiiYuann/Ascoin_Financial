@@ -39,7 +39,7 @@ public interface FinancialService {
     RecordIncomeVO recordIncome(Long uid, Long recordId);
 
     /**
-     * 我的持有列表信息
+     * 我的持有
      */
     IPage<HoldProductVo> holdProductPage(IPage<FinancialProduct> page, Long uid, ProductType financialProductType);
 
