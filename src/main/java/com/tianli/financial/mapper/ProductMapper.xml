@@ -48,14 +48,14 @@
         product_id
         from `order` o
         left join order_advance oa on o.related_id = oa.id
-        where o.type in ('purchase', 'redeem','settle','transfer')
+        where o.type in ('purchase', 'redeem','transfer')
         AND o.uid = #{uid}
         and o.order_no like 'APU%'
         UNION
         select o.order_no as details_id, o.amount,o.coin, o.create_time, o.type, o.`status`, fe.product_id as product_id
         from `order` o
         left join financial_record fe on o.related_id = fe.id
-        where o.type in ('purchase', 'redeem','settle','transfer')
+        where o.type in ('purchase', 'redeem','transfer')
         AND o.uid = #{uid}
         and o.order_no not like 'APU%'
 
