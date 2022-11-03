@@ -27,7 +27,10 @@ public interface FinancialProductMapper extends BaseMapper<FinancialProduct> {
 
     @Update("UPDATE financial_product SET use_quota = use_quota - #{reduceAmount} WHERE id =#{productId}")
     int reduceUseQuota(@Param("productId") Long productId,
-                         @Param("reduceAmount") BigDecimal reduceAmount);
+                       @Param("reduceAmount") BigDecimal reduceAmount);
 
     IPage<ProductRateDTO> listProductRateDTO(Page<FinancialProduct> page, @Param("productType") ProductType productType);
+
+    @Update("UPDATE financial_product SET recommend = #{recommend} WHERE id = #{id}")
+    int modifyRecommend(@Param("id") Long id, @Param("recommend") Boolean recommend);
 }

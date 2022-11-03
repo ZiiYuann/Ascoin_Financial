@@ -26,8 +26,6 @@ import java.util.List;
 @Mapper
 public interface FundRecordMapper extends BaseMapper<FundRecord> {
 
-    List<AmountDto> holdAmountSumByUid(@Param("uid") Long uid, @Param("agentId") Long agentId);
-
     @Update("update fund_record set hold_amount = hold_amount - #{amount} where id = #{id}")
     int reduceAmount(Long id, BigDecimal amount);
 

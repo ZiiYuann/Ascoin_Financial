@@ -1,5 +1,6 @@
 package com.tianli.fund.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -20,7 +21,6 @@ import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.convert.FundRecordConvert;
 import com.tianli.fund.dao.FundIncomeRecordMapper;
@@ -39,12 +39,14 @@ import com.tianli.management.dto.AmountDto;
 import com.tianli.management.service.IWalletAgentService;
 import com.tianli.management.vo.FundIncomeAmountVO;
 import com.tianli.management.vo.WalletAgentVO;
+import com.tianli.tool.time.TimeTool;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -82,18 +84,49 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     private WebHookService webHookService;
 
     @Override
-    public List<AmountDto> getAmountByUidAndStatus(Long uid, Long agentId, Integer status) {
-        return getAmountByUidAndStatus(uid, agentId, List.of(status));
+    public BigDecimal amountDollar(Long uid, Long agentId, Integer status) {
+        return amountDollar(uid, agentId, List.of(status));
     }
 
     @Override
-    public List<AmountDto> getAmountByUidAndStatus(Long uid, Long agentId, List<Integer> status) {
+    public BigDecimal amountDollar(Long uid, Integer status, LocalDateTime startTime, LocalDateTime endTime) {
+        FundIncomeQuery query = new FundIncomeQuery();
+        query.setUid(uid);
+        query.setStatus(List.of(status));
+        query.setStartTime(startTime);
+        query.setEndTime(endTime);
+        return amountDollar(query);
+    }
+
+    @Override
+    public BigDecimal amountDollarYesterday(Long fundId) {
+        LocalDateTime time = LocalDateTime.now().plusDays(-1);
+        FundIncomeQuery query = new FundIncomeQuery();
+        query.setFundId(fundId);
+        query.setStartTime(TimeTool.minDay(time));
+        query.setEndTime( TimeTool.maxDay(time));
+        return amountDollar(query);
+    }
+
+    @Override
+    public BigDecimal amountDollar(Long uid, Long agentId, List<Integer> status) {
         FundIncomeQuery query = new FundIncomeQuery();
         query.setUid(uid);
         query.setAgentId(agentId);
         query.setStatus(status);
+        return amountDollar(query);
+    }
+
+    @Override
+    public BigDecimal amountDollar(FundIncomeQuery query) {
         List<FundIncomeAmountDTO> fundIncomeAmountDTOS = getAmount(query);
-        return fundIncomeAmountDTOS.stream().map(fundIncomeAmountDTO -> new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
+        List<AmountDto> collect =
+                fundIncomeAmountDTOS.stream()
+                        .map(fundIncomeAmountDTO ->
+                                new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin()))
+                        .collect(Collectors.toList());
+
+        return orderService.calDollarAmount(collect);
     }
 
     @Override
@@ -238,6 +271,19 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
         fundRecordService.updateById(fundRecord);
 
         fundIncomeRecord.deleteById(id);
+    }
+
+    @Override
+    public BigDecimal yesterdayIncomeAmount(Long id) {
+        LambdaQueryWrapper<FundIncomeRecord> queryWrapper = new LambdaQueryWrapper<FundIncomeRecord>()
+                .eq(FundIncomeRecord::getFundId, id)
+                .eq(FundIncomeRecord::getCreateTime, LocalDate.now().plusDays(-1));
+        FundIncomeRecord fundIncomeRecord = fundIncomeRecordMapper.selectOne(queryWrapper);
+        if (Objects.nonNull(fundIncomeRecord)) {
+            return fundIncomeRecord.getInterestAmount();
+        }
+
+        return BigDecimal.ZERO;
     }
 
     /**

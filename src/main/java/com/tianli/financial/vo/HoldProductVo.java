@@ -37,10 +37,7 @@ public class HoldProductVo {
      */
     private String nameEn;
 
-    /**
-     * 参考年化
-     */
-    private BigDecimal rate;
+    private BigDecimal holdAmount;
 
     /**
      * 收益信息
@@ -48,8 +45,6 @@ public class HoldProductVo {
     private IncomeVO incomeVO;
 
     private String logo;
-
-    private RiskType riskType;
 
     private CurrencyCoin coin;
 }

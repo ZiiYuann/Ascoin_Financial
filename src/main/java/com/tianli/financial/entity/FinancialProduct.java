@@ -122,5 +122,6 @@ public class FinancialProduct {
      */
     private BigDecimal minRate;
 
+    private boolean recommend;
 
 }

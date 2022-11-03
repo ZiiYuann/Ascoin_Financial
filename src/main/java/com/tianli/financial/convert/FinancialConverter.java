@@ -3,10 +3,7 @@ package com.tianli.financial.convert;
 import com.tianli.financial.entity.FinancialProductLadderRate;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.entity.FinancialProduct;
-import com.tianli.financial.vo.CurrentProductPurchaseVO;
-import com.tianli.financial.vo.FinancialProductVO;
-import com.tianli.financial.vo.FinancialPurchaseResultVO;
-import com.tianli.financial.vo.RecordIncomeVO;
+import com.tianli.financial.vo.*;
 import com.tianli.management.query.FinancialProductEditQuery;
 import com.tianli.management.query.FinancialProductLadderRateIoUQuery;
 import com.tianli.management.vo.ProductLadderRateVO;
@@ -24,7 +21,7 @@ public interface FinancialConverter {
 
     FinancialProductVO toFinancialProductVO(FinancialProduct financialProduct);
 
-    CurrentProductPurchaseVO toFinancialProductDetailsVO(FinancialProduct financialProduct);
+    RecommendProductVO toRecommendProductVO(FinancialProduct financialProduct);
 
     CurrentProductPurchaseVO toFinancialProductDetailsVO(FinancialProductVO financialProductVO);
 

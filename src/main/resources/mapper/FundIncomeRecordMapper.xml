@@ -46,7 +46,6 @@
     <select id="selectSummaryIncomePage" resultType="com.tianli.fund.vo.FundIncomeRecordVO">
         select
         a.product_name productName,
-
         a.coin,
         b.logo,
         sum(a.interest_amount) as interestAmount

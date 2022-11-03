@@ -97,11 +97,13 @@ public class FundRecordVO implements Serializable {
     /**
      * 昨日收益
      */
-    private BigDecimal lastIncome;
+    private BigDecimal yesterdayIncomeAmount;
 
     /**
      * 是否允许赎回
      */
     private Boolean isAllowRedemption;
+
+    private boolean sellOut;
 
 }

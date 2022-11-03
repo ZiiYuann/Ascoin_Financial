@@ -79,4 +79,6 @@ public class RecordIncomeVO {
 
     private BigDecimal minRate;
 
+    private boolean sellOut;
+
 }

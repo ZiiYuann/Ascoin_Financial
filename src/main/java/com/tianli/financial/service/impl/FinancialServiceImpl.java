@@ -5,12 +5,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.common.base.MoreObjects;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
+import com.tianli.common.RedisConstants;
+import com.tianli.common.RedisService;
 import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.dto.ProductRateDTO;
@@ -22,9 +26,12 @@ import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
+import com.tianli.financial.mapper.ProductMapper;
 import com.tianli.financial.service.*;
 import com.tianli.financial.vo.*;
+import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.entity.FundRecord;
+import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.entity.FinancialBoardWallet;
@@ -52,6 +59,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -67,6 +75,8 @@ public class FinancialServiceImpl implements FinancialService {
         BigDecimal totalAccrueIncomeFeeDollar = BigDecimal.ZERO;
         BigDecimal totalYesterdayIncomeFeeDollar = BigDecimal.ZERO;
         EnumMap<ProductType, DollarIncomeVO> incomeMap = new EnumMap<>(ProductType.class);
+
+        // 理财数据
         for (ProductType type : types) {
             DollarIncomeVO incomeVO = new DollarIncomeVO();
             // 单类型产品持有币数量
@@ -80,12 +90,30 @@ public class FinancialServiceImpl implements FinancialService {
             totalAccrueIncomeFeeDollar = totalAccrueIncomeFeeDollar.add(incomeAmountDollar);
 
             // 单个类型产品昨日收益
-            BigDecimal yesterdayIncomeAmountDollar = financialIncomeDailyService.getYesterdayDailyDollarAmount(uid, type);
+            BigDecimal yesterdayIncomeAmountDollar = financialIncomeDailyService.amountDollarYesterday(uid, type);
             incomeVO.setYesterdayIncomeFee(yesterdayIncomeAmountDollar);
             totalYesterdayIncomeFeeDollar = totalYesterdayIncomeFeeDollar.add(yesterdayIncomeAmountDollar);
 
             incomeMap.put(type, incomeVO);
         }
+
+        // 基金数据
+        BigDecimal fundHoldDollarAmount = fundRecordService.holdAmountDollar(uid, null);
+        BigDecimal fundTotalIncome =
+                fundIncomeRecordService.amountDollar(uid, FundIncomeStatus.audit_success, null, null);
+        LocalDateTime time = LocalDateTime.now().plusDays(-1);
+        BigDecimal fundYesterdayIncome =
+                fundIncomeRecordService.amountDollar(uid, FundIncomeStatus.audit_success, TimeTool.minDay(time), TimeTool.maxDay(time));
+
+        DollarIncomeVO fundIncomeVo = new DollarIncomeVO();
+        fundIncomeVo.setAccrueIncomeFee(fundTotalIncome);
+        fundIncomeVo.setHoldFee(fundHoldDollarAmount);
+        fundIncomeVo.setYesterdayIncomeFee(fundYesterdayIncome);
+        incomeMap.put(ProductType.fund, fundIncomeVo);
+
+        totalHoldFeeDollar = totalHoldFeeDollar.add(fundHoldDollarAmount);
+        totalAccrueIncomeFeeDollar = totalAccrueIncomeFeeDollar.add(fundTotalIncome);
+        totalYesterdayIncomeFeeDollar = totalYesterdayIncomeFeeDollar.add(fundYesterdayIncome);
 
 
         DollarIncomeVO incomeVO = new DollarIncomeVO();
@@ -123,47 +151,40 @@ public class FinancialServiceImpl implements FinancialService {
         incomeByRecordIdVO.setMinRate(product.getMinRate());
         incomeByRecordIdVO.setRateType(product.getRateType());
         incomeByRecordIdVO.setRate(product.getRate());
+        if (Objects.nonNull(product.getTotalQuota())) {
+            incomeByRecordIdVO.setSellOut(MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO)
+                    .compareTo(product.getTotalQuota()) >= 0);
+        }
 
         return incomeByRecordIdVO;
     }
 
     @Override
-    public IPage<HoldProductVo> holdProductPage(IPage<FinancialRecord> page, Long uid, ProductType type) {
+    public IPage<HoldProductVo> holdProductPage(IPage<FinancialProduct> page, Long uid, ProductType type) {
 
-        var financialRecords = financialRecordService.selectListPage(page, uid, type, RecordStatus.PROCESS);
-        if (CollectionUtils.isEmpty(financialRecords.getRecords())) {
-            return financialRecords.convert(financialRecord -> new HoldProductVo());
-        }
+        IPage<HoldProductVo> holdProductVoPage = productMapper.holdProductPage(page, uid, Objects.isNull(type) ? null : type.name());
 
-        var recordIds = financialRecords.getRecords().stream().map(FinancialRecord::getId).collect(Collectors.toList());
-
-        var accrueIncomeMap = financialIncomeAccrueService.selectListByRecordId(recordIds).stream()
-                .collect(Collectors.toMap(FinancialIncomeAccrue::getRecordId, o -> o));
-        var dailyIncomeMap = financialIncomeDailyService.selectListByRecordIds(uid, recordIds, requestInitService.yesterday()).stream()
-                .collect(Collectors.toMap(FinancialIncomeDaily::getRecordId, o -> o));
-
-        return financialRecords.convert(financialRecord -> {
-            var holdProductVo = new HoldProductVo();
-            var accrueIncomeLog = Optional.ofNullable(accrueIncomeMap.get(financialRecord.getId())).orElse(new FinancialIncomeAccrue());
-            var dailyIncomeLog = Optional.ofNullable(dailyIncomeMap.get(financialRecord.getId())).orElse(new FinancialIncomeDaily());
-
-            holdProductVo.setRecordId(financialRecord.getId());
-            holdProductVo.setName(financialRecord.getProductName());
-            holdProductVo.setNameEn(financialRecord.getProductNameEn());
-            holdProductVo.setRate(financialRecord.getRate());
-            holdProductVo.setProductType(financialRecord.getProductType());
-            holdProductVo.setRiskType(financialRecord.getRiskType());
-            holdProductVo.setLogo(financialRecord.getLogo());
-            holdProductVo.setCoin(financialRecord.getCoin());
+        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
+        holdProductVoPage.convert(holdProductVo -> {
 
             IncomeVO incomeVO = new IncomeVO();
-            incomeVO.setHoldFee(financialRecord.getHoldAmount());
-            incomeVO.setAccrueIncomeFee(Optional.ofNullable(accrueIncomeLog.getIncomeAmount()).orElse(BigDecimal.ZERO));
-            incomeVO.setYesterdayIncomeFee(Optional.ofNullable(dailyIncomeLog.getIncomeAmount()).orElse(BigDecimal.ZERO));
+            incomeVO.setHoldFee(dollarRateMap.get(holdProductVo.getCoin()).multiply(holdProductVo.getHoldAmount()));
+            if (ProductType.fund.equals(holdProductVo.getProductType())) {
+                incomeVO.setYesterdayIncomeFee(fundIncomeRecordService.amountDollarYesterday(holdProductVo.getRecordId()));
+            }
+            if (!ProductType.fund.equals(holdProductVo.getProductType())) {
+                incomeVO.setYesterdayIncomeFee(financialIncomeDailyService.amountDollarYesterday(holdProductVo.getRecordId()));
+            }
 
             holdProductVo.setIncomeVO(incomeVO);
             return holdProductVo;
         });
+        return holdProductVoPage;
+    }
+
+    @Override
+    public IPage<TransactionRecordVO> transactionRecordPage(IPage<FinancialProduct> page, Long uid, ProductType type) {
+        return productMapper.transactionRecordPage(page, uid, Objects.isNull(type) ? null : type.name());
     }
 
     @Override
@@ -225,6 +246,28 @@ public class FinancialServiceImpl implements FinancialService {
 
         return getFinancialProductVOIPage(page, type, query);
 
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<RecommendProductVO> recommendProducts() {
+
+        Object o = redisService.get(RedisConstants.AGENT_SESSION_KEY);
+        if (Objects.nonNull(o)) {
+            return (List<RecommendProductVO>) o;
+        }
+
+        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
+                .eq(FinancialProduct::getStatus, ProductStatus.open)
+                .eq(FinancialProduct::isRecommend, true)
+                .orderByDesc(FinancialProduct::getRate); // 年化利率降序
+
+        List<RecommendProductVO> result = financialProductService.list(query)
+                .stream().map(financialConverter::toRecommendProductVO)
+                .collect(Collectors.toList());
+
+        redisService.set(RedisConstants.AGENT_SESSION_KEY, result, 1L, TimeUnit.DAYS);
+        return result;
     }
 
     @Override
@@ -406,18 +449,21 @@ public class FinancialServiceImpl implements FinancialService {
 
         Boolean isNewUser = financialRecordService.isNewUser(requestInitService.uid());
 
-        Map<Long, Long> firstProcessRecordMap = financialRecordService.firstProcessRecordMap(productIds, requestInitService.uid());
-        Map<Long, BigDecimal> usePersonQuotaMap = financialRecordService.getUseQuota(productIds, requestInitService.uid());
+        // 如果是新用户直接返回空map，减少无效查询
+        Map<Long, Long> firstProcessRecordMap = isNewUser ? Collections.emptyMap() :
+                financialRecordService.firstProcessRecordMap(productIds, requestInitService.uid());
+        Map<Long, BigDecimal> useFinancialPersonQuotaMap = isNewUser ? Collections.emptyMap() :
+                financialRecordService.getUseQuota(productIds, requestInitService.uid());
 
         return list.convert(product -> {
-            BigDecimal usePersonQuota = usePersonQuotaMap.getOrDefault(product.getId(), BigDecimal.ZERO);
             BigDecimal totalQuota = product.getTotalQuota();
             BigDecimal personQuota = product.getPersonQuota();
-            BigDecimal useQuota = product.getUseQuota();
+            BigDecimal useQuota = MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO);
             var accountBalance = accountBalanceService.getAndInit(requestInitService.uid(), product.getCoin());
-            // 设置额度信息
             FinancialProductVO financialProductVO = financialConverter.toFinancialProductVO(product);
 
+            // 设置额度信息
+            financialProductVO.setAvailableBalance(accountBalance.getRemain());
             if (ProductType.fund.equals(product.getType())) {
                 List<FundRecord> fundRecords = fundRecordService.listByUidAndProductId(requestInitService.uid(), product.getId());
                 if (CollectionUtils.isNotEmpty(fundRecords)) {
@@ -426,20 +472,29 @@ public class FinancialServiceImpl implements FinancialService {
                     financialProductVO.setHoldAmount(holdAmount);
                     financialProductVO.setRecordId(fundRecords.get(0).getId());
                 }
+            }
 
-            } else {
+            if (!ProductType.fund.equals(product.getType())) {
+                var usePersonQuota = useFinancialPersonQuotaMap.getOrDefault(product.getId(), BigDecimal.ZERO);
                 financialProductVO.setUserPersonQuota(usePersonQuota);
                 financialProductVO.setHoldAmount(usePersonQuota);
                 // 设置第一个有效可数据的record id
                 financialProductVO.setRecordId(firstProcessRecordMap.get(product.getId()));
+                // 设置是否可以申购
+                boolean allowPurchase =
+                        checkAllowPurchase(usePersonQuota, useQuota, personQuota, totalQuota, product.getBusinessType(), isNewUser);
+                financialProductVO.setAllowPurchase(allowPurchase);
             }
 
-            // 设置是否可以申购
-            boolean allowPurchase =
-                    checkAllowPurchase(usePersonQuota, useQuota, personQuota, totalQuota, product.getBusinessType(), isNewUser);
-            financialProductVO.setAllowPurchase(allowPurchase);
+            // 设置是否持有
+            financialProductVO.setHold(MoreObjects.firstNonNull(financialProductVO.getHoldAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0);
 
-            // 设置假数据
+            // =================================== 下方的数据不依赖于用户信息================================================
+            // 设置是否售罄
+            if (Objects.nonNull(totalQuota)) {
+                financialProductVO.setSellOut(useQuota.compareTo(totalQuota) >= 0);
+            }
+            // 设置假数据（基金不设置）
             BigDecimal baseDataAmount = getBaseDataAmount(product.getId(), totalQuota, useQuota);
             if (Objects.nonNull(baseDataAmount) & !ProductType.fund.equals(product.getType())) {
                 financialProductVO.setUseQuota(useQuota.add(baseDataAmount));
@@ -453,8 +508,6 @@ public class FinancialServiceImpl implements FinancialService {
             financialProductVO.setPurchaseTime(now);
             // 收益发放时间
             financialProductVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
-
-            financialProductVO.setAvailableBalance(accountBalance.getRemain());
 
             return financialProductVO;
         });
@@ -563,5 +616,13 @@ public class FinancialServiceImpl implements FinancialService {
     private IWalletAgentProductService walletAgentProductService;
     @Resource
     private IFundRecordService fundRecordService;
+    @Resource
+    private IFundIncomeRecordService fundIncomeRecordService;
+    @Resource
+    private ProductMapper productMapper;
+    @Resource
+    private CurrencyService currencyService;
+    @Resource
+    private RedisService redisService;
 
 }
