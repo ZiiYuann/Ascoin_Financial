@@ -4,7 +4,6 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.charge.entity.Order;
@@ -12,6 +11,7 @@ import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
+import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.currency.log.CurrencyLogDes;
@@ -26,7 +26,6 @@ import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.mapper.FinancialProductMapper;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.vo.FinancialPurchaseResultVO;
-import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.query.FundRecordQuery;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.management.converter.ManagementConverter;
@@ -36,12 +35,12 @@ import com.tianli.management.query.FinancialProductEditStatusQuery;
 import com.tianli.management.query.FinancialProductLadderRateIoUQuery;
 import com.tianli.management.query.FinancialProductsQuery;
 import com.tianli.management.service.IWalletAgentProductService;
-import com.tianli.management.vo.FundProductBindDropdownVO;
 import com.tianli.management.vo.MFinancialProductVO;
 import com.tianli.mconfig.ConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,6 +79,8 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
     private IFundRecordService fundRecordService;
     @Resource
     private IWalletAgentProductService walletAgentProductService;
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
 
     /**
      * 删除产品
@@ -370,5 +371,6 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
     @Transactional
     public void modifyRecommend(Long id, Boolean recommend) {
         financialProductMapper.modifyRecommend(id, recommend);
+        redisTemplate.delete(RedisConstants.RECOMMEND_PRODUCT);
     }
 }

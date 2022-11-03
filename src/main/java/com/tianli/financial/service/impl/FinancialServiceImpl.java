@@ -11,6 +11,8 @@ import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
+import com.tianli.common.RedisConstants;
+import com.tianli.common.RedisService;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.financial.convert.FinancialConverter;
@@ -57,6 +59,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -246,15 +249,25 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<RecommendProductVO> recommendProducts() {
+
+        Object o = redisService.get(RedisConstants.AGENT_SESSION_KEY);
+        if (Objects.nonNull(o)) {
+            return (List<RecommendProductVO>) o;
+        }
+
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
                 .eq(FinancialProduct::getStatus, ProductStatus.open)
                 .eq(FinancialProduct::isRecommend, true)
                 .orderByDesc(FinancialProduct::getRate); // 年化利率降序
 
-        return financialProductService.list(query)
+        List<RecommendProductVO> result = financialProductService.list(query)
                 .stream().map(financialConverter::toRecommendProductVO)
                 .collect(Collectors.toList());
+
+        redisService.set(RedisConstants.AGENT_SESSION_KEY, result, 1L, TimeUnit.DAYS);
+        return result;
     }
 
     @Override
@@ -436,17 +449,21 @@ public class FinancialServiceImpl implements FinancialService {
 
         Boolean isNewUser = financialRecordService.isNewUser(requestInitService.uid());
 
-        Map<Long, Long> firstProcessRecordMap = financialRecordService.firstProcessRecordMap(productIds, requestInitService.uid());
-        Map<Long, BigDecimal> useFinancialPersonQuotaMap = financialRecordService.getUseQuota(productIds, requestInitService.uid());
+        // 如果是新用户直接返回空map，减少无效查询
+        Map<Long, Long> firstProcessRecordMap = isNewUser ? Collections.emptyMap() :
+                financialRecordService.firstProcessRecordMap(productIds, requestInitService.uid());
+        Map<Long, BigDecimal> useFinancialPersonQuotaMap = isNewUser ? Collections.emptyMap() :
+                financialRecordService.getUseQuota(productIds, requestInitService.uid());
 
         return list.convert(product -> {
             BigDecimal totalQuota = product.getTotalQuota();
             BigDecimal personQuota = product.getPersonQuota();
             BigDecimal useQuota = MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO);
             var accountBalance = accountBalanceService.getAndInit(requestInitService.uid(), product.getCoin());
-            // 设置额度信息
             FinancialProductVO financialProductVO = financialConverter.toFinancialProductVO(product);
 
+            // 设置额度信息
+            financialProductVO.setAvailableBalance(accountBalance.getRemain());
             if (ProductType.fund.equals(product.getType())) {
                 List<FundRecord> fundRecords = fundRecordService.listByUidAndProductId(requestInitService.uid(), product.getId());
                 if (CollectionUtils.isNotEmpty(fundRecords)) {
@@ -471,6 +488,8 @@ public class FinancialServiceImpl implements FinancialService {
 
             // 设置是否持有
             financialProductVO.setHold(MoreObjects.firstNonNull(financialProductVO.getHoldAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0);
+
+            // =================================== 下方的数据不依赖于用户信息================================================
             // 设置是否售罄
             if (Objects.nonNull(totalQuota)) {
                 financialProductVO.setSellOut(useQuota.compareTo(totalQuota) >= 0);
@@ -489,8 +508,6 @@ public class FinancialServiceImpl implements FinancialService {
             financialProductVO.setPurchaseTime(now);
             // 收益发放时间
             financialProductVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
-
-            financialProductVO.setAvailableBalance(accountBalance.getRemain());
 
             return financialProductVO;
         });
@@ -605,5 +622,7 @@ public class FinancialServiceImpl implements FinancialService {
     private ProductMapper productMapper;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private RedisService redisService;
 
 }
