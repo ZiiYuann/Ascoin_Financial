@@ -3,6 +3,8 @@ package com.tianli.account.controller;
 import cn.hutool.json.JSONUtil;
 import com.tianli.account.query.IdsQuery;
 import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.vo.TransactionGroupTypeVO;
+import com.tianli.account.vo.TransactionTypeVO;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.vo.AddressVO;
@@ -10,6 +12,8 @@ import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeGroup;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.common.PageQuery;
+import com.tianli.common.RedisConstants;
+import com.tianli.common.RedisService;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
@@ -23,9 +27,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -48,6 +52,8 @@ public class AccountController {
     private ConfigService configService;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private RedisService redisService;
 
     /**
      * 激活钱包
@@ -173,6 +179,15 @@ public class AccountController {
     public Result accountBalanceDetails(PageQuery<Order> query, ChargeGroup chargeGroup, CurrencyCoin coin) {
         Long uid = requestInitService.uid();
         return Result.instance().setData(chargeService.pageByChargeGroup(uid, coin, chargeGroup, query.page()));
+    }
+
+
+    /**
+     * 【云钱包】交易类型
+     */
+    @GetMapping("/transaction/type")
+    public Result transactionType(){
+        return Result.instance().setData(chargeService.listTransactionGroupType());
     }
 
 }

@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.vo.TransactionGroupTypeVO;
+import com.tianli.account.vo.TransactionTypeVO;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.dto.CallbackPathDTO;
@@ -31,6 +33,8 @@ import com.tianli.charge.vo.OrderRechargeDetailsVo;
 import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
+import com.tianli.common.RedisConstants;
+import com.tianli.common.RedisService;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
@@ -55,14 +59,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author wangqiyun
@@ -72,6 +80,41 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class ChargeService extends ServiceImpl<OrderMapper, Order> {
+
+    /**
+     * 预加载数据
+     */
+    @PostConstruct
+    private List<TransactionGroupTypeVO> preloading() {
+        List<TransactionGroupTypeVO> list = new ArrayList<>(2);
+        for (ChargeGroup chargeGroup : ChargeGroup.values()) {
+            TransactionGroupTypeVO transactionGroupTypeVO = new TransactionGroupTypeVO();
+            transactionGroupTypeVO.setGroup(chargeGroup);
+
+            List<TransactionTypeVO> transactionTypeVOS = chargeGroup.getChargeTypes().stream().map(chargeType -> {
+                TransactionTypeVO transactionTypeVO = new TransactionTypeVO();
+                transactionTypeVO.setType(chargeType);
+                transactionTypeVO.setName(chargeType.getNameZn());
+                transactionTypeVO.setNameEn(chargeType.getNameEn());
+                return transactionTypeVO;
+            }).collect(Collectors.toList());
+            transactionGroupTypeVO.setTypes(transactionTypeVOS);
+            list.add(transactionGroupTypeVO);
+        }
+
+        redisService.set(RedisConstants.ACCOUNT_TRANSACTION_TYPE, list, 10L, TimeUnit.DAYS);
+        return list;
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<TransactionGroupTypeVO> listTransactionGroupType() {
+        Object o = redisService.get(RedisConstants.ACCOUNT_TRANSACTION_TYPE);
+        if (Objects.nonNull(o)) {
+            return (List<TransactionGroupTypeVO>) o;
+        }
+        return preloading();
+    }
+
 
     /**
      * 充值回调:添加用户余额和记录
@@ -562,5 +605,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     private OrderReviewService orderReviewService;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private RedisService redisService;
 
 }
