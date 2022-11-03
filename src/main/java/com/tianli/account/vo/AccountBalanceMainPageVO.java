@@ -1,6 +1,9 @@
 package com.tianli.account.vo;
 
+import com.tianli.common.annotation.BigDecimalFormat;
+import com.tianli.financial.vo.DollarIncomeVO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -11,12 +14,44 @@ import java.util.List;
  * @since 2022-07-11
  **/
 @Data
-public class AccountBalanceMainPageVO {
+@EqualsAndHashCode(callSuper = true)
+public class AccountBalanceMainPageVO extends DollarIncomeVO {
 
     /**
-     *  总余额
+     * 总资产
      */
+    @BigDecimalFormat("0.00")
     private BigDecimal totalAccountBalance;
+
+    /**
+     * 总可用余额
+     */
+    @BigDecimalFormat("0.00")
+    private BigDecimal totalDollarRemain;
+
+    /**
+     * 总理财持有
+     */
+    @BigDecimalFormat("0.00")
+    private BigDecimal totalDollarHold;
+
+    /**
+     * 总冻结
+     */
+    @BigDecimalFormat("0.00")
+    private BigDecimal totalDollarFreeze;
+
+    /**
+     * 累计收益
+     */
+    @BigDecimalFormat("0.00")
+    private BigDecimal accrueIncomeFee;
+
+    /**
+     * 昨日收益
+     */
+    @BigDecimalFormat("0.00")
+    private BigDecimal yesterdayIncomeFee;
 
     /**
      * 单个账户余额

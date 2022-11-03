@@ -16,6 +16,10 @@ import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.financial.service.FinancialService;
+import com.tianli.financial.vo.DollarIncomeVO;
+import com.tianli.fund.contant.FundIncomeStatus;
+import com.tianli.fund.service.IFundIncomeRecordService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -214,15 +218,27 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @return 账户余额主页面VO
      */
     public AccountBalanceMainPageVO getAccountBalanceMainPageVO(Long uid) {
+
+
+        DollarIncomeVO income = financialService.income(uid);
+
         var accountBalanceVOS = accountBalanceVOS(uid);
         BigDecimal totalDollarBalance = accountBalanceVOS.stream()
                 .map(AccountBalanceVO::getDollarBalance)
                 .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.DOWN);
+        BigDecimal totalDollarRemain = accountBalanceVOS.stream()
+                .map(AccountBalanceVO::getDollarRemain)
+                .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.DOWN);
+        BigDecimal totalDollarFreeze = accountBalanceVOS.stream()
+                .map(AccountBalanceVO::getDollarFreeze)
+                .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.DOWN);
+
 
         var existCoinNames =
                 accountBalanceVOS.stream().map(balance -> balance.getCoin().getName()).collect(Collectors.toList());
         List<String> coinNames = CurrencyCoin.getNameList();
         coinNames.removeAll(existCoinNames);
+
 
         for (String coin : coinNames) {
             AccountBalanceVO accountBalanceVO = AccountBalanceVO.getDefault(coin);
@@ -231,8 +247,14 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         }
 
         var result = new AccountBalanceMainPageVO();
+        result.setTotalDollarHold(income.getHoldFee());
+        result.setTotalDollarFreeze(totalDollarFreeze);
+        result.setTotalDollarRemain(totalDollarRemain);
+        result.setYesterdayIncomeFee(income.getYesterdayIncomeFee());
+        result.setAccrueIncomeFee(income.getAccrueIncomeFee());
         result.setTotalAccountBalance(totalDollarBalance);
         result.setAccountBalances(accountBalanceVOS);
+
         return result;
     }
 
@@ -324,6 +346,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     private AccountConverter accountConverter;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private FinancialService financialService;
 
 
 }
