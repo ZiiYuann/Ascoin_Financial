@@ -9,6 +9,7 @@ import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.sso.init.RequestInitService;
 import org.redisson.api.RLock;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.Objects;
 
 /**
  * @author chenb
@@ -43,6 +45,9 @@ public class RedEnvelopeController {
     public Result give(@RequestBody @Valid RedEnvelopeIoUQuery query) {
         Long uid = requestInitService.uid();
         Long shortUid = requestInitService.get().getUserInfo().getChatId();
+        if (Objects.isNull(shortUid)) {
+            ErrorCodeEnum.ACCOUNT_ERROR.throwException();
+        }
         RLock lock = redissonClient.getLock(RedisLockConstants.RED_ENVELOPE_GIVE + uid);
         try {
             lock.lock();
@@ -92,6 +97,9 @@ public class RedEnvelopeController {
     public Result get(@RequestBody @Valid RedEnvelopeGetQuery query) {
         Long uid = requestInitService.uid();
         Long shortUid = requestInitService.get().getUserInfo().getChatId();
+        if (Objects.isNull(shortUid)) {
+            ErrorCodeEnum.ACCOUNT_ERROR.throwException();
+        }
         return Result.success().setData(redEnvelopeService.get(uid, shortUid, query));
     }
 

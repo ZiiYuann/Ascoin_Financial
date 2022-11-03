@@ -38,8 +38,11 @@ import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.ApplicationContextTool;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.session.SqlSession;
+import org.redisson.api.RBloomFilter;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -48,6 +51,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -61,6 +65,7 @@ import java.util.concurrent.TimeUnit;
  * @apiNote
  * @since 2022-10-17
  **/
+@Slf4j
 @Service
 public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEnvelope> implements RedEnvelopeService {
 
@@ -88,6 +93,26 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     private ConfigService configService;
     @Resource
     private SqlSession sqlSession;
+    @Resource
+    private RedissonClient redissonClient;
+    @Resource
+    private RedEnvelopeMapper redEnvelopeMapper;
+
+    @PostConstruct
+    public void initBloomFilter() {
+        // 布隆过滤器，防止缓存击穿
+        final RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConstants.RED_ENVELOPE + "bloom");
+
+        if (bloomFilter.isExists()) {
+            return;
+        }
+
+        log.info("初始化布隆过滤器【red:bloom】");
+        bloomFilter.tryInit(10000000L, 0.001f);
+        final List<Long> ids = redEnvelopeMapper.listIds();
+        ids.forEach(bloomFilter::add);
+
+    }
 
 
     @Override
@@ -149,7 +174,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     @SneakyThrows
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Result give(Long uid, Long shortUid, RedEnvelopeChainQuery query) {
-        RedEnvelope redEnvelope = this.getByIdWithCache(query.getId());
+        RedEnvelope redEnvelope = this.getWithCache(query.getId());
         Optional.ofNullable(redEnvelope).orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
 
         redEnvelope.setTxid(query.getTxid());
@@ -195,10 +220,11 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     }
 
     @Override
+    @SneakyThrows
     public RedEnvelopeGetVO get(Long uid, Long shortUid, RedEnvelopeGetQuery query) {
 
         // 判断红包缓存是否存在
-        RedEnvelope redEnvelope = this.getByIdWithCache(query.getRid());
+        RedEnvelope redEnvelope = this.getWithCache(query.getRid());
         Optional.ofNullable(redEnvelope).orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
         if (!redEnvelope.getFlag().equals(query.getFlag())) {
             ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
@@ -223,12 +249,18 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
         query.setRedEnvelope(redEnvelope);
 
-        return service.getOperation(uid, shortUid, query, redEnvelope);
+        // 单独的事务，此事务已经提交
+        RedEnvelopeGetVO operation = service.getOperation(uid, shortUid, query, redEnvelope);
+
+        // 缓存双删
+        Thread.sleep(100);
+        this.deleteRedisCache(query.getRid());
+        return operation;
     }
 
     @Override
     public RedEnvelopeGetDetailsVO getDetails(Long uid, Long rid) {
-        RedEnvelope redEnvelope = getByIdWithCache(rid);
+        RedEnvelope redEnvelope = getWithCache(rid);
         List<RedEnvelopeSpiltGetRecordVO> recordVo = redEnvelopeSpiltGetRecordService.getRecordVos(rid);
 
         RedEnvelopeGetDetailsVO redEnvelopeGetDetailsVO = redEnvelopeConvert.toRedEnvelopeGetDetailsVO(redEnvelope);
@@ -306,7 +338,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     public IPage<RedEnvelopeGiveRecordVO> giveRecord(Long uid, PageQuery<RedEnvelope> pageQuery) {
         Page<RedEnvelope> page = this.page(pageQuery.page()
                 , new LambdaQueryWrapper<RedEnvelope>().eq(RedEnvelope::getUid, uid)
-                        .eq(false, RedEnvelope::getStatus, RedEnvelopeStatus.WAIT)
+                        .ne(RedEnvelope::getStatus, RedEnvelopeStatus.WAIT)
                         .last(" order by create_time desc "));
         return page.convert(redEnvelopeConvert::toRedEnvelopeGiveRecordVO);
     }
@@ -340,7 +372,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
     @Override
     public RedEnvelopeGetVO getInfoById(Long id) {
-        RedEnvelope redEnvelope = this.getByIdWithCache(id);
+        RedEnvelope redEnvelope = this.getWithCache(id);
         RedEnvelopeGetVO redEnvelopeGetVO = new RedEnvelopeGetVO();
         redEnvelopeGetVO.setStatus(redEnvelope.getStatus());
         redEnvelopeGetVO.setCoin(redEnvelope.getCoin());
@@ -385,8 +417,18 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
     /**
      * 获取红包信息（缓存）
+     * 1、发红包（上链）
+     * 2、抢红包
+     * 3、红包详情
+     * 4、单独调用查询红包状态
      */
-    private RedEnvelope getByIdWithCache(Long id) {
+    private RedEnvelope getWithCache(Long id) {
+        // 布隆过滤器，防止缓存击穿
+        final RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConstants.RED_ENVELOPE + "bloom");
+        if (!bloomFilter.contains(id)) {
+            ErrorCodeEnum.RED_NOT_EXIST_BLOOM.throwException();
+        }
+
         Object cache = redisService.get(RedisConstants.RED_ENVELOPE + id);
         if (Objects.isNull(cache)) {
             RedEnvelope redEnvelope = this.getById(id);
@@ -423,14 +465,19 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     /**
      * 删除红包缓存
      */
-    private void deleteRedisCache(Long id){
+    private void deleteRedisCache(Long id) {
         redisTemplate.delete(RedisConstants.RED_ENVELOPE + id);
     }
 
     /**
      * 增加红包缓存
+     * 1、发红包本地
+     * 2、发红包链上
+     * 3、getWithCache
      */
     private void setRedisCache(RedEnvelope redEnvelope) {
+        final RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConstants.RED_ENVELOPE + "bloom");
+        bloomFilter.add(redEnvelope.getId());
         redisService.set(RedisConstants.RED_ENVELOPE + redEnvelope.getId(), redEnvelope, 1L, TimeUnit.DAYS);
     }
 

@@ -45,6 +45,7 @@ CREATE TABLE `red_envelope_spilt_get_record`
     `s_rid`         varbinary(64)  NOT NULL COMMENT '子红包uuid',
     `uid`           bigint         NOT NULL COMMENT '用户id',
     `short_uid`     bigint         NOT NULL COMMENT '用户id短码',
+    `red_short_uid` bigint         NOT NULL COMMENT '发红包用户id短码',
     `coin`          varchar(20)    NOT NULL COMMENT '币种',
     `amount`        decimal(20, 8) NOT NULL COMMENT '金额',
     `receive_time`  datetime       NOT NULL COMMENT '领取时间',

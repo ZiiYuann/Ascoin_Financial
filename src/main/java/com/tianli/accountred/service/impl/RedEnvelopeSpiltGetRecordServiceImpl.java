@@ -78,6 +78,7 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
                 .id(CommonFunction.generalId())
                 .uid(uid)
                 .shortUid(shortUid)
+                .redShortUid(redEnvelopeGetQuery.getRedEnvelope().getShortUid())
                 .coin(redEnvelopeGetQuery.getRedEnvelope().getCoin())
                 .sRid(uuid)
                 .rid(redEnvelopeGetQuery.getRid())
@@ -94,7 +95,8 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
     @Override
     public IPage<RedEnvelopeSpiltGetRecordVO> getRecord(Long uid, PageQuery<RedEnvelopeSpiltGetRecord> pageQuery) {
         LambdaQueryWrapper<RedEnvelopeSpiltGetRecord> queryWrapper = new LambdaQueryWrapper<RedEnvelopeSpiltGetRecord>()
-                .eq(RedEnvelopeSpiltGetRecord::getUid, uid);
+                .eq(RedEnvelopeSpiltGetRecord::getUid, uid)
+                .last(" order by receive_time desc");
 
         return this.getBaseMapper().selectPage(pageQuery.page(), queryWrapper)
                 .convert(redEnvelopeConvert::toRedEnvelopeSpiltGetRecordVO);

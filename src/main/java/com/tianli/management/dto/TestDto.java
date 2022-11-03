@@ -1,5 +1,6 @@
 package com.tianli.management.dto;
 
+import com.tianli.common.webhook.WebHookService;
 import com.tianli.tool.ApplicationContextTool;
 import com.tianli.tool.ReflectTool;
 import lombok.AllArgsConstructor;
@@ -20,7 +21,14 @@ public class TestDto {
     private String method;
 
     public String getName() {
-        log.info(Objects.requireNonNull(ReflectTool.invoke(ApplicationContextTool.get(name), method, null)).toString());
-        return name;
+        WebHookService.send("【测试环境】" + Objects.requireNonNull(ReflectTool.invoke(ApplicationContextTool.get(name), method, null)
+                .toString()));
+        return "name";
     }
+
+    public String getMethod() {
+        return "method";
+    }
+
+
 }

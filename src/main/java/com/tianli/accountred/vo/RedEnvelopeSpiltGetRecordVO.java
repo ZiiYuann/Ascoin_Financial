@@ -30,6 +30,8 @@ public class RedEnvelopeSpiltGetRecordVO {
 
     private Long shortUid;
 
+    private Long redShortUid;
+
     private LocalDateTime receiveTime;
 
     private RedEnvelopeType type;
