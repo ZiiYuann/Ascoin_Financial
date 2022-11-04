@@ -252,7 +252,7 @@ public class FinancialServiceImpl implements FinancialService {
     @SuppressWarnings("unchecked")
     public List<RecommendProductVO> recommendProducts() {
 
-        Object o = redisService.get(RedisConstants.AGENT_SESSION_KEY);
+        Object o = redisService.get(RedisConstants.RECOMMEND_PRODUCT);
         if (Objects.nonNull(o)) {
             return (List<RecommendProductVO>) o;
         }
@@ -266,7 +266,7 @@ public class FinancialServiceImpl implements FinancialService {
                 .stream().map(financialConverter::toRecommendProductVO)
                 .collect(Collectors.toList());
 
-        redisService.set(RedisConstants.AGENT_SESSION_KEY, result, 1L, TimeUnit.DAYS);
+        redisService.set(RedisConstants.RECOMMEND_PRODUCT, result, 1L, TimeUnit.DAYS);
         return result;
     }
 

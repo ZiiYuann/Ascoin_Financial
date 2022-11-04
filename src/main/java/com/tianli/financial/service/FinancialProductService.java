@@ -171,7 +171,7 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
 
         }
 
-
+        redisTemplate.delete(RedisConstants.RECOMMEND_PRODUCT);
     }
 
     /**
