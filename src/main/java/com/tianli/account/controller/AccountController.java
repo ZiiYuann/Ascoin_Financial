@@ -173,7 +173,7 @@ public class AccountController {
      * 【云钱包】币别详情下方详情列表
      */
     @GetMapping("/balance/details")
-    public Result accountBalanceDetails(PageQuery<Order> pageQuery, AccountDetailsQuery query) {
+    public Result accountBalanceDetails(PageQuery<Order> pageQuery, @RequestBody AccountDetailsQuery query) {
         Long uid = requestInitService.uid();
         return Result.instance().setData(chargeService.pageByChargeGroup(uid, query, pageQuery.page()));
     }
