@@ -39,9 +39,9 @@ public enum ChargeType {
     pledge("BorrowPledge", "质押"),
     //还币释放质押
     release("RepayPledge", "释放质押"),
-    agent_fund_sale("AgentFundSale", "代理基金销售"),
-    agent_fund_redeem("AgentFundRedemption", "代理基金赎回"),
-    agent_fund_interest("agentFundInterest", "代理基金支付利息"),
+    agent_fund_sale("AgentFundSale", "销售收入"),
+    agent_fund_redeem("AgentFundRedemption", "赎回支出"),
+    agent_fund_interest("AgentFundInterest", "利息支付"),
     ;
 
 

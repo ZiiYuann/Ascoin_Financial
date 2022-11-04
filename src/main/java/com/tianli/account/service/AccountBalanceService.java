@@ -16,10 +16,12 @@ import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.DollarIncomeVO;
 import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.service.IFundIncomeRecordService;
+import com.tianli.fund.service.IFundRecordService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -272,21 +274,21 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
 
         List<AccountBalanceVO> accountBalanceVOS = new ArrayList<>(accountBalances.size());
         accountBalances.forEach(accountBalance -> {
-                    CurrencyCoin currencyCoin = accountBalance.getCoin();
-                    BigDecimal rate = currencyDollarRateMap.getOrDefault(currencyCoin, BigDecimal.ONE);
+            CurrencyCoin currencyCoin = accountBalance.getCoin();
+            BigDecimal rate = currencyDollarRateMap.getOrDefault(currencyCoin, BigDecimal.ONE);
 
-                    var dollarBalance = Optional.ofNullable(accountBalance.getBalance()).orElse(BigDecimal.ZERO).multiply(rate);
-                    var dollarFreeze = Optional.ofNullable(accountBalance.getFreeze()).orElse(BigDecimal.ZERO).multiply(rate);
-                    var dollarRemain = Optional.ofNullable(accountBalance.getRemain()).orElse(BigDecimal.ZERO).multiply(rate);
+            var dollarBalance = Optional.ofNullable(accountBalance.getBalance()).orElse(BigDecimal.ZERO).multiply(rate);
+            var dollarFreeze = Optional.ofNullable(accountBalance.getFreeze()).orElse(BigDecimal.ZERO).multiply(rate);
+            var dollarRemain = Optional.ofNullable(accountBalance.getRemain()).orElse(BigDecimal.ZERO).multiply(rate);
 
-                    AccountBalanceVO accountBalanceVO = accountConverter.toVO(accountBalance);
-                    accountBalanceVO.setDollarRate(rate);
-                    accountBalanceVO.setDollarBalance(dollarBalance);
-                    accountBalanceVO.setDollarFreeze(dollarFreeze);
-                    accountBalanceVO.setDollarRemain(dollarRemain);
-                    accountBalanceVO.setLogo(currencyCoin.getLogoPath());
-                    accountBalanceVOS.add(accountBalanceVO);
-                });
+            AccountBalanceVO accountBalanceVO = accountConverter.toVO(accountBalance);
+            accountBalanceVO.setDollarRate(rate);
+            accountBalanceVO.setDollarBalance(dollarBalance);
+            accountBalanceVO.setDollarFreeze(dollarFreeze);
+            accountBalanceVO.setDollarRemain(dollarRemain);
+            accountBalanceVO.setLogo(currencyCoin.getLogoPath());
+            accountBalanceVOS.add(accountBalanceVO);
+        });
         return accountBalanceVOS;
     }
 
@@ -294,7 +296,12 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         AccountBalanceVO accountBalanceVO = accountConverter.toVO(this.getAndInit(uid, currencyCoin));
         BigDecimal dollarRate = currencyService.getDollarRate(accountBalanceVO.getCoin());
 
+
+        BigDecimal fundHoldDollarAmount = fundRecordService.holdAmountDollar(uid, currencyCoin, null);
+        BigDecimal financialDollarAmount = financialRecordService.holdAmountDollar(currencyCoin);
+
         accountBalanceVO.setDollarRate(dollarRate);
+        accountBalanceVO.setDollarHold(fundHoldDollarAmount.add(financialDollarAmount));
         accountBalanceVO.setDollarBalance(dollarRate.multiply(accountBalanceVO.getBalance()));
         accountBalanceVO.setDollarFreeze(dollarRate.multiply(accountBalanceVO.getFreeze()));
         accountBalanceVO.setDollarRemain(dollarRate.multiply(accountBalanceVO.getRemain()));
@@ -348,6 +355,10 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     private CurrencyService currencyService;
     @Resource
     private FinancialService financialService;
+    @Resource
+    private IFundRecordService fundRecordService;
+    @Resource
+    private FinancialRecordService financialRecordService;
 
 
 }

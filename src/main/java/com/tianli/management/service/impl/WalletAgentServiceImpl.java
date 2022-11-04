@@ -79,7 +79,7 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
         Optional.ofNullable(addressService.get(uid)).orElseThrow(ErrorCodeEnum.AGENT_NOT_ACTIVE::generalException);
 
         WalletAgent walletAgentByName = getByAgentName(bo.getAgentName());
-        if (Objects.nonNull(walletAgentByName)){
+        if (Objects.nonNull(walletAgentByName)) {
             ErrorCodeEnum.throwException("代理人用户名重复");
         }
 
@@ -199,6 +199,14 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
                 .eq(WalletAgent::getAgentName, agentName)
                 .eq(WalletAgent::getDeleted, 0)
         );
+    }
+
+    @Override
+    public boolean isAgent(Long uid) {
+        WalletAgent walletAgent = walletAgentMapper.selectOne(new QueryWrapper<WalletAgent>().lambda()
+                .eq(WalletAgent::getUid, uid)
+                .eq(WalletAgent::getDeleted, 0));
+        return Objects.nonNull(walletAgent);
     }
 
     private void saveAgentProduct(WalletAgent walletAgent, WalletAgentBO.Product product) {

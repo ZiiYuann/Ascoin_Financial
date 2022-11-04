@@ -14,6 +14,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.currency.log.CurrencyLogDes;
@@ -263,7 +264,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         List<AmountDto> waitPayInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncome -> new AmountDto(fundIncome.getWaitInterestAmount(), fundIncome.getCoin())).collect(Collectors.toList());
         List<AmountDto> payInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncome -> new AmountDto(fundIncome.getPayInterestAmount(), fundIncome.getCoin())).collect(Collectors.toList());
         return FundMainPageVO.builder()
-                .holdAmount(this.holdAmountDollar(uid, null))
+                .holdAmount(this.holdAmountDollar(uid, null, null))
                 .payInterestAmount(orderService.calDollarAmount(payInterestAmount))
                 .waitPayInterestAmount(orderService.calDollarAmount(waitPayInterestAmount))
                 .build();
@@ -400,7 +401,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         IPage<FundUserRecordVO> fundUserRecordPage = fundRecordMapper.selectDistinctUidPage(pageQuery.page(), query);
         return fundUserRecordPage.convert(fundUserRecordVO -> {
             Long uid = fundUserRecordVO.getUid();
-            fundUserRecordVO.setHoldAmount(this.holdAmountDollar(uid, query.getAgentId()));
+            fundUserRecordVO.setHoldAmount(this.holdAmountDollar(uid, null, query.getAgentId()));
             // 累计利息 包括 待发 + 已经发
             fundUserRecordVO.setInterestAmount(fundIncomeRecordService.amountDollar(uid, query.getAgentId(), new ArrayList<>()));
 
@@ -509,10 +510,11 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     }
 
     @Override
-    public BigDecimal holdAmountDollar(Long uid, Long agentId) {
+    public BigDecimal holdAmountDollar(Long uid, CurrencyCoin coin, Long agentId) {
         FundRecordQuery query = new FundRecordQuery();
         query.setQueryUid(uid + "");
         query.setAgentId(agentId);
+        query.setCoin(coin);
         List<AmountDto> amountDtos = fundRecordMapper.selectHoldAmount(query);
         return orderService.calDollarAmount(amountDtos);
     }

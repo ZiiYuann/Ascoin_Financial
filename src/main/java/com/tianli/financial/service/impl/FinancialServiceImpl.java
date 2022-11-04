@@ -98,7 +98,7 @@ public class FinancialServiceImpl implements FinancialService {
         }
 
         // 基金数据
-        BigDecimal fundHoldDollarAmount = fundRecordService.holdAmountDollar(uid, null);
+        BigDecimal fundHoldDollarAmount = fundRecordService.holdAmountDollar(uid, null,null);
         BigDecimal fundTotalIncome =
                 fundIncomeRecordService.amountDollar(uid, FundIncomeStatus.audit_success, null, null);
         LocalDateTime time = LocalDateTime.now().plusDays(-1);

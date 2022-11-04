@@ -60,7 +60,7 @@
           AND `status` = 'PROCESS'
     </update>
 
-    <select id="countProcess" resultType="com.tianli.management.dto.AmountDto">
+    <select id="holdAmount" resultType="com.tianli.management.dto.AmountDto">
         SELECT hold_amount as amount,
         coin
         FROM financial_record
@@ -68,9 +68,14 @@
             <if test="productType != null">
                 product_type = #{productType}
             </if>
+
+            <if test="coin != null">
+                coin = #{coin}
+            </if>
             AND status = 'PROCESS'
         </where>
     </select>
+
     <select id="listProductSummaryDataDto" resultType="com.tianli.management.dto.ProductSummaryDataDto">
         SELECT
         product_id ,

@@ -74,6 +74,12 @@ public class AccountBalanceVO {
     @BigDecimalFormat("0.00")
     private BigDecimal dollarRemain;
 
+    /**
+     * 理财持有 美元
+     */
+    @BigDecimalFormat("0.00")
+    private BigDecimal dollarHold;
+
     public static AccountBalanceVO getDefault(String coinName){
         CurrencyCoin coin = CurrencyCoin.valueOf(coinName);
        return AccountBalanceVO.builder()

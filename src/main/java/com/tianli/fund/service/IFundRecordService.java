@@ -2,6 +2,7 @@ package com.tianli.fund.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.common.PageQuery;
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.fund.bo.FundPurchaseBO;
 import com.tianli.fund.bo.FundRedemptionBO;
@@ -63,10 +64,11 @@ public interface IFundRecordService extends IService<FundRecord> {
     /**
      * 获取持用金额
      * @param uid 用户id
+     * @param coin 币别
      * @param agentId 用户代理人id
      * @return 持用金额u
      */
-    BigDecimal holdAmountDollar(Long uid, Long agentId);
+    BigDecimal holdAmountDollar(Long uid, CurrencyCoin coin, Long agentId);
 
     Integer getHoldUserCount(FundRecordQuery query);
 

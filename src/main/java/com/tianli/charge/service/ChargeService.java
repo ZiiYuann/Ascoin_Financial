@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
+import com.tianli.account.query.AccountDetailsQuery;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.vo.TransactionGroupTypeVO;
 import com.tianli.account.vo.TransactionTypeVO;
@@ -36,7 +37,6 @@ import com.tianli.common.ConfigConstants;
 import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisService;
 import com.tianli.common.async.AsyncService;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookToken;
@@ -51,6 +51,7 @@ import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.management.query.FinancialChargeQuery;
+import com.tianli.management.service.IWalletAgentService;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
@@ -107,12 +108,30 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     }
 
     @SuppressWarnings("unchecked")
-    public List<TransactionGroupTypeVO> listTransactionGroupType() {
+    public List<TransactionGroupTypeVO> listTransactionGroupType(Long uid) {
+        List<TransactionGroupTypeVO> result;
         Object o = redisService.get(RedisConstants.ACCOUNT_TRANSACTION_TYPE);
         if (Objects.nonNull(o)) {
-            return (List<TransactionGroupTypeVO>) o;
+            result = (List<TransactionGroupTypeVO>) o;
+        } else {
+            result = preloading();
         }
-        return preloading();
+
+        boolean agent = walletAgentService.isAgent(uid);
+        if (agent) {
+            return result;
+        }
+        List<ChargeType> filterType =
+                List.of(ChargeType.agent_fund_sale, ChargeType.agent_fund_interest, ChargeType.agent_fund_interest);
+
+        result.forEach(group -> {
+            List<TransactionTypeVO> types = group.getTypes();
+            List<TransactionTypeVO> newTypes = types.stream().filter(type -> !filterType.contains(type))
+                    .collect(Collectors.toList());
+            group.setTypes(newTypes);
+        });
+
+        return result;
     }
 
 
@@ -537,15 +556,33 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     /**
      * 获取分页数据
      */
-    public IPage<OrderChargeInfoVO> pageByChargeGroup(Long uid, CurrencyCoin currencyCoin, ChargeGroup chargeGroup, Page<Order> page) {
+    public IPage<OrderChargeInfoVO> pageByChargeGroup(Long uid, AccountDetailsQuery query, Page<Order> page) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)
-                .eq(Order::getCoin, currencyCoin)
                 .orderByDesc(Order::getCreateTime)
                 .eq(false, Order::getStatus, ChargeStatus.chain_fail);
-        if (Objects.nonNull(chargeGroup)) {
-            wrapper = wrapper.in(Order::getType, chargeGroup.getChargeTypes());
+        if (Objects.nonNull(query.getChargeGroup()) && Objects.isNull(query.getChargeType())) {
+            wrapper = wrapper.in(Order::getType, query.getChargeGroup().getChargeTypes());
         }
+
+        if (Objects.nonNull(query.getChargeType())) {
+            wrapper = wrapper.eq(Order::getType, query.getChargeType());
+        }
+
+        if (Objects.nonNull(query.getCoin())) {
+            wrapper = wrapper.eq(Order::getCoin, query.getCoin());
+        }
+
+        if (Objects.nonNull(query.getStartTime()) && Objects.nonNull(query.getEndTime())) {
+            wrapper.between(Order::getCreateTime, query.getStartTime(), query.getEndTime());
+        }
+        if (Objects.nonNull(query.getStartTime()) && Objects.isNull(query.getEndTime())) {
+            wrapper.gt(Order::getCreateTime, query.getStartTime());
+        }
+        if (Objects.isNull(query.getStartTime()) && Objects.nonNull(query.getEndTime())) {
+            wrapper.lt(Order::getCreateTime, query.getEndTime());
+        }
+
         Page<Order> charges = this.page(page, wrapper);
         return charges.convert(chargeConverter::toVO);
     }
@@ -607,5 +644,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     private WebHookService webHookService;
     @Resource
     private RedisService redisService;
+    @Resource
+    private IWalletAgentService walletAgentService;
 
 }

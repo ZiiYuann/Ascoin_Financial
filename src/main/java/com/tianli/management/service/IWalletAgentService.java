@@ -30,5 +30,10 @@ public interface IWalletAgentService extends IService<WalletAgent> {
 
     WalletAgent getByAgentName(String agentName);
 
+    /**
+     * 判断是否是代理人用户
+     */
+    boolean isAgent(Long uid);
+
 
 }
