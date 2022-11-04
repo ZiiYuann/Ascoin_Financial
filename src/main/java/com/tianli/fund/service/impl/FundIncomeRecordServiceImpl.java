@@ -99,13 +99,17 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     }
 
     @Override
-    public BigDecimal amountDollarYesterday(Long fundId) {
+    public BigDecimal amountYesterday(Long fundId) {
         LocalDateTime time = LocalDateTime.now().plusDays(-1);
         FundIncomeQuery query = new FundIncomeQuery();
         query.setFundId(fundId);
         query.setStartTime(TimeTool.minDay(time));
-        query.setEndTime( TimeTool.maxDay(time));
-        return amountDollar(query);
+        query.setEndTime(TimeTool.maxDay(time));
+
+        List<FundIncomeAmountDTO> fundIncomeAmountDTOS = getAmount(query);
+
+        return fundIncomeAmountDTOS.stream().map(FundIncomeAmountDTO::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Override

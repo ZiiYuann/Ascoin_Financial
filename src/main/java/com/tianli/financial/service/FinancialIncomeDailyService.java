@@ -11,6 +11,8 @@ import com.tianli.financial.dto.FinancialIncomeDailyDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.mapper.FinancialIncomeDailyMapper;
+import com.tianli.fund.entity.FundRecord;
+import com.tianli.fund.service.IFundRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +38,8 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
     private FinancialIncomeDailyMapper financialIncomeDailyMapper;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private IFundRecordService fundRecordService;
 
     /**
      * 根据产品类型、状态获取利息总额
@@ -61,6 +65,13 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
 
     public BigDecimal amountDollarYesterday(Long recordId) {
 
+        FundRecord fundRecord = fundRecordService.getById(recordId);
+        return this.amountYesterday(recordId).multiply(currencyService.getDollarRate(fundRecord.getCoin()));
+
+    }
+
+    public BigDecimal amountYesterday(Long recordId) {
+
         LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
         LocalDateTime yesterdayZero = todayZero.plusDays(-1);
 
@@ -71,7 +82,7 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
             return BigDecimal.ZERO;
         }
 
-        return dailyIncomeLogs.stream().map(log -> log.getIncomeAmount().multiply(currencyService.getDollarRate(log.getCoin())))
+        return dailyIncomeLogs.stream().map(FinancialIncomeDaily::getIncomeAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 

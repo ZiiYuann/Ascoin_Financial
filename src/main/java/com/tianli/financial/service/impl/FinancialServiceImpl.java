@@ -98,7 +98,7 @@ public class FinancialServiceImpl implements FinancialService {
         }
 
         // 基金数据
-        BigDecimal fundHoldDollarAmount = fundRecordService.holdAmountDollar(uid, null);
+        BigDecimal fundHoldDollarAmount = fundRecordService.holdAmountDollar(uid, null, null);
         BigDecimal fundTotalIncome =
                 fundIncomeRecordService.amountDollar(uid, FundIncomeStatus.audit_success, null, null);
         LocalDateTime time = LocalDateTime.now().plusDays(-1);
@@ -170,10 +170,10 @@ public class FinancialServiceImpl implements FinancialService {
             IncomeVO incomeVO = new IncomeVO();
             incomeVO.setHoldFee(dollarRateMap.get(holdProductVo.getCoin()).multiply(holdProductVo.getHoldAmount()));
             if (ProductType.fund.equals(holdProductVo.getProductType())) {
-                incomeVO.setYesterdayIncomeFee(fundIncomeRecordService.amountDollarYesterday(holdProductVo.getRecordId()));
+                incomeVO.setYesterdayIncomeAmount(fundIncomeRecordService.amountYesterday(holdProductVo.getRecordId()));
             }
             if (!ProductType.fund.equals(holdProductVo.getProductType())) {
-                incomeVO.setYesterdayIncomeFee(financialIncomeDailyService.amountDollarYesterday(holdProductVo.getRecordId()));
+                incomeVO.setYesterdayIncomeAmount(financialIncomeDailyService.amountYesterday(holdProductVo.getRecordId()));
             }
 
             holdProductVo.setIncomeVO(incomeVO);

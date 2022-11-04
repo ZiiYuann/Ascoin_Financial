@@ -34,6 +34,11 @@ public class IncomeVO {
     private BigDecimal yesterdayIncomeFee;
 
     /**
+     * 昨日收益
+     */
+    private BigDecimal yesterdayIncomeAmount;
+
+    /**
      * 不同类型产品收益
      */
     private Map<ProductType,IncomeVO> incomeMap;
