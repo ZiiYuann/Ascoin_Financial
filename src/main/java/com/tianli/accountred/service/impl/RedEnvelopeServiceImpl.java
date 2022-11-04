@@ -166,7 +166,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         orderService.save(order);
 
         // 直接扣除红包金额
-        accountBalanceService.decrease(uid, ChargeType.red_give, redEnvelope.getCoin(), redEnvelope.getAmount()
+        accountBalanceService.decrease(uid, ChargeType.red_give, redEnvelope.getCoin(), redEnvelope.getTotalAmount()
                 , order.getOrderNo(), "发红包");
     }
 
@@ -195,18 +195,21 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         if (Objects.isNull(order) || !ChargeType.recharge.equals(order.getType()) ||
                 !ChargeStatus.chain_success.equals(order.getStatus())) {
             redEnvelope.setStatus(RedEnvelopeStatus.FAIL);
+            redEnvelope.setFinishTime(LocalDateTime.now());
             this.saveOrUpdate(redEnvelope);
             return Result.fail("红包发送失败，充值失败或者上链时间过长");
         }
 
         if (order.getAmount().compareTo(redEnvelope.getTotalAmount()) != 0 || !order.getCoin().equals(redEnvelope.getCoin())) {
             redEnvelope.setStatus(RedEnvelopeStatus.FAIL);
+            redEnvelope.setFinishTime(LocalDateTime.now());
             this.saveOrUpdate(redEnvelope);
             return Result.fail("红包发送失败，充值金额与红包金额不一致或者币别不一致");
         }
 
         if (!order.getUid().equals(redEnvelope.getUid())) {
             redEnvelope.setStatus(RedEnvelopeStatus.FAIL);
+            redEnvelope.setFinishTime(LocalDateTime.now());
             this.saveOrUpdate(redEnvelope);
             return Result.fail("充值订单用户和充值用户不一致");
         }
