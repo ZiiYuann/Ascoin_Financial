@@ -151,5 +151,7 @@ public class FinancialProductVO {
      */
     private boolean hold;
 
+    private boolean newUser;
+
 
 }

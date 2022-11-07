@@ -518,6 +518,8 @@ public class FinancialServiceImpl implements FinancialService {
             // 收益发放时间
             financialProductVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
 
+            financialProductVO.setNewUser(isNewUser);
+
             return financialProductVO;
         });
     }
