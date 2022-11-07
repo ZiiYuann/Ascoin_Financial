@@ -27,11 +27,13 @@ import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.query.PurchaseQuery;
 import com.tianli.financial.service.*;
 import com.tianli.financial.vo.FinancialPurchaseResultVO;
+import com.tianli.tool.ApplicationContextTool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -172,7 +174,12 @@ public class FinancialIncomeTask {
             var settleOrder = settleOperation(financialRecord, now);
             // 对于自动续费操作来说，可能会有业务异常，不影响利息对发放
             try {
-                renewalOperation(financialRecord, incomeOrder, settleOrder, now);
+
+                FinancialIncomeTask bean = ApplicationContextTool.getBean(FinancialIncomeTask.class);
+                if (Objects.isNull(bean)) {
+                    ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
+                }
+                bean.renewalOperation(financialRecord, incomeOrder, settleOrder, now);
             } catch (Exception e) {
                 webHookService.dingTalkSend(String.format("产品[%d]自动续费失败", financialRecord.getProductId()), e);
             }
@@ -190,7 +197,8 @@ public class FinancialIncomeTask {
     /**
      * 自动续费操作
      */
-    private void renewalOperation(FinancialRecord financialRecord, Order incomeOrder, Order settleOrder, LocalDateTime now) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void renewalOperation(FinancialRecord financialRecord, Order incomeOrder, Order settleOrder, LocalDateTime now) {
         if (!financialRecord.isAutoRenewal()) {
             return;
         }
