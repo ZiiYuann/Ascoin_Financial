@@ -204,6 +204,7 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
             throw e;
         } finally {
             redisLock.unlock(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + query.getProductId());
+            redisTemplate.delete(RedisConstants.RECOMMEND_PRODUCT);
         }
 
     }
