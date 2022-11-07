@@ -53,7 +53,8 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
         Object cache = redisService.get(getRecordsKey);
         if (Objects.isNull(cache)) {
             List<RedEnvelopeSpiltGetRecord> getRecords = this.list(new LambdaQueryWrapper<RedEnvelopeSpiltGetRecord>()
-                    .eq(RedEnvelopeSpiltGetRecord::getRid, rid));
+                    .eq(RedEnvelopeSpiltGetRecord::getRid, rid)
+                    .orderByDesc(RedEnvelopeSpiltGetRecord::getReceiveTime));
 
             redisService.set(RedisConstants.RED_ENVELOPE_GET_RECORD + rid, getRecords, 3L, TimeUnit.DAYS);
             return getRecords;
