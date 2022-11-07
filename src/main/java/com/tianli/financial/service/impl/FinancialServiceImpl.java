@@ -244,9 +244,18 @@ public class FinancialServiceImpl implements FinancialService {
                 .orderByAsc(FinancialProduct::getType) // 活期优先
                 .orderByDesc(FinancialProduct::getRate); // 年化利率降序
 
-        return getFinancialProductVOIPage(page, type, query);
+        IPage<FinancialProductVO> financialProductVOIPage = getFinancialProductVOIPage(page, type, query);
+        List<FinancialProductVO> records = financialProductVOIPage.getRecords();
 
+        records.sort((a, b) -> {
+            BigDecimal hold1 = MoreObjects.firstNonNull(a.getHoldAmount(), BigDecimal.ZERO);
+            BigDecimal hold2 = MoreObjects.firstNonNull(b.getHoldAmount(), BigDecimal.ZERO);
+            return - hold1.compareTo(hold2);
+        });
+
+        return financialProductVOIPage;
     }
+
 
     @Override
     @SuppressWarnings("unchecked")
