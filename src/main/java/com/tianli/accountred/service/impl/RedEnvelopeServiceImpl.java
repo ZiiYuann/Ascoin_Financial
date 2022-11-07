@@ -216,7 +216,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
         redEnvelope.setStatus(RedEnvelopeStatus.PROCESS);
         this.spiltRedEnvelope(uid, redEnvelope);
-        this.saveOrUpdate(redEnvelope);
+        this.process(redEnvelope.getId(), query.getTxid());
 
         setRedisCache(redEnvelope);
         return Result.success(new RedEnvelopeGiveVO(redEnvelope.getId()));
@@ -460,6 +460,16 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
      */
     private void finish(Long id) {
         int i = this.getBaseMapper().finish(id);
+        if (i == 0) {
+            ErrorCodeEnum.RED_STATUS_ERROR.throwException();
+        }
+    }
+
+    /**
+     * 把红包状态设置为进行中
+     */
+    private void process(Long id, String txid) {
+        int i = this.getBaseMapper().process(id, txid);
         if (i == 0) {
             ErrorCodeEnum.RED_STATUS_ERROR.throwException();
         }
