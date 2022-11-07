@@ -197,7 +197,7 @@ public class FinancialIncomeTask {
     /**
      * 自动续费操作
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(noRollbackFor = Exception.class)
     public void renewalOperation(FinancialRecord financialRecord, Order incomeOrder, Order settleOrder, LocalDateTime now) {
         if (!financialRecord.isAutoRenewal()) {
             return;
