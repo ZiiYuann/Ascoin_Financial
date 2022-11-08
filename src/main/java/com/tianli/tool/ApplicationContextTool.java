@@ -27,4 +27,9 @@ public class ApplicationContextTool implements ApplicationContextAware {
         if (applicationContext == null) return null;
         return applicationContext.getBean(name, c);
     }
+
+    public static Object get(String name) {
+        if (applicationContext == null) return null;
+        return applicationContext.getBean(name);
+    }
 }

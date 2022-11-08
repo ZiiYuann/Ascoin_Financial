@@ -59,4 +59,6 @@ public class SignUserInfo {
      * 渠道id
      */
     private Long channelId;
+
+    private Long chatId;
 }

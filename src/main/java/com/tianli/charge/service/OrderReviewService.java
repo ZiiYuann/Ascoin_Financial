@@ -36,7 +36,7 @@ import java.util.Optional;
 public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderReview> {
 
     public OrderReviewVO getVOByOrderNo(String orderNo) {
-        Order order = Optional.ofNullable(orderService.getOrderNo(orderNo))
+        Order order = Optional.ofNullable(orderService.getByOrderNo(orderNo))
                 .orElseThrow(() -> ErrorCodeEnum.ARGUEMENT_ERROR.generalException("未找到对应的订单：" + orderNo));
 
         Long reviewId = order.getReviewerId();
@@ -57,7 +57,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
     @Transactional
     public void review(OrderReviewQuery query) {
         String orderNo = query.getOrderNo();
-        Order order = Optional.ofNullable(orderService.getOrderNo(orderNo))
+        Order order = Optional.ofNullable(orderService.getByOrderNo(orderNo))
                 .orElseThrow(() -> ErrorCodeEnum.ARGUEMENT_ERROR.generalException("未找到对应的订单：" + orderNo));
 
         if (!ChargeType.withdraw.equals(order.getType())) {

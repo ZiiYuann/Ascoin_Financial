@@ -144,7 +144,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             if (Objects.isNull(orderChargeInfo)) {
                 return;
             }
-            Order order = orderService.getOrderByHash(req.getHash());
+            Order order = orderService.getOrderByHash(req.getHash(),ChargeType.withdraw);
             orderReviewService.withdrawSuccess(order, orderChargeInfo);
         }
     }

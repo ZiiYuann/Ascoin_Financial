@@ -15,14 +15,6 @@ import java.util.EnumMap;
 public interface CurrencyService {
 
     /**
-     * 将金额转化成美元
-     * @param tokenAdapter 币别包装类型
-     * @param amount 需要转化的金额
-     * @return 美元金额DTO
-     */
-    DollarAmountDTO convertDollarAmount(TokenAdapter tokenAdapter, BigDecimal amount);
-
-    /**
      * 获取汇率
      * @param currencyCoin 币别包装类型
      * @return 美元汇率

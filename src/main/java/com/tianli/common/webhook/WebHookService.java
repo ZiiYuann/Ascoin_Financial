@@ -89,4 +89,8 @@ public class WebHookService {
         DingDingUtil.textType(msg, webHookToken.getToken(), webHookToken.getSecret());
     }
 
+    public static void send(String msg) {
+        DingDingUtil.textType(msg, WebHookToken.BUG_PUSH.getToken(), WebHookToken.BUG_PUSH.getSecret());
+    }
+
 }

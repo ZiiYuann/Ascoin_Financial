@@ -42,6 +42,9 @@ public enum ChargeType {
     agent_fund_sale("AgentFundSale", "代理基金销售"),
     agent_fund_redeem("AgentFundRedemption", "代理基金赎回"),
     agent_fund_interest("agentFundInterest", "代理基金支付利息"),
+    red_give("RedEnvelopeGive", "红包已发送"),
+    red_get("RedEnvelopeGet", "红包领取"),
+    red_back("RedEnvelopeBack", "红包退款"),
     ;
 
 
