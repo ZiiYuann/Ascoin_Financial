@@ -178,26 +178,13 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         Optional.ofNullable(redEnvelope).orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
 
         redEnvelope.setTxid(query.getTxid());
-        long waitTime = Long.parseLong(configService.getOrDefault("red_envelope_wait_time", "10"));
-        // 判断是否有充值订单，轮询5次充值订单
-        Order order = null;
-        for (int i = 0; i < waitTime; i++) {
-            order = orderService.getOrderByHash(query.getTxid(), ChargeType.recharge);
-            if (Objects.nonNull(order)) {
-                break;
-            }
-            Thread.sleep(1000);
-            // 手动清除一级缓存
-            sqlSession.clearCache();
-        }
+        sqlSession.clearCache();
+        Order order = orderService.getOrderByHash(query.getTxid(), ChargeType.recharge);
 
         // 判断订单状态
         if (Objects.isNull(order) || !ChargeType.recharge.equals(order.getType()) ||
                 !ChargeStatus.chain_success.equals(order.getStatus())) {
-            redEnvelope.setStatus(RedEnvelopeStatus.FAIL);
-            redEnvelope.setFinishTime(LocalDateTime.now());
-            this.saveOrUpdate(redEnvelope);
-            return Result.fail("红包发送失败，充值失败或者上链时间过长");
+            return Result.fail(ErrorCodeEnum.RED_ORDER_NOT_FIND);
         }
 
         if (order.getAmount().compareTo(redEnvelope.getTotalAmount()) != 0 || !order.getCoin().equals(redEnvelope.getCoin())) {

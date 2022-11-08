@@ -135,6 +135,7 @@ public enum ErrorCodeEnum {
     RED_STATUS_ERROR(3704, "红包状态异常"),
     RED_RECEIVE_NOT_ALLOW(3705, "红包没权限领取"),
     RED_LIMIT_AMOUNT(3706, "单个红包数额不得低于0.000001"),
+    RED_ORDER_NOT_FIND(3707, "红包订单未找到"),
 
 
 
