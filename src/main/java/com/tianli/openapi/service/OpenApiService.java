@@ -40,15 +40,26 @@ public class OpenApiService {
             ErrorCodeEnum.throwException("当前接口交易类型不匹配");
         }
 
+        OrderRewardRecord rewardRecord = orderRewardRecordService.lambdaQuery()
+                .eq(OrderRewardRecord::getOrder_id, query.getId()).one();
+        if (Objects.nonNull(rewardRecord)) {
+            return new RewardVO(rewardRecord.getId());
+        }
+
+        LocalDateTime orderDateTime = TimeTool.getDateTimeOfTimestamp(query.getGive_time());
+        long recordId = CommonFunction.generalId();
         OrderRewardRecord orderRewardRecord = OrderRewardRecord.builder()
-                .id(query.getId())
+                .id(recordId)
                 .coin(query.getCoin())
                 .amount(query.getAmount())
                 .type(query.getType())
-                .uid(query.getUid()).build();
+                .uid(query.getUid())
+                .give_time(orderDateTime)
+                .order_id(query.getId())
+                .build();
         orderRewardRecordService.save(orderRewardRecord);
 
-        LocalDateTime hour = TimeTool.hour();
+        LocalDateTime hour = TimeTool.hour(orderDateTime);
         Order order = orderService.getOne(new LambdaQueryWrapper<Order>()
                 .eq(Order::getType, query.getType())
                 .eq(Order::getUid, query.getUid())
@@ -58,9 +69,7 @@ public class OpenApiService {
 
         if (Objects.nonNull(order)) {
             orderService.addAmount(order.getId(), query.getAmount());
-        }
-
-        if (Objects.isNull(order)) {
+        }else {
             long id = CommonFunction.generalId();
             Order newOrder = Order.builder()
                     .id(id)
@@ -70,7 +79,7 @@ public class OpenApiService {
                     .amount(query.getAmount())
                     .type(query.getType())
                     .status(ChargeStatus.chain_success)
-                    .relatedId(Long.valueOf(query.getId()))
+                    .relatedId(query.getId())
                     .createTime(hour)
                     .completeTime(hour.plusHours(1).plusSeconds(-1))
                     .build();
@@ -80,7 +89,7 @@ public class OpenApiService {
 
         accountBalanceService.increase(query.getUid(), query.getType(), query.getCoin()
                 , query.getAmount(), order.getOrderNo(), query.getType().getNameZn());
-        return new RewardVO(order.getId());
+        return new RewardVO(recordId);
     }
 
 }

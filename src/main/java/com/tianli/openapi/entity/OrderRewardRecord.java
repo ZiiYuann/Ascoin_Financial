@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * @author chenb
@@ -20,7 +21,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class OrderRewardRecord {
 
-    private String id;
+    private Long id;
 
     private Long uid;
 
@@ -29,5 +30,9 @@ public class OrderRewardRecord {
     private ChargeType type;
 
     private CurrencyCoin coin;
+
+    private LocalDateTime give_time;
+
+    private Long order_id;
 
 }

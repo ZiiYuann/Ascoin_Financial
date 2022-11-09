@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class RewardQuery {
 
-    private String id;
+    private Long id;
 
     private Long uid;
 
@@ -27,5 +27,7 @@ public class RewardQuery {
     private ChargeType type;
 
     private CurrencyCoin coin;
+
+    private Long give_time;
 
 }

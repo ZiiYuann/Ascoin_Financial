@@ -15,7 +15,15 @@ public class TimeTool {
      * 当前整点时间
      */
     public static LocalDateTime hour() {
-        return LocalDateTime.now().minusHours(0).toLocalDate().atTime(LocalDateTime.now().minusHours(0).getHour(), 0, 0);
+        return hour(LocalDateTime.now());
+    }
+
+    /**
+     * 当前整点时间
+     */
+    public static LocalDateTime hour(LocalDateTime dateTime) {
+        LocalDate localDate = dateTime.toLocalDate();
+        return localDate.atTime(dateTime.getHour(), 0, 0);
     }
 
     /**
