@@ -55,10 +55,10 @@ import com.tianli.management.service.IWalletAgentService;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -66,10 +66,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -561,8 +558,18 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .eq(Order::getUid, uid)
                 .orderByDesc(Order::getCreateTime)
                 .eq(false, Order::getStatus, ChargeStatus.chain_fail);
-        if (Objects.nonNull(query.getChargeGroup()) && Objects.isNull(query.getChargeType())) {
-            wrapper = wrapper.in(Order::getType, query.getChargeGroup().getChargeTypes());
+
+        Set<ChargeType> types = new HashSet<>();
+
+        if (CollectionUtils.isNotEmpty(query.getChargeGroups())) {
+            query.getChargeGroups().forEach(group -> types.addAll(group.getChargeTypes()));
+        }
+        if (CollectionUtils.isNotEmpty(query.getChargeTypes())) {
+            types.addAll(query.getChargeTypes());
+        }
+
+        if (CollectionUtils.isNotEmpty(types)) {
+            wrapper = wrapper.in(Order::getType, types);
         }
 
         if (Objects.nonNull(query.getChargeType())) {

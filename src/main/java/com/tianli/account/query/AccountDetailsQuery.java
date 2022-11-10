@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author chenb
@@ -26,5 +27,9 @@ public class AccountDetailsQuery {
     private LocalDateTime startTime;
 
     private LocalDateTime endTime;
+
+    private List<ChargeGroup> chargeGroups;
+
+    private List<ChargeType> chargeTypes;
 
 }
