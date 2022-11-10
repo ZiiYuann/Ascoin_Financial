@@ -2,7 +2,6 @@ package com.tianli.sso.service;
 
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
-import com.tianli.common.ConfigConstants;
 import com.tianli.common.Constants;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;

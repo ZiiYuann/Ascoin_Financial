@@ -32,6 +32,7 @@ public enum ErrorCodeEnum {
     OPERATION_PASSWORD_ERROR(122, "操作密码错误"),
     INSUFFICIENT_BALANCE(123, "余额不足"),
     PURCHASE_AMOUNT_TO_SMALL(124, "申购金额低于系统限制"),
+    ACCOUNT_ERROR(125, "账户异常"),
 
 
     /*** －－－－－－业务错误码-账号相关－－－－－－*/
@@ -125,6 +126,20 @@ public enum ErrorCodeEnum {
     STATUS_NOT_WAIT(3618, "状态不是待审核"),
     FUND_RECORD_NOT_EXIST(3619, "基金持有记录不存在"),
     NOT_CURRENT_AGENT(3620, "不是当前代理人记录"),
+
+    /*** －－－－－－业务错误码-红包相关－－－－－－*/
+    RED_AMOUNT_EXCEED_LIMIT_100(3701, "红包总额价值不得超过100U"),
+    RED_NOT_EXIST(3702, "红包不存在"),
+    RED_NOT_EXIST_BLOOM(3702, "红包不存在(bloom)"),
+    RED_RECHARGE_NOT_ARRIVE(3703, "链上红包充值未到账或失败，请到账后手动发放"),
+    RED_STATUS_ERROR(3704, "红包状态异常"),
+    RED_RECEIVE_NOT_ALLOW(3705, "红包没权限领取"),
+    RED_LIMIT_AMOUNT(3706, "单个红包数额不得低于0.000001"),
+    RED_ORDER_NOT_FIND(3707, "红包订单未找到"),
+
+
+
+
 
     ;
     private int errorNo;

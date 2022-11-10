@@ -3,6 +3,7 @@ package com.tianli.address;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.base.MoreObjects;
 import com.tianli.account.query.IdsQuery;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.mapper.AddressMapper;
@@ -172,8 +173,9 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
             HttpResponse response = client.execute(httpGet);
             String s = EntityUtils.toString(response.getEntity());
             Boolean exist = JSONUtil.parse(s).getByPath("data.exist", Boolean.class);
-
+            exist = MoreObjects.firstNonNull(exist, Boolean.FALSE);
             if (!exist) {
+                webHookService.dingTalkSend("uid 激活失败：" + uid);
                 ErrorCodeEnum.throwException("uid 校验不存在");
             }
 

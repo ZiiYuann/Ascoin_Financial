@@ -60,4 +60,7 @@ public class ConfigConstants {
      */
     public static final String OPEN_WEBHOOK_EXCEPTION_PUSH = "open_webhook_exception_push";
 
+    public static final String SYS_DEV = "dev";
+
+
 }

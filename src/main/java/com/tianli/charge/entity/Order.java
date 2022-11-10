@@ -15,16 +15,16 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- *
  * 订单表
- * @author  wangqiyun
- * @since  2020/3/31 11:26
+ *
+ * @author wangqiyun
+ * @since 2020/3/31 11:26
  */
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName(value ="`order`")
+@TableName(value = "`order`")
 public class Order {
 
     private Long id;
