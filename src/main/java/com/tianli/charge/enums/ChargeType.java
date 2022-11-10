@@ -1,5 +1,6 @@
 package com.tianli.charge.enums;
 
+import com.tianli.account.enums.AccountChangeType;
 import com.tianli.charge.vo.OrderStatusPullVO;
 import lombok.Getter;
 
@@ -45,18 +46,30 @@ public enum ChargeType {
     red_give("RedEnvelopeGive", "红包已发送"),
     red_get("RedEnvelopeGet", "红包领取"),
     red_back("RedEnvelopeBack", "红包退款"),
+    transaction_reward("TransactionReward", "交易奖励", AccountChangeType.transaction_reward),
+
     ;
 
 
     ChargeType(String nameEn, String nameZn) {
         this.nameZn = nameZn;
         this.nameEn = nameEn;
+        this.accountChangeType = null;
     }
+
+    ChargeType(String nameEn, String nameZn,AccountChangeType accountChangeType) {
+        this.nameZn = nameZn;
+        this.nameEn = nameEn;
+        this.accountChangeType = accountChangeType;
+    }
+
 
     @Getter
     private final String nameZn;
     @Getter
     private final String nameEn;
+    @Getter
+    private final AccountChangeType accountChangeType;
 
 
     public static List<OrderStatusPullVO> orderStatusPull(ChargeType chargeType) {

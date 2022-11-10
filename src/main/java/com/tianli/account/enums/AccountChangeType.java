@@ -47,7 +47,8 @@ public enum AccountChangeType {
     agent_fund_interest("AI"),
     red_give("RGI"),
     red_get("RGE"),
-    red_back("RBA"),;
+    red_back("RBA"),
+    transaction_reward("TR"),;
 
 
     AccountChangeType(String prefix) {
