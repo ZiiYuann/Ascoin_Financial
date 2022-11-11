@@ -48,6 +48,7 @@ import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.mconfig.ConfigService;
+import com.tianli.openapi.service.OrderRewardRecordService;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -504,8 +505,18 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             wrapper = wrapper.in(Order::getType, chargeGroup.getChargeTypes());
         }
         Page<Order> charges = this.page(page, wrapper);
-        return charges.convert(chargeConverter::toVO);
+
+        return charges.convert(charge -> {
+            OrderChargeInfoVO orderChargeInfoVO = chargeConverter.toVO(charge);
+            if (ChargeType.transaction_reward.equals(orderChargeInfoVO.getType())) {
+                int i = orderRewardRecordService.recordCountThisHour(charge.getUid(), charge.getCreateTime());
+                orderChargeInfoVO.setTypeRemarks("交易奖励已发放" + i + "笔");
+                orderChargeInfoVO.setTypeRemarksEn(i + " sum(s) of transaction reward");
+            }
+            return orderChargeInfoVO;
+        });
     }
+
 
     /**
      * 获取主钱包地址
@@ -562,5 +573,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     private OrderReviewService orderReviewService;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private OrderRewardRecordService orderRewardRecordService;
 
 }
