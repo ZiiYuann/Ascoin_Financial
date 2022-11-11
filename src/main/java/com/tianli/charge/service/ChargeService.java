@@ -603,14 +603,14 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             OrderChargeInfoVO orderChargeInfoVO = chargeConverter.toVO(charge);
             if (ChargeType.transaction_reward.equals(orderChargeInfoVO.getType())) {
                 int i = orderRewardRecordService.recordCountThisHour(charge.getUid(), charge.getCreateTime());
-                orderChargeInfoVO.setTypeName("已发放" + i + "笔");
-                orderChargeInfoVO.setTypeNameEn(i + " Receiving Records");
+                orderChargeInfoVO.setRemarks("已发放" + i + "笔");
+                orderChargeInfoVO.setRemarksEn(i + " Receiving Records");
             }
 
             if (!ChargeType.transaction_reward.equals(orderChargeInfoVO.getType())) {
                 ChargeRemarks remarks = ChargeRemarks.getInstance(charge.getType(), charge.getStatus());
-                orderChargeInfoVO.setTypeName(remarks.getRemarks());
-                orderChargeInfoVO.setTypeNameEn(remarks.getRemarksEn());
+                orderChargeInfoVO.setRemarks(remarks.getRemarks());
+                orderChargeInfoVO.setRemarksEn(remarks.getRemarksEn());
             }
             return orderChargeInfoVO;
         });
