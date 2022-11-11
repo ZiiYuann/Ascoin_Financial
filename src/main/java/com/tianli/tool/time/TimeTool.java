@@ -10,17 +10,33 @@ import java.util.concurrent.TimeUnit;
 
 public class TimeTool {
 
+
+    /**
+     * 当前整点时间
+     */
+    public static LocalDateTime hour() {
+        return hour(LocalDateTime.now());
+    }
+
+    /**
+     * 当前整点时间
+     */
+    public static LocalDateTime hour(LocalDateTime dateTime) {
+        LocalDate localDate = dateTime.toLocalDate();
+        return localDate.atTime(dateTime.getHour(), 0, 0);
+    }
+
     /**
      * day当天开始时间
      */
-    public static LocalDateTime minDay(LocalDateTime day){
+    public static LocalDateTime minDay(LocalDateTime day) {
         return day.with(LocalTime.MIN);
     }
 
     /**
      * day当天结束时间
      */
-    public static LocalDateTime maxDay(LocalDateTime day){
+    public static LocalDateTime maxDay(LocalDateTime day) {
         return day.with(LocalTime.MAX);
     }
 
@@ -31,10 +47,11 @@ public class TimeTool {
     public static String getNowDateTimeDisplayString() {
         return getDateTimeDisplayString(LocalDateTime.now(), "yyyy-MM-dd HH:mm:ss");
     }
+
     /**
      * day本月开始时间
      */
-    public static LocalDateTime minMonthTime(LocalDateTime day){
+    public static LocalDateTime minMonthTime(LocalDateTime day) {
         LocalDate today = day.toLocalDate();
         Month month = today.getMonth();
         LocalDate min = LocalDate.of(today.getYear(), month, 1);
@@ -44,7 +61,7 @@ public class TimeTool {
     /**
      * day本年开始时间
      */
-    public static LocalDateTime minYearTime(LocalDateTime day){
+    public static LocalDateTime minYearTime(LocalDateTime day) {
         int year = day.getYear();
         return LocalDateTime.of(year, 1, 1, 0, 0, 0);
     }
@@ -52,7 +69,7 @@ public class TimeTool {
     /**
      * day本月最大时间
      */
-    public static LocalDateTime maxMonthTime(LocalDateTime day){
+    public static LocalDateTime maxMonthTime(LocalDateTime day) {
         LocalDate today = day.toLocalDate();
         Month month = today.getMonth();
         int length = month.length(today.isLeapYear());
@@ -63,7 +80,7 @@ public class TimeTool {
     /**
      * 当前时间的当天开始时间结束时间
      */
-    public static Map<String, LocalDateTime> thisDay(){
+    public static Map<String, LocalDateTime> thisDay() {
         Map<String, LocalDateTime> map = new HashMap<>();
         LocalDateTime now = LocalDateTime.now();
         map.put("start", minDay(now));
@@ -75,7 +92,7 @@ public class TimeTool {
      * 一周维度: 周一到周日
      * 当前时间的本周开始时间结束时间
      */
-    public static Map<String, LocalDateTime> thisWeekMondayToSunday(){
+    public static Map<String, LocalDateTime> thisWeekMondayToSunday() {
         LocalDate today = LocalDate.now();
         DayOfWeek week = today.getDayOfWeek();
         int value = week.getValue();
@@ -86,11 +103,12 @@ public class TimeTool {
         map.put("end", max.atTime(23, 59, 59));
         return map;
     }
+
     /**
      * 一周维度: 周日到周六
      * 当前时间的本周开始时间结束时间
      */
-    public static Map<String, LocalDateTime> thisWeekSundayToSaturday(){
+    public static Map<String, LocalDateTime> thisWeekSundayToSaturday() {
         LocalDate today = LocalDate.now();
         DayOfWeek week = today.getDayOfWeek();
         int value = week.getValue();
@@ -105,20 +123,21 @@ public class TimeTool {
     /**
      * 当前时间的本月开始时间结束时间
      */
-    public static Map<String, LocalDateTime> thisMonth(){
+    public static Map<String, LocalDateTime> thisMonth() {
         LocalDateTime today = LocalDateTime.now();
         Map<String, LocalDateTime> map = new HashMap<>();
         map.put("start", minMonthTime(today));
         map.put("end", maxMonthTime(today));
         return map;
     }
+
     public static LocalDateTime getDateTimeOfTimestamp(long timestamp) {
         Instant instant = Instant.ofEpochMilli(timestamp);
         ZoneId zone = ZoneId.systemDefault();
         return LocalDateTime.ofInstant(instant, zone);
     }
 
-    public static Map<String, String> theLast15DaysStr(){
+    public static Map<String, String> theLast15DaysStr() {
         Map<String, LocalDate> last15Days = theLast15Days();
         Map<String, String> map = new HashMap<>();
         map.put("today", last15Days.get("today").format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
@@ -126,11 +145,11 @@ public class TimeTool {
         return map;
     }
 
-    public static Map<String, LocalDate> theLast15Days(){
+    public static Map<String, LocalDate> theLast15Days() {
         return theLastNDays(15);
     }
 
-    public static Map<String, LocalDate> theLastNDays(int n){
+    public static Map<String, LocalDate> theLastNDays(int n) {
         LocalDate today = LocalDate.now();
         LocalDate minusDays = today.minusDays(n);
         Map<String, LocalDate> map = new HashMap<>();
@@ -138,8 +157,10 @@ public class TimeTool {
         map.put("pastDays", minusDays);
         return map;
     }
+
     /**
      * 格式化时间(yyyy-MM-dd HH:mm:ss)
+     *
      * @param dateTime 日期时间
      * @return yyyy-MM-dd HH:mm:ss
      */
@@ -149,12 +170,13 @@ public class TimeTool {
 
     /**
      * 格式化时间
+     *
      * @param dateTime 时间localDateTime
-     * @param dfStr 格式
+     * @param dfStr    格式
      * @return yyyy-MM-dd HH:mm:ss
      */
     public static String getDateTimeDisplayString(LocalDateTime dateTime, String dfStr) {
-        if(Objects.isNull(dateTime)){
+        if (Objects.isNull(dateTime)) {
             return "";
         }
         DateTimeFormatter dtf2 = DateTimeFormatter.ofPattern(dfStr);
@@ -168,6 +190,7 @@ public class TimeTool {
 
     /**
      * LocalDateTime转 Date
+     *
      * @param date
      * @return
      */
@@ -176,7 +199,8 @@ public class TimeTool {
     }
 
     /**
-     *  Date转LocalDateTime
+     * Date转LocalDateTime
+     *
      * @param localDateTime
      * @return
      */
@@ -185,7 +209,7 @@ public class TimeTool {
     }
 
     public static LocalDate dateToLocalDate(Date date) {
-        if (Objects.isNull(date))return null;
+        if (Objects.isNull(date)) return null;
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
@@ -196,15 +220,17 @@ public class TimeTool {
         }
     }
 
-    public static long toTimestamp(LocalDateTime localDateTime){
+    public static long toTimestamp(LocalDateTime localDateTime) {
         return localDateTime.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
     }
 
-    public static LocalDateTime startOfTime(TimeTool.Util timeUtil){
+    public static LocalDateTime StartOfTime(TimeTool.Util timeUtil) {
         LocalDate date;
         LocalDate now = LocalDate.now();
-        switch (timeUtil){
-            case DAY: date = now; break;
+        switch (timeUtil) {
+            case DAY:
+                date = now;
+                break;
             case WEEK:
                 int week = now.getDayOfWeek().getValue();
                 date = now.minusDays(week - 1);

@@ -15,13 +15,15 @@ import com.tianli.management.query.FinancialOrdersQuery;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 
 /**
- * @author  chenb
+ * @author chenb
  * @since 2022
  */
 @Mapper
@@ -42,10 +44,13 @@ public interface OrderMapper extends BaseMapper<Order> {
 
     @Select("SELECT amount,coin FROM `order` WHERE type=#{chargeType} AND complete_time BETWEEN #{startTime} and #{endTime} and status ='chain_success'")
     List<AmountDto> amountSumByCompleteTime(@Param("chargeType") ChargeType chargeType,
-                                       @Param("startTime") LocalDateTime startTime,
-                                       @Param("endTime") LocalDateTime endTime);
+                                            @Param("startTime") LocalDateTime startTime,
+                                            @Param("endTime") LocalDateTime endTime);
 
     List<AmountDto> serviceAmountSumByCompleteTime(@Param("query") ServiceAmountQuery query);
 
-    List<AmountDto> amountSumByUidAndChargeType(@Param("uid") Long uid ,@Param("chargeType") ChargeType chargeType);
+    List<AmountDto> amountSumByUidAndChargeType(@Param("uid") Long uid, @Param("chargeType") ChargeType chargeType);
+
+    @Update("UPDATE  `order` SET  amount = amount + #{amount} WHERE id = #{id}")
+    int addAmount(@Param("id") Long id, @Param("amount") BigDecimal amount);
 }

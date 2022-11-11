@@ -183,6 +183,10 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
                 }).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    public void addAmount(Long id, BigDecimal amount) {
+        orderMapper.addAmount(id,amount);
+    }
+
     @Resource
     private OrderMapper orderMapper;
     @Resource
