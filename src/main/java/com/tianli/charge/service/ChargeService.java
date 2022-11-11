@@ -203,7 +203,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             if (Objects.isNull(orderChargeInfo)) {
                 return;
             }
-            Order order = orderService.getOrderByHash(req.getHash(),ChargeType.withdraw);
+            Order order = orderService.getOrderByHash(req.getHash(), ChargeType.withdraw);
             orderReviewService.withdrawSuccess(order, orderChargeInfo);
         }
     }
@@ -561,9 +561,14 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         Set<ChargeType> types = new HashSet<>();
 
+        if (Objects.nonNull(query.getChargeGroup())) {
+            types.addAll(query.getChargeGroup().getChargeTypes());
+        }
+
         if (CollectionUtils.isNotEmpty(query.getChargeGroups())) {
             query.getChargeGroups().forEach(group -> types.addAll(group.getChargeTypes()));
         }
+
         if (CollectionUtils.isNotEmpty(query.getChargeTypes())) {
             types.addAll(query.getChargeTypes());
         }

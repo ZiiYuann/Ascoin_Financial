@@ -8,15 +8,14 @@ import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
-import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.vo.*;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.query.TimeQuery;
-import com.tianli.management.vo.FundProductBindDropdownVO;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.FinancialUserInfoVO;
+import com.tianli.management.vo.FundProductBindDropdownVO;
 
 import java.util.List;
 
@@ -47,7 +46,6 @@ public interface FinancialService {
      * 我的持有
      */
     IPage<TransactionRecordVO> transactionRecordPage(IPage<FinancialProduct> page, Long uid, ProductType financialProductType);
-
 
     /**
      * 申购的具体每日收益
