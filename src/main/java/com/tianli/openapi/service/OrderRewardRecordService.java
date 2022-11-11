@@ -25,7 +25,7 @@ public class OrderRewardRecordService extends ServiceImpl<OrderRewardRecordMappe
      * @return 数量
      */
     public int recordCountThisHour(Long uid, LocalDateTime begin) {
-        LocalDateTime end = TimeTool.hour().plusHours(1).plusSeconds(-1);
+        LocalDateTime end = begin.plusHours(1).plusSeconds(-1);
 
         LambdaQueryWrapper<OrderRewardRecord> query = new LambdaQueryWrapper<OrderRewardRecord>()
                 .eq(OrderRewardRecord::getUid, uid)
