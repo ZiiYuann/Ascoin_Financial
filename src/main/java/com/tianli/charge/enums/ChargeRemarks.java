@@ -7,7 +7,7 @@ import lombok.Getter;
 
 public enum ChargeRemarks {
 
-    recharge_success("充值成功", "Successful Recharge", ChargeType.purchase, ChargeStatus.chain_success),
+    recharge_success("充值成功", "Successful Recharge", ChargeType.recharge, ChargeStatus.chain_success),
     redeem_process("赎回中", "In Redemption", ChargeType.redeem, ChargeStatus.chaining),
     redeem_success("赎回成功", "Successful Redemption", ChargeType.redeem, ChargeStatus.chain_success),
     redeem_fail("赎回失败", "Failed Redemption", ChargeType.redeem, ChargeStatus.chain_fail),
