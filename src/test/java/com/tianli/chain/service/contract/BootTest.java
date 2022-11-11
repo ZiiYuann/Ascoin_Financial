@@ -47,7 +47,7 @@ class BootTest {
                             .in(FinancialRecord::getId, List.of(1744213468616162991L))
             );
 
-            records.forEach(record -> financialIncomeTask.interestStat(record));
+            records.forEach(record -> financialIncomeTask.incomeExternalTranscation(record));
             Thread.sleep(5000);
 
         }

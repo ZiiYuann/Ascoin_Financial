@@ -16,6 +16,7 @@ import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.exception.Result;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.ProductRateDTO;
 import com.tianli.financial.entity.FinancialProduct;
@@ -25,6 +26,7 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.mapper.FinancialProductMapper;
 import com.tianli.financial.query.PurchaseQuery;
+import com.tianli.financial.vo.ExpectIncomeVO;
 import com.tianli.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.fund.query.FundRecordQuery;
 import com.tianli.fund.service.IFundRecordService;
@@ -47,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -373,5 +376,32 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
     public void modifyRecommend(Long id, Boolean recommend) {
         financialProductMapper.modifyRecommend(id, recommend);
         redisTemplate.delete(RedisConstants.RECOMMEND_PRODUCT);
+    }
+
+    /**
+     * 预计收益接口
+     */
+    public ExpectIncomeVO expectIncome(Long productId, BigDecimal amount) {
+        FinancialProduct product = financialProductService.getById(productId);
+        ExpectIncomeVO expectIncomeVO = new ExpectIncomeVO();
+
+        if (Objects.isNull(product)) {
+            expectIncomeVO.setExpectIncome(BigDecimal.ZERO);
+            return expectIncomeVO;
+        }
+
+
+        if (product.getRateType() == 1) {
+            BigDecimal income = financialProductLadderRateService.calLadderIncome(productId, amount);
+            expectIncomeVO.setExpectIncome(income);
+            return expectIncomeVO;
+        }
+
+        expectIncomeVO.setExpectIncome(product.getRate().multiply(amount)
+                .multiply(BigDecimal.valueOf(product.getTerm().getDay()))
+                .divide(BigDecimal.valueOf(365), 8, RoundingMode.DOWN));
+
+
+        return expectIncomeVO;
     }
 }

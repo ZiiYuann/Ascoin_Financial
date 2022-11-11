@@ -30,8 +30,6 @@ public interface IFundIncomeRecordService extends IService<FundIncomeRecord> {
 
     BigDecimal amountDollar(Long uid, Integer status, LocalDateTime startTime, LocalDateTime endTime);
 
-    BigDecimal amountYesterday(Long fundId);
-
     BigDecimal amountDollar(Long uid, Long agentId, List<Integer> status);
 
     BigDecimal amountDollar(FundIncomeQuery query);

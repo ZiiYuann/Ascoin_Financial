@@ -67,7 +67,7 @@
             coin,
             create_time,
             CASE type
-            WHEN 'redemption' THEN 'redemption'
+            WHEN 'redemption' THEN 'redeem'
             ELSE type END,
             CASE `status`
             WHEN 1 THEN

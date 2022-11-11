@@ -84,26 +84,7 @@ public class FinancialController {
      */
     @GetMapping("/expect/income")
     public Result expectIncome(Long productId, BigDecimal amount) {
-        FinancialProduct product = financialProductService.getById(productId);
-        ExpectIncomeVO expectIncomeVO = new ExpectIncomeVO();
-
-        if (Objects.isNull(product)) {
-            expectIncomeVO.setExpectIncome(BigDecimal.ZERO);
-            return Result.instance().setData(expectIncomeVO);
-        }
-
-
-        if (product.getRateType() == 1) {
-            BigDecimal income = financialProductLadderRateService.calLadderIncome(productId, amount);
-            expectIncomeVO.setExpectIncome(income);
-            return Result.instance().setData(expectIncomeVO);
-        }
-
-        expectIncomeVO.setExpectIncome(product.getRate().multiply(amount)
-                .multiply(BigDecimal.valueOf(product.getTerm().getDay()))
-                .divide(BigDecimal.valueOf(365), 8, RoundingMode.DOWN));
-
-
+        ExpectIncomeVO expectIncomeVO = financialProductService.expectIncome(productId, amount);
         return Result.instance().setData(expectIncomeVO);
     }
 

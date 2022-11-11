@@ -33,7 +33,6 @@ import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -43,6 +42,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -112,7 +112,7 @@ public class FinancialIncomeTask {
 
                 records.forEach(financialRecord -> {
                     try {
-                        task.interestStat(financialRecord);
+                        task.incomeExternalTranscation(financialRecord);
                     } catch (Exception e) {
                         incomeCompensate(e, task, financialRecord);
                     }
@@ -141,7 +141,7 @@ public class FinancialIncomeTask {
 
             int andDecrement = atomicInteger.getAndDecrement();
             if (andDecrement > 0) {
-                task.interestStat(financialRecord);
+                task.incomeExternalTranscation(financialRecord);
             } else {
                 log.error("统计每日利息失败: record:{}", toJson);
                 webHookService.dingTalkSend("理财计算利息多次失败，请处理！", new RuntimeException(toJson));
@@ -150,11 +150,42 @@ public class FinancialIncomeTask {
         }, 30, TimeUnit.MINUTES, new RetryTaskInfo<>("incomeTask", "定时计息", financialRecord));
     }
 
+
+//    LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
+//                if (ProductType.fixed.equals(financialRecord.getProductType()) && financialRecord.getEndTime()
+//                        .compareTo(todayZero) == 0) {
+//    }
+
     /**
      * 统计每日利息
      */
+
+    public void incomeExternalTranscation(FinancialRecord financialRecord) {
+
+        FinancialIncomeTask bean = ApplicationContextTool.getBean(FinancialIncomeTask.class);
+        if (Objects.isNull(bean)) {
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
+        }
+
+        LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
+
+
+        HashMap<String, Order> orderMap = bean.incomeAndSettleTransaction(financialRecord);
+
+        try {
+            if (ProductType.fixed.equals(financialRecord.getProductType()) && financialRecord.getEndTime()
+                    .compareTo(todayZero) == 0) {
+                bean.renewalTransaction(financialRecord, orderMap.get("income"), orderMap.get("settle"), LocalDateTime.now());
+            }
+        } catch (Exception e) {
+            webHookService.dingTalkSend(String.format("产品[%d]自动续费失败", financialRecord.getProductId()), e);
+        }
+
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void interestStat(FinancialRecord financialRecord) {
+    public HashMap<String, Order> incomeAndSettleTransaction(FinancialRecord financialRecord) {
+        HashMap<String, Order> result = new HashMap<>();
         ProductType type = financialRecord.getProductType();
         LocalDateTime endTime = financialRecord.getEndTime();
         LocalDateTime now = LocalDateTime.now();
@@ -165,7 +196,8 @@ public class FinancialIncomeTask {
                 && financialRecord.getWaitAmount().compareTo(BigDecimal.ZERO) > 0) {
             financialRecordService.increaseIncomeAmount(financialRecord.getId(), financialRecord.getWaitAmount()
                     , financialRecord.getIncomeAmount());
-            return;
+            // 记录利息完毕后需要重新获取对象
+            financialRecord = financialRecordService.getById(financialRecord.getId());
         }
 
         // 如果是定期产品且当前时间为到期前一天则计算利息
@@ -173,32 +205,28 @@ public class FinancialIncomeTask {
             var incomeOrder = incomeOperation(financialRecord, now);
             var settleOrder = settleOperation(financialRecord, now);
             // 对于自动续费操作来说，可能会有业务异常，不影响利息对发放
-            try {
-
-                FinancialIncomeTask bean = ApplicationContextTool.getBean(FinancialIncomeTask.class);
-                if (Objects.isNull(bean)) {
-                    ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
-                }
-                bean.renewalOperation(financialRecord, incomeOrder, settleOrder, now);
-            } catch (Exception e) {
-                webHookService.dingTalkSend(String.format("产品[%d]自动续费失败", financialRecord.getProductId()), e);
-            }
+            result.put("income", incomeOrder);
+            result.put("settle", settleOrder);
         }
 
         // 如果是活期产品需要当前时间 >= 收益发放时间
         if (ProductType.current.equals(type)) {
             // 记息金额为0 且 待记息金额 不为 0， 直接增加记息金额后返回
             if (todayZero.compareTo(grantIncomeTime) >= 0) {
-                incomeOperation(financialRecord, now);
+                Order incomeOrder = incomeOperation(financialRecord, now);
+                result.put("income", incomeOrder);
             }
         }
+
+        return result;
     }
+
 
     /**
      * 自动续费操作
      */
-    @Transactional(noRollbackFor = Exception.class)
-    public void renewalOperation(FinancialRecord financialRecord, Order incomeOrder, Order settleOrder, LocalDateTime now) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void renewalTransaction(FinancialRecord financialRecord, Order incomeOrder, Order settleOrder, LocalDateTime now) {
         if (!financialRecord.isAutoRenewal()) {
             return;
         }
@@ -222,8 +250,6 @@ public class FinancialIncomeTask {
 
         // 取第一个有效的产品
         FinancialProduct product = products.get(0);
-        FinancialRecord transferRecord = financialRecordService.generateFinancialRecord(financialRecord.getUid()
-                , product, transferAmount, false);
 
         long id = CommonFunction.generalId();
         Order order = Order.builder()
@@ -235,7 +261,7 @@ public class FinancialIncomeTask {
                 .coin(financialRecord.getCoin())
                 // 转存金额为 结算金额加收益金额
                 .amount(transferAmount)
-                .relatedId(transferRecord.getId())
+                .relatedId(financialRecord.getId())
                 .createTime(now.plusSeconds(1))
                 .completeTime(now.plusSeconds(1))
                 .build();

@@ -37,6 +37,7 @@
         INNER JOIN financial_record record ON income.uid = record.uid and income.record_id = record.id
         where 1=1
         <include refid="FinancialProductIncomeQuery" />
+        order by income.income_amount desc
 
     </select>
 

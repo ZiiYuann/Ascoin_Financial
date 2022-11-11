@@ -161,7 +161,7 @@ public class TestController {
                 financialIncomeAccrueService.updateById(financialIncomeAccrue);
             }
 
-            financialIncomeTask.interestStat(record);
+            financialIncomeTask.incomeExternalTranscation(record);
 
         });
 

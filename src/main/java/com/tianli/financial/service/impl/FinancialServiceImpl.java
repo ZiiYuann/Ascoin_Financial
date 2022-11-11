@@ -30,7 +30,9 @@ import com.tianli.financial.mapper.ProductMapper;
 import com.tianli.financial.service.*;
 import com.tianli.financial.vo.*;
 import com.tianli.fund.contant.FundIncomeStatus;
+import com.tianli.fund.dto.FundIncomeAmountDTO;
 import com.tianli.fund.entity.FundRecord;
+import com.tianli.fund.query.FundIncomeQuery;
 import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.management.entity.FinancialBoardProduct;
@@ -80,17 +82,20 @@ public class FinancialServiceImpl implements FinancialService {
         for (ProductType type : types) {
             DollarIncomeVO incomeVO = new DollarIncomeVO();
             // 单类型产品持有币数量
-            BigDecimal holdFeeDollar = financialRecordService.getPurchaseAmount(uid, type, RecordStatus.PROCESS);
+            BigDecimal holdFeeDollar = financialRecordService.getPurchaseAmount(uid, type, RecordStatus.PROCESS)
+                    .setScale(2, RoundingMode.DOWN);
             incomeVO.setHoldFee(holdFeeDollar);
             totalHoldFeeDollar = totalHoldFeeDollar.add(holdFeeDollar);
 
             // 单类型产品累计收益
-            BigDecimal incomeAmountDollar = financialIncomeAccrueService.getAccrueDollarAmount(uid, type);
+            BigDecimal incomeAmountDollar = financialIncomeAccrueService.getAccrueDollarAmount(uid, type)
+                    .setScale(2, RoundingMode.DOWN);
             incomeVO.setAccrueIncomeFee(incomeAmountDollar);
             totalAccrueIncomeFeeDollar = totalAccrueIncomeFeeDollar.add(incomeAmountDollar);
 
             // 单个类型产品昨日收益
-            BigDecimal yesterdayIncomeAmountDollar = financialIncomeDailyService.amountDollarYesterday(uid, type);
+            BigDecimal yesterdayIncomeAmountDollar = financialIncomeDailyService.amountDollarYesterday(uid, type)
+                    .setScale(2, RoundingMode.DOWN);
             incomeVO.setYesterdayIncomeFee(yesterdayIncomeAmountDollar);
             totalYesterdayIncomeFeeDollar = totalYesterdayIncomeFeeDollar.add(yesterdayIncomeAmountDollar);
 
@@ -98,12 +103,13 @@ public class FinancialServiceImpl implements FinancialService {
         }
 
         // 基金数据
-        BigDecimal fundHoldDollarAmount = fundRecordService.holdAmountDollar(uid, null, null);
-        BigDecimal fundTotalIncome =
-                fundIncomeRecordService.amountDollar(uid, FundIncomeStatus.audit_success, null, null);
+        BigDecimal fundHoldDollarAmount = fundRecordService.holdAmountDollar(uid, null, null)
+                .setScale(2, RoundingMode.DOWN);
+        BigDecimal fundTotalIncome = fundIncomeRecordService.amountDollar(uid, FundIncomeStatus.audit_success, null, null)
+                .setScale(2, RoundingMode.DOWN);
         LocalDateTime time = LocalDateTime.now().plusDays(-1);
-        BigDecimal fundYesterdayIncome =
-                fundIncomeRecordService.amountDollar(uid, FundIncomeStatus.audit_success, TimeTool.minDay(time), TimeTool.maxDay(time));
+        BigDecimal fundYesterdayIncome = fundIncomeRecordService.amountDollar(uid, FundIncomeStatus.audit_success, TimeTool.minDay(time), TimeTool.maxDay(time))
+                .setScale(2, RoundingMode.DOWN);
 
         DollarIncomeVO fundIncomeVo = new DollarIncomeVO();
         fundIncomeVo.setAccrueIncomeFee(fundTotalIncome);
@@ -170,7 +176,14 @@ public class FinancialServiceImpl implements FinancialService {
             IncomeVO incomeVO = new IncomeVO();
             incomeVO.setHoldFee(dollarRateMap.get(holdProductVo.getCoin()).multiply(holdProductVo.getHoldAmount()));
             if (ProductType.fund.equals(holdProductVo.getProductType())) {
-                incomeVO.setYesterdayIncomeAmount(fundIncomeRecordService.amountYesterday(holdProductVo.getRecordId()));
+                FundIncomeQuery query = new FundIncomeQuery();
+                query.setUid(uid);
+                query.setStatus(List.of(FundIncomeStatus.calculated, FundIncomeStatus.wait_audit));
+                query.setFundId(holdProductVo.getRecordId());
+                BigDecimal waitInterestAmount = fundIncomeRecordService.getAmount(query).stream().map(FundIncomeAmountDTO::getWaitInterestAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                incomeVO.setWaitAuditIncomeAmount(waitInterestAmount);
             }
             if (!ProductType.fund.equals(holdProductVo.getProductType())) {
                 incomeVO.setYesterdayIncomeAmount(financialIncomeDailyService.amountYesterday(holdProductVo.getRecordId()));
@@ -250,7 +263,7 @@ public class FinancialServiceImpl implements FinancialService {
         records.sort((a, b) -> {
             BigDecimal hold1 = MoreObjects.firstNonNull(a.getHoldAmount(), BigDecimal.ZERO);
             BigDecimal hold2 = MoreObjects.firstNonNull(b.getHoldAmount(), BigDecimal.ZERO);
-            return - hold1.compareTo(hold2);
+            return -hold1.compareTo(hold2);
         });
 
         return financialProductVOIPage;
@@ -402,8 +415,7 @@ public class FinancialServiceImpl implements FinancialService {
         IPage<FinancialProductVO> financialProductVOIPage =
                 getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), null, query);
 
-        List<FinancialProductVO> productVOS = financialProductVOIPage.getRecords()
-                .stream().filter(FinancialProductVO::isAllowPurchase).collect(Collectors.toList());
+        List<FinancialProductVO> productVOS = financialProductVOIPage.getRecords();
         FixedProductsPurchaseVO fixedProductsPurchaseVO = new FixedProductsPurchaseVO();
         fixedProductsPurchaseVO.setProducts(productVOS);
         fixedProductsPurchaseVO.setTerms(productVOS.stream().map(FinancialProductVO::getTerm).collect(Collectors.toList()));
