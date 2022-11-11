@@ -37,9 +37,9 @@ public class OrderChargeInfoVO {
      */
     private ChargeStatus status;
 
-    private String typeRemarks;
+    private String remarks;
 
-    private String typeRemarksEn;
+    private String remarksEn;
 
     /**
      * 创建时间
@@ -102,11 +102,11 @@ public class OrderChargeInfoVO {
     private BigDecimal usdtAmount;
 
     public String getTypeName() {
-        return MoreObjects.firstNonNull(typeRemarks, type.getNameZn());
+        return MoreObjects.firstNonNull(remarks, type.getNameZn());
     }
 
     public String getTypeNameEn() {
-        return MoreObjects.firstNonNull(typeRemarksEn, type.getNameZn());
+        return MoreObjects.firstNonNull(remarksEn, type.getNameZn());
     }
 
     public String getChargeGroup() {

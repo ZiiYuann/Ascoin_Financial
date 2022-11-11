@@ -23,6 +23,7 @@ import com.tianli.charge.converter.ChargeConverter;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderChargeInfo;
 import com.tianli.charge.enums.ChargeGroup;
+import com.tianli.charge.enums.ChargeRemarks;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderMapper;
@@ -604,6 +605,12 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 int i = orderRewardRecordService.recordCountThisHour(charge.getUid(), charge.getCreateTime());
                 orderChargeInfoVO.setTypeRemarks("已发放" + i + "笔");
                 orderChargeInfoVO.setTypeRemarksEn(i + " Receiving Records");
+            }
+
+            if (!ChargeType.transaction_reward.equals(orderChargeInfoVO.getType())) {
+                ChargeRemarks remarks = ChargeRemarks.getInstance(charge.getType(), charge.getStatus());
+                orderChargeInfoVO.setTypeRemarks(remarks.getRemarks());
+                orderChargeInfoVO.setTypeRemarksEn(remarks.getRemarksEn());
             }
             return orderChargeInfoVO;
         });
