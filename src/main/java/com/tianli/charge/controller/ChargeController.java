@@ -117,7 +117,6 @@ public class ChargeController {
 
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
-
         }
 
 

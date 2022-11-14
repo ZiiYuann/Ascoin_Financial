@@ -1,5 +1,6 @@
 package com.tianli.charge.vo;
 
+import com.google.common.base.MoreObjects;
 import com.tianli.charge.enums.ChargeGroup;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
@@ -35,6 +36,10 @@ public class OrderChargeInfoVO {
      * 交易状态
      */
     private ChargeStatus status;
+
+    private String typeRemarks;
+
+    private String typeRemarksEn;
 
     /**
      * 创建时间
@@ -97,14 +102,14 @@ public class OrderChargeInfoVO {
     private BigDecimal usdtAmount;
 
     public String getTypeName() {
-        return type.getNameZn();
+        return MoreObjects.firstNonNull(typeRemarks, type.getNameZn());
     }
 
     public String getTypeNameEn() {
-        return type.getNameEn();
+        return MoreObjects.firstNonNull(typeRemarksEn, type.getNameZn());
     }
 
-    public String getChargeGroup(){
+    public String getChargeGroup() {
         return ChargeGroup.getInstance(this.type).getName();
     }
 }
