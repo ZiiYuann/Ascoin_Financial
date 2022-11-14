@@ -106,7 +106,7 @@ public class OrderChargeInfoVO {
     }
 
     public String getTypeNameEn() {
-        return MoreObjects.firstNonNull(typeRemarksEn, type.getNameZn());
+        return MoreObjects.firstNonNull(typeRemarksEn, type.getNameEn());
     }
 
     public String getChargeGroup() {
