@@ -46,10 +46,10 @@
     <select id="selectSummaryIncomePage" resultType="com.tianli.fund.vo.FundIncomeRecordVO">
         select
         a.product_name productName,
-
         a.coin,
         b.logo,
-        sum(a.interest_amount) as interestAmount
+        sum(a.interest_amount) as interestAmount,
+        max(a.create_time) as update_time
         from fund_income_record a
         inner JOIN fund_record b on a.fund_id = b.id
         inner join wallet_agent_product c on b.product_id = c.product_id

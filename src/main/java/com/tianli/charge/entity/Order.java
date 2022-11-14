@@ -82,6 +82,15 @@ public class Order {
      * 本地申购 order_advance id 一般申购（基金：基金持用fund_record id 理财：理财持用 financial_record id）
      * 借贷：弃用
      * 赎回：financial_record id
+     * 不同类型的交易关联不同的附录表 设计的不合理（我的锅）
+     * <p>
+     * 红包发送: red_envelope 红包id
+     * 抢红包:  red_envelope_spilt_get_record 抢红包记录id
+     * 提现 + 充值: order_charge_info 链上记录表
+     * 申购: [区分本地申购和普通申购通过 order_no] 普通申购：持用id 本地申购 预订单表id
+     * 本地申购 order_advance id 一般申购（基金：基金持用fund_record id 理财：理财持用 financial_record id）
+     * 借贷：弃用
+     * 赎回：financial_record id
      *
      */
     private Long relatedId;

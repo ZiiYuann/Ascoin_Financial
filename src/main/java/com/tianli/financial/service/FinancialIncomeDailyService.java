@@ -11,6 +11,8 @@ import com.tianli.financial.dto.FinancialIncomeDailyDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.mapper.FinancialIncomeDailyMapper;
+import com.tianli.fund.entity.FundRecord;
+import com.tianli.fund.service.IFundRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +38,8 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
     private FinancialIncomeDailyMapper financialIncomeDailyMapper;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private IFundRecordService fundRecordService;
 
     /**
      * 根据产品类型、状态获取利息总额
@@ -43,18 +47,42 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
      * @param uid  uid
      * @param type 产品类型
      */
-    public BigDecimal getYesterdayDailyDollarAmount(Long uid, ProductType type) {
+    public BigDecimal amountDollarYesterday(Long uid, ProductType type) {
 
         LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
         LocalDateTime yesterdayZero = todayZero.plusDays(-1);
 
-        List<FinancialIncomeDailyDTO> dailyIncomeLogs = financialIncomeDailyMapper.listByUidAndType(uid, type, yesterdayZero, todayZero);
+        List<FinancialIncomeDailyDTO> dailyIncomeLogs = financialIncomeDailyMapper.listByUidAndType(uid, type
+                , null, yesterdayZero, todayZero);
 
         if (CollectionUtils.isEmpty(dailyIncomeLogs)) {
             return BigDecimal.ZERO;
         }
 
         return dailyIncomeLogs.stream().map(log -> log.getIncomeAmount().multiply(currencyService.getDollarRate(log.getCoin())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal amountDollarYesterday(Long recordId) {
+
+        FundRecord fundRecord = fundRecordService.getById(recordId);
+        return this.amountYesterday(recordId).multiply(currencyService.getDollarRate(fundRecord.getCoin()));
+
+    }
+
+    public BigDecimal amountYesterday(Long recordId) {
+
+        LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
+        LocalDateTime yesterdayZero = todayZero.plusDays(-1);
+
+        List<FinancialIncomeDailyDTO> dailyIncomeLogs = financialIncomeDailyMapper.listByUidAndType(null, null
+                , recordId, yesterdayZero, todayZero);
+
+        if (CollectionUtils.isEmpty(dailyIncomeLogs)) {
+            return BigDecimal.ZERO;
+        }
+
+        return dailyIncomeLogs.stream().map(FinancialIncomeDaily::getIncomeAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
@@ -78,17 +106,6 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
                 .orderNo(orderNo).rate(rate).amount(calIncomeAmount)
                 .build();
         financialIncomeDailyMapper.insert(incomeDailyInsert);
-    }
-
-    public List<FinancialIncomeDaily> selectListByRecordIds(Long uid, List<Long> recordIds, LocalDateTime finishTime) {
-        LambdaQueryWrapper<FinancialIncomeDaily> query = new LambdaQueryWrapper<FinancialIncomeDaily>()
-                .eq(FinancialIncomeDaily::getUid, uid)
-                .in(FinancialIncomeDaily::getRecordId, recordIds)
-                .orderByDesc(FinancialIncomeDaily::getFinishTime);
-        if (Objects.nonNull(finishTime)) {
-            query = query.eq(FinancialIncomeDaily::getFinishTime, finishTime);
-        }
-        return financialIncomeDailyMapper.selectList(query);
     }
 
     public IPage<FinancialIncomeDaily> pageByRecordId(IPage<FinancialIncomeDaily> page, Long uid, List<Long> recordIds, LocalDateTime finishTime) {

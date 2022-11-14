@@ -6,7 +6,6 @@ import com.tianli.exception.Result;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
-import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.RecordRenewalQuery;
 import com.tianli.financial.service.FinancialProductLadderRateService;
@@ -41,7 +40,7 @@ public class FinancialController {
 
 
     /**
-     * 【首页】产品展示
+     * 【量化理财主页面】产品汇总列表
      */
     @GetMapping("/summary/products")
     public Result productSummary(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
@@ -49,13 +48,19 @@ public class FinancialController {
     }
 
     /**
-     * 理财产品列表
+     * 【量化理财主页面】产品列表
      */
-    // todo 上线稳定后可以删除
-    @Deprecated
     @GetMapping("/products")
     public Result products(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
         return Result.instance().setData(financialService.products(pageQuery.page(), productType));
+    }
+
+    /**
+     * 【量化理财主页面】 推荐列表
+     */
+    @GetMapping("/recommend/products")
+    public Result recommendProducts() {
+        return Result.instance().setData(financialService.recommendProducts());
     }
 
     /**
@@ -79,36 +84,26 @@ public class FinancialController {
      */
     @GetMapping("/expect/income")
     public Result expectIncome(Long productId, BigDecimal amount) {
-        FinancialProduct product = financialProductService.getById(productId);
-        ExpectIncomeVO expectIncomeVO = new ExpectIncomeVO();
-
-        if (Objects.isNull(product)) {
-            expectIncomeVO.setExpectIncome(BigDecimal.ZERO);
-            return Result.instance().setData(expectIncomeVO);
-        }
-
-
-        if (product.getRateType() == 1) {
-            BigDecimal income = financialProductLadderRateService.calLadderIncome(productId, amount);
-            expectIncomeVO.setExpectIncome(income);
-            return Result.instance().setData(expectIncomeVO);
-        }
-
-        expectIncomeVO.setExpectIncome(product.getRate().multiply(amount)
-                .multiply(BigDecimal.valueOf(product.getTerm().getDay()))
-                .divide(BigDecimal.valueOf(365), 8, RoundingMode.DOWN));
-
-
+        ExpectIncomeVO expectIncomeVO = financialProductService.expectIncome(productId, amount);
         return Result.instance().setData(expectIncomeVO);
     }
 
     /**
-     * 【我的赚币】我的持用
+     * 【我的持用】
      */
     @GetMapping("/hold")
-    public Result myHold(PageQuery<FinancialRecord> pageQuery, ProductType productType) {
+    public Result myHold(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
         Long uid = requestInitService.uid();
         return Result.instance().setData(financialService.holdProductPage(pageQuery.page(), uid, productType));
+    }
+
+    /**
+     * 【我的持用】
+     */
+    @GetMapping("/transaction/records")
+    public Result transactionRecords(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(financialService.transactionRecordPage(pageQuery.page(), uid, productType));
     }
 
     /**

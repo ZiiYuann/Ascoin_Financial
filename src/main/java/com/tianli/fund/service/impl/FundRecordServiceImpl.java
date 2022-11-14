@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.google.common.base.MoreObjects;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
@@ -13,6 +14,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
+import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.currency.log.CurrencyLogDes;
@@ -64,7 +66,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -114,6 +115,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
 
     @Resource
     private IFundReviewService fundReviewService;
+
 
     @Override
     @SuppressWarnings("unchecked")
@@ -256,14 +258,13 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     @Override
     public FundMainPageVO mainPage() {
         Long uid = requestInitService.uid();
-        List<AmountDto> holdAmount = fundRecordMapper.holdAmountSumByUid(uid, null);
         FundIncomeQuery query = new FundIncomeQuery();
         query.setUid(uid);
         List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordService.getAmount(query);
         List<AmountDto> waitPayInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncome -> new AmountDto(fundIncome.getWaitInterestAmount(), fundIncome.getCoin())).collect(Collectors.toList());
         List<AmountDto> payInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncome -> new AmountDto(fundIncome.getPayInterestAmount(), fundIncome.getCoin())).collect(Collectors.toList());
         return FundMainPageVO.builder()
-                .holdAmount(orderService.calDollarAmount(holdAmount))
+                .holdAmount(this.holdAmountDollar(uid, null, null))
                 .payInterestAmount(orderService.calDollarAmount(payInterestAmount))
                 .waitPayInterestAmount(orderService.calDollarAmount(waitPayInterestAmount))
                 .build();
@@ -329,9 +330,17 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         FundRecord fundRecord = this.getById(id);
         FundRecordVO fundRecordVO = fundRecordConvert.toFundVO(fundRecord);
         long until = fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS);
-        //七天允许赎回
-        // todo 第二天起计算七天
         fundRecordVO.setIsAllowRedemption(until >= FundCycle.interestAuditCycle);
+
+        FinancialProduct product = financialProductService.getById(fundRecord.getProductId());
+
+        if (Objects.nonNull(product.getTotalQuota())) {
+            BigDecimal useQuota = MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO);
+            fundRecordVO.setSellOut(useQuota.compareTo(product.getTotalQuota()) >= 0);
+        }
+
+        // 设置基金昨日收益
+        fundRecordVO.setYesterdayIncomeAmount(fundIncomeRecordService.yesterdayIncomeAmount(id));
         return fundRecordVO;
     }
 
@@ -392,19 +401,16 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         IPage<FundUserRecordVO> fundUserRecordPage = fundRecordMapper.selectDistinctUidPage(pageQuery.page(), query);
         return fundUserRecordPage.convert(fundUserRecordVO -> {
             Long uid = fundUserRecordVO.getUid();
-            List<AmountDto> amountDtos = fundRecordMapper.holdAmountSumByUid(uid, query.getAgentId());
-            fundUserRecordVO.setHoldAmount(orderService.calDollarAmount(amountDtos));
+            fundUserRecordVO.setHoldAmount(this.holdAmountDollar(uid, null, query.getAgentId()));
             // 累计利息 包括 待发 + 已经发
-            List<AmountDto> interestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, query.getAgentId(), new ArrayList<>());
-            fundUserRecordVO.setInterestAmount(orderService.calDollarAmount(interestAmount));
+            fundUserRecordVO.setInterestAmount(fundIncomeRecordService.amountDollar(uid, query.getAgentId(), new ArrayList<>()));
 
             // 已经支付利息
-            List<AmountDto> payInterestAmount = fundIncomeRecordService.getAmountByUidAndStatus(uid, query.getAgentId(), FundIncomeStatus.audit_success);
-            fundUserRecordVO.setPayInterestAmount(orderService.calDollarAmount(payInterestAmount));
+            fundUserRecordVO.setPayInterestAmount(fundIncomeRecordService.amountDollar(uid, query.getAgentId(), FundIncomeStatus.audit_success));
 
             // 待支付利息
-            BigDecimal waitPayInterestAmount = orderService.calDollarAmount(fundIncomeRecordService.getAmountByUidAndStatus(uid, query.getAgentId()
-                    , List.of(FundIncomeStatus.wait_audit, FundIncomeStatus.calculated)));
+            BigDecimal waitPayInterestAmount = fundIncomeRecordService.amountDollar(uid, query.getAgentId()
+                    , List.of(FundIncomeStatus.wait_audit, FundIncomeStatus.calculated));
             fundUserRecordVO.setWaitPayInterestAmount(waitPayInterestAmount);
             return fundUserRecordVO;
         });
@@ -447,9 +453,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
             this.updateById(fundRecord);
         }
 
-        // t（申购第二天零点） + 3 是开始记录利息的时间  1号12点申购 5号开始计算利息 6号开始发5号利息
-        LocalDate startIncomeTime = fundRecord.getCreateTime().toLocalDate().plusDays(4);
-        if (startIncomeTime.until(LocalDateTime.now(), ChronoUnit.DAYS) < FundCycle.interestAuditCycle) {
+        if (fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS) < FundCycle.interestAuditCycle) {
             ErrorCodeEnum.REDEMPTION_CYCLE_ERROR.throwException();
         }
 
@@ -504,7 +508,18 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     }
 
     @Override
-    public BigDecimal getHoldAmount(FundRecordQuery query) {
+    public BigDecimal holdAmountDollar(Long uid, CurrencyCoin coin, Long agentId) {
+        FundRecordQuery query = new FundRecordQuery();
+        query.setQueryUid(uid + "");
+        query.setCoin(query.getCoin());
+        query.setAgentId(agentId);
+        List<AmountDto> amountDtos = fundRecordMapper.selectHoldAmount(query);
+        return orderService.calDollarAmount(amountDtos);
+    }
+
+
+    @Override
+    public BigDecimal holdAmountDollar(FundRecordQuery query) {
         List<AmountDto> amountDtos = fundRecordMapper.selectHoldAmount(query);
         return orderService.calDollarAmount(amountDtos);
     }
@@ -538,7 +553,6 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
 
         return Optional.ofNullable(fundRecordMapper.selectList(eq)).orElse(new ArrayList<>());
     }
-
 
     @Override
     public void validProduct(FinancialProduct financialProduct, PurchaseQuery purchaseQuery) {

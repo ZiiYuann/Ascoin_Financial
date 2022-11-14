@@ -93,6 +93,8 @@ public class MFinancialProductVO {
 
     private BigDecimal minRate;
 
+    private boolean recommend;
+
     /**
      * 阶梯利率
      */

@@ -67,6 +67,7 @@
                record.start_income_time,
                record.redeem_time,
                record.coin,
+               record.product_type,
                record.product_name,
                record.product_term,
                record.product_name_en,

@@ -141,4 +141,17 @@ public class FinancialProductVO {
 
     private BigDecimal minRate;
 
+    /**
+     * 是否售罄
+     */
+    private boolean sellOut;
+
+    /**
+     * 是否持有
+     */
+    private boolean hold;
+
+    private boolean newUser;
+
+
 }

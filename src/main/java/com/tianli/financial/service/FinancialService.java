@@ -39,15 +39,20 @@ public interface FinancialService {
     RecordIncomeVO recordIncome(Long uid, Long recordId);
 
     /**
-     * 我的持有列表信息
+     * 我的持有
      */
-    IPage<HoldProductVo> holdProductPage(IPage<FinancialRecord> page, Long uid, ProductType financialProductType);
+    IPage<HoldProductVo> holdProductPage(IPage<FinancialProduct> page, Long uid, ProductType financialProductType);
+
+    /**
+     * 我的持有
+     */
+    IPage<TransactionRecordVO> transactionRecordPage(IPage<FinancialProduct> page, Long uid, ProductType financialProductType);
 
 
     /**
      * 申购的具体每日收益
      */
-    IPage<FinancialIncomeDailyVO> dailyIncomePage(IPage<FinancialIncomeDaily> pageQuery, Long uid , Long recordId);
+    IPage<FinancialIncomeDailyVO> dailyIncomePage(IPage<FinancialIncomeDaily> pageQuery, Long uid, Long recordId);
 
     /**
      * 获取订单记录信息
@@ -67,12 +72,17 @@ public interface FinancialService {
     /**
      * 汇总产品列表
      */
-    IPage<RateScopeVO> summaryProducts(Page<FinancialProduct> page,ProductType productType);
+    IPage<RateScopeVO> summaryProducts(Page<FinancialProduct> page, ProductType productType);
 
     /**
      * 产品列表
      */
     IPage<FinancialProductVO> products(Page<FinancialProduct> page, ProductType type);
+
+    /**
+     * 推荐产品列表
+     */
+    List<RecommendProductVO> recommendProducts();
 
     /**
      * 理财用户信息

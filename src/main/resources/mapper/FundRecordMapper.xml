@@ -41,6 +41,9 @@
             <if test="query.productId != null">
                 and a.product_id = #{query.productId}
             </if>
+            <if test="query.coin != null">
+                and a.coin = #{query.coin}
+            </if>
         </where>
         group by a.coin
     </select>

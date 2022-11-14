@@ -46,6 +46,7 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
+import com.tianli.financial.vo.ExpectIncomeVO;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.openapi.service.OrderRewardRecordService;
@@ -409,9 +410,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             case transfer:
                 var orderRechargeDetailsVo = chargeConverter.toOrderRechargeDetailsVo(record);
                 orderRechargeDetailsVo.setPurchaseTime(record.getPurchaseTime());
-                orderRechargeDetailsVo.setExpectIncome(record.getHoldAmount().multiply(record.getRate())
-                        .multiply(BigDecimal.valueOf(record.getProductTerm().getDay()))
-                        .divide(BigDecimal.valueOf(365), 8, RoundingMode.DOWN));
+                ExpectIncomeVO expectIncomeVO = financialProductService.expectIncome(record.getProductId(), order.getAmount());
+                orderRechargeDetailsVo.setExpectIncome(expectIncomeVO.getExpectIncome());
                 orderRechargeDetailsVo.setRateType(product.getRateType());
                 orderRechargeDetailsVo.setMaxRate(product.getMaxRate());
                 orderRechargeDetailsVo.setMinRate(product.getMinRate());
@@ -500,6 +500,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .eq(Order::getUid, uid)
                 .eq(Order::getCoin, currencyCoin)
                 .orderByDesc(Order::getCreateTime)
+                .orderByDesc(Order :: getId)
                 .eq(false, Order::getStatus, ChargeStatus.chain_fail);
         if (Objects.nonNull(chargeGroup)) {
             wrapper = wrapper.in(Order::getType, chargeGroup.getChargeTypes());

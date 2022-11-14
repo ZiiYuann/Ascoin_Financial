@@ -24,4 +24,6 @@ public class RedisConstants {
      * 红包领取记录
      */
     public static String RED_ENVELOPE_GET_RECORD = "red:get:record:";
+
+    public static String RECOMMEND_PRODUCT = "product:recommend";
 }
