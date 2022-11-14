@@ -44,6 +44,9 @@
             <if test="query.coin != null">
                 and a.coin = #{query.coin}
             </if>
+            <if test="query.queryUid != null">
+                and a.uid = #{query.queryUid}
+            </if>
         </where>
         group by a.coin
     </select>
