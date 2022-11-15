@@ -102,11 +102,11 @@ public class OrderChargeInfoVO {
     private BigDecimal usdtAmount;
 
     public String getTypeName() {
-        return MoreObjects.firstNonNull(typeRemarks, type.getNameZn());
+        return type.getNameZn();
     }
 
     public String getTypeNameEn() {
-        return MoreObjects.firstNonNull(typeRemarksEn, type.getNameEn());
+        return type.getNameEn();
     }
 
     public String getChargeGroup() {
