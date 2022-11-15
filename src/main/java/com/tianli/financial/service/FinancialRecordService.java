@@ -147,7 +147,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
 
         var query =
                 new LambdaQueryWrapper<FinancialRecord>()
-                        .eq(FinancialRecord :: getStatus,RecordStatus.PROCESS)
+                        .eq(FinancialRecord::getStatus, RecordStatus.PROCESS)
                         .in(FinancialRecord::getProductId, productIds);
 
         if (Objects.nonNull(uid)) {
@@ -174,13 +174,13 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      * 生成记录
      */
     public FinancialRecord generateFinancialRecord(Long uid, FinancialProduct product, BigDecimal amount, boolean autoRenewal) {
-        return generateFinancialRecord(null,uid,product,amount,autoRenewal);
+        return generateFinancialRecord(null, uid, product, amount, autoRenewal);
     }
 
-    public FinancialRecord generateFinancialRecord(Long id,Long uid, FinancialProduct product, BigDecimal amount, boolean autoRenewal) {
+    public FinancialRecord generateFinancialRecord(Long id, Long uid, FinancialProduct product, BigDecimal amount, boolean autoRenewal) {
         LocalDateTime startIncomeTime = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(1);
         FinancialRecord record = FinancialRecord.builder()
-                .id(MoreObjects.firstNonNull(id,CommonFunction.generalId()))
+                .id(MoreObjects.firstNonNull(id, CommonFunction.generalId()))
                 .productId(product.getId())
                 .riskType(product.getRiskType())
                 .businessType(product.getBusinessType())
@@ -302,7 +302,20 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      * 正持有的产品数量
      */
     public BigDecimal holdAmountDollar(ProductType productType) {
-        List<AmountDto> amountDtos = financialRecordMapper.countProcess(productType);
+        List<AmountDto> amountDtos = financialRecordMapper.holdAmount(productType, null);
+        return orderService.calDollarAmount(amountDtos);
+    }
+
+    /**
+     * 正持有的产品数量
+     */
+    public BigDecimal holdAmountDollar(CurrencyCoin coin) {
+        List<AmountDto> amountDtos = financialRecordMapper.holdAmount(null, coin);
+        return orderService.calDollarAmount(amountDtos);
+    }
+
+    public BigDecimal holdAmountDollar() {
+        List<AmountDto> amountDtos = financialRecordMapper.holdAmount(null, null);
         return orderService.calDollarAmount(amountDtos);
     }
 

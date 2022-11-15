@@ -18,7 +18,7 @@
         <where>
             a.status = 'PROCESS'
             <if test="query.queryUid != null and query.queryUid != ''">
-              and  a.uid like concat('%',#{query.queryUid},'%')
+                and a.uid like concat('%',#{query.queryUid},'%')
             </if>
             <if test="query.agentId != null">
                 and b.agent_id = #{query.agentId}
@@ -36,7 +36,7 @@
         <where>
             a.status = 'PROCESS'
             <if test="query.agentId != null">
-               and b.agent_id = #{query.agentId}
+                and b.agent_id = #{query.agentId}
             </if>
             <if test="query.productId != null">
                 and a.product_id = #{query.productId}
@@ -57,7 +57,7 @@
         <where>
             status = 'PROCESS'
             <if test="productId != null">
-               and product_id = #{productId}
+                and product_id = #{productId}
             </if>
             <if test="uid != null">
                 and uid = #{uid}
@@ -112,7 +112,7 @@
         left join wallet_agent_product p on r.product_id=p.product_id
         where r.uid = #{uid}
         <if test="agentId != null">
-           and p.agent_id = #{agentId}
+            and p.agent_id = #{agentId}
         </if>
         and r.status = 'PROCESS'
         group by r.coin

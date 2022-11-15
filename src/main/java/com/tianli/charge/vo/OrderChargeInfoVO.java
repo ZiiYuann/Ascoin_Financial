@@ -37,9 +37,9 @@ public class OrderChargeInfoVO {
      */
     private ChargeStatus status;
 
-    private String typeRemarks;
+    private String remarks;
 
-    private String typeRemarksEn;
+    private String remarksEn;
 
     /**
      * 创建时间

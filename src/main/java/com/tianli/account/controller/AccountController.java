@@ -1,13 +1,14 @@
 package com.tianli.account.controller;
 
 import cn.hutool.json.JSONUtil;
+import com.google.common.base.MoreObjects;
+import com.tianli.account.query.AccountDetailsQuery;
 import com.tianli.account.query.IdsQuery;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.vo.AddressVO;
 import com.tianli.charge.entity.Order;
-import com.tianli.charge.enums.ChargeGroup;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -48,6 +49,7 @@ public class AccountController {
     private ConfigService configService;
     @Resource
     private WebHookService webHookService;
+
 
     /**
      * 激活钱包
@@ -170,9 +172,19 @@ public class AccountController {
      * 【云钱包】币别详情下方详情列表
      */
     @GetMapping("/balance/details")
-    public Result accountBalanceDetails(PageQuery<Order> query, ChargeGroup chargeGroup, CurrencyCoin coin) {
+    public Result accountBalanceDetails(PageQuery<Order> pageQuery, @RequestBody(required = false) AccountDetailsQuery query) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(chargeService.pageByChargeGroup(uid, coin, chargeGroup, query.page()));
+        query = MoreObjects.firstNonNull(query,new AccountDetailsQuery());
+        return Result.instance().setData(chargeService.pageByChargeGroup(uid, query, pageQuery.page()));
+    }
+
+    /**
+     * 【云钱包】交易类型
+     */
+    @GetMapping("/transaction/type")
+    public Result transactionType() {
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(chargeService.listTransactionGroupType(uid));
     }
 
 }

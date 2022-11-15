@@ -513,6 +513,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         query.setQueryUid(uid + "");
         query.setCoin(query.getCoin());
         query.setAgentId(agentId);
+        query.setCoin(coin);
         List<AmountDto> amountDtos = fundRecordMapper.selectHoldAmount(query);
         return orderService.calDollarAmount(amountDtos);
     }

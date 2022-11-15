@@ -6,7 +6,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
+import com.tianli.account.query.AccountDetailsQuery;
 import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.vo.TransactionGroupTypeVO;
+import com.tianli.account.vo.TransactionTypeVO;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.dto.CallbackPathDTO;
@@ -20,6 +23,7 @@ import com.tianli.charge.converter.ChargeConverter;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderChargeInfo;
 import com.tianli.charge.enums.ChargeGroup;
+import com.tianli.charge.enums.ChargeRemarks;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderMapper;
@@ -31,8 +35,9 @@ import com.tianli.charge.vo.OrderRechargeDetailsVo;
 import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.ConfigConstants;
+import com.tianli.common.RedisConstants;
+import com.tianli.common.RedisService;
 import com.tianli.common.async.AsyncService;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookToken;
@@ -48,23 +53,25 @@ import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.vo.ExpectIncomeVO;
 import com.tianli.management.query.FinancialChargeQuery;
+import com.tianli.management.service.IWalletAgentService;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.openapi.service.OrderRewardRecordService;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author wangqiyun
@@ -74,6 +81,59 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class ChargeService extends ServiceImpl<OrderMapper, Order> {
+
+    /**
+     * 预加载数据
+     */
+    @PostConstruct
+    private List<TransactionGroupTypeVO> preloading() {
+        List<TransactionGroupTypeVO> list = new ArrayList<>(2);
+        for (ChargeGroup chargeGroup : ChargeGroup.values()) {
+            TransactionGroupTypeVO transactionGroupTypeVO = new TransactionGroupTypeVO();
+            transactionGroupTypeVO.setGroup(chargeGroup);
+
+            List<TransactionTypeVO> transactionTypeVOS = chargeGroup.getChargeTypes().stream().map(chargeType -> {
+                TransactionTypeVO transactionTypeVO = new TransactionTypeVO();
+                transactionTypeVO.setType(chargeType);
+                transactionTypeVO.setName(chargeType.getNameZn());
+                transactionTypeVO.setNameEn(chargeType.getNameEn());
+                return transactionTypeVO;
+            }).collect(Collectors.toList());
+            transactionGroupTypeVO.setTypes(transactionTypeVOS);
+            list.add(transactionGroupTypeVO);
+        }
+
+        redisService.set(RedisConstants.ACCOUNT_TRANSACTION_TYPE, list, 10L, TimeUnit.DAYS);
+        return list;
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<TransactionGroupTypeVO> listTransactionGroupType(Long uid) {
+        List<TransactionGroupTypeVO> result;
+        Object o = redisService.get(RedisConstants.ACCOUNT_TRANSACTION_TYPE);
+        if (Objects.nonNull(o)) {
+            result = (List<TransactionGroupTypeVO>) o;
+        } else {
+            result = preloading();
+        }
+
+        boolean agent = walletAgentService.isAgent(uid);
+        if (agent) {
+            return result;
+        }
+        List<ChargeType> filterType =
+                List.of(ChargeType.agent_fund_sale, ChargeType.agent_fund_interest, ChargeType.agent_fund_interest);
+
+        result.forEach(group -> {
+            List<TransactionTypeVO> types = group.getTypes();
+            List<TransactionTypeVO> newTypes = types.stream().filter(type -> !filterType.contains(type))
+                    .collect(Collectors.toList());
+            group.setTypes(newTypes);
+        });
+
+        return result;
+    }
+
 
     /**
      * 充值回调:添加用户余额和记录
@@ -146,7 +206,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             if (Objects.isNull(orderChargeInfo)) {
                 return;
             }
-            Order order = orderService.getOrderByHash(req.getHash(),ChargeType.withdraw);
+            Order order = orderService.getOrderByHash(req.getHash(), ChargeType.withdraw);
             orderReviewService.withdrawSuccess(order, orderChargeInfo);
         }
     }
@@ -495,24 +555,63 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     /**
      * 获取分页数据
      */
-    public IPage<OrderChargeInfoVO> pageByChargeGroup(Long uid, CurrencyCoin currencyCoin, ChargeGroup chargeGroup, Page<Order> page) {
+    public IPage<OrderChargeInfoVO> pageByChargeGroup(Long uid, AccountDetailsQuery query, Page<Order> page) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)
-                .eq(Order::getCoin, currencyCoin)
                 .orderByDesc(Order::getCreateTime)
                 .orderByDesc(Order :: getId)
                 .eq(false, Order::getStatus, ChargeStatus.chain_fail);
-        if (Objects.nonNull(chargeGroup)) {
-            wrapper = wrapper.in(Order::getType, chargeGroup.getChargeTypes());
+
+        Set<ChargeType> types = new HashSet<>();
+
+        if (Objects.nonNull(query.getChargeGroup())) {
+            types.addAll(query.getChargeGroup().getChargeTypes());
         }
+
+        if (CollectionUtils.isNotEmpty(query.getChargeGroups())) {
+            query.getChargeGroups().forEach(group -> types.addAll(group.getChargeTypes()));
+        }
+
+        if (CollectionUtils.isNotEmpty(query.getChargeTypes())) {
+            types.addAll(query.getChargeTypes());
+        }
+
+        if (CollectionUtils.isNotEmpty(types)) {
+            wrapper = wrapper.in(Order::getType, types);
+        }
+
+        if (Objects.nonNull(query.getChargeType())) {
+            wrapper = wrapper.eq(Order::getType, query.getChargeType());
+        }
+
+        if (Objects.nonNull(query.getCoin())) {
+            wrapper = wrapper.eq(Order::getCoin, query.getCoin());
+        }
+
+        if (Objects.nonNull(query.getStartTime()) && Objects.nonNull(query.getEndTime())) {
+            wrapper.between(Order::getCreateTime, query.getStartTime(), query.getEndTime());
+        }
+        if (Objects.nonNull(query.getStartTime()) && Objects.isNull(query.getEndTime())) {
+            wrapper.gt(Order::getCreateTime, query.getStartTime());
+        }
+        if (Objects.isNull(query.getStartTime()) && Objects.nonNull(query.getEndTime())) {
+            wrapper.lt(Order::getCreateTime, query.getEndTime());
+        }
+
         Page<Order> charges = this.page(page, wrapper);
 
         return charges.convert(charge -> {
             OrderChargeInfoVO orderChargeInfoVO = chargeConverter.toVO(charge);
             if (ChargeType.transaction_reward.equals(orderChargeInfoVO.getType())) {
                 int i = orderRewardRecordService.recordCountThisHour(charge.getUid(), charge.getCreateTime());
-                orderChargeInfoVO.setTypeRemarks("交易奖励已发放" + i + "笔");
-                orderChargeInfoVO.setTypeRemarksEn(i + " sum(s) of transaction reward");
+                orderChargeInfoVO.setRemarks("已发放" + i + "笔");
+                orderChargeInfoVO.setRemarksEn(i + " Receiving Record(s)");
+            }
+
+            if (!ChargeType.transaction_reward.equals(orderChargeInfoVO.getType())) {
+                ChargeRemarks remarks = ChargeRemarks.getInstance(charge.getType(), charge.getStatus());
+                orderChargeInfoVO.setRemarks(remarks.getRemarks());
+                orderChargeInfoVO.setRemarksEn(remarks.getRemarksEn());
             }
             return orderChargeInfoVO;
         });
@@ -574,6 +673,10 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     private OrderReviewService orderReviewService;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private RedisService redisService;
+    @Resource
+    private IWalletAgentService walletAgentService;
     @Resource
     private OrderRewardRecordService orderRewardRecordService;
 
