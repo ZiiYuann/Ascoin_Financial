@@ -70,6 +70,15 @@ public interface IFundRecordService extends IService<FundRecord> {
      */
     BigDecimal holdAmountDollar(Long uid, CurrencyCoin coin, Long agentId);
 
+    /**
+     * 获取持用金额
+     * @param uid 用户id
+     * @param coin 币别
+     * @param agentId 用户代理人id
+     * @return 持用金额u
+     */
+    BigDecimal holdAmount(Long uid, CurrencyCoin coin, Long agentId);
+
     Integer getHoldUserCount(FundRecordQuery query);
 
     void increaseAmount(Long id, BigDecimal amount);

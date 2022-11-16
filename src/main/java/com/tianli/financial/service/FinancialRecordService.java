@@ -314,6 +314,14 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         return orderService.calDollarAmount(amountDtos);
     }
 
+    /**
+     * 正持有的产品数量
+     */
+    public BigDecimal holdAmount(CurrencyCoin coin) {
+        List<AmountDto> amountDtos = financialRecordMapper.holdAmount(null, coin);
+        return amountDtos.stream().map(AmountDto::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     public BigDecimal holdAmountDollar() {
         List<AmountDto> amountDtos = financialRecordMapper.holdAmount(null, null);
         return orderService.calDollarAmount(amountDtos);

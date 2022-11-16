@@ -57,6 +57,11 @@ public class AccountBalanceVO {
     private BigDecimal remain;
 
     /**
+     * 理财持有
+     */
+    private BigDecimal holdAmount;
+
+    /**
      * 总余额 美元
      */
     @BigDecimalFormat("0.00")
@@ -74,11 +79,6 @@ public class AccountBalanceVO {
     @BigDecimalFormat("0.00")
     private BigDecimal dollarRemain;
 
-    /**
-     * 理财持有 美元
-     */
-    @BigDecimalFormat("0.00")
-    private BigDecimal dollarHold;
 
     public static AccountBalanceVO getDefault(String coinName){
         CurrencyCoin coin = CurrencyCoin.valueOf(coinName);

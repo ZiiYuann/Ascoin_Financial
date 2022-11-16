@@ -518,6 +518,20 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         return orderService.calDollarAmount(amountDtos);
     }
 
+    @Override
+    public BigDecimal holdAmount(Long uid, CurrencyCoin coin, Long agentId) {
+        if (Objects.isNull(coin)) {
+            throw new UnsupportedOperationException();
+        }
+        FundRecordQuery query = new FundRecordQuery();
+        query.setQueryUid(uid + "");
+        query.setCoin(query.getCoin());
+        query.setAgentId(agentId);
+        query.setCoin(coin);
+        List<AmountDto> amountDtos = fundRecordMapper.selectHoldAmount(query);
+        return amountDtos.stream().map(AmountDto::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
 
     @Override
     public BigDecimal holdAmountDollar(FundRecordQuery query) {

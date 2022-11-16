@@ -297,11 +297,11 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         BigDecimal dollarRate = currencyService.getDollarRate(accountBalanceVO.getCoin());
 
 
-        BigDecimal fundHoldDollarAmount = fundRecordService.holdAmountDollar(uid, currencyCoin, null);
-        BigDecimal financialDollarAmount = financialRecordService.holdAmountDollar(currencyCoin);
+        BigDecimal fundHoldAmount = fundRecordService.holdAmount(uid, currencyCoin, null);
+        BigDecimal financialHoldAmount = financialRecordService.holdAmount(currencyCoin);
 
         accountBalanceVO.setDollarRate(dollarRate);
-        accountBalanceVO.setDollarHold(fundHoldDollarAmount.add(financialDollarAmount));
+        accountBalanceVO.setHoldAmount(fundHoldAmount.add(financialHoldAmount));
         accountBalanceVO.setDollarBalance(dollarRate.multiply(accountBalanceVO.getBalance()));
         accountBalanceVO.setDollarFreeze(dollarRate.multiply(accountBalanceVO.getFreeze()));
         accountBalanceVO.setDollarRemain(dollarRate.multiply(accountBalanceVO.getRemain()));
