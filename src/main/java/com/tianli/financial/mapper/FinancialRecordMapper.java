@@ -55,7 +55,9 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
     /**
      * 用户还持用产品的数量
      */
-    List<AmountDto> holdAmount(@Param("productType") ProductType productType, @Param("coin")CurrencyCoin coin);
+    List<AmountDto> holdAmount(@Param("productType") ProductType productType,
+                               @Param("coin") CurrencyCoin coin,
+                               @Param("uid") Long uid);
 
     /**
      * 还持有产品的用户数量

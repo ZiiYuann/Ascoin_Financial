@@ -19,8 +19,6 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.DollarIncomeVO;
-import com.tianli.fund.contant.FundIncomeStatus;
-import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -298,7 +296,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
 
 
         BigDecimal fundHoldAmount = fundRecordService.holdAmount(uid, currencyCoin, null);
-        BigDecimal financialHoldAmount = financialRecordService.holdAmount(currencyCoin);
+        BigDecimal financialHoldAmount = financialRecordService.holdAmountByUid(uid);
 
         accountBalanceVO.setDollarRate(dollarRate);
         accountBalanceVO.setHoldAmount(fundHoldAmount.add(financialHoldAmount));

@@ -65,12 +65,17 @@
         coin
         FROM financial_record
         <where>
+            1 = 1
             <if test="productType != null">
-                product_type = #{productType}
+                and product_type = #{productType}
             </if>
 
             <if test="coin != null">
-                coin = #{coin}
+                and coin = #{coin}
+            </if>
+
+            <if test="uid != null">
+                and uid = #{uid}
             </if>
             AND status = 'PROCESS'
         </where>
