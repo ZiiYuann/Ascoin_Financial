@@ -29,7 +29,7 @@ public enum ChargeRemarks {
     withdraw_fail("提币失败", "Failed Withdrawal", ChargeType.withdraw, ChargeStatus.review_fail),
     purchase_chaining("申购中", "In Subscription", ChargeType.purchase, ChargeStatus.chaining),
     purchase_success("申购成功", "Successful Subscription", ChargeType.purchase, ChargeStatus.chain_success),
-    purchase_fail("申购失败", "Failed Subscription", ChargeType.purchase, ChargeStatus.review_fail),
+    purchase_fail("申购失败", "Failed Subscription", ChargeType.purchase, ChargeStatus.chain_fail),
     fund_purchase_chaining("申购中", "In Subscription", ChargeType.fund_purchase, ChargeStatus.chaining),
     fund_purchase_success("申购成功", "Successful Subscription", ChargeType.fund_purchase, ChargeStatus.chain_success),
     fund_purchase_fail("申购失败", "Failed Subscription", ChargeType.fund_purchase, ChargeStatus.review_fail),
