@@ -127,7 +127,7 @@ public class TestController {
         FinancialRecord financialRecord = financialRecordService.selectById(query.getRecordId(), query.getUid());
 
         // 重新设置时间
-        financialRecord.setPurchaseTime(financialRecord.getPurchaseTime());
+        financialRecord.setPurchaseTime(createTime);
         financialRecord.setStartIncomeTime(createTime.toLocalDate().plusDays(1).atStartOfDay());
         financialRecord.setEndTime(financialRecord.getStartIncomeTime().plusDays(financialRecord.getProductTerm().getDay()));
         financialRecordService.updateById(financialRecord);
