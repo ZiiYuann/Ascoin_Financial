@@ -21,6 +21,9 @@ public class AccountBalanceMainPageVO extends DollarIncomeVO {
      * 总资产
      */
     @BigDecimalFormat("0.00")
+    private BigDecimal totalAssets;
+
+    @BigDecimalFormat("0.00")
     private BigDecimal totalAccountBalance;
 
     /**

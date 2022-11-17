@@ -290,6 +290,14 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         return amountDtos.stream().map(AmountDto::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    /**
+     * 正持有的产品数量
+     */
+    public BigDecimal holdAmountByCoin(Long uid, CurrencyCoin coin) {
+        List<AmountDto> amountDtos = financialRecordMapper.holdAmount(null, coin, uid);
+        return amountDtos.stream().map(AmountDto::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     public BigDecimal holdAmountDollar() {
         List<AmountDto> amountDtos = financialRecordMapper.holdAmount(null, null, null);
         return currencyService.calDollarAmount(amountDtos);

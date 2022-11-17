@@ -42,6 +42,17 @@ public class AccountBalanceVO {
     private BigDecimal dollarRate;
 
     /**
+     * 总资产
+     */
+    private BigDecimal assets;
+
+    /**
+     * 总资产
+     */
+    @BigDecimalFormat("0.00")
+    private BigDecimal dollarAssets;
+
+    /**
      * 总余额
      */
     private BigDecimal balance;

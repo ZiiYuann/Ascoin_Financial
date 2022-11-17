@@ -252,7 +252,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         result.setTotalDollarRemain(totalDollarRemain);
         result.setYesterdayIncomeFee(income.getYesterdayIncomeFee());
         result.setAccrueIncomeFee(income.getAccrueIncomeFee());
-        result.setTotalAccountBalance(totalDollarBalance);
+        // 总资产 = 可用 + 持有 + 冻结
+        result.setTotalAssets(totalDollarRemain.add(income.getHoldFee()).add(totalDollarFreeze));
         result.setAccountBalances(accountBalanceVOS);
 
         return result;
@@ -296,11 +297,14 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
 
 
         BigDecimal fundHoldAmount = fundRecordService.holdAmount(uid, currencyCoin, null);
-        BigDecimal financialHoldAmount = financialRecordService.holdAmountByUid(uid);
+        BigDecimal financialHoldAmount = financialRecordService.holdAmountByCoin(uid, currencyCoin);
 
+        BigDecimal assets = accountBalanceVO.getRemain().add(accountBalanceVO.getFreeze()).add(fundHoldAmount).add(financialHoldAmount);
+
+        accountBalanceVO.setAssets(assets);
+        accountBalanceVO.setDollarBalance(assets.multiply(dollarRate));
         accountBalanceVO.setDollarRate(dollarRate);
         accountBalanceVO.setHoldAmount(fundHoldAmount.add(financialHoldAmount));
-        accountBalanceVO.setDollarBalance(dollarRate.multiply(accountBalanceVO.getBalance()));
         accountBalanceVO.setDollarFreeze(dollarRate.multiply(accountBalanceVO.getFreeze()));
         accountBalanceVO.setDollarRemain(dollarRate.multiply(accountBalanceVO.getRemain()));
         accountBalanceVO.setLogo(currencyCoin.getLogoPath());
