@@ -9,6 +9,7 @@ import com.tianli.agent.management.vo.HoldDataVO;
 import com.tianli.agent.management.vo.TransactionDataVO;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.PageQuery;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.fund.dto.FundIncomeAmountDTO;
 import com.tianli.fund.dto.FundTransactionAmountDTO;
 import com.tianli.fund.query.FundIncomeQuery;
@@ -46,7 +47,10 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
     private IFundRecordService fundRecordService;
 
     @Resource
-    IWalletAgentProductService walletAgentProductService;
+    private IWalletAgentProductService walletAgentProductService;
+
+    @Resource
+    private CurrencyService currencyService;
 
     @Override
     public TransactionDataVO transactionData(FundStatisticsQuery query) {
@@ -74,9 +78,9 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
                 .map(fundIncomeAmountDTO ->
                         new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
         return TransactionDataVO.builder()
-                .purchaseAmount(orderService.calDollarAmount(purchaseAmount))
-                .redemptionAmount(orderService.calDollarAmount(redemptionAmount))
-                .interestAmount(orderService.calDollarAmount(interestAmount))
+                .purchaseAmount(currencyService.calDollarAmount(purchaseAmount))
+                .redemptionAmount(currencyService.calDollarAmount(redemptionAmount))
+                .interestAmount(currencyService.calDollarAmount(interestAmount))
                 .build();
     }
 
@@ -129,8 +133,8 @@ public class FundAgentManageServiceImpl implements FundAgentManageService {
                 new AmountDto(fundIncomeAmountDTO.getWaitInterestAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
 
         FundAmount fundAmount = new FundAmount();
-        fundAmount.setPayInterestAmount(orderService.calDollarAmount(payInterestAmount));
-        fundAmount.setWaitPayInterestAmount(orderService.calDollarAmount(waitPayInterestAmount));
+        fundAmount.setPayInterestAmount(currencyService.calDollarAmount(payInterestAmount));
+        fundAmount.setWaitPayInterestAmount(currencyService.calDollarAmount(waitPayInterestAmount));
         return fundAmount;
     }
 

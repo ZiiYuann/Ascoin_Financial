@@ -15,12 +15,12 @@ import com.tianli.chain.mapper.WalletImputationMapper;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.service.contract.ContractOperation;
 import com.tianli.chain.vo.WalletImputationVO;
-import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.currency.enums.TokenAdapter;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.entity.HotWalletDetailed;
@@ -67,7 +67,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     @Resource
     private AddressService addressService;
     @Resource
-    private OrderService orderService;
+    private CurrencyService currencyService;
 
 
     /**
@@ -352,7 +352,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     public ImputationAmountVO amount(WalletImputationQuery query) {
         WalletImputationQuery waitQuery = new WalletImputationQuery();
         waitQuery.setWait(true);
-        BigDecimal totalAmount = orderService.calDollarAmount(this.getBaseMapper().imputationAmount(waitQuery));
+        BigDecimal totalAmount = currencyService.calDollarAmount(this.getBaseMapper().imputationAmount(waitQuery));
         ImputationAmountVO imputationAmountVO = new ImputationAmountVO();
         imputationAmountVO.setTotalAmount(totalAmount);
 

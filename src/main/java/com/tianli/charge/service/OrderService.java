@@ -22,7 +22,6 @@ import com.tianli.management.dto.AmountDto;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -147,40 +146,27 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
 
     public BigDecimal orderAmountDollarSum(FinancialChargeQuery query) {
         List<AmountDto> amountDtos = orderMapper.orderAmountSum(query);
-        return calDollarAmount(amountDtos);
+        return currencyService.calDollarAmount(amountDtos);
     }
 
     public BigDecimal amountDollarSumByCompleteTime(ChargeType chargeType, LocalDateTime startTime, LocalDateTime endTime) {
         List<AmountDto> amountDtos = orderMapper.amountSumByCompleteTime(chargeType, startTime, endTime);
-        return calDollarAmount(amountDtos);
+        return currencyService.calDollarAmount(amountDtos);
     }
 
     public BigDecimal serviceAmountDollarSumByCompleteTime(ServiceAmountQuery serviceAmountQuery) {
         List<AmountDto> amountDtos = orderMapper.serviceAmountSumByCompleteTime(serviceAmountQuery);
-        return calDollarAmount(amountDtos);
+        return currencyService.calDollarAmount(amountDtos);
     }
 
     public BigDecimal amountDollarSumByChargeType(Long uid, ChargeType chargeType) {
         List<AmountDto> amountDtos = orderMapper.amountSumByUidAndChargeType(uid, chargeType);
-        return calDollarAmount(amountDtos);
+        return currencyService.calDollarAmount(amountDtos);
     }
 
     public Order getByOrderNo(String orderNo) {
         LambdaQueryWrapper<Order> query = new LambdaQueryWrapper<Order>().eq(Order::getOrderNo, orderNo);
         return orderMapper.selectOne(query);
-    }
-
-    public BigDecimal calDollarAmount(List<AmountDto> amountDtos) {
-        Optional.ofNullable(amountDtos).ifPresent(a -> a.remove(null));
-        if (CollectionUtils.isEmpty(amountDtos)) {
-            return BigDecimal.ZERO;
-        }
-        return amountDtos.stream()
-                .filter(index -> Objects.nonNull(index.getCoin()))
-                .map(amountDto -> {
-                    BigDecimal amount = Optional.ofNullable(amountDto.getAmount()).orElse(BigDecimal.ZERO);
-                    return currencyService.getDollarRate(amountDto.getCoin()).multiply(amount);
-                }).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public void addAmount(Long id, BigDecimal amount) {

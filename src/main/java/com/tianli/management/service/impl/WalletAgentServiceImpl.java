@@ -12,6 +12,7 @@ import com.tianli.address.AddressService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.PageQuery;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.ProductStatus;
@@ -68,6 +69,8 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
     private OrderService orderService;
     @Resource
     private AddressService addressService;
+    @Resource
+    private CurrencyService currencyService;
 
 
     @Override
@@ -229,7 +232,7 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
         List<AccountBalanceVO> accountBalanceList = accountBalanceService.getAccountBalanceList(uid);
         List<AmountDto> amountDtoList = accountBalanceList.stream().map(accountBalanceVO ->
                 new AmountDto(accountBalanceVO.getRemain(), accountBalanceVO.getCoin())).collect(Collectors.toList());
-        return orderService.calDollarAmount(amountDtoList);
+        return currencyService.calDollarAmount(amountDtoList);
     }
 
     private BigDecimal getRechargeAmount(Long uid) {
@@ -242,22 +245,22 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
 
     private BigDecimal getHoldAmount(Long agentId) {
         List<AmountDto> amountDtos = walletAgentMapper.holdAmountSum(agentId);
-        return orderService.calDollarAmount(amountDtos);
+        return currencyService.calDollarAmount(amountDtos);
     }
 
     private BigDecimal getRedemptionAmount(Long uid) {
         List<AmountDto> amountDtos = walletAgentMapper.redemptionAmountSum(uid, FundTransactionType.redemption, FundTransactionStatus.wait_audit);
-        return orderService.calDollarAmount(amountDtos);
+        return currencyService.calDollarAmount(amountDtos);
     }
 
     private BigDecimal getInterestAmount(Long agentId, Integer status) {
         List<AmountDto> amountDtos = walletAgentMapper.interestAmountSum(agentId, List.of(status));
-        return orderService.calDollarAmount(amountDtos);
+        return currencyService.calDollarAmount(amountDtos);
     }
 
     private BigDecimal getInterestAmount(Long agentId, List<Integer> status) {
         List<AmountDto> amountDtos = walletAgentMapper.interestAmountSum(agentId, status);
-        return orderService.calDollarAmount(amountDtos);
+        return currencyService.calDollarAmount(amountDtos);
     }
 
 }

@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.charge.service.OrderService;
 import com.tianli.common.IdGenerator;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
@@ -40,8 +39,6 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
     private FinancialIncomeAccrueMapper financialIncomeAccrueMapper;
     @Resource
     private CurrencyService currencyService;
-    @Resource
-    private OrderService orderService;
 
     public IPage<FinancialIncomeAccrueDTO> incomeRecord(Page<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
         return financialIncomeAccrueMapper.pageByQuery(page, query);
@@ -49,12 +46,7 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
 
     public BigDecimal summaryIncomeByQuery(FinancialProductIncomeQuery query) {
         List<AmountDto> amountDtos = financialIncomeAccrueMapper.summaryIncomeByQuery(query);
-        return orderService.calDollarAmount(amountDtos);
-    }
-
-    public List<FinancialIncomeAccrue> selectListByRecordId(List<Long> recordIds) {
-        return financialIncomeAccrueMapper.selectList(new LambdaQueryWrapper<FinancialIncomeAccrue>()
-                .in(FinancialIncomeAccrue::getRecordId, recordIds));
+        return currencyService.calDollarAmount(amountDtos);
     }
 
     @Transactional
@@ -108,7 +100,7 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
 
     public BigDecimal getAmountDollarSum(LocalDateTime endTime) {
         List<AmountDto> amountDtos = financialIncomeAccrueMapper.getAmountSum(endTime);
-        return orderService.calDollarAmount(amountDtos);
+        return currencyService.calDollarAmount(amountDtos);
     }
 
     /**

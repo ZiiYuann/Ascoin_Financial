@@ -18,6 +18,7 @@ import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.currency.log.CurrencyLogDes;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.ProductStatus;
@@ -85,36 +86,28 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
 
     @Resource
     private FundRecordMapper fundRecordMapper;
-
     @Resource
     private RequestInitService requestInitService;
-
     @Resource
     private FundRecordConvert fundRecordConvert;
-
     @Resource
     private OrderService orderService;
-
     @Resource
     private IFundIncomeRecordService fundIncomeRecordService;
-
     @Resource
     private FinancialProductService financialProductService;
-
     @Resource
     private WebHookService webHookService;
-
     @Resource
     private AccountBalanceService accountBalanceService;
-
     @Resource
     private IWalletAgentProductService walletAgentProductService;
-
     @Resource
     private IFundTransactionRecordService fundTransactionRecordService;
-
     @Resource
     private IFundReviewService fundReviewService;
+    @Resource
+    private CurrencyService currencyService;
 
 
     @Override
@@ -265,8 +258,8 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         List<AmountDto> payInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncome -> new AmountDto(fundIncome.getPayInterestAmount(), fundIncome.getCoin())).collect(Collectors.toList());
         return FundMainPageVO.builder()
                 .holdAmount(this.holdAmountDollar(uid, null, null))
-                .payInterestAmount(orderService.calDollarAmount(payInterestAmount))
-                .waitPayInterestAmount(orderService.calDollarAmount(waitPayInterestAmount))
+                .payInterestAmount(currencyService.calDollarAmount(payInterestAmount))
+                .waitPayInterestAmount(currencyService.calDollarAmount(waitPayInterestAmount))
                 .build();
     }
 
@@ -433,10 +426,10 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         List<AmountDto> payInterestDtos = fundUserHoldDtos.stream().map(fundUserHoldDto ->
                 new AmountDto(fundUserHoldDto.getPayInterestAmount(), fundUserHoldDto.getCoin())).collect(Collectors.toList());
         return HoldUserAmount.builder()
-                .holdAmount(orderService.calDollarAmount(holdAmountDtos))
-                .interestAmount(orderService.calDollarAmount(interestAmountDtos))
-                .waitInterestAmount(orderService.calDollarAmount(waitInterestAmountDtos))
-                .payInterestAmount(orderService.calDollarAmount(payInterestDtos))
+                .holdAmount(currencyService.calDollarAmount(holdAmountDtos))
+                .interestAmount(currencyService.calDollarAmount(interestAmountDtos))
+                .waitInterestAmount(currencyService.calDollarAmount(waitInterestAmountDtos))
+                .payInterestAmount(currencyService.calDollarAmount(payInterestDtos))
                 .build();
     }
 
@@ -515,7 +508,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         query.setAgentId(agentId);
         query.setCoin(coin);
         List<AmountDto> amountDtos = fundRecordMapper.selectHoldAmount(query);
-        return orderService.calDollarAmount(amountDtos);
+        return currencyService.calDollarAmount(amountDtos);
     }
 
     @Override
@@ -536,7 +529,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     @Override
     public BigDecimal holdAmountDollar(FundRecordQuery query) {
         List<AmountDto> amountDtos = fundRecordMapper.selectHoldAmount(query);
-        return orderService.calDollarAmount(amountDtos);
+        return currencyService.calDollarAmount(amountDtos);
     }
 
     @Override

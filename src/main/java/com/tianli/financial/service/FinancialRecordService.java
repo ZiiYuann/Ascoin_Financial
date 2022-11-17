@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.base.MoreObjects;
-import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
@@ -42,8 +41,6 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     private RequestInitService requestInitService;
     @Resource
     private CurrencyService currencyService;
-    @Resource
-    private OrderService orderService;
     @Resource
     private FinancialProductService financialProductService;
 
@@ -240,26 +237,6 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     }
 
     /**
-     * 根据产品类型、状态获取列表
-     *
-     * @param uid    uid
-     * @param type   产品类型
-     * @param status 产品状态
-     */
-    public IPage<FinancialRecord> selectListPage(IPage<FinancialRecord> page, Long uid, ProductType type, RecordStatus status) {
-        var query = new LambdaQueryWrapper<FinancialRecord>()
-                .eq(FinancialRecord::getUid, uid)
-                .eq(FinancialRecord::getStatus, status)
-                .orderByDesc(FinancialRecord::getHoldAmount);
-
-        if (Objects.nonNull(type)) {
-            query = query.eq(FinancialRecord::getProductType, type);
-
-        }
-        return financialRecordMapper.selectPage(page, query);
-    }
-
-    /**
      * 获取不同用户不同产品的汇总金额
      */
     public Map<Long, BigDecimal> getSummaryAmount(List<Long> uids, ProductType productType, RecordStatus recordStatus) {
@@ -288,7 +265,6 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         ));
     }
 
-
     /**
      * 获取需要计算利息的分页记录信息
      */
@@ -303,15 +279,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      */
     public BigDecimal holdAmountDollar(ProductType productType) {
         List<AmountDto> amountDtos = financialRecordMapper.holdAmount(productType, null, null);
-        return orderService.calDollarAmount(amountDtos);
-    }
-
-    /**
-     * 正持有的产品数量
-     */
-    public BigDecimal holdAmountByCoin(CurrencyCoin coin) {
-        List<AmountDto> amountDtos = financialRecordMapper.holdAmount(null, coin, null);
-        return amountDtos.stream().map(AmountDto::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return currencyService.calDollarAmount(amountDtos);
     }
 
     /**
@@ -324,7 +292,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
 
     public BigDecimal holdAmountDollar() {
         List<AmountDto> amountDtos = financialRecordMapper.holdAmount(null, null, null);
-        return orderService.calDollarAmount(amountDtos);
+        return currencyService.calDollarAmount(amountDtos);
     }
 
     /**

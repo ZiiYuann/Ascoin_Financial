@@ -11,6 +11,7 @@ import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.TokenAdapter;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.query.HotWalletDetailedIoUQuery;
 import com.tianli.management.query.HotWalletDetailedPQuery;
@@ -45,6 +46,8 @@ public class HotWalletDetailedService extends ServiceImpl<HotWalletDetailedMappe
     private AddressService addressService;
     @Resource
     private ContractAdapter contractAdapter;
+    @Resource
+    private CurrencyService currencyService;
 
     /**
      * 【热钱包管理】添加明细 或 修改明细
@@ -91,16 +94,16 @@ public class HotWalletDetailedService extends ServiceImpl<HotWalletDetailedMappe
     public HotWalletDetailedSummaryDataVO SummaryData(HotWalletDetailedPQuery query) {
 
         query.setType(HotWalletOperationType.recharge);
-        BigDecimal rechargeAmountDollar = orderService.calDollarAmount(baseMapper.summaryDataByQuery(query));
+        BigDecimal rechargeAmountDollar = currencyService.calDollarAmount(baseMapper.summaryDataByQuery(query));
 
         query.setType(HotWalletOperationType.withdraw);
-        BigDecimal withdrawAmountDollar = orderService.calDollarAmount(baseMapper.summaryDataByQuery(query));
+        BigDecimal withdrawAmountDollar = currencyService.calDollarAmount(baseMapper.summaryDataByQuery(query));
 
         query.setType(HotWalletOperationType.user_withdraw);
-        BigDecimal userWithdrawAmountDollar = orderService.calDollarAmount(baseMapper.summaryDataByQuery(query));
+        BigDecimal userWithdrawAmountDollar = currencyService.calDollarAmount(baseMapper.summaryDataByQuery(query));
 
         query.setType(HotWalletOperationType.imputation);
-        BigDecimal imputationAmountDollar = orderService.calDollarAmount(baseMapper.summaryDataByQuery(query));
+        BigDecimal imputationAmountDollar = currencyService.calDollarAmount(baseMapper.summaryDataByQuery(query));
 
         return HotWalletDetailedSummaryDataVO.builder()
                 .rechargeAmountDollar(rechargeAmountDollar)

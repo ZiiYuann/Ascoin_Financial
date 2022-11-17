@@ -20,6 +20,7 @@ import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.currency.log.CurrencyLogDes;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.convert.FundRecordConvert;
@@ -39,7 +40,6 @@ import com.tianli.management.dto.AmountDto;
 import com.tianli.management.service.IWalletAgentService;
 import com.tianli.management.vo.FundIncomeAmountVO;
 import com.tianli.management.vo.WalletAgentVO;
-import com.tianli.tool.time.TimeTool;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,6 +82,8 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     private IWalletAgentService walletAgentService;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private CurrencyService currencyService;
 
     @Override
     public BigDecimal amountDollar(Long uid, Long agentId, Integer status) {
@@ -116,7 +118,7 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
                                 new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin()))
                         .collect(Collectors.toList());
 
-        return orderService.calDollarAmount(collect);
+        return currencyService.calDollarAmount(collect);
     }
 
     @Override
@@ -142,7 +144,7 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     public FundIncomeAmountVO getIncomeAmount(FundIncomeQuery query) {
         List<FundIncomeAmountDTO> amount = getAmount(query);
         List<AmountDto> amountDtos = amount.stream().map(fundIncomeAmountDTO -> new AmountDto(fundIncomeAmountDTO.getTotalAmount(), fundIncomeAmountDTO.getCoin())).collect(Collectors.toList());
-        BigDecimal dollarAmount = orderService.calDollarAmount(amountDtos);
+        BigDecimal dollarAmount = currencyService.calDollarAmount(amountDtos);
         return FundIncomeAmountVO.builder().interestAmount(dollarAmount).build();
     }
 

@@ -18,6 +18,7 @@ import com.tianli.common.PageQuery;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.currency.log.CurrencyLogDes;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.fund.contant.FundTransactionStatus;
@@ -91,7 +92,8 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     private IFundIncomeRecordService fundIncomeRecordService;
     @Resource
     private WebHookService webHookService;
-
+    @Resource
+    private CurrencyService currencyService;
 
     @Override
     public IPage<FundTransactionRecordVO> getTransactionPage(PageQuery<FundTransactionRecord> page, FundTransactionQuery query) {
@@ -112,8 +114,8 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
         List<AmountDto> redemptionAmount = fundTransactionAmountDTOS.stream().map(amountDTO ->
                 new AmountDto(amountDTO.getRedemptionAmount(), amountDTO.getCoin())).collect(Collectors.toList());
         return FundTransactionAmountVO.builder()
-                .purchaseAmount(orderService.calDollarAmount(purchaseAmount))
-                .redemptionAmount(orderService.calDollarAmount(redemptionAmount))
+                .purchaseAmount(currencyService.calDollarAmount(purchaseAmount))
+                .redemptionAmount(currencyService.calDollarAmount(redemptionAmount))
                 .build();
     }
 
