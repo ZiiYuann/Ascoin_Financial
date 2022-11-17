@@ -10,6 +10,8 @@ public enum PurchaseTerm {
     ONE_MONTH( 30),
     TWO_MONTH(60),
     THREE_MONTH( 90),
+    FOUR_MONTH(120),
+    SIX_MONTH( 180),
     NONE(1);
 
     PurchaseTerm( int day) {
