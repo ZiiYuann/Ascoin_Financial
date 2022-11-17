@@ -122,11 +122,12 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             return result;
         }
         List<ChargeType> filterType =
-                List.of(ChargeType.agent_fund_sale, ChargeType.agent_fund_interest, ChargeType.agent_fund_interest);
+                List.of(ChargeType.agent_fund_sale, ChargeType.agent_fund_interest, ChargeType.agent_fund_redeem);
 
         result.forEach(group -> {
             List<TransactionTypeVO> types = group.getTypes();
-            List<TransactionTypeVO> newTypes = types.stream().filter(type -> !filterType.contains(type))
+            List<TransactionTypeVO> newTypes = types.stream()
+                    .filter(type -> !filterType.contains(type.getType()))
                     .collect(Collectors.toList());
             group.setTypes(newTypes);
         });
