@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.common.base.MoreObjects;
 import com.google.gson.Gson;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
@@ -150,26 +151,21 @@ public class FinancialIncomeTask {
         }, 30, TimeUnit.MINUTES, new RetryTaskInfo<>("incomeTask", "定时计息", financialRecord));
     }
 
-
-//    LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
-//                if (ProductType.fixed.equals(financialRecord.getProductType()) && financialRecord.getEndTime()
-//                        .compareTo(todayZero) == 0) {
-//    }
+    public void incomeExternalTranscation(FinancialRecord financialRecord) {
+        incomeExternalTranscation(financialRecord,null);
+    }
 
     /**
      * 统计每日利息
      */
-
-    public void incomeExternalTranscation(FinancialRecord financialRecord) {
+    public void incomeExternalTranscation(FinancialRecord financialRecord,LocalDateTime incomeZeroDay) {
 
         FinancialIncomeTask bean = ApplicationContextTool.getBean(FinancialIncomeTask.class);
         if (Objects.isNull(bean)) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
 
-        LocalDateTime todayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime();
-
-
+        LocalDateTime todayZero = MoreObjects.firstNonNull(incomeZeroDay,DateUtil.beginOfDay(new Date()).toLocalDateTime());
         HashMap<String, Order> orderMap = bean.incomeAndSettleTransaction(financialRecord);
 
         try {

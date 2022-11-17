@@ -6,31 +6,19 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.base.MoreObjects;
 import com.tianli.common.RedisService;
 import com.tianli.exception.Result;
-import com.tianli.financial.entity.FinancialIncomeAccrue;
-import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialRecord;
-import com.tianli.financial.enums.ProductType;
-import com.tianli.financial.enums.RecordStatus;
-import com.tianli.financial.service.FinancialIncomeAccrueService;
-import com.tianli.financial.service.FinancialIncomeDailyService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.fund.entity.FundIncomeRecord;
 import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
-import com.tianli.management.dto.TestDto;
 import com.tianli.management.query.FundIncomeCompensateQuery;
 import com.tianli.management.query.FundIncomeTestQuery;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.task.FinancialIncomeTask;
 import com.tianli.task.FundIncomeTask;
-import com.tianli.tool.ApplicationContextTool;
-import com.tianli.tool.ReflectTool;
 import com.tianli.tool.time.TimeTool;
 import org.apache.commons.collections4.CollectionUtils;
-import org.redisson.ScanResult;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,7 +29,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -64,12 +51,6 @@ public class TestController {
     private FinancialIncomeTask financialIncomeTask;
     @Resource
     private FinancialRecordService financialRecordService;
-    @Resource
-    private FinancialIncomeDailyService financialIncomeDailyService;
-    @Resource
-    private FinancialIncomeAccrueService financialIncomeAccrueService;
-    @Resource
-    private RedissonClient redissonClient;
     @Resource
     private RedisService redisService;
     @Resource
@@ -141,47 +122,17 @@ public class TestController {
     public Result financialIncome(@RequestBody FundIncomeTestQuery query) {
         configService.get("taskTest");
 
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime nowZero = TimeTool.minDay(now);
+        LocalDateTime createTime = query.getCreateTime();
 
-        List<FinancialRecord> records = financialRecordService.selectList(query.getUid(), null, RecordStatus.PROCESS);
+        FinancialRecord financialRecord = financialRecordService.selectById(query.getRecordId(), query.getUid());
 
-        if (Objects.nonNull(query.getRecordId())) {
-            records = records.stream().filter(r -> query.getRecordId().equals(r.getId())).collect(Collectors.toList());
-        }
+        // 重新设置时间
+        financialRecord.setPurchaseTime(financialRecord.getPurchaseTime());
+        financialRecord.setStartIncomeTime(createTime.toLocalDate().plusDays(1).atStartOfDay());
+        financialRecord.setEndTime(financialRecord.getStartIncomeTime().plusDays(financialRecord.getProductTerm().getDay()));
+        financialRecordService.updateById(financialRecord);
 
-        records.forEach(record -> {
-            if (ProductType.fixed.equals(record.getProductType())) {
-                record.setEndTime(nowZero);
-                record.setPurchaseTime(nowZero.plusDays(-(record.getProductTerm().getDay() + 1)));
-                record.setStartIncomeTime(nowZero.plusDays(-(record.getProductTerm().getDay())));
-            }
-
-            if (ProductType.current.equals(record.getProductType())) {
-                record.setStartIncomeTime(nowZero.plusDays(-1));
-            }
-
-            financialRecordService.updateById(record);
-            List<FinancialIncomeDaily> incomeDailies = Optional.of(financialIncomeDailyService.list(new LambdaQueryWrapper<FinancialIncomeDaily>()
-                    .eq(FinancialIncomeDaily::getRecordId, record.getId()))).orElse(new ArrayList<>());
-
-            for (int i = 0; i < incomeDailies.size(); i++) {
-                FinancialIncomeDaily fundIncomeRecord = incomeDailies.get(i);
-                fundIncomeRecord.setFinishTime(nowZero.plusDays(-(i + 2)));
-            }
-            financialIncomeDailyService.updateBatchById(incomeDailies);
-
-            FinancialIncomeAccrue financialIncomeAccrue = financialIncomeAccrueService.getOne(new LambdaQueryWrapper<FinancialIncomeAccrue>()
-                    .eq(FinancialIncomeAccrue::getRecordId, record.getId()));
-            if (Objects.nonNull(financialIncomeAccrue)) {
-                financialIncomeAccrue.setUpdateTime(nowZero.plusDays(-2));
-                financialIncomeAccrueService.updateById(financialIncomeAccrue);
-            }
-
-            financialIncomeTask.incomeExternalTranscation(record);
-
-        });
-
+        financialIncomeTask.incomeExternalTranscation(financialRecord, query.getNow());
         return Result.success();
     }
 
@@ -203,7 +154,7 @@ public class TestController {
         JSONObject jsonObject = JSONUtil.parseObj(str);
         String key = jsonObject.getStr("key");
         String value = jsonObject.getStr("value");
-        stringRedisTemplate.opsForValue().set(key, value,100, TimeUnit.SECONDS);
+        stringRedisTemplate.opsForValue().set(key, value, 100, TimeUnit.SECONDS);
         return Result.success();
     }
 }
