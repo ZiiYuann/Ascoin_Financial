@@ -165,7 +165,8 @@ public class FinancialIncomeTask {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
         incomeTime = MoreObjects.firstNonNull(incomeTime, LocalDateTime.now());
-        LocalDateTime todayZero = MoreObjects.firstNonNull(incomeTime, DateUtil.beginOfDay(new Date()).toLocalDateTime());
+        LocalDateTime todayZero = MoreObjects.firstNonNull(incomeTime.toLocalDate().atStartOfDay()
+                , DateUtil.beginOfDay(new Date()).toLocalDateTime());
         HashMap<String, Order> orderMap = bean.incomeAndSettleTransaction(financialRecord, incomeTime);
 
         try {
