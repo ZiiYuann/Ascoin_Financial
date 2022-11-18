@@ -81,6 +81,7 @@ public class OrderTask {
         if (ProductType.fund.equals(product.getType())) {
             FundTransactionRecord fundTransactionRecord = fundTransactionRecordService.getById(order.getRelatedId());
             fundTransactionRecord.setStatus(FundTransactionStatus.fail);
+            order.setCompleteTime(LocalDateTime.now());
             fundTransactionRecordService.updateById(fundTransactionRecord);
         }
 
@@ -97,6 +98,7 @@ public class OrderTask {
         orderAdvance.setFinish(2);
         orderAdvanceService.updateById(orderAdvance);
         order.setStatus(ChargeStatus.chain_fail);
+        order.setCompleteTime(LocalDateTime.now());
         orderService.updateById(order);
     }
 

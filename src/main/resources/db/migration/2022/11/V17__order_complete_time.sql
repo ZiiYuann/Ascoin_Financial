@@ -1,0 +1,1 @@
+UPDATE `order` set complete_time = create_time where complete_time is null;
