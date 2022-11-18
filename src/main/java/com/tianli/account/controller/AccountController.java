@@ -66,6 +66,9 @@ public class AccountController {
     @PostMapping("/activate/uid")
     public Result activateWalletByUid(@RequestBody String str) {
         Long uid = JSONUtil.parse(str).getByPath("uid", Long.class);
+        if (Objects.isNull(uid)) {
+            ErrorCodeEnum.ACCOUNT_ACTIVATE_UID_NULL.throwException();
+        }
         return Result.success().setData(addressService.activityAccount(uid));
     }
 
