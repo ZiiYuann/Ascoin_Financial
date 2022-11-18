@@ -8,13 +8,12 @@ import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
 
 /**
- * @author  wangqiyun
- * @since  2020/3/31 15:20
+ * @author wangqiyun
+ * @since 2020/3/31 15:20
  */
 @Data
 public class WithdrawQuery {
 
-    @DecimalMin(value = "0.0001", message = "提现金额不能为空")
     private double amount;
 
     @NotNull(message = "提币网络不能为null")
