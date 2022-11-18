@@ -302,7 +302,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         BigDecimal assets = accountBalanceVO.getRemain().add(accountBalanceVO.getFreeze()).add(fundHoldAmount).add(financialHoldAmount);
 
         accountBalanceVO.setAssets(assets);
-        accountBalanceVO.setDollarBalance(assets.multiply(dollarRate));
+        accountBalanceVO.setDollarAssets(assets.multiply(dollarRate));
         accountBalanceVO.setDollarRate(dollarRate);
         accountBalanceVO.setHoldAmount(fundHoldAmount.add(financialHoldAmount));
         accountBalanceVO.setDollarFreeze(dollarRate.multiply(accountBalanceVO.getFreeze()));
