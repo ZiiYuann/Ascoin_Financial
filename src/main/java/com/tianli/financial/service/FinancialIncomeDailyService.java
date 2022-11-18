@@ -88,21 +88,20 @@ public class FinancialIncomeDailyService extends ServiceImpl<FinancialIncomeDail
 
     @Transactional
     public void insertIncomeDaily(Long uid, Long recordId, BigDecimal amount, BigDecimal calIncomeAmount,
-                                  BigDecimal rate, String orderNo) {
-        LocalDateTime yesterdayZero = DateUtil.beginOfDay(new Date()).toLocalDateTime().plusDays(-1);
+                                  BigDecimal rate, String orderNo,LocalDateTime incomeTime) {
+        LocalDateTime incomeYesterdayZero = incomeTime.toLocalDate().atStartOfDay().plusDays(-1);
         LambdaQueryWrapper<FinancialIncomeDaily> queryWrapper = new LambdaQueryWrapper<FinancialIncomeDaily>()
                 .eq(FinancialIncomeDaily::getUid, uid)
                 .eq(FinancialIncomeDaily::getRecordId, recordId)
-                .eq(FinancialIncomeDaily::getFinishTime, yesterdayZero);
+                .eq(FinancialIncomeDaily::getFinishTime, incomeYesterdayZero);
         FinancialIncomeDaily incomeDaily = financialIncomeDailyMapper.selectOne(queryWrapper);
         if (Objects.nonNull(incomeDaily)) {
-            log.error("recordId:{},已经计算过当日利息，请排查问题", recordId);
-            ErrorCodeEnum.SYSTEM_ERROR.throwException();
+            ErrorCodeEnum.FINANCIAL_INCOME_REPEAT.throwException();
         }
         FinancialIncomeDaily incomeDailyInsert = FinancialIncomeDaily.builder()
                 .id(IdGenerator.financialIncomeDailyId())
                 .uid(uid).recordId(recordId).incomeAmount(amount)
-                .createTime(LocalDateTime.now()).finishTime(yesterdayZero)
+                .createTime(LocalDateTime.now()).finishTime(incomeYesterdayZero)
                 .orderNo(orderNo).rate(rate).amount(calIncomeAmount)
                 .build();
         financialIncomeDailyMapper.insert(incomeDailyInsert);
