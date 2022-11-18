@@ -145,6 +145,7 @@ public enum ErrorCodeEnum {
     FINANCIAL_TO_ERROR(3802,"提现地址不允许是当前云钱包地址"),
 
 
+
     ;
     private int errorNo;
 
