@@ -50,18 +50,18 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
     }
 
     @Transactional
-    public void insertIncomeAccrue(Long uid, Long recordId, CurrencyCoin coin, BigDecimal amount){
+    public void insertIncomeAccrue(Long uid, Long recordId, CurrencyCoin coin, BigDecimal amount, LocalDateTime incomeTime) {
         LambdaQueryWrapper<FinancialIncomeAccrue> queryWrapper = new LambdaQueryWrapper<FinancialIncomeAccrue>()
                 .eq(FinancialIncomeAccrue::getUid, uid)
                 .eq(FinancialIncomeAccrue::getRecordId, recordId);
         FinancialIncomeAccrue financialIncomeAccrue = financialIncomeAccrueMapper.selectOne(queryWrapper);
-        LocalDateTime incomeTime = TimeTool.minDay(LocalDateTime.now()).plusDays(-1);
+        incomeTime = incomeTime.toLocalDate().atStartOfDay().plusDays(-1);
 
-        if(Objects.nonNull(financialIncomeAccrue) && incomeTime.compareTo(financialIncomeAccrue.getUpdateTime()) == 0){
-            log.error("recordId:{},已经计算过当日汇总利息，请排查问题",recordId);
+        if (Objects.nonNull(financialIncomeAccrue) && incomeTime.compareTo(financialIncomeAccrue.getUpdateTime()) == 0) {
+            log.error("recordId:{},已经计算过当日汇总利息，请排查问题", recordId);
             ErrorCodeEnum.SYSTEM_ERROR.throwException();
         }
-        if(Objects.isNull(financialIncomeAccrue)){
+        if (Objects.isNull(financialIncomeAccrue)) {
             financialIncomeAccrue = FinancialIncomeAccrue.builder().id(IdGenerator.financialIncomeAccrueId())
                     .coin(coin).uid(uid).recordId(recordId)
                     .incomeAmount(BigDecimal.ZERO)
@@ -106,9 +106,9 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
     /**
      * 获取不同用户盈亏信息
      */
-    public Map<Long,BigDecimal> getSummaryAmount(List<Long> uids){
+    public Map<Long, BigDecimal> getSummaryAmount(List<Long> uids) {
         var recordQuery = new LambdaQueryWrapper<FinancialIncomeAccrue>()
-                .in(FinancialIncomeAccrue :: getUid,uids);
+                .in(FinancialIncomeAccrue::getUid, uids);
 
         var incomeMapByUid = Optional.ofNullable(financialIncomeAccrueMapper.selectList(recordQuery)).orElse(new ArrayList<>())
                 .stream().collect(Collectors.groupingBy(FinancialIncomeAccrue::getUid));
@@ -116,11 +116,11 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
 
         return incomeMapByUid.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
-                entry -> entry.getValue().stream().map(income ->{
+                entry -> entry.getValue().stream().map(income -> {
                     BigDecimal holdAmount = income.getIncomeAmount();
                     BigDecimal rate = dollarRateMap.getOrDefault(income.getCoin(), BigDecimal.ZERO);
                     return holdAmount.multiply(rate);
-                }).reduce(BigDecimal.ZERO,BigDecimal::add)
+                }).reduce(BigDecimal.ZERO, BigDecimal::add)
         ));
     }
 }

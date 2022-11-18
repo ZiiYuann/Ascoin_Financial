@@ -329,7 +329,7 @@ public class FinancialIncomeTask {
 
         Long uid = financialRecord.getUid();
         // 记录利息汇总
-        financialIncomeAccrueService.insertIncomeAccrue(uid, financialRecord.getId(), financialRecord.getCoin(), income);
+        financialIncomeAccrueService.insertIncomeAccrue(uid, financialRecord.getId(), financialRecord.getCoin(), income, incomeTime);
         // 记录昨日利息
         financialIncomeDailyService.insertIncomeDaily(uid, financialRecord.getId(), income
                 , financialRecord.getIncomeAmount(), financialRecord.getRate(), orderNo, incomeTime);
