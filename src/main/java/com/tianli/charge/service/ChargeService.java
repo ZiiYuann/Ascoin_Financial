@@ -204,18 +204,16 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         for (TRONTokenReq req : tronTokenReqs) {
             String to = req.getTo();
             Address address = addressService.getByChain(chainType, to);
-            OrderChargeInfo orderChargeInfo = null;
             // 存在提现的地址是云钱包的情况
-            if (address != null) {
-                orderChargeInfo = orderChargeInfoService.getByTxidExcludeUid(address.getUid(), req.getHash());
-            } else {
-                orderChargeInfo = orderChargeInfoService.getByTxid(req.getHash());
-            }
+            OrderChargeInfo orderChargeInfo = Objects.isNull(address) ? orderChargeInfoService.getByTxid(req.getHash())
+                    : orderChargeInfoService.getByTxidExcludeUid(address.getUid(), req.getHash());
 
             if (Objects.isNull(orderChargeInfo)) {
                 return;
             }
-            Order order = orderService.getOrderByHash(req.getHash(), ChargeType.withdraw);
+
+            Order order = Objects.isNull(address) ? orderService.getOrderByHash(req.getHash(), ChargeType.withdraw)
+                    : orderService.getOrderByHashExcludeUid(address.getUid(), req.getHash(), ChargeType.withdraw);
             orderReviewService.withdrawSuccess(order, orderChargeInfo);
         }
     }
