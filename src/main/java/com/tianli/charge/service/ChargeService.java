@@ -67,7 +67,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -163,7 +162,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             Long uid = address.getUid();
             BigDecimal finalAmount = tokenAdapter.alignment(req.getValue());
 
-            if (orderService.getOrderChargeByTxid(req.getHash()) != null) {
+            if (orderChargeInfoService.getOrderChargeByTxid(uid, req.getHash()) != null) {
                 log.error("txid {} 已经存在充值订单", req.getHash());
                 ErrorCodeEnum.TRADE_FAIL.throwException();
             }
@@ -203,7 +202,16 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             return;
         }
         for (TRONTokenReq req : tronTokenReqs) {
-            OrderChargeInfo orderChargeInfo = orderChargeInfoService.getByTxid(req.getHash());
+            String to = req.getTo();
+            Address address = addressService.getByChain(chainType, to);
+            OrderChargeInfo orderChargeInfo = null;
+            // 存在提现的地址是云钱包的情况
+            if (address != null) {
+                orderChargeInfo = orderChargeInfoService.getByTxidExcludeUid(address.getUid(), req.getHash());
+            } else {
+                orderChargeInfo = orderChargeInfoService.getByTxid(req.getHash());
+            }
+
             if (Objects.isNull(orderChargeInfo)) {
                 return;
             }
@@ -560,7 +568,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)
                 .orderByDesc(Order::getCreateTime)
-                .orderByDesc(Order :: getId)
+                .orderByDesc(Order::getId)
                 .eq(false, Order::getStatus, ChargeStatus.chain_fail);
 
         Set<ChargeType> types = new HashSet<>();

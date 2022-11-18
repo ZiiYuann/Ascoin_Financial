@@ -64,25 +64,18 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
         return true;
     }
 
-    public Order getOrderByHash(String hash,ChargeType chargeType) {
-        OrderChargeInfo orderChargeInfo = this.getOrderChargeByTxid(hash);
+    public Order getOrderByHash(String hash, ChargeType chargeType) {
+        OrderChargeInfo orderChargeInfo = orderChargeInfoService.getOrderChargeByTxid(hash);
 
-        if (Objects.isNull(orderChargeInfo)){
+        if (Objects.isNull(orderChargeInfo)) {
             return null;
         }
 
         LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getRelatedId, orderChargeInfo.getId())
-                .eq(Order :: getType,chargeType);
+                .eq(Order::getType, chargeType);
 
         return orderMapper.selectOne(queryWrapper);
-    }
-
-    /**
-     * 通过交易hash查询 区块链订单信息
-     */
-    public OrderChargeInfo getOrderChargeByTxid(String txid) {
-        return orderChargeInfoMapper.selectOne(new LambdaQueryWrapper<OrderChargeInfo>().eq(OrderChargeInfo::getTxid, txid));
     }
 
     public void insert(OrderChargeInfo orderChargeInfo) {
@@ -170,11 +163,13 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
     }
 
     public void addAmount(Long id, BigDecimal amount) {
-        orderMapper.addAmount(id,amount);
+        orderMapper.addAmount(id, amount);
     }
 
     @Resource
     private OrderMapper orderMapper;
+    @Resource
+    private OrderChargeInfoService orderChargeInfoService;
     @Resource
     private OrderChargeInfoMapper orderChargeInfoMapper;
     @Resource
