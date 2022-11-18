@@ -277,8 +277,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         accountBalances.forEach(accountBalance -> {
             CurrencyCoin currencyCoin = accountBalance.getCoin();
             BigDecimal rate = currencyDollarRateMap.getOrDefault(currencyCoin, BigDecimal.ONE);
-
-            var dollarBalance = Optional.ofNullable(accountBalance.getBalance()).orElse(BigDecimal.ZERO).multiply(rate);
+            BigDecimal balance = Optional.ofNullable(accountBalance.getBalance()).orElse(BigDecimal.ZERO);
+            var dollarBalance = balance.multiply(rate);
             var dollarFreeze = Optional.ofNullable(accountBalance.getFreeze()).orElse(BigDecimal.ZERO).multiply(rate);
             var dollarRemain = Optional.ofNullable(accountBalance.getRemain()).orElse(BigDecimal.ZERO).multiply(rate);
 
@@ -287,8 +287,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
             BigDecimal financialHoldAmount = MoreObjects.firstNonNull(financialRecordService.holdAmountByCoin(uid, currencyCoin),BigDecimal.ZERO);
 
             AccountBalanceVO accountBalanceVO = accountConverter.toVO(accountBalance);
-            accountBalanceVO.setAssets(fundHoldAmount.add(financialHoldAmount));
-            accountBalanceVO.setDollarAssets(fundHoldAmount.add(financialHoldAmount).multiply(rate));
+            accountBalanceVO.setAssets(fundHoldAmount.add(financialHoldAmount).add(balance));
+            accountBalanceVO.setDollarAssets(accountBalanceVO.getAssets().multiply(rate));
             accountBalanceVO.setDollarRate(rate);
             accountBalanceVO.setDollarBalance(dollarBalance);
             accountBalanceVO.setDollarFreeze(dollarFreeze);
