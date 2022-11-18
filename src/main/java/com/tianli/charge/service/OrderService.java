@@ -65,6 +65,20 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
         return true;
     }
 
+    public Order getOrderByHashExcludeUid(Long uid, String hash, ChargeType chargeType) {
+        OrderChargeInfo orderChargeInfo = orderChargeInfoService.getByTxidExcludeUid(uid, hash);
+
+        if (Objects.isNull(orderChargeInfo)) {
+            return null;
+        }
+
+        LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
+                .eq(Order::getRelatedId, orderChargeInfo.getId())
+                .eq(Order::getType, chargeType);
+
+        return orderMapper.selectOne(queryWrapper);
+    }
+
     public Order getOrderByHash(String hash, ChargeType chargeType) {
         OrderChargeInfo orderChargeInfo = orderChargeInfoService.getOrderChargeByTxid(hash);
 
