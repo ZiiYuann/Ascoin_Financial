@@ -576,7 +576,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     public IPage<OrderChargeInfoVO> pageByChargeGroup(Long uid, AccountDetailsQuery query, Page<Order> page) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)
-                .orderByDesc(Order::getCompleteTime)
+                .orderByDesc(Order::getCreateTime)
                 .orderByDesc(Order::getId)
                 .eq(false, Order::getStatus, ChargeStatus.chain_fail);
 
