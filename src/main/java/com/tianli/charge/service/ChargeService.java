@@ -164,6 +164,17 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     public void withdrawApply(Long uid, WithdrawQuery query) {
         TokenAdapter tokenAdapter = TokenAdapter.get(query.getCoin(), query.getNetwork());
 
+        Address address = addressService.get(uid);
+
+        if (NetworkType.trc20.equals(query.getNetwork()) && address.getTron().equals(query.getTo())) {
+            ErrorCodeEnum.FINANCIAL_TO_ERROR.throwException();
+        }
+
+        if ((NetworkType.bep20.equals(query.getNetwork()) || NetworkType.erc20.equals(query.getNetwork()))
+                && address.getEth().equals(query.getTo())) {
+            ErrorCodeEnum.FINANCIAL_TO_ERROR.throwException();
+        }
+
         boolean validAddress = contractAdapter.getOne(tokenAdapter.getNetwork()).isValidAddress(query.getTo());
         if (!validAddress) {
             ErrorCodeEnum.throwException("地址校验失败");

@@ -138,6 +138,9 @@ public enum ErrorCodeEnum {
     RED_ORDER_NOT_FIND(3707, "红包订单未找到"),
 
 
+    /*** －－－－－－业务错误码-理财相关－－－－－－*/
+    FINANCIAL_INCOME_REPEAT(3801,"理财利息当日利息已经计算"),
+    FINANCIAL_TO_ERROR(3802,"提现地址不允许是当前云钱包地址"),
 
 
 
