@@ -91,9 +91,9 @@ public class AccountBalanceVO {
     private BigDecimal dollarRemain;
 
 
-    public static AccountBalanceVO getDefault(String coinName){
+    public static AccountBalanceVO getDefault(String coinName) {
         CurrencyCoin coin = CurrencyCoin.valueOf(coinName);
-       return AccountBalanceVO.builder()
+        return AccountBalanceVO.builder()
                 .id(-1L)
                 .coin(coin)
                 .balance(BigDecimal.ZERO)
@@ -104,6 +104,8 @@ public class AccountBalanceVO {
                 .remain(BigDecimal.ZERO)
                 .dollarBalance(BigDecimal.ZERO)
                 .dollarFreeze(BigDecimal.ZERO)
+                .assets(BigDecimal.ZERO)
+                .dollarAssets(BigDecimal.ZERO)
                 .dollarRemain(BigDecimal.ZERO).build();
 
     }

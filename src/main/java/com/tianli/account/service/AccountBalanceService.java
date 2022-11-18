@@ -2,6 +2,7 @@ package com.tianli.account.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.base.MoreObjects;
 import com.tianli.account.convert.AccountConverter;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountOperationType;
@@ -281,7 +282,13 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
             var dollarFreeze = Optional.ofNullable(accountBalance.getFreeze()).orElse(BigDecimal.ZERO).multiply(rate);
             var dollarRemain = Optional.ofNullable(accountBalance.getRemain()).orElse(BigDecimal.ZERO).multiply(rate);
 
+
+            BigDecimal fundHoldAmount = MoreObjects.firstNonNull(fundRecordService.holdAmount(uid, currencyCoin, null), BigDecimal.ZERO);
+            BigDecimal financialHoldAmount = MoreObjects.firstNonNull(financialRecordService.holdAmountByCoin(uid, currencyCoin),BigDecimal.ZERO);
+
             AccountBalanceVO accountBalanceVO = accountConverter.toVO(accountBalance);
+            accountBalanceVO.setAssets(fundHoldAmount.add(financialHoldAmount));
+            accountBalanceVO.setDollarAssets(fundHoldAmount.add(financialHoldAmount).multiply(rate));
             accountBalanceVO.setDollarRate(rate);
             accountBalanceVO.setDollarBalance(dollarBalance);
             accountBalanceVO.setDollarFreeze(dollarFreeze);
