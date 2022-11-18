@@ -8,6 +8,7 @@ import com.tianli.account.query.IdsQuery;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.mapper.AddressMapper;
 import com.tianli.chain.dto.CallbackPathDTO;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.ChainService;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.common.CommonFunction;
@@ -149,6 +150,18 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
 
     public Address getByBsc(String toAddress) {
         return baseMapper.getByBsc(toAddress);
+    }
+
+    public Address getByChain(ChainType chainType, String toAddress) {
+        switch (chainType) {
+            case TRON:
+                return getByTron(toAddress);
+            case ETH:
+                return getByEth(toAddress);
+            case BSC:
+                return getByBsc(toAddress);
+        }
+        throw ErrorCodeEnum.NOT_OPEN.generalException();
     }
 
     public BigInteger activeCount(LocalDateTime startTime, LocalDateTime endTime) {
