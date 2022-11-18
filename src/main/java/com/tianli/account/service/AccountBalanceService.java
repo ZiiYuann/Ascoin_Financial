@@ -308,7 +308,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         accountBalanceVO.setHoldAmount(fundHoldAmount.add(financialHoldAmount));
         accountBalanceVO.setDollarFreeze(dollarRate.multiply(accountBalanceVO.getFreeze()));
         accountBalanceVO.setDollarRemain(dollarRate.multiply(accountBalanceVO.getRemain()));
-        accountBalanceVO.setDollarBalance(dollarRate.multiply(accountBalanceVO.getDollarBalance()));
+        accountBalanceVO.setDollarBalance(dollarRate.multiply(accountBalanceVO.getBalance()));
         accountBalanceVO.setLogo(currencyCoin.getLogoPath());
         return accountBalanceVO;
 
