@@ -247,6 +247,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         }
 
         var result = new AccountBalanceMainPageVO();
+        result.setTotalAccountBalance(totalDollarBalance);
         result.setTotalDollarHold(income.getHoldFee());
         result.setTotalDollarFreeze(totalDollarFreeze);
         result.setTotalDollarRemain(totalDollarRemain);
