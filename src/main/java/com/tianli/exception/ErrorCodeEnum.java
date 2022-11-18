@@ -55,6 +55,8 @@ public enum ErrorCodeEnum {
     NO_CREDIT_SCORE(2015, "账户信用评分不足"),
     ACCOUNT_NOT_ACTIVE(2016, "云钱包未激活"),
     CURRENCY_NOT_SUPPORT(2017, "币别尚未支持"),
+    ACCOUNT_ACTIVATE_UID_NULL(2018,"激活uid参数为null"),
+
     /*** －－－－－－业务错误码-余额相关－－－－－－*/
     CREDIT_LACK(2100, "额度不足"),
     WITHDRAWAL_AMOUNT_LT_FEE_ERROR(2101, "提现数额必须大于手续费"),
