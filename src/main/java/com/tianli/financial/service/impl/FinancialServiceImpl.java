@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.vo.AccountBalanceVO;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.charge.enums.ChargeType;
@@ -33,8 +34,10 @@ import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.dto.FundIncomeAmountDTO;
 import com.tianli.fund.entity.FundRecord;
 import com.tianli.fund.query.FundIncomeQuery;
+import com.tianli.fund.query.FundRecordQuery;
 import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
+import com.tianli.management.dto.AmountDto;
 import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.query.FinancialChargeQuery;
@@ -47,6 +50,7 @@ import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.FinancialUserInfoVO;
 import com.tianli.management.vo.FundProductBindDropdownVO;
+import com.tianli.management.vo.UserAmountDetailsVO;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
@@ -443,6 +447,33 @@ public class FinancialServiceImpl implements FinancialService {
                 .map(financialProduct ->
                         new FundProductBindDropdownVO(financialProduct.getId(), financialProduct.getName(), financialProduct.getNameEn()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public UserAmountDetailsVO userAmountDetailsVO(Long uid) {
+        BigDecimal dollarBalance = accountBalanceService.getDollarBalance(uid);
+        BigDecimal dollarRecharge = orderService.amountDollarSumByChargeType(uid, ChargeType.recharge);
+        BigDecimal dollarWithdraw = orderService.amountDollarSumByChargeType(uid, ChargeType.withdraw);
+        FundRecordQuery fundRecordQuery = new FundRecordQuery();
+        fundRecordQuery.setQueryUid(uid + "");
+        BigDecimal dollarFund = fundRecordService.holdAmountDollar(fundRecordQuery);
+        BigDecimal dollarFinancial = financialRecordService.holdAmountByUid(uid);
+
+        BigDecimal dollarFinancialIncome = financialIncomeAccrueService.getAccrueDollarAmount(uid, null);
+        FundIncomeQuery fundIncomeQuery = new FundIncomeQuery();
+        fundIncomeQuery.setUid(uid);
+        fundIncomeQuery.setStatus(List.of(FundIncomeStatus.audit_success));
+        BigDecimal dollarFundIncome = fundIncomeRecordService.amountDollar(fundIncomeQuery);
+
+        return UserAmountDetailsVO.builder()
+                .dollarBalance(dollarBalance)
+                .dollarRecharge(dollarRecharge)
+                .dollarWithdraw(dollarWithdraw)
+                .dollarFund(dollarFund)
+                .dollarFinancial(dollarFinancial)
+                .dollarFinancialIncome(dollarFinancialIncome)
+                .dollarFundIncome(dollarFundIncome)
+                .build();
     }
 
     private List<FinancialProductVO> getFinancialProductVOs(Long productId) {

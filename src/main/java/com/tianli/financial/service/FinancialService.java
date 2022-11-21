@@ -16,6 +16,8 @@ import com.tianli.management.query.TimeQuery;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.FinancialUserInfoVO;
 import com.tianli.management.vo.FundProductBindDropdownVO;
+import com.tianli.management.vo.UserAmountDetailsVO;
+import com.tianli.management.vo.FundProductBindDropdownVO;
 
 import java.util.List;
 
@@ -111,4 +113,9 @@ public interface FinancialService {
      * 基金需要能够绑定的产品下拉
      */
     List<FundProductBindDropdownVO> fundProductBindDropdownList(ProductType type);
+
+    /**
+     * 用户余额详情
+     */
+    UserAmountDetailsVO userAmountDetailsVO(Long uid);
 }
