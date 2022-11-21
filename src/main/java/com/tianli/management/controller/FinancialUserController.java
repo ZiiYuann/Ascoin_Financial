@@ -7,6 +7,7 @@ import com.tianli.financial.service.FinancialService;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,7 +28,7 @@ public class FinancialUserController {
     @GetMapping("/list")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result user(PageQuery<Address> page, String uid) {
-        return Result.success().setData(financialService.financialUserPage(uid,page.page()));
+        return Result.success().setData(financialService.financialUserPage(uid, page.page()));
     }
 
     /**
@@ -37,6 +38,15 @@ public class FinancialUserController {
     @AdminPrivilege(and = Privilege.理财管理)
     public Result data(String uid) {
         return Result.success().setData(financialService.userSummaryData(uid));
+    }
+
+    /**
+     * 理财用户管理 上方累计数据
+     */
+    @GetMapping("/details/{uid}")
+    @AdminPrivilege(and = Privilege.理财管理, api = "/management/financial/user/details/uid")
+    public Result details(@PathVariable Long uid) {
+        return Result.success().setData(financialService.userAmountDetailsVO(uid));
     }
 
     @Resource

@@ -17,6 +17,7 @@ import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.management.dto.AmountDto;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.DollarIncomeVO;
@@ -259,6 +260,13 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         result.setAccountBalances(accountBalanceVOS);
 
         return result;
+    }
+
+    public BigDecimal getDollarBalance(Long uid) {
+        List<AccountBalanceVO> accountBalanceList = accountBalanceVOS(uid);
+        List<AmountDto> amountDtoList = accountBalanceList.stream().map(accountBalanceVO ->
+                new AmountDto(accountBalanceVO.getBalance(), accountBalanceVO.getCoin())).collect(Collectors.toList());
+        return currencyService.calDollarAmount(amountDtoList);
     }
 
     public List<AccountBalanceVO> getAccountBalanceList(Long uid) {
