@@ -9,6 +9,7 @@ import com.tianli.charge.entity.OrderAdvance;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.service.OrderAdvanceService;
 import com.tianli.charge.service.OrderService;
+import com.tianli.common.RedisLockConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.financial.entity.FinancialProduct;
@@ -18,6 +19,8 @@ import com.tianli.fund.contant.FundTransactionStatus;
 import com.tianli.fund.entity.FundTransactionRecord;
 import com.tianli.fund.service.IFundTransactionRecordService;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +31,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author chenb
@@ -36,7 +40,6 @@ import java.util.Optional;
  **/
 @Component
 public class OrderTask {
-
 
     @Resource
     private OrderService orderService;
@@ -50,14 +53,25 @@ public class OrderTask {
     private FinancialProductService financialProductService;
     @Resource
     private IFundTransactionRecordService fundTransactionRecordService;
+    @Resource
+    private RedissonClient redissonClient;
 
     @Scheduled(cron = "0 0/15 * * * ?")
     public void advanceTask() {
-        List<Order> advanceOrders = Optional.ofNullable(orderService.list(new LambdaQueryWrapper<Order>()
-                .eq(Order::getStatus, ChargeStatus.chaining)
-                .likeRight(Order::getOrderNo, AccountChangeType.advance_purchase.getPrefix()))).orElse(new ArrayList<>());
+        RLock lock = redissonClient.getLock(RedisLockConstants.ORDER_ADVANCE);
+        try {
+            if (lock.tryLock(1, TimeUnit.MINUTES)) {
+                List<Order> advanceOrders = Optional.ofNullable(orderService.list(new LambdaQueryWrapper<Order>()
+                        .eq(Order::getStatus, ChargeStatus.chaining)
+                        .likeRight(Order::getOrderNo, AccountChangeType.advance_purchase.getPrefix()))).orElse(new ArrayList<>());
+                advanceOrders.forEach(this::scanChainOperation);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
+        }
 
-        advanceOrders.forEach(this::scanChainOperation);
     }
 
     @Transactional
