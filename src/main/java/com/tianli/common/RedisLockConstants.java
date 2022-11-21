@@ -31,8 +31,6 @@ public class RedisLockConstants {
 
     public static String FUND_INCOME_LOCK = "Fund:income:lock:";
 
-    public static String BORROW_ORDER_NUM_TASK = "BorrowOrderNumTask#statisticalOrderNum:lock:";
-
     public static String RECYCLE_LOCK = "recharge:recycle:";
 
     public static String PRODUCT_REDEEM = "product:redeem:";
@@ -43,5 +41,7 @@ public class RedisLockConstants {
     public static String RED_ENVELOPE_GIVE = "red:envelope:give:";
     public static String RED_ENVELOPE_EXPIRATION = "red:envelope:expiration:";
 
+
+    public static String ORDER_ADVANCE = "order:advance";
 
 }
