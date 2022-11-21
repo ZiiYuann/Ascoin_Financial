@@ -1,5 +1,7 @@
 package com.tianli.exception;
 
+import cn.hutool.json.JSON;
+import cn.hutool.json.JSONUtil;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.async.AsyncService;
 import com.tianli.tool.ApplicationContextTool;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by wangqiyun on 2018/1/18.
@@ -23,7 +26,9 @@ public class HandleExceptionController {
     public Result resolveException(HttpServletRequest request, Exception e) {
         if (!(e instanceof ErrCodeException)) {
             var url = request.getRequestURL().toString();
-            webHookService.dingTalkSend("异常信息" + "【" + url + "】", e);
+            Map<String, String[]> parameterMap = request.getParameterMap();
+            url = url + "  params:" + JSONUtil.toJsonStr(parameterMap);
+            webHookService.dingTalkSend("异常信息", url, e);
         }
         Result result = Result.instance();
         if (e instanceof ErrCodeException) {
