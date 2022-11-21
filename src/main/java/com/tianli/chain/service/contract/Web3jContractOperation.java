@@ -187,7 +187,11 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
 
     @Override
     public boolean successByHash(String hash) {
-        return "0x1".equals(getTransactionByHash(hash).getResult().getStatus());
+        EthGetTransactionReceipt ethGetTransactionReceipt = getTransactionByHash(hash);
+        if (Objects.isNull(ethGetTransactionReceipt.getResult())) {
+            return false;
+        }
+        return "0x1".equals(ethGetTransactionReceipt.getResult().getStatus());
     }
 
 
