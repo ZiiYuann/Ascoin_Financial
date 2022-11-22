@@ -21,7 +21,7 @@ public interface RedEnvelopeMapper extends BaseMapper<RedEnvelope> {
     @Update("UPDATE  red_envelope SET `status` = 'OVERDUE'  WHERE `id` = #{id} AND  `status` = 'PROCESS' ")
     int overdue(@Param("id") Long id);
 
-    @Update("UPDATE  red_envelope SET `status` = 'PROCESS'  WHERE `id` = #{id} AND  `status` = 'WAIT' AND txid IS NULL  ")
+    @Update("UPDATE  red_envelope SET `status` = 'PROCESS',txid = #{txid}  WHERE `id` = #{id} AND  `status` = 'WAIT' AND txid IS NULL  ")
     int process(@Param("id") Long id, @Param("txid") String txid);
 
     @Select("SELECT id FROM red_envelope ")
