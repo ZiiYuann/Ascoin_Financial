@@ -1,8 +1,10 @@
 package com.tianli.management.converter;
 
 
+import com.tianli.chain.entity.Coin;
 import com.tianli.management.entity.HotWalletDetailed;
 import com.tianli.management.entity.WithdrawServiceFee;
+import com.tianli.management.query.CoinIoUQuery;
 import com.tianli.management.query.HotWalletDetailedIoUQuery;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.management.entity.FinancialBoardProduct;
@@ -31,4 +33,6 @@ public interface ManagementConverter {
     HotWalletDetailedVO toHotWalletDetailedVO(HotWalletDetailed hotWalletDetailed);
 
     WithdrawServiceFeeVO toWithdrawServiceFeeVO(WithdrawServiceFee withdrawServiceFee);
+
+    Coin toDO(CoinIoUQuery query);
 }

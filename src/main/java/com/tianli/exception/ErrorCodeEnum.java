@@ -143,6 +143,7 @@ public enum ErrorCodeEnum {
     /*** －－－－－－业务错误码-理财相关－－－－－－*/
     FINANCIAL_INCOME_REPEAT(3801,"理财利息当日利息已经计算"),
     FINANCIAL_TO_ERROR(3802,"提现地址不允许是当前云钱包地址"),
+    COIN_RATE_ERROR(3803,"币别汇率获取异常"),
 
 
 

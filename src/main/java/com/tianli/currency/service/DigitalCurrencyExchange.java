@@ -18,6 +18,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -79,6 +80,19 @@ public class DigitalCurrencyExchange {
         return aDouble;
     }
 
+    public double coinUsdtPrice(String coinName) {
+        coinName = coinName.toLowerCase(Locale.ROOT);
+        var key = coinName + "UsdtPrice";
+        BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(key);
+        Object o = ops.get();
+        if (o != null) return Double.parseDouble(o.toString());
+        String stringResult = HttpHandler.execute(new HttpRequest().setUrl("https://api.huobi.pro/market/trade?symbol=" + coinName + "usdt")).getStringResult();
+        JsonObject jsonObject = new Gson().fromJson(stringResult, JsonObject.class);
+        Double aDouble = JsonObjectTool.getAsDouble(jsonObject, "tick.data[0].price");
+        if (aDouble == null) ErrorCodeEnum.NETWORK_ERROR.throwException();
+        ops.set(aDouble, 1L, TimeUnit.MINUTES);
+        return aDouble;
+    }
 
     public double btcUsdtPrice() {
         BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps("btcUsdtPrice");

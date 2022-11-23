@@ -28,4 +28,6 @@ public class RedisConstants {
     public static String RECOMMEND_PRODUCT = "product:recommend";
 
     public static String ACCOUNT_TRANSACTION_TYPE = "account:transaction:type";
+
+    public static String COIN_LIST = "coins";
 }
