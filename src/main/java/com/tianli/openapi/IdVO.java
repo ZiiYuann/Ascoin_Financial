@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RewardVO {
+public class IdVO {
     private Long id;
 }

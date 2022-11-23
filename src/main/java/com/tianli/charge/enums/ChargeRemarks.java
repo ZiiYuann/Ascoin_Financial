@@ -19,7 +19,6 @@ public enum ChargeRemarks {
     red_back_success("退款成功", "Successful Refund", ChargeType.red_back, ChargeStatus.chain_success),
     red_get_success("领取成功", "Successful Received", ChargeType.red_get, ChargeStatus.chain_success),
     agent_fund_sale_success("销售收入", "Income Arrival", ChargeType.agent_fund_sale, ChargeStatus.chain_success),
-//    tr_success("已发放{1}笔", "{1} Receiving Record", ChargeType.transaction_reward, ChargeStatus.chain_success),
     income_success("收益到账", "Earnings Arrival", ChargeType.income, ChargeStatus.chain_success),
 
 
@@ -44,8 +43,9 @@ public enum ChargeRemarks {
     agent_fund_redeem_success("支付成功", "Successful Payment", ChargeType.agent_fund_redeem, ChargeStatus.chain_success),
     agent_fund_redeem_fail("支付失败", "Failed Payment ", ChargeType.agent_fund_redeem, ChargeStatus.chain_fail),
     agent_fund_interest_success("支付成功", "Successful Payment", ChargeType.agent_fund_interest, ChargeStatus.chain_success),
-    agent_fund_interest_fail("支付失败", "Failed Payment ", ChargeType.agent_fund_interest, ChargeStatus.chain_fail),
-
+    agent_fund_interest_fail("支付失败", "Failed Payment", ChargeType.agent_fund_interest, ChargeStatus.chain_fail),
+    transfer_increase_success("划转增加", "Transfer Increase", ChargeType.transfer_increase, ChargeStatus.chain_success),
+    transfer_reduce_success("划转减少", "Transfer Reduce", ChargeType.transfer_reduce, ChargeStatus.chain_success),
     ;
 
     ChargeRemarks(String remarks, String remarksEn, ChargeType type, ChargeStatus status) {
