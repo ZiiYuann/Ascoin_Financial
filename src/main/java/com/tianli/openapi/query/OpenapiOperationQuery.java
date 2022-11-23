@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RewardQuery {
+public class OpenapiOperationQuery {
 
     private Long id;
 

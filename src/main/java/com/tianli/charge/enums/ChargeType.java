@@ -34,7 +34,11 @@ public enum ChargeType {
     red_give("Send Red Packet", "红包已发送"),
     red_get("Red Packet Collection", "红包领取"),
     red_back("Red Packet Refund", "红包退款"),
-    transaction_reward("Trading Bonus", "交易奖励",AccountChangeType.transaction_reward),
+    transaction_reward("Trading Bonus", "交易奖励", AccountChangeType.transaction_reward),
+    transfer_increase("Transfer Increase", "划转增加",AccountChangeType.transaction_reward),
+    transfer_reduce("Transfer Reduce", "划转减少",AccountChangeType.transaction_reward)
+    // 增加类型需要在 ChargeRemarks 中增加对应的状态和文字，不然会报错
+    // 增加类型需要在 ChargeGroup 中增加对应，不然会报错
     ;
 
 
@@ -44,7 +48,7 @@ public enum ChargeType {
         this.accountChangeType = null;
     }
 
-    ChargeType(String nameEn, String nameZn,AccountChangeType accountChangeType) {
+    ChargeType(String nameEn, String nameZn, AccountChangeType accountChangeType) {
         this.nameZn = nameZn;
         this.nameEn = nameEn;
         this.accountChangeType = accountChangeType;

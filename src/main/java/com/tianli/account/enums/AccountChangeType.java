@@ -49,6 +49,8 @@ public enum AccountChangeType {
     red_get("RGE"),
     red_back("RBA"),
     transaction_reward("TR"),
+    transfer_increase("TSI"),
+    transfer_reduce("TSR"),
     ;
 
 
