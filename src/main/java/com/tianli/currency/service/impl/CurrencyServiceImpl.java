@@ -73,4 +73,17 @@ public class CurrencyServiceImpl implements CurrencyService {
                     return this.getDollarRate(amountDto.getCoin()).multiply(amount);
                 }).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
+    @Override
+    public BigDecimal huobiUsdtRate(String coinName) {
+        try {
+            if ("usdt".equalsIgnoreCase(coinName)) {
+                return BigDecimal.ONE;
+            }
+            Optional.ofNullable(coinName).orElseThrow(NullPointerException::new);
+            return BigDecimal.valueOf(digitalCurrencyExchange.coinUsdtPrice(coinName));
+        } catch (Exception e) {
+            throw ErrorCodeEnum.COIN_RATE_ERROR.generalException();
+        }
+    }
 }

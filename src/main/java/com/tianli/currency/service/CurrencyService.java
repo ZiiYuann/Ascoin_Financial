@@ -34,4 +34,12 @@ public interface CurrencyService {
      * @return 总金额
      */
     BigDecimal calDollarAmount(List<AmountDto> amountDtos);
+
+    /**
+     * 获取huobi网转usdt的汇率
+     *
+     * @param coinName 币别名称
+     * @return 汇率信息
+     */
+    BigDecimal huobiUsdtRate(String coinName);
 }
