@@ -41,14 +41,14 @@ public class OpenApiService {
         }
 
         OrderRewardRecord rewardRecord = orderRewardRecordService.lambdaQuery()
-                .eq(OrderRewardRecord::getOrder_id, query.getId()).one();
+                .eq(OrderRewardRecord::getOrderId, query.getId()).one();
         if (Objects.nonNull(rewardRecord)) {
             return new IdVO(rewardRecord.getId());
         }
 
         OrderRewardRecord orderRewardRecord = insertOrderRecord(query);
         long recordId = orderRewardRecord.getId();
-        LocalDateTime orderDateTime = orderRewardRecord.getGive_time();
+        LocalDateTime orderDateTime = orderRewardRecord.getGiveTime();
 
         LocalDateTime hour = TimeTool.hour(orderDateTime);
         Order order = orderService.getOne(new LambdaQueryWrapper<Order>()
@@ -90,7 +90,9 @@ public class OpenApiService {
         }
 
         OrderRewardRecord rewardRecord = orderRewardRecordService.lambdaQuery()
-                .eq(OrderRewardRecord::getOrder_id, query.getId()).one();
+                .eq(OrderRewardRecord::getOrderId, query.getId())
+                .eq(OrderRewardRecord::getType, query.getType())
+                .one();
         if (Objects.nonNull(rewardRecord)) {
             return new IdVO(rewardRecord.getId());
         }
@@ -141,8 +143,8 @@ public class OpenApiService {
                 .amount(query.getAmount())
                 .type(query.getType())
                 .uid(query.getUid())
-                .give_time(orderDateTime)
-                .order_id(query.getId())
+                .giveTime(orderDateTime)
+                .orderId(query.getId())
                 .build();
         orderRewardRecordService.save(orderRewardRecord);
         return orderRewardRecord;

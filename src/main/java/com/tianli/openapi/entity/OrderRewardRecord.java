@@ -31,8 +31,8 @@ public class OrderRewardRecord {
 
     private CurrencyCoin coin;
 
-    private LocalDateTime give_time;
+    private LocalDateTime giveTime;
 
-    private Long order_id;
+    private Long orderId;
 
 }
