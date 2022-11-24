@@ -1,9 +1,7 @@
 package com.tianli.openapi.controller;
 
 import com.tianli.account.service.AccountBalanceService;
-import com.tianli.charge.converter.ChargeConverter;
-import com.tianli.charge.entity.Order;
-import com.tianli.charge.service.OrderService;
+import com.tianli.charge.service.ChargeService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.openapi.query.OpenapiOperationQuery;
@@ -29,9 +27,7 @@ public class OpenApiController {
     @Resource
     private AccountBalanceService accountBalanceService;
     @Resource
-    private OrderService orderService;
-    @Resource
-    private ChargeConverter chargeConverter;
+    private ChargeService chargeService;
 
     /**
      * 奖励接口
@@ -104,9 +100,7 @@ public class OpenApiController {
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
-
-        Order order = orderService.getById(id);
-        return Result.success(chargeConverter.toVO(order));
+        return Result.success(chargeService.chargeOrderDetails(id));
     }
 
 }
