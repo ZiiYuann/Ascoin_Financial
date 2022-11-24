@@ -7,6 +7,7 @@ import lombok.*;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.Locale;
 
 
 /**
@@ -42,4 +43,13 @@ public class CoinIoUQuery extends IoUQuery {
     private String rateUrl;
 
     private String rateField;
+
+    private int decimals;
+
+    public String getName() {
+        if (name != null) {
+            return name.toLowerCase(Locale.ROOT);
+        }
+        return null;
+    }
 }

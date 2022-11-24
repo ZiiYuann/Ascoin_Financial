@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tianli.chain.mapper.CoinBaseMapper">
+    <select id="coins" resultType="com.tianli.management.vo.MCoinListVO">
+        SELECT c.name,cb.logo,cb.weight,c.*
+        FROM `coin_base` cb
+        LEFT JOIN `coin` c on cb.name = c.name
+        WHERE 1 = 1
+        <if test="query.name != null">
+            AND c.name like concat('%',#{query.name},'%')
+        </if>
+        <if test="query.contract != null">
+            AND c.contract like concat('%',#{query.contract},'%')
+        </if>
+        <if test="query.chain != null">
+            AND c.chain = #{query.chain}
+        </if>
+        <if test="query.network != null">
+            AND c.network = #{query.network}
+        </if>
+        <if test="query.status != null">
+            AND c.status = #{query.status}
+        </if>
+        ORDER BY cb.weight desc
+    </select>
+</mapper>

@@ -12,7 +12,6 @@ import com.tianli.chain.dto.TxConditionReq;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.common.ConfigConstants;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
@@ -96,15 +95,6 @@ public class ChainService {
         }
     }
 
-
-    @Transactional
-    public void conditionPushConfigAdd(TokenAdapter tokenAdapter) {
-        Config config = new Config();
-        config.setName(tokenAdapter + ConfigConstants.PUSH_RECHARGE_CONDITION);
-        config.setValue("666666"); //无所谓
-        configService.insert(config);
-    }
-
     public void pushCondition(Address address, TokenAdapter tokenAdapter, String url) {
         String needPushAddress = null;
         ChainType chainType = null;
@@ -138,9 +128,9 @@ public class ChainService {
         pushCondition(tron, bsc, eth, urlPath);
     }
 
-    public void pushWithdrawCondition(NetworkType networkType, CurrencyCoin coin, CallbackPathDTO callBackPath, String to) {
-        TokenAdapter tokenAdapter = TokenAdapter.get(coin, networkType);
-        TxConditionReq txConditionReq = TxConditionReq.builder().contractAddress(tokenAdapter.getContractAddress())
+    public void pushWithdrawCondition(NetworkType networkType, String coinName, CallbackPathDTO callBackPath, String to) {
+        Coin coin = coinService.getByNameAndNetwork(coinName, networkType);
+        TxConditionReq txConditionReq = TxConditionReq.builder().contractAddress(coin.isMainToken() ? "0x000000" : coin.getContract())
                 .to(to)
                 .chain(networkType.getChainType()).build();
 
@@ -258,5 +248,7 @@ public class ChainService {
     private ConfigService configService;
     @Resource
     private AddressMapper addressMapper;
+    @Resource
+    private CoinService coinService;
 
 }

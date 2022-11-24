@@ -1,12 +1,11 @@
 package com.tianli.borrow.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.borrow.bo.BorrowPledgeCoinConfigBO;
 import com.tianli.borrow.entity.BorrowPledgeCoinConfig;
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.borrow.vo.BorrowPledgeCoinConfigVO;
 import com.tianli.common.PageQuery;
-import com.tianli.common.blockchain.CurrencyCoin;
 
 /**
  * <p>
@@ -24,7 +23,7 @@ public interface IBorrowPledgeCoinConfigService extends IService<BorrowPledgeCoi
 
     void delConfig(Long[] ids);
 
-    IPage<BorrowPledgeCoinConfigVO> pageList(PageQuery<BorrowPledgeCoinConfig> pageQuery, CurrencyCoin coin);
+    IPage<BorrowPledgeCoinConfigVO> pageList(PageQuery<BorrowPledgeCoinConfig> pageQuery, String coin);
 
-    BorrowPledgeCoinConfig getByCoin(CurrencyCoin coin);
+    BorrowPledgeCoinConfig getByCoin(String coin);
 }

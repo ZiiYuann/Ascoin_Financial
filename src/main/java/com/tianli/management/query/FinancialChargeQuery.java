@@ -2,7 +2,6 @@ package com.tianli.management.query;
 
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,7 +18,7 @@ public class FinancialChargeQuery {
 
     private String txid;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private String uid;
 

@@ -3,7 +3,6 @@ package com.tianli.accountred.entity;
 import com.tianli.accountred.enums.RedEnvelopeStatus;
 import com.tianli.accountred.enums.RedEnvelopeType;
 import com.tianli.accountred.enums.RedEnvelopeWay;
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -45,7 +44,7 @@ public class RedEnvelope {
     /**
      * 币别
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * NORMAL：单个红包金额 RANDOM：红包总金额

@@ -2,7 +2,6 @@ package com.tianli.financial.vo;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.*;
 import lombok.Data;
 
@@ -26,7 +25,7 @@ public class FinancialProductVO {
     /**
      * 币别
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * 产品名称

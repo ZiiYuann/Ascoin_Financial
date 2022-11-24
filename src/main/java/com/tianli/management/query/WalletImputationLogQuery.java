@@ -1,7 +1,6 @@
 package com.tianli.management.query;
 
 import com.tianli.chain.enums.ImputationStatus;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 public class WalletImputationLogQuery {
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private String txid;
 

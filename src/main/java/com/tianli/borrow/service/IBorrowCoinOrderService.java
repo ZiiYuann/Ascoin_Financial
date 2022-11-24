@@ -16,7 +16,6 @@ import com.tianli.borrow.query.BorrowPledgeRecordQuery;
 import com.tianli.borrow.query.BorrowRepayQuery;
 import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
-import com.tianli.common.blockchain.CurrencyCoin;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -34,7 +33,7 @@ public interface IBorrowCoinOrderService extends IService<BorrowCoinOrder> {
 
     IPage<BorrowCoinOrderVO> pageList(PageQuery<BorrowCoinOrder> pageQuery, BorrowOrderQuery query);
 
-    BorrowApplePageVO applyPage(CurrencyCoin coin);
+    BorrowApplePageVO applyPage(String coin);
 
     void borrowCoin(BorrowOrderBO bo);
 
@@ -56,11 +55,11 @@ public interface IBorrowCoinOrderService extends IService<BorrowCoinOrder> {
 
     BorrowLiquidationRecordVO liquidationRecord(Long orderId);
 
-    BorrowRepayPageVO repayPage(Long orderId, BigDecimal repayAmount, CurrencyCoin coin);
+    BorrowRepayPageVO repayPage(Long orderId, BigDecimal repayAmount, String coin);
 
     void orderRepay(BorrowOrderRepayBO bo);
 
-    BorrowAdjustPageVO adjustPage(Long orderId,Integer pledgeType,BigDecimal adjustAmount,CurrencyCoin coin);
+    BorrowAdjustPageVO adjustPage(Long orderId,Integer pledgeType,BigDecimal adjustAmount,String coin);
 
     void adjustPledge(AdjustPledgeBO bo);
 

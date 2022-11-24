@@ -1,8 +1,6 @@
 package com.tianli.financial.vo;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductType;
-import com.tianli.financial.enums.RiskType;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -46,5 +44,5 @@ public class HoldProductVo {
 
     private String logo;
 
-    private CurrencyCoin coin;
+    private String coin;
 }

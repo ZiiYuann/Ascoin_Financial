@@ -7,14 +7,14 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.service.AccountBalanceService;
-import com.tianli.account.vo.AccountBalanceVO;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
+import com.tianli.chain.entity.CoinBase;
+import com.tianli.chain.service.CoinBaseService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisService;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
@@ -37,7 +37,6 @@ import com.tianli.fund.query.FundIncomeQuery;
 import com.tianli.fund.query.FundRecordQuery;
 import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
-import com.tianli.management.dto.AmountDto;
 import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.query.FinancialChargeQuery;
@@ -173,12 +172,10 @@ public class FinancialServiceImpl implements FinancialService {
     public IPage<HoldProductVo> holdProductPage(IPage<FinancialProduct> page, Long uid, ProductType type) {
 
         IPage<HoldProductVo> holdProductVoPage = productMapper.holdProductPage(page, uid, Objects.isNull(type) ? null : type.name());
-
-        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
         holdProductVoPage.convert(holdProductVo -> {
 
             IncomeVO incomeVO = new IncomeVO();
-            incomeVO.setHoldFee(dollarRateMap.get(holdProductVo.getCoin()).multiply(holdProductVo.getHoldAmount()));
+            incomeVO.setHoldFee(currencyService.getDollarRate(holdProductVo.getCoin()).multiply(holdProductVo.getHoldAmount()));
             if (ProductType.fund.equals(holdProductVo.getProductType())) {
                 FundIncomeQuery query = new FundIncomeQuery();
                 query.setUid(uid);
@@ -242,8 +239,9 @@ public class FinancialServiceImpl implements FinancialService {
 
         return productRateDTOS.convert(productRateDTO -> {
             RateScopeVO financialProductRateVO = new RateScopeVO();
+            CoinBase coinBase = coinBaseService.getByName(productRateDTO.getCoin());
             financialProductRateVO.setCoin(productRateDTO.getCoin());
-            financialProductRateVO.setLogo(productRateDTO.getCoin().getLogoPath());
+            financialProductRateVO.setLogo(coinBase.getLogo());
             financialProductRateVO.setMaxRate(productRateDTO.getMaxRate());
             financialProductRateVO.setMinRate(productRateDTO.getMinRate());
             List<FinancialProductVO> productVOS = productMap.getOrDefault(productRateDTO.getCoin(), new ArrayList<>());
@@ -411,7 +409,7 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public FixedProductsPurchaseVO fixedProductDetails(CurrencyCoin coin) {
+    public FixedProductsPurchaseVO fixedProductDetails(String coin) {
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
                 .eq(FinancialProduct::getCoin, coin)
                 .eq(FinancialProduct::getType, ProductType.fixed)
@@ -678,5 +676,7 @@ public class FinancialServiceImpl implements FinancialService {
     private CurrencyService currencyService;
     @Resource
     private RedisService redisService;
+    @Resource
+    private CoinBaseService coinBaseService;
 
 }

@@ -1,6 +1,5 @@
 package com.tianli.currency.enums;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.exception.ErrorCodeEnum;
 import lombok.Getter;
@@ -19,110 +18,42 @@ public enum TokenAdapter {
 
     // 代币
     // 18位
-    usdt_bep20(CurrencyCoin.usdt, NetworkType.bep20, "0x55d398326f99059ff775485246999027b3197955"),
-    usdc_bep20(CurrencyCoin.usdc, NetworkType.bep20, "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"),
+    usdt_bep20("usdt", NetworkType.bep20, "0x55d398326f99059ff775485246999027b3197955"),
+    usdc_bep20("usdc", NetworkType.bep20, "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"),
     // 6位
-    usdc_erc20(CurrencyCoin.usdc, NetworkType.erc20, "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
-    usdt_erc20(CurrencyCoin.usdt, NetworkType.erc20, "0xdac17f958d2ee523a2206206994597c13d831ec7"),
+    usdc_erc20("usdc", NetworkType.erc20, "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
+    usdt_erc20("usdt", NetworkType.erc20, "0xdac17f958d2ee523a2206206994597c13d831ec7"),
     // 6位
-    usdc_trc20(CurrencyCoin.usdc, NetworkType.trc20, "TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"),
-    usdt_trc20(CurrencyCoin.usdt, NetworkType.trc20, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
+    usdc_trc20("usdc", NetworkType.trc20, "TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"),
+    usdt_trc20("usdt", NetworkType.trc20, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
 
 
     // 主币
-    bnb(CurrencyCoin.bnb, NetworkType.bep20, "0x000000"),
-    eth(CurrencyCoin.eth, NetworkType.erc20, "0x000000"),
+    bnb("bnb", NetworkType.bep20, "0x000000"),
+    eth("eth", NetworkType.erc20, "0x000000"),
     trx(null, NetworkType.trc20, "0x000000");
 
 
-    TokenAdapter(CurrencyCoin currencyCoin, NetworkType currencyNetworkType, String contractAddress) {
+    TokenAdapter(String currencyCoin, NetworkType currencyNetworkType, String contractAddress) {
         this.fiat = false;
         this.network = currencyNetworkType;
         this.currencyCoin = currencyCoin;
         this.contractAddress = contractAddress;
     }
 
-    private final CurrencyCoin currencyCoin;
+    private final String currencyCoin;
     private final NetworkType network;
     private final boolean fiat;
     private final String contractAddress;
 
-    /**
-     * 如果是主币，调用归集合约传递参数为 new ArrayList
-     */
-    public List<String> getContractAddressList() {
-        if (mainToken(this)) {
-            return new ArrayList<>();
-        }
-        return List.of(this.contractAddress);
+    public static BigDecimal alignment(BigDecimal amount, int decimals) {
+        if (amount == null) return BigDecimal.ZERO;
+        return amount.movePointLeft(decimals);
     }
 
-    /**
-     * 是否是主币
-     */
-    public static boolean mainToken(TokenAdapter tokenAdapter) {
-        return TokenAdapter.bnb.equals(tokenAdapter) || TokenAdapter.eth.equals(tokenAdapter);
-    }
-
-    /**
-     * 根据网络和币别获取token包装
-     */
-    public static TokenAdapter get(CurrencyCoin coin, NetworkType networkType) {
-        if (CurrencyCoin.bnb.equals(coin)) {
-            return TokenAdapter.bnb;
-        }
-        if (CurrencyCoin.eth.equals(coin)) {
-            return TokenAdapter.eth;
-        }
-
-        for (TokenAdapter type : TokenAdapter.values()) {
-            if (type.getCurrencyCoin().equals(coin) && type.getNetwork().equals(networkType)) {
-                return type;
-            }
-        }
-        throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
-    }
-
-    /**
-     * 根据合约获取代币，主币会抛出异常
-     */
-    public static TokenAdapter getToken(String contractAddress) {
-        for (TokenAdapter type : TokenAdapter.values()) {
-            if (type.getContractAddress().equalsIgnoreCase(contractAddress)) {
-                return type;
-            }
-        }
-        throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
-    }
-
-    /**
-     * 根据合约获取主币，代币会抛出异常
-     */
-    public static TokenAdapter getMainToken(CurrencyCoin coin) {
-        if (CurrencyCoin.bnb.equals(coin)) return bnb;
-        if (CurrencyCoin.eth.equals(coin)) return eth;
-        throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
-    }
-
-    public BigDecimal alignment(BigInteger amount) {
-        if (amount == null) {
-            return BigDecimal.ZERO;
-        }
-        BigDecimal decimal = new BigDecimal(amount);
-        switch (this) {
-            case usdt_erc20:
-            case usdt_trc20:
-            case usdc_erc20:
-            case usdc_trc20:
-            case trx:
-                return decimal.divide(new BigDecimal("1000000"), 8, RoundingMode.DOWN);
-            case usdt_bep20:
-            case usdc_bep20:
-            case bnb:
-            case eth:
-                return decimal.divide(new BigDecimal("1000000000000000000"), 8, RoundingMode.DOWN);
-        }
-        return BigDecimal.ZERO;
+    public static BigInteger restoreBigInteger(BigDecimal money, int decimals) {
+        if (money == null) return BigInteger.ZERO;
+        return money.movePointRight(decimals).toBigInteger();
     }
 
     public BigDecimal alignment(BigDecimal amount) {
@@ -143,31 +74,5 @@ public enum TokenAdapter {
         return BigDecimal.ZERO;
     }
 
-    public BigInteger restore(double money) {
-        return restore("" + money);
-    }
-
-    public BigInteger restore(BigDecimal money) {
-        if (money == null) return BigInteger.ZERO;
-        switch (this) {
-            case usdt_erc20:
-            case usdt_trc20:
-            case usdc_erc20:
-            case usdc_trc20:
-            case trx:
-                return money.multiply(new BigDecimal("1000000")).toBigInteger();
-            case usdt_bep20:
-            case usdc_bep20:
-            case eth:
-            case bnb:
-                return money.multiply(new BigDecimal("1000000000000000000")).toBigInteger();
-        }
-        return BigInteger.ZERO;
-    }
-
-    public BigInteger restore(String money) {
-        BigDecimal decimal = new BigDecimal("" + money);
-        return restore(decimal);
-    }
 
 }

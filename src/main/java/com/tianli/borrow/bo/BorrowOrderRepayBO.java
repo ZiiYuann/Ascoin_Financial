@@ -1,6 +1,5 @@
 package com.tianli.borrow.bo;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 
 import javax.validation.constraints.DecimalMin;
@@ -20,5 +19,5 @@ public class BorrowOrderRepayBO {
      * 币别
      */
     @NotNull(message = "币别不能为空")
-    private CurrencyCoin currencyCoin;
+    private String currencyCoin;
 }

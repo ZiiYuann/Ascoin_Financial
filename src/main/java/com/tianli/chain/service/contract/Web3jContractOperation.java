@@ -1,20 +1,16 @@
 package com.tianli.chain.service.contract;
 
 import com.google.gson.Gson;
+import com.tianli.chain.entity.Coin;
 import com.tianli.currency.enums.TokenAdapter;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import org.web3j.abi.DefaultFunctionEncoder;
-import org.web3j.abi.FunctionEncoder;
-import org.web3j.abi.FunctionReturnDecoder;
-import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Function;
-import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.Uint;
+import org.web3j.abi.*;
+import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
@@ -51,25 +47,26 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
     /**
      * 代币转账
      */
-    public Result tokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter) {
+    public Result tokenTransfer(String to, BigInteger val, Coin coin) {
         Result result = null;
         try {
             result = this.sendRawTransactionWithDefaultParam(
-                    tokenAdapter.getContractAddress(),
+                    coin.getContract(),
                     FunctionEncoder.encode(
                             new Function("transfer", List.of(new Address(to), new Uint(val)), new ArrayList<>())
                     ),
                     BigInteger.ZERO,
                     BigInteger.valueOf(Long.parseLong(getTransferGasLimit())),
-                    String.format("转账%s", tokenAdapter.getCurrencyCoin().getName()));
+                    String.format("转账%s", coin.getName()));
         } catch (Exception ignored) {
 
         }
         return result;
     }
 
-    public Result mainTokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter) {
-        return sendRawTransactionWithDefaultParam(to, "", val, BigInteger.valueOf(Long.parseLong(getTransferGasLimit())), "主笔转账：" + tokenAdapter.name());
+    public Result mainTokenTransfer(String to, BigInteger val, Coin coin) {
+        return sendRawTransactionWithDefaultParam(to, "", val,
+                BigInteger.valueOf(Long.parseLong(getTransferGasLimit())), "主笔转账：" + coin.getName());
     }
 
     /**
@@ -249,6 +246,28 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
         BigInteger gasUsed = getTransactionReceipt(hash).getGasUsed();
         BigDecimal gasPrice = Convert.fromWei(new BigDecimal(transaction.getGasPrice()), Convert.Unit.GWEI);
         return new BigDecimal(gasUsed).multiply(gasPrice).multiply(BigDecimal.valueOf(0.000000001f));
+    }
+
+    public Integer decimals(String contractAddress) {
+
+        try {
+            List<TypeReference<?>> outputParameters = new ArrayList<>();
+            Function function = new Function("decimals", List.of(),
+                    outputParameters);
+            String result = getWeb3j().ethCall(Transaction.createEthCallTransaction(null, contractAddress,
+                    new DefaultFunctionEncoder().encodeFunction(
+                            function
+                    )), DefaultBlockParameterName.LATEST).send().getValue();
+            if (result == null) {
+                ErrorCodeEnum.WEB3J_DECIMALS.throwException();
+            }
+
+            var list = FunctionReturnDecoder.decode(result, Utils.convert(List.of(TypeReference.create(Uint.class))));
+            return Integer.valueOf(list.get(0).getValue().toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        throw ErrorCodeEnum.WEB3J_DECIMALS.generalException();
     }
 
     /**

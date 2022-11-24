@@ -1,7 +1,7 @@
 package com.tianli.account.vo;
 
+import com.tianli.chain.entity.CoinBase;
 import com.tianli.common.annotation.BigDecimalFormat;
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,7 +29,7 @@ public class AccountBalanceVO {
     /**
      * 币种
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * logo 地址
@@ -91,13 +91,12 @@ public class AccountBalanceVO {
     private BigDecimal dollarRemain;
 
 
-    public static AccountBalanceVO getDefault(String coinName) {
-        CurrencyCoin coin = CurrencyCoin.valueOf(coinName);
+    public static AccountBalanceVO getDefault(CoinBase coin) {
         return AccountBalanceVO.builder()
                 .id(-1L)
-                .coin(coin)
+                .coin(coin.getName())
                 .balance(BigDecimal.ZERO)
-                .logo(coin.getLogoPath())
+                .logo(coin.getLogo())
                 .dollarRate(BigDecimal.ZERO)
                 .balance(BigDecimal.ZERO)
                 .freeze(BigDecimal.ZERO)

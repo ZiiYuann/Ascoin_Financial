@@ -1,7 +1,6 @@
 package com.tianli.openapi.query;
 
 import com.tianli.charge.enums.ChargeType;
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,7 +25,7 @@ public class OpenapiOperationQuery {
 
     private ChargeType type;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private Long give_time;
 

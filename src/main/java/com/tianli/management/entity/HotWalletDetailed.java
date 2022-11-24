@@ -1,7 +1,6 @@
 package com.tianli.management.entity;
 
 import com.tianli.chain.enums.ChainType;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.management.enums.HotWalletOperationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,7 +30,7 @@ public class HotWalletDetailed {
 
     private BigDecimal amount;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private ChainType chain;
 

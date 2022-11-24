@@ -1,7 +1,6 @@
 package com.tianli.chain.entity;
 
 import com.tianli.chain.enums.ImputationStatus;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,7 +29,7 @@ public class WalletImputation {
 
     private BigDecimal amount;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private NetworkType network;
 

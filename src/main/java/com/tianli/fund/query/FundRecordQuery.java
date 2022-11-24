@@ -1,6 +1,5 @@
 package com.tianli.fund.query;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,7 +24,7 @@ public class FundRecordQuery {
 
     private Long productId;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     public FundRecordQuery(Long productId) {
         this.productId = productId;

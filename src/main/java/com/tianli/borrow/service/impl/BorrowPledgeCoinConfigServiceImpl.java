@@ -3,21 +3,20 @@ package com.tianli.borrow.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.borrow.bo.BorrowPledgeCoinConfigBO;
 import com.tianli.borrow.contant.BorrowOrderPledgeStatus;
 import com.tianli.borrow.convert.BorrowCoinConfigConverter;
-import com.tianli.borrow.entity.BorrowPledgeCoinConfig;
 import com.tianli.borrow.dao.BorrowPledgeCoinConfigMapper;
+import com.tianli.borrow.entity.BorrowPledgeCoinConfig;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.service.IBorrowPledgeCoinConfigService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.borrow.vo.BorrowPledgeCoinConfigVO;
 import com.tianli.common.PageQuery;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.ErrorCodeEnum;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -34,11 +33,11 @@ import java.util.Objects;
 @Service
 public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeCoinConfigMapper, BorrowPledgeCoinConfig> implements IBorrowPledgeCoinConfigService {
 
-    @Autowired
+    @Resource
     private BorrowCoinConfigConverter borrowCoinConfigConverter;
-    @Autowired
+    @Resource
     private BorrowPledgeCoinConfigMapper borrowPledgeCoinConfigMapper;
-    @Autowired
+    @Resource
     private IBorrowCoinOrderService borrowCoinOrderService;
     @Override
     public void saveConfig(BorrowPledgeCoinConfigBO bo) {
@@ -94,18 +93,18 @@ public class BorrowPledgeCoinConfigServiceImpl extends ServiceImpl<BorrowPledgeC
     }
 
     @Override
-    public IPage<BorrowPledgeCoinConfigVO> pageList(PageQuery<BorrowPledgeCoinConfig> pageQuery, CurrencyCoin coin) {
+    public IPage<BorrowPledgeCoinConfigVO> pageList(PageQuery<BorrowPledgeCoinConfig> pageQuery, String coin) {
         LambdaQueryWrapper<BorrowPledgeCoinConfig> queryWrapper = new QueryWrapper<BorrowPledgeCoinConfig>().lambda();
         if(Objects.nonNull(coin)){
-            queryWrapper.eq(BorrowPledgeCoinConfig::getCoin,coin.getName());
+            queryWrapper.eq(BorrowPledgeCoinConfig::getCoin,coin);
         }
         return borrowPledgeCoinConfigMapper.selectPage(pageQuery.page(),queryWrapper).convert(borrowCoinConfigConverter::toPledgeVO);
     }
 
     @Override
-    public BorrowPledgeCoinConfig getByCoin(CurrencyCoin coin) {
+    public BorrowPledgeCoinConfig getByCoin(String coin) {
         return borrowPledgeCoinConfigMapper.selectOne(new QueryWrapper<BorrowPledgeCoinConfig>().lambda()
-                .eq(BorrowPledgeCoinConfig::getCoin,coin.getName()));
+                .eq(BorrowPledgeCoinConfig::getCoin,coin));
     }
 
     void verifyPledgeRate(BorrowPledgeCoinConfigBO bo){

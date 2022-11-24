@@ -1,10 +1,8 @@
 package com.tianli.charge.vo;
 
-import com.google.common.base.MoreObjects;
 import com.tianli.charge.enums.ChargeGroup;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -83,7 +81,7 @@ public class OrderChargeInfoVO {
     /**
      * 币别
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * 网络

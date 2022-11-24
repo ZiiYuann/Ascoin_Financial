@@ -41,7 +41,7 @@ public class SqsService {
         });
     }
 
-    public void receiveAndDelete(String url, int maxNumberOfMessages) {
+    public int receiveAndDelete(String url, int maxNumberOfMessages) {
         url = StringUtils.isBlank(url) ? sqsUrl : url;
         final String finalUrl = url;
         ReceiveMessageResponse receiveMessageResponse = sqsClientConfig.getSqsClient().receiveMessage(builder -> {
@@ -66,6 +66,7 @@ public class SqsService {
                 }
             });
         }
+        return messages.size();
     }
 
     /**

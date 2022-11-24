@@ -3,7 +3,6 @@ package com.tianli.accountred.vo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tianli.accountred.enums.RedEnvelopeStatus;
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,7 +32,7 @@ public class RedEnvelopeGetDetailsVO {
     /**
      * 币别
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     private String coinUrl;
 
@@ -74,8 +73,5 @@ public class RedEnvelopeGetDetailsVO {
 
     private List<RedEnvelopeSpiltGetRecordVO> records;
 
-    public String getCoinUrl() {
-        return coin.getLogoPath();
-    }
 
 }

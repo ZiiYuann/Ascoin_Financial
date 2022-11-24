@@ -2,7 +2,6 @@ package com.tianli.management.query;
 
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,7 +25,7 @@ public class FinancialOrdersQuery {
     private String orderNo;
     private String uid;
     private ProductType productType;
-    private CurrencyCoin coin;
+    private String coin;
     private ChargeStatus status;
     private ChargeType chargeType;
 

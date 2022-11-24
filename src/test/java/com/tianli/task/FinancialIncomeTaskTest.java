@@ -8,7 +8,6 @@ import com.tianli.account.service.AccountBalanceService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.service.*;
@@ -46,7 +45,7 @@ public class FinancialIncomeTaskTest {
 
         @MockInvoke(scope = MockScope.ASSOCIATED)
         public void insertIncomeAccrue(FinancialIncomeAccrueService self, Long uid, Long recordId,
-                                       CurrencyCoin coin, BigDecimal amount) {
+                                       String coin, BigDecimal amount) {
         }
 
         @MockInvoke(scope = MockScope.ASSOCIATED)
@@ -56,7 +55,7 @@ public class FinancialIncomeTaskTest {
 
         @MockInvoke(scope = MockScope.ASSOCIATED)
         public void increase(AccountBalanceService self, long uid, ChargeType type,
-                             CurrencyCoin coin, BigDecimal amount,
+                             String coin, BigDecimal amount,
                              String sn, String des) {
         }
 

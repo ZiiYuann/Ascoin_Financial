@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.base.MoreObjects;
 import com.tianli.common.CommonFunction;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialProduct;
@@ -253,13 +252,12 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
 
         Map<Long, List<FinancialRecord>> recordMapByUid = Optional.ofNullable(financialRecordMapper.selectList(recordQuery)).orElse(new ArrayList<>())
                 .stream().collect(Collectors.groupingBy(FinancialRecord::getUid));
-        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
 
         return recordMapByUid.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
                 entry -> entry.getValue().stream().map(record -> {
                     BigDecimal holdAmount = record.getHoldAmount();
-                    BigDecimal rate = dollarRateMap.getOrDefault(record.getCoin(), BigDecimal.ZERO);
+                    BigDecimal rate = currencyService.getDollarRate(record.getCoin());
                     return holdAmount.multiply(rate);
                 }).reduce(BigDecimal.ZERO, BigDecimal::add)
         ));
@@ -293,7 +291,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     /**
      * 正持有的产品数量
      */
-    public BigDecimal holdAmountByCoin(Long uid, CurrencyCoin coin) {
+    public BigDecimal holdAmountByCoin(Long uid, String coin) {
         List<AmountDto> amountDtos = financialRecordMapper.holdAmount(null, coin, uid);
         return amountDtos.stream().map(AmountDto::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
     }

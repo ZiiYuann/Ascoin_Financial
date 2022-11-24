@@ -2,7 +2,6 @@ package com.tianli.charge.vo;
 
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.PurchaseTerm;
 import com.tianli.financial.enums.RiskType;
@@ -34,7 +33,7 @@ public class OrderBaseVO {
 
     private RiskType riskType;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private String orderNo;
 

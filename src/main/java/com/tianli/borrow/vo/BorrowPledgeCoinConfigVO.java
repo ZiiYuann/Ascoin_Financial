@@ -1,7 +1,6 @@
 package com.tianli.borrow.vo;
 
 import com.tianli.common.annotation.BigDecimalFormat;
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -28,7 +27,7 @@ public class BorrowPledgeCoinConfigVO implements Serializable {
     /**
      * 币种
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * 初始质押率

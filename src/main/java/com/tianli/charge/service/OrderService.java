@@ -13,7 +13,6 @@ import com.tianli.charge.mapper.OrderMapper;
 import com.tianli.charge.query.ServiceAmountQuery;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderSettleRecordVO;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.enums.ProductType;
@@ -102,10 +101,10 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
 
     public IPage<OrderFinancialVO> selectByPage(IPage<OrderFinancialVO> page, FinancialOrdersQuery financialOrdersQuery) {
         var orderFinancialVOIPage = orderMapper.selectByPage(page, financialOrdersQuery);
-        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
 
         return orderFinancialVOIPage.convert(orderFinancialVO -> {
-            orderFinancialVO.setDollarAmount(orderFinancialVO.getAmount().multiply(dollarRateMap.getOrDefault(orderFinancialVO.getCoin(), BigDecimal.ONE)));
+            orderFinancialVO.setDollarAmount(orderFinancialVO.getAmount()
+                    .multiply(currencyService.getDollarRate(orderFinancialVO.getCoin())));
             return orderFinancialVO;
         });
     }
@@ -139,12 +138,11 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
         List<Order> orders = Optional.ofNullable(orderMapper.selectList(orderQuery)).orElse(new ArrayList<>());
 
         Map<Long, List<Order>> orderMapByUid = orders.stream().collect(Collectors.groupingBy(Order::getUid));
-        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
         return orderMapByUid.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
                 entry -> entry.getValue().stream().map(order -> {
                     BigDecimal amount = order.getAmount();
-                    BigDecimal rate = dollarRateMap.getOrDefault(order.getCoin(), BigDecimal.ONE);
+                    BigDecimal rate = currencyService.getDollarRate(order.getCoin());
                     return amount.multiply(rate);
                 }).reduce(BigDecimal.ZERO, BigDecimal::add)
         ));

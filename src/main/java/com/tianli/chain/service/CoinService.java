@@ -1,13 +1,14 @@
 package com.tianli.chain.service;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.entity.CoinBase;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.management.query.CoinIoUQuery;
 import com.tianli.management.query.CoinStatusQuery;
-import com.tianli.management.query.CoinsQuery;
-import com.tianli.management.vo.MCoinListVO;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author chenb
@@ -28,7 +29,7 @@ public interface CoinService extends IService<Coin> {
     /**
      * 刷新缓存
      */
-    void flushCache();
+    List<CoinBase> flushCache();
 
     /**
      * 币别上架
@@ -39,11 +40,31 @@ public interface CoinService extends IService<Coin> {
     void push(Long uid, CoinStatusQuery query);
 
     /**
-     * 分页列表
-     * @param page  分页参数
-     * @param query 请求参数
-     * @return 列表
+     * @return 有效的币种列表
      */
-    IPage<MCoinListVO> list(Page<Coin> page, CoinsQuery query);
+    List<CoinBase> effectiveCoinsWithCache();
+
+
+    /**
+     * @return 有效的币种名称
+     */
+    Set<String> effectiveCoinNames();
+
+    /**
+     * 根据币别名称和网络获取币别
+     *
+     * @param name        币别名称
+     * @param networkType 网络
+     * @return 币信息
+     */
+    Coin getByNameAndNetwork(String name, NetworkType networkType);
+
+    /**
+     * 根据合约币别
+     *
+     * @param contract 合约
+     * @return 币信息
+     */
+    Coin getByContract(String contract);
 
 }

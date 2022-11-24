@@ -2,10 +2,10 @@ package com.tianli.borrow.controller;
 
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tianli.borrow.contant.BorrowOrderStatus;
 import com.tianli.borrow.bo.AdjustPledgeBO;
 import com.tianli.borrow.bo.BorrowOrderBO;
 import com.tianli.borrow.bo.BorrowOrderRepayBO;
+import com.tianli.borrow.contant.BorrowOrderStatus;
 import com.tianli.borrow.entity.BorrowCoinOrder;
 import com.tianli.borrow.entity.BorrowInterestRecord;
 import com.tianli.borrow.entity.BorrowPledgeRecord;
@@ -19,7 +19,6 @@ import com.tianli.borrow.vo.*;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.annotation.NoOperation;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.Result;
 import com.tianli.sso.init.RequestInitService;
 import org.redisson.api.RLock;
@@ -83,7 +82,7 @@ public class BorrowCoinOrderController {
      * 借币申请页面
      */
     @GetMapping("/apply/page")
-    public Result applyPage(CurrencyCoin coin){
+    public Result applyPage(String coin){
         BorrowApplePageVO config = borrowCoinOrderService.applyPage(coin);
         return Result.success(config);
     }
@@ -155,7 +154,7 @@ public class BorrowCoinOrderController {
     @GetMapping("/order/repay/page")
     public Result repayPage(@RequestParam Long orderId,
                             @RequestParam(defaultValue = "0.0") BigDecimal repayAmount,
-                            @RequestParam CurrencyCoin coin){
+                            @RequestParam String coin){
         BorrowRepayPageVO borrowRepayPageVO = borrowCoinOrderService.repayPage(orderId,repayAmount, coin);
         return Result.success(borrowRepayPageVO);
     }
@@ -183,7 +182,7 @@ public class BorrowCoinOrderController {
     public Result adjustPage(@RequestParam Long orderId,
                              @RequestParam(defaultValue = "2") Integer pledgeType,
                              @RequestParam(defaultValue = "0") BigDecimal adjustAmount,
-                             @RequestParam CurrencyCoin coin){
+                             @RequestParam String coin){
         BorrowAdjustPageVO borrowAdjustPageVO = borrowCoinOrderService.adjustPage(orderId,pledgeType,adjustAmount, coin);
         return Result.success(borrowAdjustPageVO);
     }

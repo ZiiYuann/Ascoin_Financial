@@ -28,24 +28,7 @@ public enum CurrencyCoin {
     private final String logoPath;
 
 
-    public static List<String> getNameList(){
-        List<String> result = new ArrayList<>(CurrencyCoin.values().length);
-
-        for (CurrencyCoin coin : CurrencyCoin.values() ){
-            result.add(coin.getName());
-        }
-        result.remove("trx");
-        return result;
-    }
 
 
-    public static CurrencyCoin getCurrencyCoinEnum(String token) {
-        for (CurrencyCoin value : CurrencyCoin.values()) {
-            if (StrUtil.equals(value.name(), token)) {
-                return value;
-            }
-        }
-        return null;
-    }
 
 }

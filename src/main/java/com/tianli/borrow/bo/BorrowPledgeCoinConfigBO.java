@@ -1,6 +1,5 @@
 package com.tianli.borrow.bo;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -28,7 +27,7 @@ public class BorrowPledgeCoinConfigBO{
     /**
      * 币种
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * 初始质押率

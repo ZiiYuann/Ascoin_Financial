@@ -6,7 +6,6 @@ import com.tianli.borrow.entity.BorrowCoinConfig;
 import com.tianli.borrow.service.IBorrowCoinConfigService;
 import com.tianli.borrow.vo.BorrowCoinConfigVO;
 import com.tianli.common.PageQuery;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.Result;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
@@ -54,7 +53,7 @@ public class BorrowCoinConfigManageController {
      */
     @GetMapping
     @AdminPrivilege(and = Privilege.借币配置)
-    public Result pageList(PageQuery<BorrowCoinConfig> pageQuery, CurrencyCoin coin){
+    public Result pageList(PageQuery<BorrowCoinConfig> pageQuery, String coin){
         IPage<BorrowCoinConfigVO> pageList = borrowCoinConfigService.pageList(pageQuery, coin);
         return Result.success(pageList);
     }

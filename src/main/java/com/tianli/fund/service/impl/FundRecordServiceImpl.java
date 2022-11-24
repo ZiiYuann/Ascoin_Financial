@@ -14,7 +14,6 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.currency.log.CurrencyLogDes;
@@ -241,7 +240,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         replacementList[0] = uid + "";
         replacementList[1] = product.getName();
         replacementList[2] = purchaseQuery.getAmount().toPlainString();
-        replacementList[3] = product.getCoin().getAlias();
+        replacementList[3] = product.getCoin();
         replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
@@ -481,7 +480,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         replacementList[0] = fundRecord.getUid() + "";
         replacementList[1] = fundRecord.getProductName();
         replacementList[2] = redemptionAmount.toPlainString();
-        replacementList[3] = fundRecord.getCoin().getAlias();
+        replacementList[3] = fundRecord.getCoin();
         replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
         webHookService.fundSend(s);
@@ -501,7 +500,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     }
 
     @Override
-    public BigDecimal holdAmountDollar(Long uid, CurrencyCoin coin, Long agentId) {
+    public BigDecimal holdAmountDollar(Long uid, String coin, Long agentId) {
         FundRecordQuery query = new FundRecordQuery();
         query.setQueryUid(uid + "");
         query.setCoin(query.getCoin());
@@ -512,7 +511,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     }
 
     @Override
-    public BigDecimal holdAmount(Long uid, CurrencyCoin coin, Long agentId) {
+    public BigDecimal holdAmount(Long uid, String coin, Long agentId) {
         if (Objects.isNull(coin)) {
             throw new UnsupportedOperationException();
         }

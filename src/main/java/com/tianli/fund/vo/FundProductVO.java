@@ -1,6 +1,5 @@
 package com.tianli.fund.vo;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RiskType;
@@ -18,7 +17,7 @@ public class FundProductVO {
     /**
      * 币别
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * 产品名称

@@ -1,28 +1,28 @@
 package com.tianli.chain.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.entity.CoinBase;
 import com.tianli.chain.mapper.CoinMapper;
+import com.tianli.chain.service.CoinBaseService;
 import com.tianli.chain.service.CoinService;
+import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.common.RedisConstants;
 import com.tianli.common.async.AsyncService;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.query.CoinIoUQuery;
 import com.tianli.management.query.CoinStatusQuery;
-import com.tianli.management.query.CoinsQuery;
-import com.tianli.management.vo.MCoinListVO;
 import com.tianli.sqs.SqsContext;
 import com.tianli.sqs.SqsService;
 import com.tianli.sqs.SqsTypeEnum;
 import com.tianli.sqs.context.PushAddressContext;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -56,6 +56,10 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     private AsyncService asyncService;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private CoinBaseService coinBaseService;
+    @Resource
+    private ContractAdapter contractAdapter;
     // 存储每批数据的临时容器
     private final List<Address> addresses = new ArrayList<>();
     private int size = 0;
@@ -66,6 +70,11 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     public void saveOrUpdate(Long uid, CoinIoUQuery query) {
         // 判断是否存在汇率
         currencyService.huobiUsdtRate(query.getName().toLowerCase(Locale.ROOT));
+        // 获取小数点位数
+        Integer decimals = contractAdapter.getOne(query.getNetwork()).decimals(query.getContract());
+        query.setDecimals(decimals);
+
+        coinBaseService.saveOrUpdate(uid, query);
 
         // insert
         if (Objects.isNull(query.getId())) {
@@ -76,23 +85,27 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
             return;
         }
 
+
         Coin coin = coinMapper.selectById(query.getId());
-        coin.setLogo(query.getLogo());
-        coin.setWeight(query.getWeight());
+        if (coin.getStatus() >= 1) {
+            ErrorCodeEnum.COIN_NOT_ALLOW_OPERATION.throwException();
+        }
+        coin = managementConverter.toDO(query);
+        coin.setUpdateBy(uid);
         coinMapper.updateById(coin);
-        // 批量激活
     }
 
     @Override
-    public void flushCache() {
+    public List<CoinBase> flushCache() {
         // 删除缓存
         redisTemplate.delete(RedisConstants.COIN_LIST);
 
         // 只缓存上架的数据
-        List<Coin> coins = coinMapper.selectList(new LambdaQueryWrapper<Coin>()
-                .eq(Coin::getStatus, 1)
-                .orderByDesc(Coin::getWeight));
+        List<CoinBase> coins = coinBaseService.list(new LambdaQueryWrapper<CoinBase>()
+                .in(CoinBase::isShow, true));
+
         redisTemplate.opsForValue().set(RedisConstants.COIN_LIST, coins);
+        return coins;
     }
 
     @Override
@@ -100,9 +113,9 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     public void push(Long uid, CoinStatusQuery query) {
         Long id = query.getId();
         var coin = processStatus(id);
+        flushCache();
         asyncService.async(() -> this.asyncPush(coin));
     }
-
 
     /**
      * 异步push
@@ -123,36 +136,47 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
             });
             pushSqs(coin);
             webHookService.dingTalkSend("异步push注册信息结束");
+
+            for (int i = 0; i < 300; i++) {
+                if (sqsService.receiveAndDelete(null, 5) == 0) {
+                    successStatus(coin.getId());
+                }
+            }
         } catch (Exception e) {
             webHookService.dingTalkSend("异步push注册信息结束异常", e);
         }
     }
 
     @Override
-    public IPage<MCoinListVO> list(Page<Coin> page, CoinsQuery query) {
-        var queryWrapper = new LambdaQueryWrapper<Coin>().orderByDesc(Coin::getWeight);
-
-        if (StringUtils.isNotBlank(query.getName())) {
-            queryWrapper = queryWrapper.like(Coin::getName, query.getName());
+    @SuppressWarnings("unchecked")
+    public List<CoinBase> effectiveCoinsWithCache() {
+        Object o = redisTemplate.opsForValue().get(RedisConstants.COIN_LIST);
+        if (Objects.isNull(o)) {
+            return flushCache();
         }
 
-        if (StringUtils.isNotBlank(query.getContract())) {
-            queryWrapper = queryWrapper.like(Coin::getContract, query.getContract());
-        }
+        return (List<CoinBase>) o;
+    }
 
-        if (Objects.nonNull(query.getChain())) {
-            queryWrapper = queryWrapper.eq(Coin::getChain, query.getChain());
-        }
+    @Override
+    public Set<String> effectiveCoinNames() {
+        List<CoinBase> coins = effectiveCoinsWithCache();
+        return coins.stream()
+                .map(coin -> coin.getName().toLowerCase(Locale.ROOT))
+                .collect(Collectors.toSet());
+    }
 
-        if (Objects.nonNull(query.getNetwork())) {
-            queryWrapper = queryWrapper.eq(Coin::getNetwork, query.getNetwork());
-        }
+    @Override
+    public Coin getByNameAndNetwork(String name, NetworkType networkType) {
+        return this.getOne(new LambdaQueryWrapper<Coin>()
+                .eq(Coin::getName, name)
+                .eq(Coin::getNetwork, networkType));
+    }
 
-        if (Objects.nonNull(query.getStatus())) {
-            queryWrapper = queryWrapper.eq(Coin::getStatus, query.getStatus());
-        }
-
-        return this.page(page, queryWrapper).convert(managementConverter::toMCoinListVO);
+    @Override
+    public Coin getByContract(String contract) {
+        return this.getOne(new LambdaQueryWrapper<Coin>()
+                .eq(Coin::getContract, contract));
     }
 
     private void pushSqs(Coin coin) {
@@ -194,6 +218,22 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         // todo 激活需要修改逻辑
         coin.setStatus((byte) 1);
         coinMapper.updateById(coin);
+        return coin;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Coin successStatus(Long id) {
+        Coin coin = coinMapper.selectById(id);
+        Optional.ofNullable(coin).orElseThrow(NullPointerException::new);
+
+        if (coin.getStatus() != 1) {
+            throw new UnsupportedOperationException();
+        }
+        coin.setStatus((byte) 2);
+        coinMapper.updateById(coin);
+
+        // 修改为可显示
+        coinBaseService.show(coin.getName());
         return coin;
     }
 

@@ -10,14 +10,13 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.query.ServiceAmountQuery;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.RedisLockConstants;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.lock.RedisLock;
-import com.tianli.management.vo.FinancialWalletBoardSummaryVO;
-import com.tianli.management.vo.FinancialWalletBoardVO;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.mapper.FinancialBoardWalletMapper;
 import com.tianli.management.query.FinancialBoardQuery;
+import com.tianli.management.vo.FinancialWalletBoardSummaryVO;
+import com.tianli.management.vo.FinancialWalletBoardVO;
 import com.tianli.tool.time.TimeTool;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -54,7 +53,7 @@ public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalle
         BigInteger activeWalletCount = addressService.activeCount(startTime, entTime);
         // 暂时只有提币存在手续费
         BigDecimal totalServiceAmount = orderService.serviceAmountDollarSumByCompleteTime(serviceAmountQuery);
-        serviceAmountQuery.setCoin(CurrencyCoin.usdt);
+        serviceAmountQuery.setCoin("usdt");
         BigDecimal usdtServiceAmount = orderService.serviceAmountDollarSumByCompleteTime(serviceAmountQuery);
 
         financialBoardWallet.setRechargeAmount(rechargeAmount);

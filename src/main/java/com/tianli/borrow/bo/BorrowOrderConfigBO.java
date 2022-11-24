@@ -1,6 +1,5 @@
 package com.tianli.borrow.bo;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -14,7 +13,7 @@ public class BorrowOrderConfigBO {
     /**
      * 币种
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * 最小可借

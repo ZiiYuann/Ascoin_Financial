@@ -1,6 +1,6 @@
 package com.tianli.currency.controller;
 
-import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.chain.service.CoinService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.Result;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,11 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * @author chenb
@@ -27,19 +23,21 @@ public class CurrencyController {
 
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private CoinService coinService;
 
     @GetMapping("coin")
-    public Result coin(){
-        CurrencyCoin[] values = CurrencyCoin.values();
-        List<String> coins = Arrays.stream(values).map(CurrencyCoin::getName).collect(Collectors.toList());
+    public Result coin() {
 
-        Map<String,List<String>> result = new HashMap<>();
-        result.put("coins",coins);
+        Set<String> coins = coinService.effectiveCoinNames();
+
+        Map<String, Set<String>> result = new HashMap<>();
+        result.put("coins", coins);
         return Result.success().setData(result);
     }
 
     @GetMapping("/rate/{coin}")
-    public Result rate(@PathVariable CurrencyCoin coin) {
+    public Result rate(@PathVariable String coin) {
         BigDecimal dollarRate = currencyService.getDollarRate(coin);
         HashMap<String, String> rateMap = new HashMap<>();
         rateMap.put("rate", dollarRate.toPlainString());

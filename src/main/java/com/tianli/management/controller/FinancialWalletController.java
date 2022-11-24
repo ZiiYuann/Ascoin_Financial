@@ -213,16 +213,6 @@ public class FinancialWalletController {
     }
 
     /**
-     * 【云钱包归集】手动执行归集合约
-     */
-    @PostMapping("/imputation/compensate/manual")
-    @AdminPrivilege(and = Privilege.理财管理)
-    public Result imputationCompensateManual(@RequestBody ImputationCompensateManualQuery query) {
-        walletImputationService.imputationOperationManual(query.getNetwork(), query.getTokenAdapter(), query.getAddresses());
-        return Result.success();
-    }
-
-    /**
      * 【云钱包归集】归集补偿,扫链补偿
      */
     @PutMapping("/imputation/compensate/scan")

@@ -1,6 +1,5 @@
 package com.tianli.agent.management.vo;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +18,7 @@ public class FundProductStatisticsVO {
 
     private String productName;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private ProductType type;
 

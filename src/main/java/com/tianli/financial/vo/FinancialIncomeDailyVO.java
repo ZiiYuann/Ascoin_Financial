@@ -1,6 +1,5 @@
 package com.tianli.financial.vo;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import lombok.Data;
 
@@ -29,7 +28,7 @@ public class FinancialIncomeDailyVO {
     /**
      * 币别
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     public static FinancialIncomeDailyVO toVO(FinancialIncomeDaily financialIncomeDaily) {
         FinancialIncomeDailyVO dailyIncomeLogVO = new FinancialIncomeDailyVO();

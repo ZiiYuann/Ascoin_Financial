@@ -18,7 +18,6 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisConstants;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.ErrorCodeEnum;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -88,7 +87,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         RedEnvelopeSpiltGetRecord redEnvelopeSpiltGetRecord =
                 redEnvelopeSpiltGetRecordService.redEnvelopeSpiltGetRecordFlow(uid, shortUid, uuid, redEnvelopeGetQuery, redEnvelopeSpilt);
 
-        CurrencyCoin coin = redEnvelopeGetQuery.getRedEnvelope().getCoin();
+        String coin = redEnvelopeGetQuery.getRedEnvelope().getCoin();
         // 红包订单
         Order order = Order.builder()
                 .uid(uid)

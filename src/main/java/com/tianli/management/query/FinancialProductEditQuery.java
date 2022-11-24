@@ -1,11 +1,9 @@
 package com.tianli.management.query;
 
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.*;
 import lombok.Data;
 
-import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -30,7 +28,7 @@ public class FinancialProductEditQuery {
      * 币别
      */
     @NotNull(message = "币别不允许空")
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * 产品名称

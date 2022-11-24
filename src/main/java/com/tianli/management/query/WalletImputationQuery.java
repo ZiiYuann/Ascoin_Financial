@@ -1,7 +1,6 @@
 package com.tianli.management.query;
 
 import com.tianli.chain.enums.ImputationStatus;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import lombok.Data;
 
@@ -13,7 +12,7 @@ import lombok.Data;
 @Data
 public class WalletImputationQuery {
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private String uid;
 
