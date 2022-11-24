@@ -429,20 +429,33 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         return orderService.orderAmountDollarSum(query);
     }
 
+    public OrderChargeInfoVO chargeOrderDetails(Long orderId) {
+        LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
+                .eq(Order::getId, orderId);
+        Order order = orderService.getOne(queryWrapper);
+
+        return getOrderChargeInfoVO(order);
+    }
+
     public OrderChargeInfoVO chargeOrderDetails(Long uid, String orderNo) {
 
         LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)
                 .eq(Order::getOrderNo, orderNo);
+        Order order = orderService.getOne(queryWrapper);
 
-        Order order = Optional.ofNullable(orderService.getOne(queryWrapper)).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
+        return getOrderChargeInfoVO(order);
+    }
+
+    private OrderChargeInfoVO getOrderChargeInfoVO(Order order) {
+        order = Optional.ofNullable(order).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
         if (!ChargeType.recharge.equals(order.getType()) && !ChargeType.withdraw.equals(order.getType())) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
 
         OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
         log.info("get orderChargeInfo by id:{},orderNo{}", order.getRelatedId(), order.getOrderNo());
-        orderChargeInfo = Optional.ofNullable(orderChargeInfo).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
+        orderChargeInfo = Optional.ofNullable(orderChargeInfo).orElse(new OrderChargeInfo());
 
         OrderChargeInfoVO orderChargeInfoVO = chargeConverter.toVO(order);
         orderChargeInfoVO.setFromAddress(orderChargeInfo.getFromAddress());
