@@ -1,6 +1,9 @@
 package com.tianli.openapi.controller;
 
 import com.tianli.account.service.AccountBalanceService;
+import com.tianli.charge.converter.ChargeConverter;
+import com.tianli.charge.entity.Order;
+import com.tianli.charge.service.OrderService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.openapi.query.OpenapiOperationQuery;
@@ -25,6 +28,10 @@ public class OpenApiController {
     private OpenApiService openApiService;
     @Resource
     private AccountBalanceService accountBalanceService;
+    @Resource
+    private OrderService orderService;
+    @Resource
+    private ChargeConverter chargeConverter;
 
     /**
      * 奖励接口
@@ -57,7 +64,7 @@ public class OpenApiController {
     }
 
     /**
-     * 划转
+     * 余额
      */
     @GetMapping("/balances/{uid}")
     public Result balance(@PathVariable Long uid,
@@ -71,5 +78,35 @@ public class OpenApiController {
         return Result.success(accountBalanceService.getAccountBalanceList(uid));
     }
 
+    /**
+     * 提现记录
+     */
+    @GetMapping("/orders/withdraw/{uid}")
+    public Result withdrawRecords(@PathVariable Long uid,
+                                  @RequestHeader("sign") String sign,
+                                  @RequestHeader("timestamp") String timestamp) {
+
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
+        }
+
+        return Result.success(accountBalanceService.getAccountBalanceList(uid));
+    }
+
+    /**
+     * 订单信息
+     */
+    @GetMapping("/order/{id}")
+    public Result order(@PathVariable Long id,
+                        @RequestHeader("sign") String sign,
+                        @RequestHeader("timestamp") String timestamp) {
+
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
+        }
+
+        Order order = orderService.getById(id);
+        return Result.success(chargeConverter.toVO(order));
+    }
 
 }

@@ -23,6 +23,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class OrderChargeInfoVO {
 
+    private Long id;
+
     private String uid;
 
     private String orderNo;
