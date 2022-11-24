@@ -119,7 +119,7 @@ public class OpenApiService {
         }
 
         if (ChargeType.transfer_reduce.equals(query.getType())) {
-            accountBalanceService.reduce(query.getUid(), query.getType(), query.getCoin()
+            accountBalanceService.decrease(query.getUid(), query.getType(), query.getCoin()
                     , query.getAmount(), newOrder.getOrderNo(), query.getType().getNameZn());
         }
 
