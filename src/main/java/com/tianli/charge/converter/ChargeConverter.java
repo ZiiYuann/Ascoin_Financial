@@ -18,4 +18,6 @@ public interface ChargeConverter {
     OrderBaseVO toOrderBaseVO(FinancialRecord financialRecord);
 
     OrderReviewVO toOrderReviewVO(OrderReview orderReview);
+
+    OrderVO toOrderVO(Order order);
 }
