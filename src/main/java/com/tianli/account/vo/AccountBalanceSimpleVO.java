@@ -1,7 +1,6 @@
 package com.tianli.account.vo;
 
 import com.tianli.common.annotation.BigDecimalFormat;
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -14,7 +13,7 @@ import java.math.BigDecimal;
 @Data
 public class AccountBalanceSimpleVO {
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private BigDecimal dollarRate;
 

@@ -1,6 +1,5 @@
 package com.tianli.charge.vo;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.fund.enums.FundTransactionType;
 import lombok.*;
 
@@ -23,7 +22,7 @@ public class OrderFundTransactionVO extends OrderBaseVO {
     /**
      * 币种
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * 年化率

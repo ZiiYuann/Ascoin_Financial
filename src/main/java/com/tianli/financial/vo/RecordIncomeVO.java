@@ -1,6 +1,5 @@
 package com.tianli.financial.vo;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.PurchaseTerm;
 import com.tianli.financial.enums.RecordStatus;
@@ -33,7 +32,7 @@ public class RecordIncomeVO {
 
     private BigDecimal rate;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private RiskType riskType;
 

@@ -22,6 +22,8 @@ import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
 import com.tianli.accountred.service.RedEnvelopeSpiltService;
 import com.tianli.accountred.vo.*;
+import com.tianli.chain.entity.CoinBase;
+import com.tianli.chain.service.CoinBaseService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
@@ -30,12 +32,10 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisService;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
-import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.ApplicationContextTool;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -90,13 +90,13 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     @Resource
     private WebHookService webHookService;
     @Resource
-    private ConfigService configService;
-    @Resource
     private SqlSession sqlSession;
     @Resource
     private RedissonClient redissonClient;
     @Resource
     private RedEnvelopeMapper redEnvelopeMapper;
+    @Resource
+    private CoinBaseService coinBaseService;
 
     @PostConstruct
     public void initBloomFilter() {
@@ -212,7 +212,6 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     @Override
     @SneakyThrows
     public RedEnvelopeGetVO get(Long uid, Long shortUid, RedEnvelopeGetQuery query) {
-
         // 判断红包缓存是否存在
         RedEnvelope redEnvelope = this.getWithCache(query.getRid());
         Optional.ofNullable(redEnvelope).orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
@@ -225,13 +224,13 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
         }
 
-
+        CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
         // 等待、失败、过期、结束
         if (RedEnvelopeStatus.WAIT.equals(redEnvelope.getStatus())
                 || RedEnvelopeStatus.FAIL.equals(redEnvelope.getStatus())
                 || RedEnvelopeStatus.OVERDUE.equals(redEnvelope.getStatus())
                 || RedEnvelopeStatus.FINISH.equals(redEnvelope.getStatus())) {
-            return new RedEnvelopeGetVO(redEnvelope.getStatus(), redEnvelope.getCoin());
+            return new RedEnvelopeGetVO(redEnvelope.getStatus(), coinBase);
         }
 
         RedEnvelopeServiceImpl service = ApplicationContextTool.getBean(RedEnvelopeServiceImpl.class);
@@ -261,11 +260,14 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         redEnvelopeGetDetailsVO.setUReceiveAmount(Objects.isNull(record) ? null
                 : record.getAmount().multiply(currencyService.getDollarRate(redEnvelope.getCoin())));
 
+        CoinBase coinBase = coinBaseService.getByName(record.getCoin());
+        redEnvelopeGetDetailsVO.setCoinUrl(coinBase.getLogo());
         return redEnvelopeGetDetailsVO;
     }
 
     @Transactional
     public RedEnvelopeGetVO getOperation(Long uid, Long shortUid, RedEnvelopeGetQuery query, RedEnvelope redEnvelope) {
+
         String receivedKey = RedisConstants.SPILT_RED_ENVELOPE_GET + query.getRid() + ":" + uid;
         String spiltRedKey = RedisConstants.SPILT_RED_ENVELOPE + query.getRid();
         // 此lua脚本的用处 1、判断用户是否已经抢过红包 2、判断拆分红包是否还有剩余
@@ -291,12 +293,12 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             throw e;
         }
 
-
+        CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
         if (RedEnvelopeStatus.FINISH.name().equals(result)) {
-            return new RedEnvelopeGetVO(RedEnvelopeStatus.FINISH, redEnvelope.getCoin());
+            return new RedEnvelopeGetVO(RedEnvelopeStatus.FINISH, coinBase);
         }
         if (RedEnvelopeStatus.RECEIVED.name().equals(result)) {
-            return new RedEnvelopeGetVO(RedEnvelopeStatus.RECEIVED, redEnvelope.getCoin());
+            return new RedEnvelopeGetVO(RedEnvelopeStatus.RECEIVED, coinBase);
         }
 
         // 领取子红包（创建订单，余额操作）
@@ -312,7 +314,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             this.finish(query.getRid());
         }
 
-        RedEnvelopeGetVO redEnvelopeGetVO = new RedEnvelopeGetVO(RedEnvelopeStatus.SUCCESS, redEnvelope.getCoin());
+        RedEnvelopeGetVO redEnvelopeGetVO = new RedEnvelopeGetVO(RedEnvelopeStatus.SUCCESS, coinBase);
         redEnvelopeGetVO.setReceiveAmount(redEnvelopeSpilt.getAmount());
         redEnvelopeGetVO.setUReceiveAmount(currencyService.getDollarRate(redEnvelope.getCoin()).multiply(redEnvelopeSpilt.getAmount()));
         redEnvelopeGetVO.setUid(redEnvelope.getUid());
@@ -484,7 +486,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     /**
      * 校验发红包
      */
-    private void validGiveRedEnvelope(Long uid, BigDecimal totalAmount, CurrencyCoin coin) {
+    private void validGiveRedEnvelope(Long uid, BigDecimal totalAmount, String coin) {
 
         BigDecimal uAmount = currencyService.getDollarRate(coin).multiply(totalAmount);
         if (uAmount.compareTo(BigDecimal.valueOf(100L)) > 0) {

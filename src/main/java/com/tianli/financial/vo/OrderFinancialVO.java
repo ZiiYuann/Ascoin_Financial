@@ -3,7 +3,6 @@ package com.tianli.financial.vo;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.annotation.BigDecimalFormat;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.PurchaseTerm;
 import lombok.AllArgsConstructor;
@@ -38,7 +37,7 @@ public class OrderFinancialVO {
 
     private PurchaseTerm term;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * 订单创建时间

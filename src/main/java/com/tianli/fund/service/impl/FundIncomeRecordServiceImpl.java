@@ -16,7 +16,6 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.currency.log.CurrencyLogDes;
@@ -232,7 +231,7 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
             String[] replacementList = new String[3];
             replacementList[0] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             replacementList[1] = totalAmount.stream().reduce(BigDecimal.ZERO, BigDecimal::add).toPlainString();
-            replacementList[2] = CurrencyCoin.usdt.getAlias();
+            replacementList[2] = "u";
             String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
             webHookService.fundSend(s);
         }

@@ -2,35 +2,31 @@ package com.tianli.chain.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.tianli.chain.enums.ChainType;
-import com.tianli.common.blockchain.NetworkType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
 
 /**
  * @author chenb
  * @apiNote
- * @since 2022-11-21
+ * @since 2022-11-30
  **/
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Coin {
-    private Long id;
+public class CoinBase {
 
+    @Id
     private String name;
 
-    private String contract;
+    private String logo;
 
-    private ChainType chain;
-
-    private NetworkType network;
-
-    // 状态：0未上架  1上架中 2上架完成 3下架
-    private byte status;
+    private int weight;
 
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime updateTime;
@@ -44,7 +40,6 @@ public class Coin {
 
     private boolean mainToken;
 
-    private int decimals;
-
+    private boolean show;
 
 }

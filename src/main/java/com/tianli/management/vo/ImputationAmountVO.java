@@ -1,6 +1,5 @@
 package com.tianli.management.vo;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,7 +18,7 @@ public class ImputationAmountVO {
 
     private BigDecimal totalAmount;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private BigDecimal amount;
 

@@ -1,7 +1,6 @@
 package com.tianli.openapi.entity;
 
 import com.tianli.charge.enums.ChargeType;
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,7 +28,7 @@ public class OrderRewardRecord {
 
     private ChargeType type;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private LocalDateTime giveTime;
 

@@ -82,6 +82,7 @@ public enum ErrorCodeEnum {
     PRODUCT_CAN_NOT_BUY(3108, "产品暂时不可购买"),
     PRODUCT_CAN_NOT_EDIT(3109, "产品暂时不可修改"),
     AUTO_PASS_ERROR(3110, "自动审核提现超过5000$上限"),
+    WEB3J_DECIMALS(3111, "获取合约小数点位数失败"),
 
 
     /*** －－－－－－业务错误码-现货交易－－－－－－*/
@@ -144,8 +145,7 @@ public enum ErrorCodeEnum {
     FINANCIAL_INCOME_REPEAT(3801,"理财利息当日利息已经计算"),
     FINANCIAL_TO_ERROR(3802,"提现地址不允许是当前云钱包地址"),
     COIN_RATE_ERROR(3803,"币别汇率获取异常"),
-
-
+    COIN_NOT_ALLOW_OPERATION(3804,"币种不允许操作"),
 
     ;
     private int errorNo;

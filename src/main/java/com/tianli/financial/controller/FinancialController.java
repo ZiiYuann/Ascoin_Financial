@@ -1,7 +1,6 @@
 package com.tianli.financial.controller;
 
 import com.tianli.common.PageQuery;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.Result;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
@@ -20,8 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/financial")
@@ -75,7 +72,7 @@ public class FinancialController {
      * 申购详情【定期】
      */
     @GetMapping("/product/fixed/{coin}")
-    public Result productDetailsByCoin(@PathVariable("coin") CurrencyCoin coin) {
+    public Result productDetailsByCoin(@PathVariable("coin") String coin) {
         return Result.instance().setData(financialService.fixedProductDetails(coin));
     }
 

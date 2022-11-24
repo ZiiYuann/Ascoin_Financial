@@ -1,13 +1,10 @@
 package com.tianli.fund.entity;
 
-import java.math.BigDecimal;
-
 import com.baomidou.mybatisplus.extension.activerecord.Model;
-
-import java.time.LocalDateTime;
-
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -53,7 +50,7 @@ public class FundIncomeRecord extends Model<FundIncomeRecord> {
     /**
      * 币种
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * 年利率

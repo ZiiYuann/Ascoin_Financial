@@ -1,6 +1,5 @@
 package com.tianli.charge.entity;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -63,7 +62,7 @@ public class OrderChargeInfo{
 
     private LocalDateTime createTime;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private NetworkType network;
 

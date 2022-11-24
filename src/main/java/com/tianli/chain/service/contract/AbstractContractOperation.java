@@ -1,5 +1,6 @@
 package com.tianli.chain.service.contract;
 
+import com.tianli.chain.entity.Coin;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
@@ -84,22 +85,22 @@ public abstract class AbstractContractOperation implements ContractOperation {
     }
 
     @Override
-    public Result transfer(String to, BigInteger val, TokenAdapter tokenAdapter) {
-        if (TokenAdapter.mainToken(tokenAdapter)) {
-            return mainTokenTransfer(to, val, tokenAdapter);
+    public Result transfer(String to, BigInteger val, Coin coin) {
+        if (coin.isMainToken()) {
+            return mainTokenTransfer(to, val, coin);
         } else {
-            return tokenTransfer(to, val, tokenAdapter);
+            return tokenTransfer(to, val, coin);
         }
     }
 
     /**
      * 代币转账
      */
-    abstract Result tokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter);
+    abstract Result tokenTransfer(String to, BigInteger val, Coin coin);
 
     /**
      * 主币转账
      */
-    abstract Result mainTokenTransfer(String to, BigInteger val, TokenAdapter tokenAdapter);
+    abstract Result mainTokenTransfer(String to, BigInteger val, Coin coin);
 
 }

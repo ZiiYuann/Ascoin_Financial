@@ -1,7 +1,6 @@
 package com.tianli.currency.service;
 
 import com.tianli.FinancialApplication;
-import com.tianli.common.blockchain.CurrencyCoin;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +17,7 @@ public class CurrencyServiceTest {
 
     @Test
     public void getDollarRateTest(){
-        BigDecimal dollarRate = currencyService.getDollarRate(CurrencyCoin.bnb);
+        BigDecimal dollarRate = currencyService.getDollarRate("bnb");
         System.out.printf(dollarRate.toString());
     }
 

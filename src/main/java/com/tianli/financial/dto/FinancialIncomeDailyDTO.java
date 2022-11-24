@@ -1,6 +1,5 @@
 package com.tianli.financial.dto;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
@@ -17,7 +16,7 @@ import java.math.BigDecimal;
 @Data
 public class FinancialIncomeDailyDTO extends FinancialIncomeDaily {
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private String productName;
 

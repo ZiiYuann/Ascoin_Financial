@@ -8,7 +8,6 @@ import com.tianli.account.service.AccountBalanceService;
 import com.tianli.charge.entity.Order;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.RedisService;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
@@ -140,7 +139,7 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
      *
      * @param amount 申购金额
      */
-    public void validRemainAmount(Long uid, CurrencyCoin currencyCoin, BigDecimal amount) {
+    public void validRemainAmount(Long uid, String currencyCoin, BigDecimal amount) {
         AccountBalance accountBalanceBalance = accountBalanceService.getAndInit(uid, currencyCoin);
         if (accountBalanceBalance.getRemain().compareTo(amount) < 0) {
             ErrorCodeEnum.INSUFFICIENT_BALANCE.throwException();

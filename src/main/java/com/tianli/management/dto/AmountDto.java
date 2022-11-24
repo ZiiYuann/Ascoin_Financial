@@ -1,6 +1,5 @@
 package com.tianli.management.dto;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,5 +18,5 @@ public class AmountDto {
 
     private BigDecimal amount;
 
-    private CurrencyCoin coin;
+    private String coin;
 }

@@ -2,7 +2,6 @@ package com.tianli.financial.vo;
 
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,7 +38,7 @@ public class TransactionRecordVO {
 
     private BigDecimal amount;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private String logo;
 

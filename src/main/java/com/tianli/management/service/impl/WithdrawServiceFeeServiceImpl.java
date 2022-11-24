@@ -13,7 +13,6 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderChargeInfoService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.management.converter.ManagementConverter;
@@ -156,24 +155,20 @@ public class WithdrawServiceFeeServiceImpl extends ServiceImpl<WithdrawServiceFe
             withdrawServiceFeeVOMap.put(dateTimeStr, WithdrawServiceFeeVO.getDefault(time.toLocalDateTime().toLocalDate()));
         }
 
-
-        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
-
-
         withdrawServiceFees.forEach(o -> {
             WithdrawServiceFeeVO vo = managementConverter.toWithdrawServiceFeeVO(o);
-            vo.setTrxUsdt(dollarRateMap.get(CurrencyCoin.trx).multiply(vo.getTrx()));
-            vo.setBnbUsdt(dollarRateMap.get(CurrencyCoin.bnb).multiply(vo.getBnb()));
-            vo.setEthUsdt(dollarRateMap.get(CurrencyCoin.eth).multiply(vo.getEth()));
+            vo.setTrxUsdt(currencyService.getDollarRate("trx").multiply(vo.getTrx()));
+            vo.setBnbUsdt(currencyService.getDollarRate("bnb").multiply(vo.getBnb()));
+            vo.setEthUsdt(currencyService.getDollarRate("eth").multiply(vo.getEth()));
             String dateTimeStr = vo.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             withdrawServiceFeeVOMap.put(dateTimeStr, vo);
         });
 
         WithdrawServiceFee totalAmount = this.getBaseMapper().getTotalAmount();
         WithdrawServiceFeeVO vo = managementConverter.toWithdrawServiceFeeVO(totalAmount);
-        vo.setTrxUsdt(dollarRateMap.get(CurrencyCoin.trx).multiply(vo.getTrx()));
-        vo.setBnbUsdt(dollarRateMap.get(CurrencyCoin.bnb).multiply(vo.getBnb()));
-        vo.setEthUsdt(dollarRateMap.get(CurrencyCoin.eth).multiply(vo.getEth()));
+        vo.setTrxUsdt(currencyService.getDollarRate("trx").multiply(vo.getTrx()));
+        vo.setBnbUsdt(currencyService.getDollarRate("bnb").multiply(vo.getBnb()));
+        vo.setEthUsdt(currencyService.getDollarRate("eth").multiply(vo.getEth()));
         vo.setFees(new ArrayList<>(withdrawServiceFeeVOMap.values()));
 
         return vo;

@@ -1,7 +1,6 @@
 package com.tianli.charge.query;
 
 import com.tianli.charge.enums.ChargeType;
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -20,5 +19,5 @@ public class ServiceAmountQuery {
 
     private ChargeType chargeType;
 
-    private CurrencyCoin coin;
+    private String coin;
 }

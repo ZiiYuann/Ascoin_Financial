@@ -7,6 +7,7 @@ import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.converter.ChainConverter;
 import com.tianli.chain.dto.TRONTokenReq;
+import com.tianli.chain.entity.Coin;
 import com.tianli.chain.entity.WalletImputation;
 import com.tianli.chain.entity.WalletImputationLog;
 import com.tianli.chain.entity.WalletImputationLogAppendix;
@@ -39,10 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -68,18 +66,20 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     private AddressService addressService;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private CoinService coinService;
 
 
     /**
      * 通过订单插入或修改归集信息
      */
     @Transactional
-    public void insert(Long uid, Address address, TokenAdapter tokenAdapter
+    public void insert(Long uid, Address address, Coin coin
             , TRONTokenReq tronTokenReq, BigDecimal finalAmount) {
 
         StringBuilder keyBuilder = new StringBuilder()
-                .append(RedisLockConstants.RECYCLE_LOCK).append(":").append(tokenAdapter.getNetwork().name())
-                .append(":").append(tokenAdapter.getCurrencyCoin().name()).append(":").append(tronTokenReq.getTo());
+                .append(RedisLockConstants.RECYCLE_LOCK).append(":").append(coin.getNetwork().name())
+                .append(":").append(coin.getName()).append(":").append(tronTokenReq.getTo());
         redisLock.lock(keyBuilder.toString(), 1L, TimeUnit.MINUTES);
 
         LocalDateTime now = LocalDateTime.now();
@@ -87,8 +87,8 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         // uid,network,coin 处于wait状态的记录 <= 1
         LambdaQueryWrapper<WalletImputation> query = new LambdaQueryWrapper<WalletImputation>()
                 .eq(WalletImputation::getUid, uid)
-                .eq(WalletImputation::getNetwork, tokenAdapter.getNetwork())
-                .eq(WalletImputation::getCoin, tokenAdapter.getCurrencyCoin())
+                .eq(WalletImputation::getNetwork, coin.getNetwork())
+                .eq(WalletImputation::getCoin, coin.getNetwork())
                 .eq(WalletImputation::getStatus, ImputationStatus.wait);
 
         // 操作归集信息的时候不允许管理端进行归集操作
@@ -101,8 +101,8 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         WalletImputation walletImputationInsert = WalletImputation.builder()
                 .uid(uid)
-                .network(tokenAdapter.getNetwork())
-                .coin(tokenAdapter.getCurrencyCoin())
+                .network(coin.getNetwork())
+                .coin(coin.getName())
                 .addressId(address.getId())
                 .address(tronTokenReq.getTo())
                 .status(ImputationStatus.wait)
@@ -155,7 +155,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         walletImputations.forEach(walletImputation -> {
             StringBuilder keyBuilder = new StringBuilder()
                     .append(RedisLockConstants.RECYCLE_LOCK).append(":").append(walletImputation.getNetwork().name())
-                    .append(":").append(walletImputation.getCoin().name()).append(":").append(walletImputation.getAddress());
+                    .append(":").append(walletImputation.getCoin()).append(":").append(walletImputation.getAddress());
             redisLock.isLock(keyBuilder.toString());
         });
 
@@ -164,12 +164,14 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
             log.info("不允许多个网络或者多个币别同时进行归集，ids:{}", imputationIds);
             ErrorCodeEnum.throwException("不允许多个网络或者多个币别同时进行归集");
         }
-        var coin = walletImputations.stream().map(WalletImputation::getCoin).findAny().orElseThrow();
+        var coinName = walletImputations.stream().map(WalletImputation::getCoin).findAny().orElseThrow();
         var network = walletImputations.stream().map(WalletImputation::getNetwork).findAny().orElseThrow();
-        TokenAdapter tokenAdapter = TokenAdapter.get(coin, network);
+
+        Coin coin = coinService.getByNameAndNetwork(coinName, network);
 
         List<Long> addressIds = walletImputations.stream().map(WalletImputation::getAddressId).collect(Collectors.toList());
-        String hash = baseContractService.getOne(network).recycle(null, addressIds, tokenAdapter.getContractAddressList());
+        String hash = baseContractService.getOne(network).recycle(null, addressIds, coin.isMainToken()
+                ? Collections.emptyList() : List.of(coin.getContract()));
         // 事务问题如何解决，如果中间出现异常，整个事务回滚，归集状态为wait，重新归集只收取手续费
 
         if (StringUtils.isBlank(hash)) {
@@ -182,7 +184,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                 .id(logId)
                 .amount(amount)
                 .txid(hash)
-                .coin(coin)
+                .coin(coinName)
                 .network(network)
                 .status(ImputationStatus.processing)
                 .createTime(LocalDateTime.now()).build();
@@ -208,21 +210,6 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         // 异步检测数据
         asynCheckImputationStatus();
 
-    }
-
-    /**
-     * 手动执行归集操作
-     */
-    public String imputationOperationManual(NetworkType network, TokenAdapter tokenAdapter, List<String> addresses) {
-        LambdaQueryWrapper<Address> query;
-        if (NetworkType.trc20.equals(network)) {
-            query = new LambdaQueryWrapper<Address>().in(Address::getTron, addresses);
-        } else {
-            query = new LambdaQueryWrapper<Address>().in(Address::getBsc, addresses);
-        }
-        List<Long> addressIds = Optional.ofNullable(addressService.list(query)).orElse(new ArrayList<>())
-                .stream().map(Address::getId).collect(Collectors.toList());
-        return baseContractService.getOne(network).recycle(null, addressIds, tokenAdapter.getContractAddressList());
     }
 
     /**

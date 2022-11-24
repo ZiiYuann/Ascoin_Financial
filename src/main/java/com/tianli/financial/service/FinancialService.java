@@ -4,7 +4,6 @@ package com.tianli.financial.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.address.mapper.Address;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
@@ -17,7 +16,6 @@ import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.FinancialUserInfoVO;
 import com.tianli.management.vo.FundProductBindDropdownVO;
 import com.tianli.management.vo.UserAmountDetailsVO;
-import com.tianli.management.vo.FundProductBindDropdownVO;
 
 import java.util.List;
 
@@ -107,7 +105,7 @@ public interface FinancialService {
     /**
      * 定期产品详情
      */
-    FixedProductsPurchaseVO fixedProductDetails(CurrencyCoin coin);
+    FixedProductsPurchaseVO fixedProductDetails(String coin);
 
     /**
      * 基金需要能够绑定的产品下拉

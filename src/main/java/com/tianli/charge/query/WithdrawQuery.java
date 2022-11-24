@@ -1,10 +1,8 @@
 package com.tianli.charge.query;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import lombok.Data;
 
-import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -20,7 +18,7 @@ public class WithdrawQuery {
     private NetworkType network;
 
     @NotNull(message = "币别不能为null")
-    private CurrencyCoin coin;
+    private String coin;
 
     @NotNull(message = "地址不能为空")
     private String to;

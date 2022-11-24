@@ -1,7 +1,6 @@
 package com.tianli.financial.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.management.dto.AmountDto;
@@ -56,7 +55,7 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
      * 用户还持用产品的数量
      */
     List<AmountDto> holdAmount(@Param("productType") ProductType productType,
-                               @Param("coin") CurrencyCoin coin,
+                               @Param("coin") String coin,
                                @Param("uid") Long uid);
 
     /**

@@ -2,7 +2,6 @@ package com.tianli.account.query;
 
 import com.tianli.charge.enums.ChargeGroup;
 import com.tianli.charge.enums.ChargeType;
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -21,7 +20,7 @@ public class AccountDetailsQuery {
 
     private ChargeGroup chargeGroup;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private ChargeType chargeType;
 

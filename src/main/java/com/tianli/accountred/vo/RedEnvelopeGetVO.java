@@ -3,14 +3,13 @@ package com.tianli.accountred.vo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tianli.accountred.enums.RedEnvelopeStatus;
-import com.tianli.common.blockchain.CurrencyCoin;
+import com.tianli.chain.entity.CoinBase;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * @author chenb
@@ -39,7 +38,7 @@ public class RedEnvelopeGetVO {
     @JsonProperty
     private BigDecimal uReceiveAmount;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private Long uid;
 
@@ -47,9 +46,10 @@ public class RedEnvelopeGetVO {
 
     private String coinUrl;
 
-    public RedEnvelopeGetVO(RedEnvelopeStatus status,CurrencyCoin coin) {
+    public RedEnvelopeGetVO(RedEnvelopeStatus status, CoinBase coin) {
         this.status = status;
-        this.coin = coin;
+        this.coin = coin.getName();
+        this.coinUrl = coin.getLogo();
     }
 
     @JsonIgnore
@@ -57,7 +57,4 @@ public class RedEnvelopeGetVO {
         return uReceiveAmount;
     }
 
-    public String getCoinUrl() {
-        return coin.getLogoPath();
-    }
 }

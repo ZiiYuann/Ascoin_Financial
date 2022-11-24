@@ -1,6 +1,5 @@
 package com.tianli.financial.vo;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -17,7 +16,7 @@ public class RateScopeVO {
     /**
      * 币别
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * logo 地址

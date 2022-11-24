@@ -269,7 +269,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
         String[] replacementList = new String[4];
         replacementList[0] = uid + "";
         replacementList[1] = fundTransactionRecord.getTransactionAmount().toPlainString();
-        replacementList[2] = fundTransactionRecord.getCoin().getAlias();
+        replacementList[2] = fundTransactionRecord.getCoin();
         replacementList[3] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
         webHookService.fundSend(s);

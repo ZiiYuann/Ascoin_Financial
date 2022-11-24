@@ -7,7 +7,6 @@ import com.tianli.account.enums.AccountOperationType;
 import com.tianli.account.mapper.AccountBalanceOperationLogMapper;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.CommonFunction;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import org.springframework.stereotype.Service;
 
@@ -32,12 +31,12 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
     /**
      * 添加余额操作日志
      */
-    public void save(AccountBalance accountBalance, ChargeType type, CurrencyCoin coin,
+    public void save(AccountBalance accountBalance, ChargeType type, String coin,
                      AccountOperationType logType, BigDecimal amount, String sn, String des) {
         this.save(accountBalance,type,coin,null,logType,amount,sn,des);
     }
 
-    public void save(AccountBalance accountBalance, ChargeType type, CurrencyCoin coin, NetworkType networkType,
+    public void save(AccountBalance accountBalance, ChargeType type, String coin, NetworkType networkType,
                      AccountOperationType logType, BigDecimal amount, String sn, String des) {
         AccountBalanceOperationLog currencyLog = AccountBalanceOperationLog.builder()
                 .id(CommonFunction.generalId())

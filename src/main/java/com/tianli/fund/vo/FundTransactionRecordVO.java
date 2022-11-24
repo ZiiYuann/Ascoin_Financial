@@ -1,6 +1,5 @@
 package com.tianli.fund.vo;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.fund.enums.FundTransactionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,7 +53,7 @@ public class FundTransactionRecordVO implements Serializable {
     /**
      * 币种
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * 年化率

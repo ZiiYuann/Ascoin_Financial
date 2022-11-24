@@ -3,25 +3,22 @@ package com.tianli.borrow.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.borrow.bo.BorrowOrderConfigBO;
 import com.tianli.borrow.convert.BorrowCoinConfigConverter;
-import com.tianli.borrow.dao.BorrowCoinOrderMapper;
-import com.tianli.borrow.entity.BorrowCoinConfig;
 import com.tianli.borrow.dao.BorrowCoinConfigMapper;
+import com.tianli.borrow.entity.BorrowCoinConfig;
 import com.tianli.borrow.service.IBorrowCoinConfigService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.borrow.service.IBorrowCoinOrderService;
 import com.tianli.borrow.vo.BorrowCoinConfigVO;
 import com.tianli.common.PageQuery;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.exception.ErrorCodeEnum;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -36,11 +33,11 @@ import java.util.Objects;
 @Transactional
 public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMapper, BorrowCoinConfig> implements IBorrowCoinConfigService {
 
-    @Autowired
+    @Resource
     private BorrowCoinConfigConverter borrowCoinConfigConverter;
-    @Autowired
+    @Resource
     private BorrowCoinConfigMapper borrowCoinConfigMapper;
-    @Autowired
+    @Resource
     private IBorrowCoinOrderService borrowCoinOrderService;
 
     @Override
@@ -76,20 +73,20 @@ public class BorrowCoinConfigServiceImpl extends ServiceImpl<BorrowCoinConfigMap
     }
 
     @Override
-    public IPage<BorrowCoinConfigVO> pageList(PageQuery<BorrowCoinConfig> pageQuery, CurrencyCoin coin) {
+    public IPage<BorrowCoinConfigVO> pageList(PageQuery<BorrowCoinConfig> pageQuery, String coin) {
 
         LambdaQueryWrapper<BorrowCoinConfig> queryWrapper = new QueryWrapper<BorrowCoinConfig>().lambda();
 
         if(!Objects.isNull(coin)){
-            queryWrapper.like(BorrowCoinConfig::getCoin,coin.getName());
+            queryWrapper.like(BorrowCoinConfig::getCoin,coin);
         }
         return borrowCoinConfigMapper.selectPage(pageQuery.page(),queryWrapper).convert(borrowCoinConfigConverter::toVO);
     }
 
     @Override
-    public BorrowCoinConfig getByCoin(CurrencyCoin coin) {
+    public BorrowCoinConfig getByCoin(String coin) {
         return borrowCoinConfigMapper.selectOne(new QueryWrapper<BorrowCoinConfig>().lambda()
-                .eq(BorrowCoinConfig::getCoin,coin.getName())
+                .eq(BorrowCoinConfig::getCoin,coin)
         );
     }
 }

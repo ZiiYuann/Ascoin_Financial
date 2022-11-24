@@ -1,6 +1,5 @@
 package com.tianli.fund.dto;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -8,7 +7,7 @@ import java.math.BigDecimal;
 @Data
 public class FundTransactionAmountDTO {
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private BigDecimal purchaseAmount;
 

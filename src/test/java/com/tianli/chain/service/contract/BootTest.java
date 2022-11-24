@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -30,6 +31,8 @@ class BootTest {
     private FinancialIncomeTask financialIncomeTask;
     @Resource
     private FinancialRecordService financialRecordService;
+    @Resource
+    private TronWeb3jContract tronWeb3jContract;
     @Resource
     private TronTriggerContract tronTriggerContract;
 
@@ -67,11 +70,9 @@ class BootTest {
     }
 
     @Test
-    void contract() throws InterruptedException {
-        boolean success = tronTriggerContract.successByHash("8d85c058340a602f08751361a5ca7aaa91871ade2812c86cab4c50e2ba6c05d5");
+    void contract() throws InterruptedException, IOException {
+        tronTriggerContract.decimals("TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8");
     }
-
-
 
 
 }

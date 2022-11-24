@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.chain.dto.TRONTokenReq;
+import com.tianli.chain.entity.Coin;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderAdvance;
 import com.tianli.charge.enums.ChargeStatus;
@@ -15,7 +16,6 @@ import com.tianli.charge.vo.OrderFundTransactionVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.annotation.NoRepeatCommit;
 import com.tianli.common.webhook.WebHookService;
-import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
@@ -218,7 +218,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
      * 处理充值事件
      */
     @Transactional
-    public void handlerRechargeEvent(Long uid, TRONTokenReq req, BigDecimal finalAmount, TokenAdapter tokenAdapter) {
+    public void handlerRechargeEvent(Long uid, TRONTokenReq req, BigDecimal finalAmount, Coin coin) {
 
         try {
             Thread.sleep(5000);
@@ -247,7 +247,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                 return;
             }
 
-            if (!product.getCoin().equals(tokenAdapter.getCurrencyCoin())) {
+            if (!product.getCoin().equalsIgnoreCase(coin.getName())) {
                 log.error("申购产品币别类型与充值币别不符合");
                 return;
             }

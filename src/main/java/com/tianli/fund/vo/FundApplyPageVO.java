@@ -1,6 +1,5 @@
 package com.tianli.fund.vo;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Builder;
 import lombok.Data;
 
@@ -27,7 +26,7 @@ public class FundApplyPageVO {
     /**
      * 币种
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * logo

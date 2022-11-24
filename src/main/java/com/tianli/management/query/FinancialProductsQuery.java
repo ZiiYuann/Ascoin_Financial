@@ -1,6 +1,5 @@
 package com.tianli.management.query;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import lombok.Data;
@@ -19,5 +18,5 @@ public class FinancialProductsQuery {
 
     private ProductStatus status;
 
-    private CurrencyCoin coin;
+    private String coin;
 }

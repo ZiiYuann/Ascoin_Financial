@@ -8,17 +8,18 @@ import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.vo.AddressVO;
+import com.tianli.chain.entity.Coin;
+import com.tianli.chain.service.CoinService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.common.PageQuery;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
-import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -49,6 +50,8 @@ public class AccountController {
     private ConfigService configService;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private CoinService coinService;
 
 
     /**
@@ -64,7 +67,10 @@ public class AccountController {
      * 激活钱包
      */
     @PostMapping("/activate/uid")
-    public Result activateWalletByUid(@RequestBody String str) {
+    public Result activateWalletByUid(@RequestBody(required = false) String str) {
+        if (StringUtils.isBlank(str)) {
+            ErrorCodeEnum.ACCOUNT_ACTIVATE_UID_NULL.throwException();
+        }
         Long uid = JSONUtil.parse(str).getByPath("uid", Long.class);
         if (Objects.isNull(uid)) {
             ErrorCodeEnum.ACCOUNT_ACTIVATE_UID_NULL.throwException();
@@ -123,9 +129,9 @@ public class AccountController {
      * 手续费
      */
     @GetMapping("/service/amount")
-    public Result serviceRate(CurrencyCoin coin, NetworkType networkType) {
-        TokenAdapter tokenAdapter = TokenAdapter.get(coin, networkType);
-        String amount = configService.get(tokenAdapter.name() + "_withdraw_fixed_amount");
+    public Result serviceRate(String coinName, NetworkType networkType) {
+        Coin coin = coinService.getByNameAndNetwork(coinName, networkType);
+        String amount = configService.get(coin.getName() + "_withdraw_fixed_amount");
         HashMap<String, String> rateMap = new HashMap<>();
         DecimalFormat decimalFormat = new DecimalFormat("#.########");
         rateMap.put("serviceAmount", decimalFormat.format(Double.parseDouble(amount)));
@@ -136,9 +142,9 @@ public class AccountController {
      * 最低提币
      */
     @GetMapping("/withdraw/limit")
-    public Result withdrawLimit(CurrencyCoin coin, NetworkType networkType) {
-        TokenAdapter tokenAdapter = TokenAdapter.get(coin, networkType);
-        String amount = configService.get(tokenAdapter.name() + "_withdraw_min_amount");
+    public Result withdrawLimit(String coinName, NetworkType networkType) {
+        Coin coin = coinService.getByNameAndNetwork(coinName, networkType);
+        String amount = configService.get(coin.getName() + "_withdraw_min_amount");
         HashMap<String, String> rateMap = new HashMap<>();
         rateMap.put("withdrawLimitAmount", BigDecimal.valueOf(Double.parseDouble(amount)).toString());
         return Result.success().setData(rateMap);
@@ -166,7 +172,7 @@ public class AccountController {
      * 【云钱包】币别详情账户余额
      */
     @GetMapping("/balance/{coin}")
-    public Result accountBalance(@PathVariable CurrencyCoin coin) {
+    public Result accountBalance(@PathVariable String coin) {
         Long uid = requestInitService.uid();
         return Result.instance().setData(accountBalanceService.getVO(uid, coin));
     }
@@ -177,7 +183,7 @@ public class AccountController {
     @GetMapping("/balance/details")
     public Result accountBalanceDetails(PageQuery<Order> pageQuery, AccountDetailsQuery query) {
         Long uid = requestInitService.uid();
-        query = MoreObjects.firstNonNull(query,new AccountDetailsQuery());
+        query = MoreObjects.firstNonNull(query, new AccountDetailsQuery());
         return Result.instance().setData(chargeService.pageByChargeGroup(uid, query, pageQuery.page()));
     }
 

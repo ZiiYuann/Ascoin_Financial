@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.IdGenerator;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
@@ -14,7 +13,6 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.mapper.FinancialIncomeAccrueMapper;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.query.FinancialProductIncomeQuery;
-import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +48,7 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
     }
 
     @Transactional
-    public void insertIncomeAccrue(Long uid, Long recordId, CurrencyCoin coin, BigDecimal amount, LocalDateTime incomeTime) {
+    public void insertIncomeAccrue(Long uid, Long recordId, String coin, BigDecimal amount, LocalDateTime incomeTime) {
         LambdaQueryWrapper<FinancialIncomeAccrue> queryWrapper = new LambdaQueryWrapper<FinancialIncomeAccrue>()
                 .eq(FinancialIncomeAccrue::getUid, uid)
                 .eq(FinancialIncomeAccrue::getRecordId, recordId);
@@ -112,13 +110,12 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
 
         var incomeMapByUid = Optional.ofNullable(financialIncomeAccrueMapper.selectList(recordQuery)).orElse(new ArrayList<>())
                 .stream().collect(Collectors.groupingBy(FinancialIncomeAccrue::getUid));
-        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
 
         return incomeMapByUid.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
                 entry -> entry.getValue().stream().map(income -> {
                     BigDecimal holdAmount = income.getIncomeAmount();
-                    BigDecimal rate = dollarRateMap.getOrDefault(income.getCoin(), BigDecimal.ZERO);
+                    BigDecimal rate = currencyService.getDollarRate(income.getCoin());
                     return holdAmount.multiply(rate);
                 }).reduce(BigDecimal.ZERO, BigDecimal::add)
         ));

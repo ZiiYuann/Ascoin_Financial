@@ -1,6 +1,5 @@
 package com.tianli.fund.dto;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -14,6 +13,6 @@ public class FundIncomeAmountDTO {
 
     private BigDecimal waitInterestAmount;
 
-    private CurrencyCoin coin;
+    private String coin;
 
 }

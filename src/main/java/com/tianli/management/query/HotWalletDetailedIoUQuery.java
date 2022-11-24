@@ -1,7 +1,6 @@
 package com.tianli.management.query;
 
 import com.tianli.chain.enums.ChainType;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.query.IoUQuery;
 import com.tianli.management.enums.HotWalletOperationType;
 import lombok.*;
@@ -35,7 +34,7 @@ public class HotWalletDetailedIoUQuery extends IoUQuery {
     private BigDecimal amount;
 
     @NotNull(message = "币别不允许为空")
-    private CurrencyCoin coin;
+    private String coin;
 
     @NotNull(message = "链不允许为空")
     private ChainType chain;

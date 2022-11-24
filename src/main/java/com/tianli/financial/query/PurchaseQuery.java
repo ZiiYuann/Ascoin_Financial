@@ -1,6 +1,5 @@
 package com.tianli.financial.query;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.PurchaseTerm;
 import lombok.*;
 
@@ -31,7 +30,7 @@ public class PurchaseQuery {
     /**
      * 申购币别
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * 申购期限

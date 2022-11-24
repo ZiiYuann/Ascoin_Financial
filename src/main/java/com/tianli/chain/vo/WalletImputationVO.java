@@ -1,7 +1,6 @@
 package com.tianli.chain.vo;
 
 import com.tianli.chain.enums.ImputationStatus;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import lombok.Data;
 
@@ -24,7 +23,7 @@ public class WalletImputationVO {
 
     private BigDecimal amount;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private NetworkType network;
 

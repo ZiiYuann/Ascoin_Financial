@@ -2,7 +2,6 @@ package com.tianli.accountred.vo;
 
 
 import com.tianli.accountred.enums.RedEnvelopeType;
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,7 +21,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class RedEnvelopeSpiltGetRecordVO {
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private BigDecimal amount;
 

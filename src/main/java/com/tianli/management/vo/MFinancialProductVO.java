@@ -1,6 +1,5 @@
 package com.tianli.management.vo;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.*;
 import lombok.Data;
 
@@ -24,7 +23,7 @@ public class MFinancialProductVO {
     /**
      * 币别
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * 产品名称

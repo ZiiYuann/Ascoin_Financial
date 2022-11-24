@@ -2,12 +2,10 @@ package com.tianli.accountred.query;
 
 import com.tianli.accountred.enums.RedEnvelopeType;
 import com.tianli.accountred.enums.RedEnvelopeWay;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.query.IoUQuery;
 import com.tianli.exception.ErrorCodeEnum;
 import lombok.*;
 
-import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -28,7 +26,7 @@ public class RedEnvelopeIoUQuery extends IoUQuery {
     @NotBlank(message = "红包唯一标示不允许为空")
     private String flag;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     @NotNull
     private BigDecimal amount;

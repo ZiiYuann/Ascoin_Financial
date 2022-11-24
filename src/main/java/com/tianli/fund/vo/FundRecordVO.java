@@ -1,6 +1,5 @@
 package com.tianli.fund.vo;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RiskType;
 import com.tianli.fund.enums.FundRecordStatus;
@@ -42,7 +41,7 @@ public class FundRecordVO implements Serializable {
     /**
      * 币种
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * logo

@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.extension.activerecord.Model;
 
 import java.time.LocalDateTime;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.BusinessType;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RiskType;
@@ -58,7 +57,7 @@ public class FundRecord extends Model<FundRecord> {
     /**
      * 币种
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * logo

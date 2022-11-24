@@ -1,7 +1,6 @@
 package com.tianli.management.query;
 
 import com.tianli.chain.enums.ChainType;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.query.PQuery;
 import com.tianli.management.enums.HotWalletOperationType;
 import lombok.AllArgsConstructor;
@@ -25,7 +24,7 @@ public class HotWalletDetailedPQuery extends PQuery {
 
     private String hash;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private HotWalletOperationType type;
 

@@ -1,6 +1,5 @@
 package com.tianli.financial.dto;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
@@ -23,7 +22,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class FinancialIncomeAccrueDTO extends FinancialIncomeAccrue {
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private String productName;
 

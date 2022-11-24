@@ -2,7 +2,6 @@ package com.tianli.financial.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.*;
 import lombok.Builder;
 import lombok.Data;
@@ -31,7 +30,7 @@ public class FinancialProduct {
     /**
      * 币别
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     private String logo;
 

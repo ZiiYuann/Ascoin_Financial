@@ -10,18 +10,18 @@ import com.tianli.account.mapper.AccountBalanceMapper;
 import com.tianli.account.vo.AccountBalanceMainPageVO;
 import com.tianli.account.vo.AccountBalanceSimpleVO;
 import com.tianli.account.vo.AccountBalanceVO;
+import com.tianli.chain.entity.CoinBase;
+import com.tianli.chain.service.CoinService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.CommonFunction;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
-import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.management.dto.AmountDto;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.DollarIncomeVO;
 import com.tianli.fund.service.IFundRecordService;
+import com.tianli.management.dto.AmountDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,7 +50,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void freeze(long uid, ChargeType type, CurrencyCoin coin, BigDecimal amount, String sn, String des) {
+    public void freeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
         freeze(uid, type, coin, null, amount, sn, des);
     }
 
@@ -62,7 +62,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void reduce(long uid, ChargeType type, CurrencyCoin coin, BigDecimal amount, String sn, String des) {
+    public void reduce(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
         reduce(uid, type, coin, null, amount, sn, des);
     }
 
@@ -74,17 +74,17 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void increase(long uid, ChargeType type, CurrencyCoin coin, BigDecimal amount, String sn, String des) {
+    public void increase(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
         increase(uid, type, coin, null, amount, sn, des);
     }
 
     @Transactional
-    public void increase(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+    public void increase(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
         increase(uid, type, coin, networkType, amount, sn, des, AccountOperationType.increase);
     }
 
     @Transactional
-    public void increase(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des, AccountOperationType accountOperationType) {
+    public void increase(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des, AccountOperationType accountOperationType) {
         getAndInit(uid, coin);
 
         if (accountBalanceMapper.increase(uid, amount, coin) <= 0L) {
@@ -95,7 +95,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     }
 
     @Transactional
-    public void reduce(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+    public void reduce(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
         getAndInit(uid, coin);
 
         if (accountBalanceMapper.reduce(uid, amount, coin) <= 0L) {
@@ -106,12 +106,12 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     }
 
     @Transactional
-    public void decrease(long uid, ChargeType type, CurrencyCoin coin, BigDecimal amount, String sn, String des) {
+    public void decrease(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
         decrease(uid, type, coin, null, amount, sn, des);
     }
 
     @Transactional
-    public void decrease(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType,
+    public void decrease(long uid, ChargeType type, String coin, NetworkType networkType,
                          BigDecimal amount, String sn, String des, AccountOperationType accountOperationType) {
         getAndInit(uid, coin);
         if (accountBalanceMapper.decrease(uid, amount, coin) <= 0L) {
@@ -129,12 +129,12 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void decrease(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+    public void decrease(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
         decrease(uid, type, coin, networkType, amount, sn, des, AccountOperationType.withdraw);
     }
 
     @Transactional
-    public void freeze(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+    public void freeze(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
         getAndInit(uid, coin);
 
         if (accountBalanceMapper.freeze(uid, amount, coin) <= 0L) {
@@ -153,7 +153,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
      * @param sn     订单号
      */
     @Transactional
-    public void unfreeze(long uid, ChargeType type, CurrencyCoin coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+    public void unfreeze(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
         getAndInit(uid, coin);
 
         if (accountBalanceMapper.unfreeze(uid, amount, coin) <= 0L) {
@@ -164,27 +164,20 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.unfreeze, amount, sn, des);
     }
 
-    public void unfreeze(long uid, ChargeType type, CurrencyCoin coin, BigDecimal amount, String sn, String des) {
+    public void unfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
         unfreeze(uid, type, coin, null, amount, sn, des);
     }
 
-    /**
-     * 获取用户余额数据并且初始化
-     */
-    public AccountBalance getAndInit(long uid, TokenAdapter token) {
-        return getAndInit(uid, token.getCurrencyCoin());
-    }
-
     @Transactional
-    public AccountBalance getAndInit(long uid, CurrencyCoin currencyCoin) {
-        validCurrencyToken(currencyCoin);
-        AccountBalance accountBalanceBalance = accountBalanceMapper.get(uid, currencyCoin);
+    public AccountBalance getAndInit(long uid, String coinName) {
+        CoinBase coinBase = validCurrencyToken(coinName);
+        AccountBalance accountBalanceBalance = accountBalanceMapper.get(uid, coinName);
         if (accountBalanceBalance == null) {
             accountBalanceBalance = AccountBalance.builder()
                     .id(CommonFunction.generalId())
                     .uid(uid)
-                    .coin(currencyCoin)
-                    .logo(currencyCoin.getLogoPath())
+                    .coin(coinBase.getName())
+                    .logo(coinBase.getLogo())
                     .balance(BigDecimal.ZERO)
                     .freeze(BigDecimal.ZERO)
                     .remain(BigDecimal.ZERO)
@@ -203,14 +196,16 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     /**
      * 校验币别是否有效 暂时只支持 usdt、usdc、bnb bsc主币、eth eth主币
      *
-     * @param token 币别类型
+     * @param tokenName 币别类型
      */
-    private void validCurrencyToken(CurrencyCoin token) {
-        if (Objects.equals(token, CurrencyCoin.usdt) || Objects.equals(token, CurrencyCoin.usdc)
-                || Objects.equals(token, CurrencyCoin.bnb) || Objects.equals(token, CurrencyCoin.eth)) {
-            return;
+    private CoinBase validCurrencyToken(String tokenName) {
+        List<CoinBase> coins = coinService.effectiveCoinsWithCache();
+        for (CoinBase coinBase : coins) {
+            if (coinBase.getName().equalsIgnoreCase(tokenName)) {
+                return coinBase;
+            }
         }
-        ErrorCodeEnum.CURRENCY_NOT_SUPPORT.throwException();
+        throw ErrorCodeEnum.CURRENCY_NOT_SUPPORT.generalException();
     }
 
     /**
@@ -237,14 +232,14 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
 
 
         var existCoinNames =
-                accountBalanceVOS.stream().map(balance -> balance.getCoin().getName()).collect(Collectors.toList());
-        List<String> coinNames = CurrencyCoin.getNameList();
-        coinNames.removeAll(existCoinNames);
-
+                accountBalanceVOS.stream().map(AccountBalanceVO::getCoin).collect(Collectors.toList());
+        Set<String> coinNames = coinService.effectiveCoinNames();
+        existCoinNames.forEach(coinNames::remove);
 
         for (String coin : coinNames) {
-            AccountBalanceVO accountBalanceVO = AccountBalanceVO.getDefault(coin);
-            accountBalanceVO.setDollarRate(currencyService.getDollarRate(CurrencyCoin.valueOf(coin)));
+            CoinBase coinBase = validCurrencyToken(coin);
+            AccountBalanceVO accountBalanceVO = AccountBalanceVO.getDefault(coinBase);
+            accountBalanceVO.setDollarRate(currencyService.getDollarRate(String.valueOf(coin)));
             accountBalanceVOS.add(accountBalanceVO);
         }
 
@@ -276,23 +271,24 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     public List<AccountBalanceVO> accountBalanceVOS(Long uid) {
         List<AccountBalance> accountBalances = Optional.ofNullable(this.list(uid)).orElse(new ArrayList<>());
 
-        Map<CurrencyCoin, BigDecimal> currencyDollarRateMap = accountBalances.stream()
+        Map<String, BigDecimal> currencyDollarRateMap = accountBalances.stream()
                 .map(AccountBalance::getCoin)
                 .distinct()
                 .collect(Collectors.toMap(o -> o, currencyService::getDollarRate));
 
         List<AccountBalanceVO> accountBalanceVOS = new ArrayList<>(accountBalances.size());
         accountBalances.forEach(accountBalance -> {
-            CurrencyCoin currencyCoin = accountBalance.getCoin();
-            BigDecimal rate = currencyDollarRateMap.getOrDefault(currencyCoin, BigDecimal.ONE);
+            String coinName = accountBalance.getCoin();
+            BigDecimal rate = currencyDollarRateMap.getOrDefault(coinName, BigDecimal.ONE);
+            CoinBase coinBase = validCurrencyToken(coinName);
             BigDecimal balance = Optional.ofNullable(accountBalance.getBalance()).orElse(BigDecimal.ZERO);
             var dollarBalance = balance.multiply(rate);
             var dollarFreeze = Optional.ofNullable(accountBalance.getFreeze()).orElse(BigDecimal.ZERO).multiply(rate);
             var dollarRemain = Optional.ofNullable(accountBalance.getRemain()).orElse(BigDecimal.ZERO).multiply(rate);
 
 
-            BigDecimal fundHoldAmount = MoreObjects.firstNonNull(fundRecordService.holdAmount(uid, currencyCoin, null), BigDecimal.ZERO);
-            BigDecimal financialHoldAmount = MoreObjects.firstNonNull(financialRecordService.holdAmountByCoin(uid, currencyCoin),BigDecimal.ZERO);
+            BigDecimal fundHoldAmount = MoreObjects.firstNonNull(fundRecordService.holdAmount(uid, coinName, null), BigDecimal.ZERO);
+            BigDecimal financialHoldAmount = MoreObjects.firstNonNull(financialRecordService.holdAmountByCoin(uid, coinName), BigDecimal.ZERO);
 
             AccountBalanceVO accountBalanceVO = accountConverter.toVO(accountBalance);
             accountBalanceVO.setAssets(fundHoldAmount.add(financialHoldAmount).add(balance));
@@ -301,22 +297,23 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
             accountBalanceVO.setDollarBalance(dollarBalance);
             accountBalanceVO.setDollarFreeze(dollarFreeze);
             accountBalanceVO.setDollarRemain(dollarRemain);
-            accountBalanceVO.setLogo(currencyCoin.getLogoPath());
+            accountBalanceVO.setLogo(coinBase.getLogo());
             accountBalanceVOS.add(accountBalanceVO);
         });
         return accountBalanceVOS;
     }
 
-    public AccountBalanceVO getVO(Long uid, CurrencyCoin currencyCoin) {
-        AccountBalanceVO accountBalanceVO = accountConverter.toVO(this.getAndInit(uid, currencyCoin));
+    public AccountBalanceVO getVO(Long uid, String coinName) {
+        AccountBalanceVO accountBalanceVO = accountConverter.toVO(this.getAndInit(uid, coinName));
         BigDecimal dollarRate = currencyService.getDollarRate(accountBalanceVO.getCoin());
 
 
-        BigDecimal fundHoldAmount = fundRecordService.holdAmount(uid, currencyCoin, null);
-        BigDecimal financialHoldAmount = financialRecordService.holdAmountByCoin(uid, currencyCoin);
+        BigDecimal fundHoldAmount = fundRecordService.holdAmount(uid, coinName, null);
+        BigDecimal financialHoldAmount = financialRecordService.holdAmountByCoin(uid, coinName);
 
         BigDecimal assets = accountBalanceVO.getRemain().add(accountBalanceVO.getFreeze()).add(fundHoldAmount).add(financialHoldAmount);
 
+        CoinBase coinBase = validCurrencyToken(coinName);
         accountBalanceVO.setAssets(assets);
         accountBalanceVO.setDollarAssets(assets.multiply(dollarRate));
         accountBalanceVO.setDollarRate(dollarRate);
@@ -324,7 +321,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         accountBalanceVO.setDollarFreeze(dollarRate.multiply(accountBalanceVO.getFreeze()));
         accountBalanceVO.setDollarRemain(dollarRate.multiply(accountBalanceVO.getRemain()));
         accountBalanceVO.setDollarBalance(dollarRate.multiply(accountBalanceVO.getBalance()));
-        accountBalanceVO.setLogo(currencyCoin.getLogoPath());
+        accountBalanceVO.setLogo(coinBase.getLogo());
         return accountBalanceVO;
 
     }
@@ -339,24 +336,22 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
 
 
         Map<Long, List<AccountBalance>> balanceMapByUid = accountBalances.stream().collect(Collectors.groupingBy(AccountBalance::getUid));
-        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
 
         // 云钱包余额map
         return balanceMapByUid.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
                 entry -> entry.getValue().stream().map(accountBalance -> {
                     BigDecimal balance = accountBalance.getBalance();
-                    BigDecimal rate = dollarRateMap.getOrDefault(accountBalance.getCoin(), BigDecimal.ONE);
+                    BigDecimal rate = currencyService.getDollarRate(accountBalance.getCoin());
                     return balance.multiply(rate);
                 }).reduce(BigDecimal.ZERO, BigDecimal::add)
         ));
     }
 
     public List<AccountBalanceSimpleVO> getTotalSummaryData() {
-        EnumMap<CurrencyCoin, BigDecimal> dollarRateMap = currencyService.getDollarRateMap();
         List<AccountBalanceSimpleVO> accountBalanceSimpleVOS = baseMapper.listAccountBalanceSimpleVO();
         accountBalanceSimpleVOS.forEach(accountBalanceSimpleVO -> {
-            BigDecimal rate = dollarRateMap.get(accountBalanceSimpleVO.getCoin());
+            BigDecimal rate = currencyService.getDollarRate(accountBalanceSimpleVO.getCoin());
             accountBalanceSimpleVO.setDollarRate(rate);
             accountBalanceSimpleVO.setBalanceDollarAmount(accountBalanceSimpleVO.getBalanceAmount().multiply(rate));
         });
@@ -378,6 +373,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     private IFundRecordService fundRecordService;
     @Resource
     private FinancialRecordService financialRecordService;
+    @Resource
+    private CoinService coinService;
 
 
 }

@@ -1,7 +1,6 @@
 package com.tianli.chain.entity;
 
 import com.tianli.chain.enums.ImputationStatus;
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.common.blockchain.NetworkType;
 import lombok.Builder;
 import lombok.Data;
@@ -48,7 +47,7 @@ public class WalletImputationLog {
     /**
      * 币别
      */
-    private CurrencyCoin coin;
+    private String coin;
 
     /**
      * 归集状态

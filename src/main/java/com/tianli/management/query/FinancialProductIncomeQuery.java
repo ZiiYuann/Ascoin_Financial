@@ -1,6 +1,5 @@
 package com.tianli.management.query;
 
-import com.tianli.common.blockchain.CurrencyCoin;
 import com.tianli.financial.enums.ProductType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,7 +24,7 @@ public class FinancialProductIncomeQuery {
 
     private ProductType productType;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startTime;

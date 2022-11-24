@@ -1,7 +1,6 @@
 package com.tianli.accountred.entity;
 
 import com.tianli.accountred.enums.RedEnvelopeType;
-import com.tianli.common.blockchain.CurrencyCoin;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,7 +36,7 @@ public class RedEnvelopeSpiltGetRecord {
 
     private String sRid;
 
-    private CurrencyCoin coin;
+    private String coin;
 
     private BigDecimal amount;
 

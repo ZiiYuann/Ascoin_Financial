@@ -131,7 +131,7 @@ public class FundIncomeTask {
                 replacementList[0] = fundRecord.getUid() + "";
                 replacementList[1] = fundRecord.getHoldAmount().toPlainString();
                 replacementList[2] = fundRecord.getWaitIncomeAmount().toPlainString();
-                replacementList[3] = fundRecord.getCoin().getAlias();
+                replacementList[3] = fundRecord.getCoin();
                 replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                 String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
                 webHookService.fundSend(s);
