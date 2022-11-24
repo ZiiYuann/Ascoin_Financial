@@ -4,10 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.openapi.entity.OrderRewardRecord;
 import com.tianli.openapi.mapper.OrderRewardRecordMapper;
-import com.tianli.tool.time.TimeTool;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -29,7 +27,7 @@ public class OrderRewardRecordService extends ServiceImpl<OrderRewardRecordMappe
 
         LambdaQueryWrapper<OrderRewardRecord> query = new LambdaQueryWrapper<OrderRewardRecord>()
                 .eq(OrderRewardRecord::getUid, uid)
-                .between(OrderRewardRecord::getGive_time, begin, end);
+                .between(OrderRewardRecord::getGiveTime, begin, end);
         return this.count(query);
     }
 

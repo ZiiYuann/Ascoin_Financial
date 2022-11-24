@@ -101,9 +101,9 @@ public class OpenApiController {
                         @RequestHeader("sign") String sign,
                         @RequestHeader("timestamp") String timestamp) {
 
-//        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
-//            throw ErrorCodeEnum.SIGN_ERROR.generalException();
-//        }
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
+        }
 
         Order order = orderService.getById(id);
         return Result.success(chargeConverter.toVO(order));
