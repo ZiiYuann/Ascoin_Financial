@@ -1,9 +1,9 @@
 package com.tianli.address.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.mapping.ResultSetType;
+import org.apache.ibatis.session.ResultHandler;
 
 /**
  * <p>
@@ -30,4 +30,12 @@ public interface AddressMapper extends BaseMapper<Address> {
 
     @Select("SELECT * FROM `address` WHERE `bsc`=#{bsc}")
     Address getByBsc(@Param("bsc") String bsc);
+
+    @Select("SELECT max(id) FROM `address` ")
+    Long maxId();
+
+    @Select("SELECT * FROM `address` WHERE id <= ${id}")
+    @Options(resultSetType = ResultSetType.FORWARD_ONLY, fetchSize = 500)
+    @ResultType(Address.class)
+    void flow(@Param("id") Long id, ResultHandler<Address> handler);
 }

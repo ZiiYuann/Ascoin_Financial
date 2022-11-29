@@ -39,8 +39,6 @@ public class CoinIoUQuery extends IoUQuery {
 
     private int weight;
 
-    private byte status;
-
     private String rateUrl;
 
     private String rateField;

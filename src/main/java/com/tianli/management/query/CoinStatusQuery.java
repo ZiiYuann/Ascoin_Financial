@@ -21,6 +21,4 @@ public class CoinStatusQuery {
     @NotNull(message = "主键不允许为空")
     private Long id;
 
-    private byte status;
-
 }

@@ -41,7 +41,7 @@ public class FinancialUserController {
     }
 
     /**
-     * 理财用户管理 上方累计数据
+     * 用户资金数据
      */
     @GetMapping("/details/{uid}")
     @AdminPrivilege(and = Privilege.理财管理, api = "/management/financial/user/details/uid")

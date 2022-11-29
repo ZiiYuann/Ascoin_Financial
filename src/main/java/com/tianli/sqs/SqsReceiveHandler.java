@@ -17,16 +17,15 @@ public interface SqsReceiveHandler {
     void handler(Message message);
 
     /**
-     * 获取queueUrl
-     */
-    String getQueueUrl();
-
-    /**
-     * 一次性处理
+     * 一次性处理消息的条数
      */
     default int getMaxNumberOfMessages() {
         return 1;
     }
 
+    /**
+     * 控制器类型
+     */
+    SqsTypeEnum getSqsType();
 
 }
