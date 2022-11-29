@@ -20,6 +20,6 @@ public class SqsTask {
 
     @Scheduled(cron = "0/1 * * * * ? ")
     public void pushAddressTask() {
-        sqsService.receiveAndDelete(null,10);
+        sqsService.receiveAndDelete(null,5);
     }
 }

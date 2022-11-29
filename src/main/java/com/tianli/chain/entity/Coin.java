@@ -2,6 +2,8 @@ package com.tianli.chain.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.tianli.chain.enums.ChainType;
+import com.tianli.common.blockchain.NetworkType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,9 +27,9 @@ public class Coin {
 
     private String logo;
 
-    private String chain;
+    private ChainType chain;
 
-    private String network;
+    private NetworkType network;
 
     private int weight;
 

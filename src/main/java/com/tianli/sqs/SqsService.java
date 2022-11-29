@@ -1,6 +1,7 @@
 package com.tianli.sqs;
 
 import cn.hutool.json.JSONUtil;
+import com.tianli.common.webhook.WebHookService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +27,8 @@ public class SqsService {
     private String sqsUrl;
     @Resource
     private List<SqsReceiveHandler> sqsReceiveHandlers;
+    @Resource
+    private WebHookService webHookService;
 
 
     public void send(SqsContext<?> sqsContext) {
@@ -51,12 +54,16 @@ public class SqsService {
         List<Message> messages = receiveMessageResponse.messages();
         if (CollectionUtils.isNotEmpty(messages)) {
             messages.forEach(message -> {
-//                SqsContext<?> sqsContext = JSONUtil.toBean(message.body(), SqsContext.class);
-//                SqsTypeEnum sqsType = sqsContext.getSqsType();
-//                SqsReceiveHandler handler = getHandler(sqsType);
-//                handler.handler(message);
-                sqsClientConfig.getSqsClient().deleteMessage(builder ->
-                        builder.queueUrl(sqsUrl).receiptHandle(message.receiptHandle()));
+                try {
+                    SqsContext<?> sqsContext = JSONUtil.toBean(message.body(), SqsContext.class);
+                    SqsReceiveHandler handler = getHandler(sqsContext.getSqsType());
+                    handler.handler(message);
+                    sqsClientConfig.getSqsClient().deleteMessage(builder ->
+                            builder.queueUrl(sqsUrl).receiptHandle(message.receiptHandle()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    webHookService.dingTalkSend("推送地址消费失败", e);
+                }
             });
         }
     }

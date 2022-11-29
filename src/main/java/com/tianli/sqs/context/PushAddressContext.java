@@ -1,6 +1,5 @@
 package com.tianli.sqs.context;
 
-import com.tianli.address.mapper.Address;
 import com.tianli.chain.entity.Coin;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 public class PushAddressContext {
 
-    private List<Address> address;
+    private List<String> addresses;
 
     private Coin coin;
 }
