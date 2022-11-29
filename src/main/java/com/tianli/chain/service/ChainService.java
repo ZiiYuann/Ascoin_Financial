@@ -9,6 +9,7 @@ import com.tianli.address.mapper.AddressMapper;
 import com.tianli.chain.dto.CallbackPathDTO;
 import com.tianli.chain.dto.PushConditionReq;
 import com.tianli.chain.dto.TxConditionReq;
+import com.tianli.chain.entity.Coin;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.CurrencyCoin;
@@ -21,11 +22,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
@@ -161,6 +160,19 @@ public class ChainService {
 
         String urlPrefix = configService.get(ConfigConstants.SYSTEM_URL_PATH_PREFIX);
         httpPush(List.of(txConditionReq), urlPrefix + callBackPath.getPath());
+    }
+
+    public void pushConditionRecharge(List<String> addresses, Coin coin) {
+        List<TxConditionReq> txConditionReqs = new ArrayList<>();
+        addresses.forEach(address -> {
+            TxConditionReq req = TxConditionReq.builder()
+                    .contractAddress(coin.getContract())
+                    .to(address)
+                    .chain(coin.getChain()).build();
+            txConditionReqs.add(req);
+        });
+        String url = configService.get(ConfigConstants.SYSTEM_URL_PATH_PREFIX) + "/api/charge/recharge";
+        httpPush(txConditionReqs, url);
     }
 
     public void pushCondition(String tron, String bsc, String eth, CallbackPathDTO urlPath) {

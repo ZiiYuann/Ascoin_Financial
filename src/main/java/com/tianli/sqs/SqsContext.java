@@ -17,13 +17,8 @@ public class SqsContext<T> {
 
     private T context;
 
-    @JsonIgnore
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private SqsReceiveHandler sqsReceiveHandler;
-
-    public SqsContext(SqsTypeEnum sqsType, T context, SqsReceiveHandler sqsReceiveHandler) {
+    public SqsContext(SqsTypeEnum sqsType, T context) {
         this.sqsType = sqsType;
         this.context = context;
-        this.sqsReceiveHandler = sqsReceiveHandler;
     }
 }

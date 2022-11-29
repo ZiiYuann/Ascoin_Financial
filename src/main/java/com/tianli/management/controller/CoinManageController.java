@@ -10,6 +10,7 @@ import com.tianli.management.query.CoinsQuery;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
+import com.tianli.sso.permission.admin.AdminContent;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -35,7 +36,7 @@ public class CoinManageController {
     @PostMapping("/save")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result saveOrUpdate(@RequestBody @Valid CoinIoUQuery query) {
-        Long uid = requestInitService.uid();
+        Long uid = AdminContent.get().getAid();
         coinService.saveOrUpdate(uid, query);
         coinService.flushCache();
         return Result.success();
@@ -47,7 +48,7 @@ public class CoinManageController {
     @PostMapping("/push")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result saveOrUpdate(@RequestBody @Valid CoinStatusQuery query) {
-        Long uid = requestInitService.uid();
+        Long uid = AdminContent.get().getAid();
         coinService.push(uid, query);
         return Result.success();
     }

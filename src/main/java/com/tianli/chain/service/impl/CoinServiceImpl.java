@@ -10,6 +10,8 @@ import com.tianli.chain.entity.Coin;
 import com.tianli.chain.mapper.CoinMapper;
 import com.tianli.chain.service.CoinService;
 import com.tianli.common.RedisConstants;
+import com.tianli.common.async.AsyncService;
+import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.query.CoinIoUQuery;
@@ -20,7 +22,6 @@ import com.tianli.sqs.SqsContext;
 import com.tianli.sqs.SqsService;
 import com.tianli.sqs.SqsTypeEnum;
 import com.tianli.sqs.context.PushAddressContext;
-import com.tianli.sqs.handler.PushAddressHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -49,9 +51,11 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     @Resource
     private AddressService addressService;
     @Resource
-    private PushAddressHandler pushAddressHandler;
-    @Resource
     private SqsService sqsService;
+    @Resource
+    private AsyncService asyncService;
+    @Resource
+    private WebHookService webHookService;
     // 存储每批数据的临时容器
     private final List<Address> addresses = new ArrayList<>();
     private int size = 0;
@@ -95,19 +99,33 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     @Transactional
     public void push(Long uid, CoinStatusQuery query) {
         Long id = query.getId();
-
         var coin = processStatus(id);
-        Long maxId = addressService.getBaseMapper().maxId();
-        addressService.getBaseMapper().flow(maxId, resultContext -> {
-            Address address = resultContext.getResultObject();
-            addresses.add(address);
-            size++;
+        asyncService.async(() -> this.asyncPush(coin));
+    }
 
-            if (size == BATCH_SIZE) {
-                pushSqs(coin);
-            }
-        });
-        pushSqs(coin);
+
+    /**
+     * 异步push
+     *
+     * @param coin 币别属性
+     */
+    private void asyncPush(Coin coin) {
+        webHookService.dingTalkSend("正在异步push注册信息，请勿重启服务器");
+        try {
+            Long maxId = addressService.getBaseMapper().maxId();
+            addressService.getBaseMapper().flow(maxId, resultContext -> {
+                Address address = resultContext.getResultObject();
+                addresses.add(address);
+                size++;
+                if (size == BATCH_SIZE) {
+                    pushSqs(coin);
+                }
+            });
+            pushSqs(coin);
+            webHookService.dingTalkSend("异步push注册信息结束");
+        } catch (Exception e) {
+            webHookService.dingTalkSend("异步push注册信息结束异常", e);
+        }
     }
 
     @Override
@@ -139,8 +157,21 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
 
     private void pushSqs(Coin coin) {
         try {
-            PushAddressContext addressContext = new PushAddressContext(addresses, coin);
-            SqsContext<PushAddressContext> sqsContext = new SqsContext<>(SqsTypeEnum.ADD_COIN_PUSH, addressContext, pushAddressHandler);
+
+            List<String> tos = new ArrayList<>();
+            switch (coin.getChain()) {
+                case ETH:
+                    tos = addresses.stream().map(Address::getEth).collect(Collectors.toList());
+                    break;
+                case BSC:
+                    tos = addresses.stream().map(Address::getBsc).collect(Collectors.toList());
+                    break;
+                case TRON:
+                    tos = addresses.stream().map(Address::getTron).collect(Collectors.toList());
+                    break;
+            }
+            PushAddressContext addressContext = new PushAddressContext(tos, coin);
+            SqsContext<PushAddressContext> sqsContext = new SqsContext<>(SqsTypeEnum.ADD_COIN_PUSH, addressContext);
             sqsService.send(sqsContext);
         } catch (Exception e) {
             e.printStackTrace();
