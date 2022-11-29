@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 /**
  * @author chenb
  * @apiNote
@@ -29,5 +31,7 @@ public class MCoinListVO {
 
     // 状态：0未上架  1上架中 2上架完成 3下架
     private byte status;
+
+    private LocalDateTime updateTime;
 
 }
