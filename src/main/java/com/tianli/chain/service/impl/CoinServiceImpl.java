@@ -130,7 +130,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
 
     @Override
     public IPage<MCoinListVO> list(Page<Coin> page, CoinsQuery query) {
-        var queryWrapper = new LambdaQueryWrapper<Coin>();
+        var queryWrapper = new LambdaQueryWrapper<Coin>().orderByDesc(Coin::getWeight);
 
         if (StringUtils.isNotBlank(query.getName())) {
             queryWrapper = queryWrapper.like(Coin::getName, query.getName());
