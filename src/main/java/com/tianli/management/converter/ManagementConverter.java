@@ -35,4 +35,6 @@ public interface ManagementConverter {
     WithdrawServiceFeeVO toWithdrawServiceFeeVO(WithdrawServiceFee withdrawServiceFee);
 
     Coin toDO(CoinIoUQuery query);
+
+    MCoinListVO toMCoinListVO(Coin coin);
 }

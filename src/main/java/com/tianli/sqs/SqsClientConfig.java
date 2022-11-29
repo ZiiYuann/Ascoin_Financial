@@ -27,15 +27,6 @@ public class SqsClientConfig {
     public void init() {
         sqsClient = SqsClient.builder().credentialsProvider(EnvironmentVariableCredentialsProvider.create())
                 .region(Region.AP_NORTHEAST_1).build();
-//        sqsClient.sendMessage(builder -> {
-//            builder.queueUrl("https://sqs.ap-northeast-1.amazonaws.com/089758303572/financial_mq_test")
-//                    .messageBody(JSONUtil.toJsonStr("test"));
-//        });
-
-        ReceiveMessageResponse receiveMessageResponse = sqsClient.receiveMessage(builder -> {
-            builder.queueUrl("https://sqs.ap-northeast-1.amazonaws.com/089758303572/financial_mq_test").waitTimeSeconds(20).maxNumberOfMessages(1);
-        });
-        String s = receiveMessageResponse.messages().get(0).receiptHandle();
     }
 
     @PreDestroy

@@ -1,5 +1,7 @@
 package com.tianli.sqs;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
@@ -10,12 +12,18 @@ import lombok.Data;
 @Data
 public class SqsContext<T> {
 
+    // 现在只有一个queue，可能一个queue会处理多个类型的消息
     private SqsTypeEnum sqsType;
 
     private T context;
 
-    public SqsContext(SqsTypeEnum sqsType, T context) {
+    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private SqsReceiveHandler sqsReceiveHandler;
+
+    public SqsContext(SqsTypeEnum sqsType, T context, SqsReceiveHandler sqsReceiveHandler) {
         this.sqsType = sqsType;
         this.context = context;
+        this.sqsReceiveHandler = sqsReceiveHandler;
     }
 }

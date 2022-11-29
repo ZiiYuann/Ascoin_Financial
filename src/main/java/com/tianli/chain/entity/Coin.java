@@ -31,9 +31,8 @@ public class Coin {
 
     private int weight;
 
+    // 状态：0未上架  1上架中 2上架完成 3下架
     private byte status;
-
-    private boolean push;
 
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime updateTime;

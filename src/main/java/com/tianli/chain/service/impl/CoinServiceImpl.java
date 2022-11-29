@@ -1,7 +1,11 @@
 package com.tianli.chain.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.address.AddressService;
+import com.tianli.address.mapper.Address;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.mapper.CoinMapper;
 import com.tianli.chain.service.CoinService;
@@ -10,15 +14,21 @@ import com.tianli.currency.service.CurrencyService;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.query.CoinIoUQuery;
 import com.tianli.management.query.CoinStatusQuery;
+import com.tianli.management.query.CoinsQuery;
+import com.tianli.management.vo.MCoinListVO;
+import com.tianli.sqs.SqsContext;
+import com.tianli.sqs.SqsService;
+import com.tianli.sqs.SqsTypeEnum;
+import com.tianli.sqs.context.PushAddressContext;
+import com.tianli.sqs.handler.PushAddressHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author chenb
@@ -36,11 +46,20 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     private ManagementConverter managementConverter;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
+    @Resource
+    private AddressService addressService;
+    @Resource
+    private PushAddressHandler pushAddressHandler;
+    @Resource
+    private SqsService sqsService;
+    // 存储每批数据的临时容器
+    private final List<Address> addresses = new ArrayList<>();
+    private int size = 0;
+    private final int BATCH_SIZE = 50;
 
     @Override
     @Transactional
     public void saveOrUpdate(Long uid, CoinIoUQuery query) {
-
         // 判断是否存在汇率
         currencyService.huobiUsdtRate(query.getName().toLowerCase(Locale.ROOT));
 
@@ -68,30 +87,83 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         // 只缓存上架的数据
         List<Coin> coins = coinMapper.selectList(new LambdaQueryWrapper<Coin>()
                 .eq(Coin::getStatus, 1)
-                .orderByDesc(Coin :: getWeight));
+                .orderByDesc(Coin::getWeight));
         redisTemplate.opsForValue().set(RedisConstants.COIN_LIST, coins);
     }
 
     @Override
     @Transactional
-    public void status(Long uid, CoinStatusQuery query) {
+    public void push(Long uid, CoinStatusQuery query) {
         Long id = query.getId();
+
+        var coin = processStatus(id);
+        Long maxId = addressService.getBaseMapper().maxId();
+        addressService.getBaseMapper().flow(maxId, resultContext -> {
+            Address address = resultContext.getResultObject();
+            addresses.add(address);
+            size++;
+
+            if (size == BATCH_SIZE) {
+                pushSqs(coin);
+            }
+        });
+        pushSqs(coin);
+    }
+
+    @Override
+    public IPage<MCoinListVO> list(Page<Coin> page, CoinsQuery query) {
+        var queryWrapper = new LambdaQueryWrapper<Coin>();
+
+        if (StringUtils.isNotBlank(query.getName())) {
+            queryWrapper = queryWrapper.like(Coin::getName, query.getName());
+        }
+
+        if (StringUtils.isNotBlank(query.getContract())) {
+            queryWrapper = queryWrapper.like(Coin::getContract, query.getContract());
+        }
+
+        if (Objects.nonNull(query.getChain())) {
+            queryWrapper = queryWrapper.eq(Coin::getChain, query.getChain());
+        }
+
+        if (Objects.nonNull(query.getNetwork())) {
+            queryWrapper = queryWrapper.eq(Coin::getNetwork, query.getNetwork());
+        }
+
+        if (Objects.nonNull(query.getStatus())) {
+            queryWrapper = queryWrapper.eq(Coin::getStatus, query.getStatus());
+        }
+
+        return this.page(page, queryWrapper).convert(managementConverter::toMCoinListVO);
+    }
+
+    private void pushSqs(Coin coin) {
+        try {
+            PushAddressContext addressContext = new PushAddressContext(addresses, coin);
+            SqsContext<PushAddressContext> sqsContext = new SqsContext<>(SqsTypeEnum.ADD_COIN_PUSH, addressContext, pushAddressHandler);
+            sqsService.send(sqsContext);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            size = 0;
+            addresses.clear();
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Coin processStatus(Long id) {
         Coin coin = coinMapper.selectById(id);
         Optional.ofNullable(coin).orElseThrow(NullPointerException::new);
 
-        coin.setCreateBy(uid);
-        if (coin.getStatus() == query.getStatus()) {
-            return;
+        if (coin.getStatus() > 1) {
+            throw new UnsupportedOperationException();
         }
 
-        //  下架 或者 重新上架
-        if (query.getStatus() == 0 || (query.getStatus() == 1 && coin.isPush())) {
-            coin.setStatus(query.getStatus());
-            coinMapper.updateById(coin);
-            return;
-        }
-
-
+        // 修改状态为 上架中
+        // todo 激活需要修改逻辑
+        coin.setStatus((byte) 1);
+        coinMapper.updateById(coin);
+        return coin;
     }
 
 }

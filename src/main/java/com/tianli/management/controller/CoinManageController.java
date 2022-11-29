@@ -1,9 +1,12 @@
 package com.tianli.management.controller;
 
+import com.tianli.chain.entity.Coin;
 import com.tianli.chain.service.CoinService;
+import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.management.query.CoinIoUQuery;
 import com.tianli.management.query.CoinStatusQuery;
+import com.tianli.management.query.CoinsQuery;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
@@ -27,7 +30,7 @@ public class CoinManageController {
     private RequestInitService requestInitService;
 
     /**
-     * 币别配置
+     * 新增或者更新币别信息
      */
     @PostMapping("/save")
     @AdminPrivilege(and = Privilege.理财管理)
@@ -39,14 +42,22 @@ public class CoinManageController {
     }
 
     /**
-     * 币别配置
+     * 币别上架
      */
-    @PostMapping("/status")
+    @PostMapping("/push")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result saveOrUpdate(@RequestBody @Valid CoinStatusQuery query) {
         Long uid = requestInitService.uid();
-        coinService.status(uid, query);
+        coinService.push(uid, query);
         return Result.success();
     }
 
+    /**
+     * 币别上架
+     */
+    @GetMapping("/list")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result list(PageQuery<Coin> pageQuery, CoinsQuery query) {
+        return Result.success().setData(coinService.list(pageQuery.page(), query));
+    }
 }
