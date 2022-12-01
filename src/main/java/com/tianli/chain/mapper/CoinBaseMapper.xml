@@ -4,7 +4,7 @@
     <select id="coins" resultType="com.tianli.management.vo.MCoinListVO">
         SELECT c.name,cb.logo,cb.weight,c.*
         FROM `coin_base` cb
-        LEFT JOIN `coin` c on cb.name = c.name
+        INNER JOIN `coin` c on cb.name = c.name
         WHERE 1 = 1
         <if test="query.name != null">
             AND c.name like concat('%',#{query.name},'%')
