@@ -88,7 +88,7 @@
         review.rid as review_uid , review.type as review_type,review.remarks as review_remarks
         FROM `order` o
         INNER JOIN order_charge_info charge on charge.id = o.related_id
-        INNER JOIN order_review review on review.id = o.reviewer_id
+        LEFT JOIN order_review review on review.id = o.reviewer_id
         WHERE 1 = 1
         <include refid="FinancialChargeQuery"/>
         ORDER BY o.create_time DESC
