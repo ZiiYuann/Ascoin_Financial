@@ -27,7 +27,6 @@ public enum TokenAdapter {
     usdc_trc20("usdc", NetworkType.trc20, "TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"),
     usdt_trc20("usdt", NetworkType.trc20, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
 
-
     // 主币
     bnb("bnb", NetworkType.bep20, "0x000000"),
     eth("eth", NetworkType.erc20, "0x000000"),

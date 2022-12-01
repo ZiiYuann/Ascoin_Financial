@@ -1,5 +1,6 @@
 package com.tianli.chain.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -35,7 +36,7 @@ public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> i
     @Transactional
     public CoinBase saveOrUpdate(Long uid, CoinIoUQuery query) {
 
-        CoinBase coinBase = coinBaseMapper.selectById(query.getName());
+        CoinBase coinBase = coinBaseMapper.selectByName(query.getName());
 
         if (Objects.isNull(coinBase)) {
             coinBase = CoinBase.builder()
@@ -52,7 +53,7 @@ public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> i
         coinBase.setLogo(query.getLogo());
         coinBase.setWeight(query.getWeight());
 
-        coinBaseMapper.updateById(coinBase);
+        coinBaseMapper.update(coinBase, new LambdaQueryWrapper<CoinBase>().eq(CoinBase::getName, coinBase.getName()));
         return coinBase;
     }
 
@@ -67,14 +68,14 @@ public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> i
         if (Objects.nonNull(o)) {
             return (CoinBase) o;
         }
-        CoinBase coinBase = coinBaseMapper.selectById(name);
+        CoinBase coinBase = coinBaseMapper.selectByName(name);
         redisTemplate.opsForValue().set(RedisConstants.COIN_BASE + name, coinBase);
         return coinBase;
     }
 
     @Override
     public void show(String name) {
-        coinBaseMapper.show(name);
+        coinBaseMapper.displayOpen(name);
     }
 
 }
