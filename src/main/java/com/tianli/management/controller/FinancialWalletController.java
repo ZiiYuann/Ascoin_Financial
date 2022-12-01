@@ -112,6 +112,18 @@ public class FinancialWalletController {
     }
 
     /**
+     * 【云钱包提币管理】列表
+     */
+    @GetMapping("/order/withdraw/review")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result withdrawOrderNoReview(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
+        query.setChargeType(ChargeType.withdraw);
+        query.setChargeStatus(null);
+        query.setNoReview(true);
+        return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(), query));
+    }
+
+    /**
      * 【云钱包提币管理】上方统计
      */
     @GetMapping("/order/withdraw/data")
