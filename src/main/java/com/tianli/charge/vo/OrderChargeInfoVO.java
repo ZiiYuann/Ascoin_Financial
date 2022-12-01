@@ -101,6 +101,12 @@ public class OrderChargeInfoVO {
 
     private BigDecimal usdtAmount;
 
+    private byte reviewType;
+
+    private String reviewRemarks;
+
+    private Long reviewUid;
+
     public String getTypeName() {
         return type.getNameZn();
     }
