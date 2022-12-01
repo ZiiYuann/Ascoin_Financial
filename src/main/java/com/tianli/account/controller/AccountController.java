@@ -129,9 +129,9 @@ public class AccountController {
      * 手续费
      */
     @GetMapping("/service/amount")
-    public Result serviceRate(String coinName, NetworkType networkType) {
-        Coin coin = coinService.getByNameAndNetwork(coinName, networkType);
-        String amount = configService.get(coin.getName() + "_withdraw_fixed_amount");
+    public Result serviceRate(String coin, NetworkType networkType) {
+        Coin coinEntity = coinService.getByNameAndNetwork(coin, networkType);
+        String amount = configService.get(coinEntity.getName() + "_withdraw_fixed_amount");
         HashMap<String, String> rateMap = new HashMap<>();
         DecimalFormat decimalFormat = new DecimalFormat("#.########");
         rateMap.put("serviceAmount", decimalFormat.format(Double.parseDouble(amount)));
@@ -142,9 +142,9 @@ public class AccountController {
      * 最低提币
      */
     @GetMapping("/withdraw/limit")
-    public Result withdrawLimit(String coinName, NetworkType networkType) {
-        Coin coin = coinService.getByNameAndNetwork(coinName, networkType);
-        String amount = configService.get(coin.getName() + "_withdraw_min_amount");
+    public Result withdrawLimit(String coin, NetworkType networkType) {
+        Coin coinEntity = coinService.getByNameAndNetwork(coin, networkType);
+        String amount = configService.get(coinEntity.getName() + "_withdraw_min_amount");
         HashMap<String, String> rateMap = new HashMap<>();
         rateMap.put("withdrawLimitAmount", BigDecimal.valueOf(Double.parseDouble(amount)).toString());
         return Result.success().setData(rateMap);
