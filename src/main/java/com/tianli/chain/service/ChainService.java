@@ -27,7 +27,6 @@ import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.util.EntityUtils;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -238,7 +237,7 @@ public class ChainService {
         log.info("返回消息为：" + s);
         JSONObject json = JSONUtil.parseObj(s);
         String code = json.getStr("code");
-        if ("-1".equals(code)) {
+        if (!"200".equals(code)) {
             throw ErrorCodeEnum.UPLOAD_DATACENTER_ERROR.generalException();
         }
     }
