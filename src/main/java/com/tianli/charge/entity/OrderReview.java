@@ -44,4 +44,9 @@ public class OrderReview {
      * 审核时间
      */
     private LocalDateTime createTime;
+
+    /**
+     * 0：人共审核 1：自动审核
+     */
+    private byte type;
 }

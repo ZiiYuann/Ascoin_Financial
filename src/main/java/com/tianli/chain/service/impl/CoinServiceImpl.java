@@ -102,7 +102,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
 
         // 只缓存上架的数据
         List<CoinBase> coins = coinBaseService.list(new LambdaQueryWrapper<CoinBase>()
-                .in(CoinBase::isShow, true));
+                .eq(CoinBase::isShow, true));
 
         redisTemplate.opsForValue().set(RedisConstants.COIN_LIST, coins);
         return coins;
