@@ -21,7 +21,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class CoinBase {
 
-    @Id
     private String name;
 
     private String logo;
@@ -37,6 +36,10 @@ public class CoinBase {
     private Long createBy;
 
     private Long updateBy;
+
+    private String rateUrl;
+
+    private String rateField;
 
     private boolean mainToken;
 

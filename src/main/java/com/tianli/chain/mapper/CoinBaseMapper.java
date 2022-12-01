@@ -9,6 +9,7 @@ import com.tianli.management.query.CoinsQuery;
 import com.tianli.management.vo.MCoinListVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 /**
@@ -21,7 +22,10 @@ public interface CoinBaseMapper extends BaseMapper<CoinBase> {
 
     IPage<MCoinListVO> coins(@Param("page") Page<Coin> page, @Param("query") CoinsQuery query);
 
-    @Update(" UPDATE  coin_base SET show = true WHERE name =#{name}")
-    int show(@Param("name") String name);
+    @Update(" UPDATE  `coin_base` SET `display` = true WHERE name =#{name}")
+    int displayOpen(@Param("name") String name);
+
+    @Select(" SELECT  * FROM `coin_base`  WHERE name =#{name}")
+    CoinBase selectByName(@Param("name") String name);
 
 }
