@@ -54,6 +54,9 @@ public class CurrencyServiceImpl implements CurrencyService {
             if ("usdt".equalsIgnoreCase(coinName)) {
                 return BigDecimal.ONE;
             }
+            if ("usdc".equalsIgnoreCase(coinName)) {
+                return BigDecimal.ONE;
+            }
             return BigDecimal.valueOf(digitalCurrencyExchange.coinUsdtPrice(coinName));
         } catch (Exception e) {
             throw ErrorCodeEnum.COIN_RATE_ERROR.generalException();

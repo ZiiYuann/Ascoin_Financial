@@ -34,4 +34,7 @@ public class FinancialChargeQuery {
 
     private ChargeStatus chargeStatus;
 
+    private boolean noReview;
+
+
 }

@@ -40,6 +40,6 @@ public class CoinBase {
 
     private boolean mainToken;
 
-    private boolean show;
+    private boolean display;
 
 }
