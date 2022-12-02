@@ -150,7 +150,7 @@
         <if test="query.startTime != null and query.endTime">
             AND o.create_time BETWEEN #{query.startTime} AND #{query.endTime}
         </if>
-        <if test="query.noReview == true">
+        <if test="query.noReview == true and query.chargeStatus == null">
             AND o.status != 'created'
         </if>
 
