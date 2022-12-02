@@ -118,7 +118,6 @@ public class FinancialWalletController {
     @AdminPrivilege(and = Privilege.理财管理)
     public Result withdrawOrderNoReview(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
         query.setChargeType(ChargeType.withdraw);
-        query.setChargeStatus(null);
         query.setNoReview(true);
         return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(), query));
     }
