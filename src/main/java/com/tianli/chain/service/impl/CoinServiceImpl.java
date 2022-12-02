@@ -88,7 +88,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
 
         Coin coin = coinMapper.selectById(query.getId());
         if (coin.getStatus() >= 1) {
-            ErrorCodeEnum.COIN_NOT_ALLOW_OPERATION.throwException();
+            return;
         }
         coin = managementConverter.toDO(query);
         coin.setUpdateBy(uid);
@@ -113,7 +113,6 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     public void push(Long uid, CoinStatusQuery query) {
         Long id = query.getId();
         var coin = processStatus(id);
-        flushCache();
         asyncService.async(() -> this.asyncPush(coin));
     }
 
@@ -140,6 +139,8 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
             for (int i = 0; i < 300; i++) {
                 if (sqsService.receiveAndDelete(null, 5) == 0) {
                     successStatus(coin.getId());
+                    flushCache();
+                    return;
                 }
             }
         } catch (Exception e) {
