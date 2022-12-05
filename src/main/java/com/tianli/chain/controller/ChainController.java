@@ -63,6 +63,7 @@ public class ChainController {
             coinMapVO.setName(key);
             coinMapVO.setCoins(value);
             coinMapVO.setWithdrawDecimals(value.get(0).getWithdrawDecimals());
+            result.add(coinMapVO);
         });
 
         return Result.success().setData(result);
