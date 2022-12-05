@@ -146,6 +146,7 @@ public enum ErrorCodeEnum {
     FINANCIAL_TO_ERROR(3802,"提现地址不允许是当前云钱包地址"),
     COIN_RATE_ERROR(3803,"币别汇率获取异常"),
     COIN_NOT_ALLOW_OPERATION(3804,"币种不允许操作"),
+    COIN_NOT_CONFIG_NOT_EXIST(3805,"币种上线前请先配置最小提币和手续费"),
 
     ;
     private int errorNo;

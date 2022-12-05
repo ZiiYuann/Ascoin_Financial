@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 /**
  * @author chenb
  * @apiNote
@@ -30,5 +32,9 @@ public class CoinVO {
     private int decimals;
 
     private int withdrawDecimals;
+
+    private BigDecimal withdrawMin;
+
+    private BigDecimal withdrawFixedAmount;
 
 }

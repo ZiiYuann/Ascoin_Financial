@@ -245,22 +245,24 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         if (!validAddress) {
             ErrorCodeEnum.throwException("地址校验失败");
         }
+
+
         // 计算手续费  实际手续费 = 提现数额 * 手续费率 + 固定手续费数额
         // 最小提现金额
-        String withdrawMinAmount = configService.get(coin.getName() + "_withdraw_min_amount");
+        BigDecimal withdrawMinAmount = coin.getWithdrawMin();
         // 手续费率
-        String rate = configService.get(coin.getName() + "_withdraw_rate");
+        String rate = "0";
         // 固定手续费数额
-        String fixedAmount = configService.get(coin.getName() + "_withdraw_fixed_amount");
+        BigDecimal fixedAmount = coin.getWithdrawFixedAmount();
 
         // 提现数额
         BigDecimal withdrawAmount = BigDecimal.valueOf(query.getAmount());
-        if (BigDecimal.valueOf(query.getAmount()).compareTo(new BigDecimal(withdrawMinAmount)) < 0)
+        if (BigDecimal.valueOf(query.getAmount()).compareTo(withdrawMinAmount) < 0)
             ErrorCodeEnum.throwException("提现数额过小");
 
         // 手续费
         BigDecimal serviceAmount = (withdrawAmount.multiply(new BigDecimal(StringUtils.isNotBlank(rate) ? rate : "0")))
-                .add(new BigDecimal(StringUtils.isNotBlank(fixedAmount) ? fixedAmount : "0"));
+                .add(fixedAmount);
         BigDecimal realWithdrawAmount = withdrawAmount.subtract(serviceAmount);
 
         if (serviceAmount.compareTo(BigDecimal.ZERO) < 0) ErrorCodeEnum.FEE_LT_ZERO_ERROR.throwException();

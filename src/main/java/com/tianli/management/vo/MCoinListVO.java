@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -33,5 +34,14 @@ public class MCoinListVO {
     private byte status;
 
     private LocalDateTime updateTime;
+
+    /**
+     * 提现小数点位数
+     */
+    private int withdrawDecimals;
+
+    private BigDecimal withdrawMin;
+
+    private BigDecimal withdrawFixedAmount;
 
 }

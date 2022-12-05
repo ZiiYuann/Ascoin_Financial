@@ -49,7 +49,7 @@ public interface OrderMapper extends BaseMapper<Order> {
 
     List<AmountDto> serviceAmountSumByCompleteTime(@Param("query") ServiceAmountQuery query);
 
-    List<AmountDto> amountSumByUidAndChargeType(@Param("uid") Long uid, @Param("chargeType") ChargeType chargeType);
+    List<AmountDto> amountSumByChargeType(@Param("uid") Long uid, @Param("chargeType") ChargeType chargeType);
 
     @Update("UPDATE  `order` SET  amount = amount + #{amount} WHERE id = #{id}")
     int addAmount(@Param("id") Long id, @Param("amount") BigDecimal amount);

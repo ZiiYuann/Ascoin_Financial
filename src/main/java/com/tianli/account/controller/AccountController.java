@@ -17,14 +17,12 @@ import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
-import com.tianli.mconfig.ConfigService;
 import com.tianli.sso.init.RequestInitService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -46,8 +44,6 @@ public class AccountController {
     private AccountBalanceService accountBalanceService;
     @Resource
     private ChargeService chargeService;
-    @Resource
-    private ConfigService configService;
     @Resource
     private WebHookService webHookService;
     @Resource
@@ -131,10 +127,9 @@ public class AccountController {
     @GetMapping("/service/amount")
     public Result serviceRate(String coin, NetworkType networkType) {
         Coin coinEntity = coinService.getByNameAndNetwork(coin, networkType);
-        String amount = configService.get(coinEntity.getName() + "_withdraw_fixed_amount");
+        BigDecimal withdrawFixedAmount = coinEntity.getWithdrawFixedAmount();
         HashMap<String, String> rateMap = new HashMap<>();
-        DecimalFormat decimalFormat = new DecimalFormat("#.########");
-        rateMap.put("serviceAmount", decimalFormat.format(Double.parseDouble(amount)));
+        rateMap.put("serviceAmount", withdrawFixedAmount.toPlainString());
         return Result.success().setData(rateMap);
     }
 
@@ -144,9 +139,9 @@ public class AccountController {
     @GetMapping("/withdraw/limit")
     public Result withdrawLimit(String coin, NetworkType networkType) {
         Coin coinEntity = coinService.getByNameAndNetwork(coin, networkType);
-        String amount = configService.get(coinEntity.getName() + "_withdraw_min_amount");
+        var withdrawMin = coinEntity.getWithdrawMin();
         HashMap<String, String> rateMap = new HashMap<>();
-        rateMap.put("withdrawLimitAmount", BigDecimal.valueOf(Double.parseDouble(amount)).toString());
+        rateMap.put("withdrawLimitAmount", withdrawMin.toPlainString());
         return Result.success().setData(rateMap);
     }
 
