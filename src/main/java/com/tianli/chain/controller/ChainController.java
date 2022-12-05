@@ -58,7 +58,12 @@ public class ChainController {
                 .collect(Collectors.groupingBy(CoinVO::getName));
 
         List<CoinMapVO> result = new ArrayList<>();
-        coinsMap.forEach((key, value) -> result.add(new CoinMapVO(key, value)));
+        coinsMap.forEach((key, value) -> {
+            CoinMapVO coinMapVO = new CoinMapVO();
+            coinMapVO.setName(key);
+            coinMapVO.setCoins(value);
+            coinMapVO.setWithdrawDecimals(value.get(0).getWithdrawDecimals());
+        });
 
         return Result.success().setData(result);
     }

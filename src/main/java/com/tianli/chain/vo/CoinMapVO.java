@@ -18,5 +18,8 @@ public class CoinMapVO {
 
     private String name;
 
+    private int withdrawDecimals;
+
     private List<CoinVO> coins;
+
 }
