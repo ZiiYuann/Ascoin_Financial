@@ -46,5 +46,10 @@ public class Coin {
 
     private int decimals;
 
+    /**
+     * 提现小数点位数
+     */
+    private int withdrawDecimals;
+
 
 }
