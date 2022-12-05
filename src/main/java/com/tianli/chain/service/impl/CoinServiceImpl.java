@@ -15,7 +15,6 @@ import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
-import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.query.CoinIoUQuery;
 import com.tianli.management.query.CoinStatusQuery;
@@ -66,6 +65,19 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     private final int BATCH_SIZE = 50;
 
     @Override
+    @SuppressWarnings("unchecked")
+    public List<Coin> pushCoinsWithCache() {
+        Object o = redisTemplate.opsForValue().get(RedisConstants.COIN_PUSH_LIST);
+        if (Objects.isNull(o)) {
+            List<Coin> coins = this.list(new LambdaQueryWrapper<Coin>()
+                    .ge(Coin::getStatus, (byte) 0));
+            redisTemplate.opsForValue().set(RedisConstants.COIN_PUSH_LIST, coins);
+            return coins;
+        }
+        return (List<Coin>) o;
+    }
+
+    @Override
     @Transactional
     public void saveOrUpdate(Long uid, CoinIoUQuery query) {
         // 判断是否存在汇率
@@ -98,13 +110,14 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     @Override
     public List<CoinBase> flushCache() {
         // 删除缓存
-        redisTemplate.delete(RedisConstants.COIN_LIST);
+        redisTemplate.delete(RedisConstants.COIN_BASE_LIST);
+        redisTemplate.delete(RedisConstants.COIN_PUSH_LIST);
 
         // 只缓存上架的数据
         List<CoinBase> coins = coinBaseService.list(new LambdaQueryWrapper<CoinBase>()
                 .eq(CoinBase::isDisplay, true));
 
-        redisTemplate.opsForValue().set(RedisConstants.COIN_LIST, coins);
+        redisTemplate.opsForValue().set(RedisConstants.COIN_BASE_LIST, coins);
         return coins;
     }
 
@@ -151,7 +164,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     @Override
     @SuppressWarnings("unchecked")
     public List<CoinBase> effectiveCoinsWithCache() {
-        Object o = redisTemplate.opsForValue().get(RedisConstants.COIN_LIST);
+        Object o = redisTemplate.opsForValue().get(RedisConstants.COIN_BASE_LIST);
         if (Objects.isNull(o)) {
             return flushCache();
         }

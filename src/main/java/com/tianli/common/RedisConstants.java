@@ -29,6 +29,9 @@ public class RedisConstants {
 
     public static String ACCOUNT_TRANSACTION_TYPE = "account:transaction:type";
 
-    public static String COIN_LIST = "coins";
+    public static String COIN_BASE_LIST = "coin:base:list";
+
     public static String COIN_BASE = "coin:base:";
+
+    public static String COIN_PUSH_LIST = "coin:push:list";
 }

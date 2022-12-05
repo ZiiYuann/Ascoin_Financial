@@ -17,6 +17,10 @@ import java.util.Set;
  **/
 public interface CoinService extends IService<Coin> {
 
+    /**
+     * @return 集合列表
+     */
+    List<Coin> pushCoinsWithCache();
 
     /**
      * 保存或者更新

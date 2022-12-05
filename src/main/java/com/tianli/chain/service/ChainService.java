@@ -237,7 +237,7 @@ public class ChainService {
         log.info("返回消息为：" + s);
         JSONObject json = JSONUtil.parseObj(s);
         String code = json.getStr("code");
-        if (!"200".equals(code)) {
+        if (!"0".equals(code)) {
             throw ErrorCodeEnum.UPLOAD_DATACENTER_ERROR.generalException();
         }
     }
