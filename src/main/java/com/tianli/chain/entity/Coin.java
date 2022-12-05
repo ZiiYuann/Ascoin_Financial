@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -50,6 +51,11 @@ public class Coin {
      * 提现小数点位数
      */
     private int withdrawDecimals;
+
+    private BigDecimal withdrawMin;
+
+    private BigDecimal withdrawFixedAmount;
+
 
 
 }

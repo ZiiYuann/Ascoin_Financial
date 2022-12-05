@@ -119,12 +119,14 @@
 
     </select>
 
-    <select id="amountSumByUidAndChargeType" resultType="com.tianli.management.dto.AmountDto">
+    <select id="amountSumByChargeType" resultType="com.tianli.management.dto.AmountDto">
         SELECT ifnull(sum(amount), 0.0) as amount, coin
         FROM `order`
         WHERE type = #{chargeType}
-          and uid = #{uid}
-          and status = 'chain_success'
+        <if test="uid != null">
+            and uid = #{uid}
+        </if>
+        and status = 'chain_success'
         group by coin
     </select>
 

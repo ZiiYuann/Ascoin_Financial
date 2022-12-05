@@ -15,6 +15,7 @@ import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.query.CoinIoUQuery;
 import com.tianli.management.query.CoinStatusQuery;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -226,6 +228,10 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
 
         if (coin.getStatus() > 1) {
             throw new UnsupportedOperationException();
+        }
+        if (coin.getWithdrawFixedAmount().compareTo(BigDecimal.ZERO) == 0
+                || coin.getWithdrawMin().compareTo(BigDecimal.ZERO) == 0) {
+            ErrorCodeEnum.COIN_NOT_CONFIG_NOT_EXIST.throwException();
         }
 
         // 修改状态为 上架中

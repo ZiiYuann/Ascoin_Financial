@@ -61,4 +61,6 @@ public class CoinManageController {
     public Result list(PageQuery<Coin> pageQuery, CoinsQuery query) {
         return Result.success().setData(coinBaseService.list(pageQuery.page(), query));
     }
+
+
 }

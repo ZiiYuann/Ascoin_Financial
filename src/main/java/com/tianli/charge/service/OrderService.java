@@ -21,6 +21,7 @@ import com.tianli.management.dto.AmountDto;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -131,9 +132,12 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
      */
     public Map<Long, BigDecimal> getSummaryOrderAmount(List<Long> uids, ChargeType type) {
         LambdaQueryWrapper<Order> orderQuery = new LambdaQueryWrapper<Order>()
-                .in(Order::getUid, uids)
                 .eq(Order::getType, type)
                 .eq(Order::getStatus, ChargeStatus.chain_success);
+
+        if (CollectionUtils.isNotEmpty(uids)) {
+            orderQuery = orderQuery.in(Order::getUid, uids);
+        }
 
         List<Order> orders = Optional.ofNullable(orderMapper.selectList(orderQuery)).orElse(new ArrayList<>());
 
@@ -165,7 +169,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
     }
 
     public BigDecimal amountDollarSumByChargeType(Long uid, ChargeType chargeType) {
-        List<AmountDto> amountDtos = orderMapper.amountSumByUidAndChargeType(uid, chargeType);
+        List<AmountDto> amountDtos = orderMapper.amountSumByChargeType(uid, chargeType);
         return currencyService.calDollarAmount(amountDtos);
     }
 
@@ -177,6 +181,8 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
     public void addAmount(Long id, BigDecimal amount) {
         orderMapper.addAmount(id, amount);
     }
+
+
 
     @Resource
     private OrderMapper orderMapper;
