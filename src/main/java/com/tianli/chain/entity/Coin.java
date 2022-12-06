@@ -33,10 +33,10 @@ public class Coin {
     // 状态：0未上架  1上架中 2上架完成 3下架
     private byte status;
 
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 
-    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
     private Long createBy;
@@ -55,7 +55,6 @@ public class Coin {
     private BigDecimal withdrawMin;
 
     private BigDecimal withdrawFixedAmount;
-
 
 
 }
