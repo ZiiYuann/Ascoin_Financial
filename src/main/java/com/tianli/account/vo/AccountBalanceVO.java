@@ -90,6 +90,8 @@ public class AccountBalanceVO {
     @BigDecimalFormat("0.00")
     private BigDecimal dollarRemain;
 
+    private int weight;
+
 
     public static AccountBalanceVO getDefault(CoinBase coin) {
         return AccountBalanceVO.builder()
