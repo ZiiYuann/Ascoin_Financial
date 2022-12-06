@@ -260,7 +260,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         redEnvelopeGetDetailsVO.setUReceiveAmount(Objects.isNull(record) ? null
                 : record.getAmount().multiply(currencyService.getDollarRate(redEnvelope.getCoin())));
 
-        CoinBase coinBase = coinBaseService.getByName(record.getCoin());
+        CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
         redEnvelopeGetDetailsVO.setCoinUrl(coinBase.getLogo());
         return redEnvelopeGetDetailsVO;
     }
