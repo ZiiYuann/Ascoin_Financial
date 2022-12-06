@@ -19,6 +19,7 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.query.CoinIoUQuery;
 import com.tianli.management.query.CoinStatusQuery;
+import com.tianli.management.query.CoinWithdrawQuery;
 import com.tianli.sqs.SqsContext;
 import com.tianli.sqs.SqsService;
 import com.tianli.sqs.SqsTypeEnum;
@@ -113,7 +114,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     public List<CoinBase> flushCache() {
         // 删除缓存
         redisTemplate.delete(RedisConstants.COIN_BASE_LIST);
-        redisTemplate.delete(RedisConstants.COIN_PUSH_LIST);
+        deletePushListCache();
 
         // 只缓存上架的数据
         List<CoinBase> coins = coinBaseService.list(new LambdaQueryWrapper<CoinBase>()
@@ -195,6 +196,18 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
                 .eq(Coin::getContract, contract));
     }
 
+    @Override
+    @Transactional
+    public void withdrawConfig(Long uid, CoinWithdrawQuery query) {
+        Coin coin = this.getById(query.getId());
+        coin.setUpdateBy(uid);
+        coin.setWithdrawDecimals(query.getWithdrawDecimals());
+        coin.setWithdrawMin(query.getWithdrawMin());
+        coin.setWithdrawFixedAmount(query.getWithdrawFixedAmount());
+        this.updateById(coin);
+        deletePushListCache();
+    }
+
     private void pushSqs(Coin coin) {
         try {
 
@@ -255,6 +268,10 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         // 修改为可显示
         coinBaseService.show(coin.getName());
         return coin;
+    }
+
+    private void deletePushListCache() {
+        redisTemplate.delete(RedisConstants.COIN_PUSH_LIST);
     }
 
 }

@@ -7,6 +7,7 @@ import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.management.query.CoinIoUQuery;
 import com.tianli.management.query.CoinStatusQuery;
+import com.tianli.management.query.CoinWithdrawQuery;
 import com.tianli.management.query.CoinsQuery;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
@@ -34,7 +35,6 @@ public class CoinManageController {
      * 新增或者更新币别信息
      */
     @PostMapping("/save")
-    @AdminPrivilege(and = Privilege.理财管理)
     public Result saveOrUpdate(@RequestBody @Valid CoinIoUQuery query) {
         Long uid = AdminContent.get().getAid();
         coinService.saveOrUpdate(uid, query);
@@ -46,7 +46,6 @@ public class CoinManageController {
      * 币别上架
      */
     @PostMapping("/push")
-    @AdminPrivilege(and = Privilege.理财管理)
     public Result saveOrUpdate(@RequestBody @Valid CoinStatusQuery query) {
         Long uid = AdminContent.get().getAid();
         coinService.push(uid, query);
@@ -57,9 +56,18 @@ public class CoinManageController {
      * 币别上架
      */
     @GetMapping("/list")
-    @AdminPrivilege(and = Privilege.理财管理)
     public Result list(PageQuery<Coin> pageQuery, CoinsQuery query) {
         return Result.success().setData(coinBaseService.list(pageQuery.page(), query));
+    }
+
+    /**
+     * 币别提币配置
+     */
+    @PostMapping("/withdraw")
+    public Result saveOrUpdate(@RequestBody @Valid CoinWithdrawQuery query) {
+        Long uid = AdminContent.get().getAid();
+        coinService.withdrawConfig(uid, query);
+        return Result.success();
     }
 
 
