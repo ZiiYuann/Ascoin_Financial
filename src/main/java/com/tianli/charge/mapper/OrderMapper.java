@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.query.OrderMQuery;
 import com.tianli.charge.query.ServiceAmountQuery;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderSettleRecordVO;
@@ -50,6 +51,7 @@ public interface OrderMapper extends BaseMapper<Order> {
     List<AmountDto> serviceAmountSumByCompleteTime(@Param("query") ServiceAmountQuery query);
 
     List<AmountDto> amountSumByChargeType(@Param("uid") Long uid, @Param("chargeType") ChargeType chargeType);
+    List<AmountDto> amounts(OrderMQuery query);
 
     @Update("UPDATE  `order` SET  amount = amount + #{amount} WHERE id = #{id}")
     int addAmount(@Param("id") Long id, @Param("amount") BigDecimal amount);

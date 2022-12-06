@@ -21,6 +21,12 @@
         <if test="query.startTime != null and query.endTime != null">
             AND income.update_time BETWEEN #{query.startTime} AND #{query.endTime}
         </if>
+        <if test="query.uids != null and query.uids.size > 0 ">
+            and record.uid in
+            <foreach collection="query.uids" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
 
     </sql>
 

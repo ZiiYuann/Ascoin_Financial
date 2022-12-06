@@ -10,6 +10,7 @@ import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderChargeInfoMapper;
 import com.tianli.charge.mapper.OrderMapper;
+import com.tianli.charge.query.OrderMQuery;
 import com.tianli.charge.query.ServiceAmountQuery;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderSettleRecordVO;
@@ -21,7 +22,6 @@ import com.tianli.management.dto.AmountDto;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -132,12 +132,9 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
      */
     public Map<Long, BigDecimal> getSummaryOrderAmount(List<Long> uids, ChargeType type) {
         LambdaQueryWrapper<Order> orderQuery = new LambdaQueryWrapper<Order>()
+                .in(Order::getUid, uids)
                 .eq(Order::getType, type)
                 .eq(Order::getStatus, ChargeStatus.chain_success);
-
-        if (CollectionUtils.isNotEmpty(uids)) {
-            orderQuery = orderQuery.in(Order::getUid, uids);
-        }
 
         List<Order> orders = Optional.ofNullable(orderMapper.selectList(orderQuery)).orElse(new ArrayList<>());
 
@@ -168,10 +165,18 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
         return currencyService.calDollarAmount(amountDtos);
     }
 
-    public BigDecimal amountDollarSumByChargeType(Long uid, ChargeType chargeType) {
-        List<AmountDto> amountDtos = orderMapper.amountSumByChargeType(uid, chargeType);
+    public BigDecimal uAmount(Long uid, ChargeType chargeType) {
+        OrderMQuery query = OrderMQuery.builder().uid(uid).type(chargeType).build();
+        List<AmountDto> amountDtos = orderMapper.amounts(query);
         return currencyService.calDollarAmount(amountDtos);
     }
+
+    public BigDecimal uAmount(List<Long> uids, ChargeType chargeType) {
+        OrderMQuery query = OrderMQuery.builder().uids(uids).type(chargeType).build();
+        List<AmountDto> amountDtos = orderMapper.amounts(query);
+        return currencyService.calDollarAmount(amountDtos);
+    }
+
 
     public Order getByOrderNo(String orderNo) {
         LambdaQueryWrapper<Order> query = new LambdaQueryWrapper<Order>().eq(Order::getOrderNo, orderNo);
@@ -181,7 +186,6 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
     public void addAmount(Long id, BigDecimal amount) {
         orderMapper.addAmount(id, amount);
     }
-
 
 
     @Resource
