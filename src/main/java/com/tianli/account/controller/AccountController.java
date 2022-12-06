@@ -126,6 +126,9 @@ public class AccountController {
      */
     @GetMapping("/service/amount")
     public Result serviceRate(String coin, NetworkType networkType) {
+        if (StringUtils.isBlank(coin)){
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
+        }
         Coin coinEntity = coinService.getByNameAndNetwork(coin, networkType);
         BigDecimal withdrawFixedAmount = coinEntity.getWithdrawFixedAmount();
         HashMap<String, String> rateMap = new HashMap<>();
@@ -138,6 +141,9 @@ public class AccountController {
      */
     @GetMapping("/withdraw/limit")
     public Result withdrawLimit(String coin, NetworkType networkType) {
+        if (StringUtils.isBlank(coin)){
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
+        }
         Coin coinEntity = coinService.getByNameAndNetwork(coin, networkType);
         var withdrawMin = coinEntity.getWithdrawMin();
         HashMap<String, String> rateMap = new HashMap<>();
