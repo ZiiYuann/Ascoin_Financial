@@ -23,7 +23,7 @@ public enum ChargeRemarks {
 
 
     withdraw_chaining("提币中", "In Withdrawal", ChargeType.withdraw, ChargeStatus.chaining),
-    withdraw_created("提币审核", "In Withdrawal", ChargeType.withdraw, ChargeStatus.created),
+    withdraw_created("提币中", "In Withdrawal", ChargeType.withdraw, ChargeStatus.created),
     withdraw_success("提币成功", "Successful Withdrawal", ChargeType.withdraw, ChargeStatus.chain_success),
     withdraw_fail("提币失败", "Failed Withdrawal", ChargeType.withdraw, ChargeStatus.chain_fail),
     withdraw_review_fail("审核失败", "Failed Withdrawal", ChargeType.withdraw, ChargeStatus.review_fail),
