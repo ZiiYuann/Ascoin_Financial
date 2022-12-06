@@ -253,7 +253,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
                 }
                 return 1;
             }else {
-                return a.getDollarBalance().compareTo(b.getDollarBalance());
+                return b.getDollarBalance().compareTo(a.getDollarBalance());
             }
         });
 
