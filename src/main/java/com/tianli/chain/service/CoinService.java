@@ -6,6 +6,7 @@ import com.tianli.chain.entity.CoinBase;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.management.query.CoinIoUQuery;
 import com.tianli.management.query.CoinStatusQuery;
+import com.tianli.management.query.CoinWithdrawQuery;
 
 import java.util.List;
 import java.util.Set;
@@ -70,5 +71,13 @@ public interface CoinService extends IService<Coin> {
      * @return 币信息
      */
     Coin getByContract(String contract);
+
+    /**
+     * 提现配置
+     *
+     * @param uid   操作人id
+     * @param query 请求参数
+     */
+    void withdrawConfig(Long uid, CoinWithdrawQuery query);
 
 }

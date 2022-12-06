@@ -18,7 +18,6 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.mconfig.mapper.Config;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -34,6 +33,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -169,39 +169,18 @@ public class ChainService {
         List<TxConditionReq> txConditionReqs = new ArrayList<>();
         String urlPrefix = configService.get(ConfigConstants.SYSTEM_URL_PATH_PREFIX);
         String url = urlPrefix + urlPath.getPath();
-        if (StringUtils.isNotBlank(bsc)) {
-            TxConditionReq bscTxConditionReqUsdt = TxConditionReq.builder().contractAddress(TokenAdapter.usdt_bep20.getContractAddress())
-                    .to(bsc)
-                    .chain(ChainType.BSC).build();
-            TxConditionReq bscTxConditionReqUsdc = TxConditionReq.builder().contractAddress(TokenAdapter.usdc_bep20.getContractAddress()).to(bsc)
-                    .chain(ChainType.BSC).build();
-            TxConditionReq bscTxConditionReqBnb = TxConditionReq.builder().contractAddress(TokenAdapter.bnb.getContractAddress()).to(bsc)
-                    .chain(ChainType.BSC).build();
-            txConditionReqs.add(bscTxConditionReqUsdt);
-            txConditionReqs.add(bscTxConditionReqUsdc);
-            txConditionReqs.add(bscTxConditionReqBnb);
-        }
+        HashMap<ChainType,String> addressMap = new HashMap<>();
+        addressMap.put(ChainType.TRON,tron);
+        addressMap.put(ChainType.BSC,bsc);
+        addressMap.put(ChainType.ETH,eth);
 
-        if (StringUtils.isNotBlank(eth)) {
-            TxConditionReq ethTxConditionReqUsdt = TxConditionReq.builder().contractAddress(TokenAdapter.usdt_erc20.getContractAddress()).to(eth)
-                    .chain(ChainType.ETH).build();
-            TxConditionReq ethTxConditionReqUsdc = TxConditionReq.builder().contractAddress(TokenAdapter.usdc_erc20.getContractAddress()).to(eth)
-                    .chain(ChainType.ETH).build();
-            TxConditionReq ethTxConditionReq = TxConditionReq.builder().contractAddress(TokenAdapter.eth.getContractAddress()).to(eth)
-                    .chain(ChainType.ETH).build();
-            txConditionReqs.add(ethTxConditionReqUsdt);
-            txConditionReqs.add(ethTxConditionReqUsdc);
-            txConditionReqs.add(ethTxConditionReq);
-        }
-
-        if (StringUtils.isNotBlank(tron)) {
-            TxConditionReq tronTxConditionReqUsdt = TxConditionReq.builder().contractAddress(TokenAdapter.usdt_trc20.getContractAddress()).to(tron)
-                    .chain(ChainType.TRON).build();
-            TxConditionReq tronTxConditionReqUsdc = TxConditionReq.builder().contractAddress(TokenAdapter.usdc_trc20.getContractAddress()).to(tron)
-                    .chain(ChainType.TRON).build();
-            txConditionReqs.add(tronTxConditionReqUsdt);
-            txConditionReqs.add(tronTxConditionReqUsdc);
-        }
+        List<Coin> coins = coinService.pushCoinsWithCache();
+        coins.forEach(coin -> {
+            TxConditionReq req =  TxConditionReq.builder().contractAddress(coin.isMainToken() ? "0x000000" : coin.getContract())
+                    .to(addressMap.get(coin.getChain()))
+                    .chain(coin.getChain()).build();
+            txConditionReqs.add(req);
+        });
 
         httpPush(txConditionReqs, url);
     }
