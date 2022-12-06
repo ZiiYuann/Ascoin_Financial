@@ -22,6 +22,7 @@ import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.DollarIncomeVO;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.management.dto.AmountDto;
+import io.reactivex.rxjava3.core.Completable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -245,8 +246,16 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         }
 
         // 重新排序
-        accountBalanceVOS.sort(Comparator.comparing(AccountBalanceVO::getDollarBalance).reversed()
-                .thenComparing(AccountBalanceVO::getWeight).reversed());
+        accountBalanceVOS.sort((a, b) -> {
+            if (a.getDollarBalance().compareTo(b.getDollarBalance()) == 0){
+                if ( a.getWeight() > b.getWeight()){
+                    return -1;
+                }
+                return 1;
+            }else {
+                return a.getDollarBalance().compareTo(b.getDollarBalance());
+            }
+        });
 
         var result = new AccountBalanceMainPageVO();
         result.setTotalAccountBalance(totalDollarBalance);
