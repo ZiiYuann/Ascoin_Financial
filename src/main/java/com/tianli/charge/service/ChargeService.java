@@ -623,7 +623,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             wrapper = wrapper.eq(Order::getType, query.getChargeType());
         }
 
-        if (Objects.nonNull(query.getCoin())) {
+        if (StringUtils.isNotBlank(query.getCoin())) {
             wrapper = wrapper.eq(Order::getCoin, query.getCoin());
         }
 
