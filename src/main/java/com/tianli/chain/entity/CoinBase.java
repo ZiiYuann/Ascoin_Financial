@@ -28,10 +28,10 @@ public class CoinBase {
     private int weight;
 
     @TableField(value = "create_time", fill = FieldFill.INSERT)
-    private LocalDateTime updateTime;
+    private LocalDateTime createTime;
 
     @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime createTime;
+    private LocalDateTime updateTime;
 
     private Long createBy;
 

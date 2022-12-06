@@ -158,7 +158,12 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
                     flushCache();
                     return;
                 }
+                if (i == 299) {
+                    webHookService.dingTalkSend("300s时限内币别未完成注册操作，请手动修改状态");
+                }
+                Thread.sleep(1000);
             }
+
         } catch (Exception e) {
             webHookService.dingTalkSend("异步push注册信息结束异常", e);
         }
@@ -248,7 +253,6 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         }
 
         // 修改状态为 上架中
-        // todo 激活需要修改逻辑
         coin.setStatus((byte) 1);
         coinMapper.updateById(coin);
         return coin;

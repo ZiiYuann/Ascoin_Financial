@@ -50,7 +50,6 @@ public class SqsService {
                     .maxNumberOfMessages(maxNumberOfMessages);
         });
 
-
         List<Message> messages = receiveMessageResponse.messages();
         if (CollectionUtils.isNotEmpty(messages)) {
             messages.forEach(message -> {
