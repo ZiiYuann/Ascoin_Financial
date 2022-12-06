@@ -156,6 +156,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
                 if (sqsService.receiveAndDelete(null, 5) == 0) {
                     successStatus(coin.getId());
                     flushCache();
+                    webHookService.dingTalkSend("新币种注册消费结束");
                     return;
                 }
                 if (i == 299) {
