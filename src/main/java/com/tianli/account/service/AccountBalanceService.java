@@ -240,8 +240,13 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
             CoinBase coinBase = validCurrencyToken(coin);
             AccountBalanceVO accountBalanceVO = AccountBalanceVO.getDefault(coinBase);
             accountBalanceVO.setDollarRate(currencyService.getDollarRate(String.valueOf(coin)));
+            accountBalanceVO.setWeight(coinBase.getWeight());
             accountBalanceVOS.add(accountBalanceVO);
         }
+
+        // 重新排序
+        accountBalanceVOS.sort(Comparator.comparing(AccountBalanceVO::getDollarBalance)
+                .thenComparing(AccountBalanceVO::getWeight));
 
         var result = new AccountBalanceMainPageVO();
         result.setTotalAccountBalance(totalDollarBalance);
@@ -253,6 +258,7 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         // 总资产 = 可用 + 持有 + 冻结
         result.setTotalAssets(totalDollarRemain.add(income.getHoldFee()).add(totalDollarFreeze));
         result.setAccountBalances(accountBalanceVOS);
+
 
         return result;
     }
