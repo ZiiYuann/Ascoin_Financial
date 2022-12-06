@@ -245,8 +245,8 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
         }
 
         // 重新排序
-        accountBalanceVOS.sort(Comparator.comparing(AccountBalanceVO::getDollarBalance)
-                .thenComparing(AccountBalanceVO::getWeight));
+        accountBalanceVOS.sort(Comparator.comparing(AccountBalanceVO::getDollarBalance).reversed()
+                .thenComparing(AccountBalanceVO::getWeight).reversed());
 
         var result = new AccountBalanceMainPageVO();
         result.setTotalAccountBalance(totalDollarBalance);
