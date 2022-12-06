@@ -450,8 +450,8 @@ public class FinancialServiceImpl implements FinancialService {
     @Override
     public UserAmountDetailsVO userAmountDetailsVO(Long uid) {
         BigDecimal dollarBalance = accountBalanceService.getDollarBalance(uid);
-        BigDecimal dollarRecharge = orderService.amountDollarSumByChargeType(uid, ChargeType.recharge);
-        BigDecimal dollarWithdraw = orderService.amountDollarSumByChargeType(uid, ChargeType.withdraw);
+        BigDecimal dollarRecharge = orderService.uAmount(uid, ChargeType.recharge);
+        BigDecimal dollarWithdraw = orderService.uAmount(uid, ChargeType.withdraw);
         FundRecordQuery fundRecordQuery = new FundRecordQuery();
         fundRecordQuery.setQueryUid(uid + "");
         BigDecimal dollarFund = fundRecordService.holdAmountDollar(fundRecordQuery);

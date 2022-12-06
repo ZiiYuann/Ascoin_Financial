@@ -119,15 +119,26 @@
 
     </select>
 
-    <select id="amountSumByChargeType" resultType="com.tianli.management.dto.AmountDto">
+    <select id="amounts" resultType="com.tianli.management.dto.AmountDto">
         SELECT ifnull(sum(amount), 0.0) as amount, coin
         FROM `order`
-        WHERE type = #{chargeType}
-        <if test="uid != null">
-            and uid = #{uid}
-        </if>
-        and status = 'chain_success'
-        group by coin
+        <where>
+            1 = 1
+            <if test="uid != null">
+                and uid = #{uid}
+            </if>
+            <if test="type != null">
+                and type = #{type}
+            </if>
+            <if test="uids != null and uids.size > 0 ">
+                and uid in
+                <foreach collection="uids" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            and status = 'chain_success'
+            group by coin
+        </where>
     </select>
 
     <sql id="FinancialChargeQuery">

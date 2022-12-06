@@ -236,11 +236,11 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
     }
 
     private BigDecimal getRechargeAmount(Long uid) {
-        return orderService.amountDollarSumByChargeType(uid, ChargeType.recharge);
+        return orderService.uAmount(uid, ChargeType.recharge);
     }
 
     private BigDecimal getWithdrawAmount(Long uid) {
-        return orderService.amountDollarSumByChargeType(uid, ChargeType.withdraw);
+        return orderService.uAmount(uid, ChargeType.withdraw);
     }
 
     private BigDecimal getHoldAmount(Long agentId) {
