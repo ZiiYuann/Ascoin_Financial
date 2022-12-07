@@ -76,6 +76,16 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
         financialIncomeAccrueMapper.updateById(financialIncomeAccrue);
     }
 
+    /**
+     * 根据record获取收益
+     *
+     * @param recordId
+     */
+    public FinancialIncomeAccrue getByRecordId(Long uid, Long recordId) {
+        return this.getOne(new LambdaQueryWrapper<FinancialIncomeAccrue>()
+                .eq(FinancialIncomeAccrue::getUid, uid)
+                .eq(FinancialIncomeAccrue::getRecordId, recordId));
+    }
 
     /**
      * 根据产品类型、状态获取利息总额
