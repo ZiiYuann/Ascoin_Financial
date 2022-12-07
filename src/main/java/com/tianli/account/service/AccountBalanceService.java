@@ -23,6 +23,8 @@ import com.tianli.financial.vo.DollarIncomeVO;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.management.dto.AmountDto;
 import io.reactivex.rxjava3.core.Completable;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -247,12 +249,12 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
 
         // 重新排序
         accountBalanceVOS.sort((a, b) -> {
-            if (a.getDollarBalance().compareTo(b.getDollarBalance()) == 0){
-                if ( a.getWeight() > b.getWeight()){
+            if (a.getDollarBalance().compareTo(b.getDollarBalance()) == 0) {
+                if (a.getWeight() > b.getWeight()) {
                     return -1;
                 }
                 return 1;
-            }else {
+            } else {
                 return b.getDollarBalance().compareTo(a.getDollarBalance());
             }
         });
@@ -344,8 +346,11 @@ public class AccountBalanceService extends ServiceImpl<AccountBalanceMapper, Acc
     /**
      * 获取用户云钱包余额数据
      */
+    @SuppressWarnings("unchecked")
     public Map<Long, BigDecimal> getSummaryBalanceAmount(List<Long> uids) {
-
+        if (CollectionUtils.isEmpty(uids)) {
+            return MapUtils.EMPTY_SORTED_MAP;
+        }
         LambdaQueryWrapper<AccountBalance> balanceQuery = new LambdaQueryWrapper<AccountBalance>().in(AccountBalance::getUid, uids);
         List<AccountBalance> accountBalances = accountBalanceMapper.selectList(balanceQuery);
 

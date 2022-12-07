@@ -22,6 +22,7 @@ import com.tianli.management.dto.AmountDto;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -172,11 +173,18 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
     }
 
     public BigDecimal uAmount(List<Long> uids, ChargeType chargeType) {
+        if (CollectionUtils.isEmpty(uids)) {
+            return BigDecimal.ZERO;
+        }
         OrderMQuery query = OrderMQuery.builder().uids(uids).type(chargeType).build();
         List<AmountDto> amountDtos = orderMapper.amounts(query);
         return currencyService.calDollarAmount(amountDtos);
     }
 
+    public BigDecimal uAmount(OrderMQuery query) {
+        List<AmountDto> amountDtos = orderMapper.amounts(query);
+        return currencyService.calDollarAmount(amountDtos);
+    }
 
     public Order getByOrderNo(String orderNo) {
         LambdaQueryWrapper<Order> query = new LambdaQueryWrapper<Order>().eq(Order::getOrderNo, orderNo);

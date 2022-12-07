@@ -8,6 +8,7 @@ import com.tianli.account.vo.AccountBalanceVO;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.query.OrderMQuery;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
@@ -16,6 +17,7 @@ import com.tianli.financial.service.FinancialIncomeAccrueService;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.openapi.IdVO;
 import com.tianli.openapi.entity.OrderRewardRecord;
+import com.tianli.openapi.query.OpenapiAccountQuery;
 import com.tianli.openapi.query.OpenapiOperationQuery;
 import com.tianli.openapi.vo.StatisticsData;
 import com.tianli.rpc.RpcService;
@@ -170,28 +172,56 @@ public class OpenApiService {
     /**
      * 获取统计数据
      *
-     * @param chatId 聊天id
+     * @param query 请求参数
      * @return 统计数据
      */
-    public StatisticsData accountData(Long chatId) {
+    public StatisticsData accountData(OpenapiAccountQuery query) {
 
-        InviteDTO user = rpcService.inviteRpc(chatId);
+        InviteDTO user = rpcService.inviteRpc(query.getChatId());
         var subUids = user.getList().stream().map(InviteDTO::getUid).collect(Collectors.toList());
         Long uid = user.getUid();
 
-        return getStatisticsData(uid, subUids);
+        LocalDateTime startTime = query.getStartTime();
+        LocalDateTime endTime = query.getEndTime();
+        LocalDateTime now = LocalDateTime.now();
+        if ("day".equals(query.getTime())) {
+            startTime = TimeTool.minDay(now);
+            endTime = now;
+        }
+
+        if ("week".equals(query.getTime())) {
+            Map<String, LocalDateTime> timeMap = TimeTool.thisWeekMondayToSunday();
+            startTime = timeMap.get("start");
+            endTime = timeMap.get("end");
+        }
+
+        if ("month".equals(query.getTime())) {
+            startTime = TimeTool.minMonthTime(now);
+            endTime = now;
+        }
+
+        return getStatisticsData(uid, subUids, startTime, endTime);
     }
 
-    private StatisticsData getStatisticsData(Long uid, List<Long> subUids) {
+    private StatisticsData getStatisticsData(Long uid, List<Long> subUids, LocalDateTime startTime, LocalDateTime endTime) {
         var totalSummaryData = accountBalanceService.accountBalanceVOS(uid);
         // 总余额
         BigDecimal balance = totalSummaryData.stream()
                 .map(AccountBalanceVO::getDollarBalance).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal rechargeAmount = orderService.uAmount(uid, ChargeType.recharge);
-        BigDecimal withdrawAmount = orderService.uAmount(uid, ChargeType.withdraw);
-        BigDecimal purchaseAmount = orderService.uAmount(uid, ChargeType.purchase);
-        BigDecimal redeemAmount = orderService.uAmount(uid, ChargeType.redeem);
+        OrderMQuery query = new OrderMQuery();
+        query.setUid(uid);
+        query.setStartTime(startTime);
+        query.setEndTime(endTime);
+
+        query.setType(ChargeType.recharge);
+        BigDecimal rechargeAmount = orderService.uAmount(query);
+        query.setType(ChargeType.withdraw);
+        BigDecimal withdrawAmount = orderService.uAmount(query);
+        query.setType(ChargeType.purchase);
+        BigDecimal purchaseAmount = orderService.uAmount(query);
+        query.setType(ChargeType.redeem);
+        BigDecimal redeemAmount = orderService.uAmount(query);
 
         BigDecimal incomeAmount =
                 financialIncomeAccrueService.summaryIncomeByQuery(FinancialProductIncomeQuery.builder().uid(uid + "").build());
@@ -235,7 +265,7 @@ public class OpenApiService {
         }
         var subUids = pageSub.stream().map(InviteDTO::getUid).collect(Collectors.toList());
         List<StatisticsData> records = pageSub.stream().map(inviteDTO -> {
-            StatisticsData statisticsData = getStatisticsData(inviteDTO.getUid(), null);
+            StatisticsData statisticsData = getStatisticsData(inviteDTO.getUid(), null, null, null);
             statisticsData.setUid(inviteDTO.getUid());
             statisticsData.setChatId(inviteDTO.getChatId());
             return statisticsData;
@@ -243,11 +273,12 @@ public class OpenApiService {
 
         // 最终记录行
         List<StatisticsData> resultRecords = new ArrayList<>();
+
         BigDecimal rechargeAmount = orderService.uAmount(subUids, ChargeType.recharge);
         BigDecimal withdrawAmount = orderService.uAmount(subUids, ChargeType.withdraw);
         BigDecimal purchaseAmount = orderService.uAmount(subUids, ChargeType.purchase);
         BigDecimal redeemAmount = orderService.uAmount(subUids, ChargeType.redeem);
-        BigDecimal incomeAmount =
+        BigDecimal incomeAmount = CollectionUtils.isEmpty(subUids) ? BigDecimal.ZERO :
                 financialIncomeAccrueService.summaryIncomeByQuery(FinancialProductIncomeQuery.builder().uids(subUids).build());
         Map<Long, BigDecimal> balanceMap = accountBalanceService.getSummaryBalanceAmount(subUids);
         BigDecimal balance = balanceMap.values().stream()

@@ -1,13 +1,11 @@
 package com.tianli.openapi.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.common.PageQuery;
-import com.tianli.account.service.AccountBalanceService;
-import com.tianli.charge.service.ChargeService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.openapi.query.OpenapiAccountQuery;
 import com.tianli.openapi.query.OpenapiOperationQuery;
 import com.tianli.openapi.service.OpenApiService;
 import com.tianli.openapi.vo.StatisticsData;
@@ -111,9 +109,9 @@ public class OpenApiController {
     /**
      * 账户信息
      */
-    @GetMapping("/account/{chatId}")
-    public Result statisticsData(@PathVariable Long chatId) {
-        return Result.success(openApiService.accountData(chatId));
+    @GetMapping("/account")
+    public Result statisticsData(OpenapiAccountQuery query) {
+        return Result.success(openApiService.accountData(query));
     }
 
     /**

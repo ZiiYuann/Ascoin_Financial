@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -24,4 +25,9 @@ public class OrderMQuery {
     private ChargeType type;
 
     private List<Long> uids;
+
+    private LocalDateTime startTime;
+
+    private LocalDateTime endTime;
+
 }
