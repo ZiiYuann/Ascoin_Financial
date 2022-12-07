@@ -213,7 +213,7 @@ public class OpenApiService {
             BigDecimal subRedeemAmount = orderService.uAmount(subUids, ChargeType.redeem);
             data.setSubBalance(subBalance);
             data.setSubPurchaseAmount(subPurchaseAmount);
-            data.setSubPurchaseAmount(subRedeemAmount);
+            data.setSubRedeemAmount(subRedeemAmount);
         }
 
         return data;
