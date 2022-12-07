@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 
 /**
  * 持有产品信息
+ *
  * @author chenb
  * @apiNote
  * @since 2022-07-13
@@ -31,7 +32,7 @@ public class HoldProductVo {
     private String name;
 
     /**
-     *  nameEn
+     * nameEn
      */
     private String nameEn;
 
@@ -45,4 +46,7 @@ public class HoldProductVo {
     private String logo;
 
     private String coin;
+
+    private BigDecimal accrueIncomeAmount;
+
 }

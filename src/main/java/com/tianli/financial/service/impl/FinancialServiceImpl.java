@@ -175,7 +175,10 @@ public class FinancialServiceImpl implements FinancialService {
         holdProductVoPage.convert(holdProductVo -> {
 
             IncomeVO incomeVO = new IncomeVO();
-            incomeVO.setHoldFee(currencyService.getDollarRate(holdProductVo.getCoin()).multiply(holdProductVo.getHoldAmount()));
+            BigDecimal dollarRate = currencyService.getDollarRate(holdProductVo.getCoin());
+            incomeVO.setHoldFee(dollarRate.multiply(holdProductVo.getHoldAmount()));
+            incomeVO.setAccrueIncomeFee(dollarRate.multiply(Objects.isNull(holdProductVo.getAccrueIncomeAmount())
+                    ? BigDecimal.ZERO : holdProductVo.getAccrueIncomeAmount()));
             if (ProductType.fund.equals(holdProductVo.getProductType())) {
                 FundIncomeQuery query = new FundIncomeQuery();
                 query.setUid(uid);
@@ -183,7 +186,6 @@ public class FinancialServiceImpl implements FinancialService {
                 query.setFundId(holdProductVo.getRecordId());
                 BigDecimal waitInterestAmount = fundIncomeRecordService.getAmount(query).stream().map(FundIncomeAmountDTO::getWaitInterestAmount)
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
-
                 incomeVO.setWaitAuditIncomeAmount(waitInterestAmount);
             }
             if (!ProductType.fund.equals(holdProductVo.getProductType())) {

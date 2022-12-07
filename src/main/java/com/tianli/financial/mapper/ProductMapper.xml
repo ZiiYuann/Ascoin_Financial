@@ -14,7 +14,8 @@
             SELECT id as record_id,
             product_id,
             hold_amount,
-            create_time AS time
+            create_time AS time,
+            cumulative_income_amount AS accrue_income_amount
             FROM fund_record
             WHERE `status` = 'PROCESS'
             AND uid = #{uid}
@@ -25,15 +26,17 @@
         </if>
 
         <if test="type != 'fund' ">
-            SELECT id as record_id,
-            product_id,
-            hold_amount,
-            purchase_time AS time
-            FROM financial_record
-            WHERE `status` = 'PROCESS'
-            AND uid = #{uid}
+            SELECT r.id as record_id,
+            r.product_id,
+            r.hold_amount,
+            r.purchase_time AS time,
+            i.income_amount AS accrue_income_amount
+            FROM financial_record r
+            LEFT JOIN financial_income_accrue i on r.uid = i.uid and r.id = i.record_id
+            WHERE r.`status` = 'PROCESS'
+            AND r.uid = #{uid}
             <if test="type == 'fixed' or type == 'current' ">
-                AND product_type = #{type}
+                AND r.product_type = #{type}
             </if>
         </if>
         ) temp
