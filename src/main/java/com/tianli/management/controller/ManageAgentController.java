@@ -10,7 +10,6 @@ import com.tianli.management.query.WalletAgentQuery;
 import com.tianli.management.service.IWalletAgentService;
 import com.tianli.management.vo.WalletAgentVO;
 import com.tianli.sso.permission.AdminPrivilege;
-import com.tianli.sso.permission.Privilege;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -26,7 +25,7 @@ import javax.validation.Valid;
  */
 @RestController
 @RequestMapping("/management/agent")
-public class WalletAgentController {
+public class ManageAgentController {
 
     @Resource
     private IWalletAgentService walletAgentService;

@@ -38,7 +38,7 @@ import java.util.Objects;
  */
 @RestController
 @RequestMapping("/management/financial/wallet/")
-public class FinancialWalletController {
+public class ManageWalletController {
 
     @Resource
     private ChargeService chargeService;

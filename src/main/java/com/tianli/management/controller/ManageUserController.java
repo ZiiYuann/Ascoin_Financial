@@ -19,7 +19,7 @@ import javax.annotation.Resource;
  **/
 @RestController
 @RequestMapping("/management/financial/user")
-public class FinancialUserController {
+public class ManageUserController {
 
     /**
      * 理财用户管理 列表数据
@@ -60,7 +60,7 @@ public class FinancialUserController {
     /**
      * 用户资产
      */
-    @GetMapping("assets/uids")
+    @PostMapping("assets/uids")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result assetsUids(@RequestBody UidsQuery query) {
         return Result.success().setData(accountBalanceService.getUserAssetsVO(query.getUids()));
@@ -69,7 +69,7 @@ public class FinancialUserController {
     /**
      * 用户资产
      */
-    @GetMapping("assets/map")
+    @PostMapping("assets/map")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result assetsMap(@RequestBody UidsQuery query) {
         return Result.success().setData(accountBalanceService.getUserAssetsVOMap(query.getUids()));
