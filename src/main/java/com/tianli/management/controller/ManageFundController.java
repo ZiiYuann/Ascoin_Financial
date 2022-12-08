@@ -31,7 +31,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/management/fund")
-public class FundManageController {
+public class ManageFundController {
 
     @Resource
     private IFundTransactionRecordService fundTransactionRecordService;

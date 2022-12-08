@@ -20,7 +20,7 @@ import javax.validation.Valid;
  **/
 @RestController
 @RequestMapping("/management/hot/wallet/")
-public class HotWalletController {
+public class ManageHotWalletController {
 
     @Resource
     private HotWalletDetailedService hotWalletDetailedService;

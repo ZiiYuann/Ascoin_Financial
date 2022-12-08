@@ -22,7 +22,7 @@ import javax.validation.Valid;
  **/
 @RestController
 @RequestMapping("/management/coin")
-public class CoinManageController {
+public class ManageCoinController {
 
     @Resource
     private CoinService coinService;
