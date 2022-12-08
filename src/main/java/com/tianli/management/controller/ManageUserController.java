@@ -48,33 +48,6 @@ public class ManageUserController {
         return Result.success().setData(financialService.userAmountDetailsVO(uid));
     }
 
-    /**
-     * 用户资产
-     */
-    @GetMapping("assets/{uid}")
-    @AdminPrivilege(and = Privilege.理财管理, api = "/management/financial/user/assets/uid")
-    public Result assets(@PathVariable Long uid) {
-        return Result.success().setData(accountBalanceService.getUserAssetsVO(uid));
-    }
-
-    /**
-     * 用户资产
-     */
-    @PostMapping("assets/uids")
-    @AdminPrivilege(and = Privilege.理财管理)
-    public Result assetsUids(@RequestBody UidsQuery query) {
-        return Result.success().setData(accountBalanceService.getUserAssetsVO(query.getUids()));
-    }
-
-    /**
-     * 用户资产
-     */
-    @PostMapping("assets/map")
-    @AdminPrivilege(and = Privilege.理财管理)
-    public Result assetsMap(@RequestBody UidsQuery query) {
-        return Result.success().setData(accountBalanceService.getUserAssetsVOMap(query.getUids()));
-    }
-
     @Resource
     private FinancialService financialService;
     @Resource
