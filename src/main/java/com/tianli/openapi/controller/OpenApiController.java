@@ -1,14 +1,18 @@
 package com.tianli.openapi.controller;
 
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.management.query.UidsQuery;
 import com.tianli.openapi.query.OpenapiAccountQuery;
 import com.tianli.openapi.query.OpenapiOperationQuery;
 import com.tianli.openapi.service.OpenApiService;
 import com.tianli.openapi.vo.StatisticsData;
+import com.tianli.sso.permission.AdminPrivilege;
+import com.tianli.sso.permission.Privilege;
 import com.tianli.tool.crypto.Crypto;
 import org.bouncycastle.crypto.util.DigestFactory;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +35,8 @@ public class OpenApiController {
     private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private ChargeService chargeService;
+    @Resource
+    private AccountBalanceService accountBalanceService;
 
     /**
      * 奖励接口
@@ -122,5 +128,29 @@ public class OpenApiController {
         return Result.success(openApiService.accountSubData(chatId, pageQuery));
     }
 
+
+    /**
+     * 用户资产
+     */
+    @GetMapping("/assets/{uid}")
+    public Result assets(@PathVariable Long uid) {
+        return Result.success().setData(accountBalanceService.getUserAssetsVO(uid));
+    }
+
+    /**
+     * 用户资产
+     */
+    @PostMapping("/assets/uids")
+    public Result assetsUids(@RequestBody UidsQuery query) {
+        return Result.success().setData(accountBalanceService.getUserAssetsVO(query.getUids()));
+    }
+
+    /**
+     * 用户资产
+     */
+    @PostMapping("/assets/map")
+    public Result assetsMap(@RequestBody UidsQuery query) {
+        return Result.success().setData(accountBalanceService.getUserAssetsVOMap(query.getUids()));
+    }
 
 }
