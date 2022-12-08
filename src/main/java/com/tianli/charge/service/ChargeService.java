@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.query.AccountDetailsQuery;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.TransactionGroupTypeVO;
 import com.tianli.account.vo.TransactionTypeVO;
 import com.tianli.address.AddressService;
@@ -175,7 +175,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             String orderNo = insertRechargeOrder(uid, req, coin, finalAmount, req.getValue());
 
             // 操作余额信息
-            accountBalanceService.increase(uid, ChargeType.recharge, coin.getName()
+            accountBalanceServiceImpl.increase(uid, ChargeType.recharge, coin.getName()
                     , coin.getNetwork(), finalAmount, orderNo, CurrencyLogDes.充值.name());
             // 操作归集信息
             walletImputationService.insert(uid, address, coin, req, finalAmount);
@@ -305,7 +305,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         orderService.save(order);
 
         //冻结提现数额
-        accountBalanceService.freeze(uid, ChargeType.withdraw, coin.getName(), coin.getNetwork()
+        accountBalanceServiceImpl.freeze(uid, ChargeType.withdraw, coin.getName(), coin.getNetwork()
                 , withdrawAmount, order.getOrderNo(), CurrencyLogDes.提现.name());
 
         StringBuilder msg = new StringBuilder()
@@ -399,7 +399,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         orderService.save(order);
 
         // 增加
-        accountBalanceService.increase(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount(), order.getOrderNo(), CurrencyLogDes.赎回.name());
+        accountBalanceServiceImpl.increase(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount(), order.getOrderNo(), CurrencyLogDes.赎回.name());
 
         // 减少产品持有
         financialRecordService.redeem(record.getId(), query.getRedeemAmount(), record.getHoldAmount());
@@ -685,7 +685,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     @Resource
     private RequestInitService requestInitService;
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private AddressService addressService;
     @Resource

@@ -58,25 +58,21 @@ public interface IFundRecordService extends IService<FundRecord> {
 
     BigDecimal dailyIncome(BigDecimal holdAmount, BigDecimal rate);
 
-    BigDecimal holdAmountDollar(FundRecordQuery query);
+    /**
+     * 获取持用金额( u )
+     */
+    BigDecimal dollarHold(FundRecordQuery query);
 
     /**
-     * 获取持用金额
-     * @param uid 用户id
-     * @param coin 币别
-     * @param agentId 用户代理人id
-     * @return 持用金额u
+     * 获取持用金额( u )
      */
-    BigDecimal holdAmountDollar(Long uid, String coin, Long agentId);
+    BigDecimal dollarHold(Long uid, String coin, Long agentId);
 
     /**
-     * 获取持用金额
-     * @param uid 用户id
-     * @param coin 币别
-     * @param agentId 用户代理人id
-     * @return 持用金额u
+     * 获取持用单币种金额
      */
-    BigDecimal holdAmount(Long uid, String coin, Long agentId);
+    BigDecimal holdSingleCoin(Long uid, String coin, Long agentId);
+
 
     Integer getHoldUserCount(FundRecordQuery query);
 

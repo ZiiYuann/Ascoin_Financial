@@ -4,7 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.query.AccountDetailsQuery;
 import com.tianli.account.query.IdsQuery;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.vo.AddressVO;
@@ -41,7 +41,7 @@ public class AccountController {
     @Resource
     private RequestInitService requestInitService;
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private ChargeService chargeService;
     @Resource
@@ -157,7 +157,7 @@ public class AccountController {
     @GetMapping("/balance/summary")
     public Result accountBalance() {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(accountBalanceService.getAccountBalanceMainPageVO(uid));
+        return Result.instance().setData(accountBalanceServiceImpl.accountSummary(uid));
     }
 
     /**
@@ -166,7 +166,7 @@ public class AccountController {
     @GetMapping("/balances")
     public Result balances() {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(accountBalanceService.getAccountBalanceList(uid));
+        return Result.instance().setData(accountBalanceServiceImpl.accountList(uid));
     }
 
     /**
@@ -175,7 +175,7 @@ public class AccountController {
     @GetMapping("/balance/{coin}")
     public Result accountBalance(@PathVariable String coin) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(accountBalanceService.getVO(uid, coin));
+        return Result.instance().setData(accountBalanceServiceImpl.accountSingleCoin(uid, coin));
     }
 
     /**

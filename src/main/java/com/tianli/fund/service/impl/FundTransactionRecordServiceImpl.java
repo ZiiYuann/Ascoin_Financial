@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.agent.management.auth.AgentContent;
 import com.tianli.agent.management.bo.FundAuditBO;
 import com.tianli.agent.management.vo.FundReviewVO;
@@ -75,7 +75,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     @Resource
     private OrderService orderService;
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private IFundRecordService fundRecordService;
     @Resource
@@ -227,7 +227,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
                 .build();
         orderService.save(agentOrder);
         // 减少余额
-        accountBalanceService.decrease(agentVO.getUid(), ChargeType.agent_fund_redeem, fundTransactionRecord.getCoin(), fundTransactionRecord.getTransactionAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金赎回.name());
+        accountBalanceServiceImpl.decrease(agentVO.getUid(), ChargeType.agent_fund_redeem, fundTransactionRecord.getCoin(), fundTransactionRecord.getTransactionAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金赎回.name());
 
         //生成一笔订单
         Order order = Order.builder()
@@ -243,7 +243,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
                 .build();
         orderService.save(order);
         // 增加余额
-        accountBalanceService.increase(uid, ChargeType.fund_redeem, fundTransactionRecord.getCoin(), fundTransactionRecord.getTransactionAmount(), order.getOrderNo(), CurrencyLogDes.代理基金赎回.name());
+        accountBalanceServiceImpl.increase(uid, ChargeType.fund_redeem, fundTransactionRecord.getCoin(), fundTransactionRecord.getTransactionAmount(), order.getOrderNo(), CurrencyLogDes.代理基金赎回.name());
 
         FundReview fundReview = FundReview.builder()
                 .rId(fundTransactionRecord.getId())

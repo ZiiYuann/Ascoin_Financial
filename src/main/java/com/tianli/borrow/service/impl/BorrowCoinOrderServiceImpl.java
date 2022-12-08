@@ -12,7 +12,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.enums.AccountOperationType;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.borrow.bo.AdjustPledgeBO;
 import com.tianli.borrow.bo.BorrowOrderBO;
 import com.tianli.borrow.bo.BorrowOrderRepayBO;
@@ -84,7 +84,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     private OrderService orderService;
 
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
 
     @Resource
     private IBorrowPledgeRecordService borrowPledgeRecordService;
@@ -107,7 +107,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     public BorrowCoinMainPageVO mainPage() {
         Long uid = requestInitService.uid();
         //存款市场总额
-        BigDecimal totalHoldAmount = financialRecordService.holdAmountDollar();
+        BigDecimal totalHoldAmount = financialRecordService.dollarHold();
         //借款市场总额
         BigDecimal totalBorrowAmount = borrowCoinOrderMapper.selectTotalBorrowAmount();
         //借出总额
@@ -186,7 +186,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BorrowPledgeCoinConfig pledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(coin);
         if (Objects.isNull(coinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
         if (Objects.isNull(pledgeCoinConfig)) ErrorCodeEnum.BORROW_CONFIG_NO_EXIST.throwException();
-        AccountBalance accountBalance = accountBalanceService.getAndInit(uid, "usdt");
+        AccountBalance accountBalance = accountBalanceServiceImpl.getAndInit(uid, "usdt");
         return BorrowApplePageVO.builder()
                 .coin(coinBase.getName())
                 .logo(coinBase.getLogo())
@@ -219,7 +219,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
 
         //校验数量
         BigDecimal initialPledgeRate = pledgeCoinConfig.getInitialPledgeRate();
-        AccountBalance accountBalance = accountBalanceService.getAndInit(uid, currencyCoin);
+        AccountBalance accountBalance = accountBalanceServiceImpl.getAndInit(uid, currencyCoin);
         BigDecimal availableAmount = accountBalance.getRemain();
         if (borrowAmount.compareTo(availableAmount.multiply(initialPledgeRate)) > 0)
             ErrorCodeEnum.BORROW_GT_AVAILABLE_ERROR.throwException();
@@ -361,7 +361,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         BigDecimal pledgeAmount = borrowCoinOrder.getPledgeAmount();
         BigDecimal waitRepay = borrowCoinOrder.calculateWaitRepay();
         Long uid = requestInitService.uid();
-        AccountBalance accountBalance = accountBalanceService.getAndInit(uid, coin);
+        AccountBalance accountBalance = accountBalanceServiceImpl.getAndInit(uid, coin);
         BorrowPledgeCoinConfig pledgeCoinConfig = borrowPledgeCoinConfigService.getByCoin(coin);
         BigDecimal initialPledgeRate = pledgeCoinConfig.getInitialPledgeRate();
 
@@ -413,7 +413,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         String currencyCoin = bo.getCurrencyCoin();
         CoinBase coinBase = coinBaseService.getByName(currencyCoin);
         //校验钱余额
-        AccountBalance accountBalance = accountBalanceService.getAndInit(uid, currencyCoin);
+        AccountBalance accountBalance = accountBalanceServiceImpl.getAndInit(uid, currencyCoin);
         if (accountBalance.getRemain().compareTo(repayAmount) <= 0) ErrorCodeEnum.INSUFFICIENT_BALANCE.throwException();
         //校验订单
         BorrowCoinOrder borrowCoinOrder = borrowCoinOrderMapper.selectById(orderId);
@@ -548,7 +548,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
         borrowAdjustPageVO.setPledgeRate(borrowCoinOrder.getPledgeRate());
         if (pledgeType.equals(BorrowPledgeType.INCREASE)) {
             //增加质押
-            AccountBalance accountBalance = accountBalanceService.getAndInit(uid, coin);
+            AccountBalance accountBalance = accountBalanceServiceImpl.getAndInit(uid, coin);
             BigDecimal availableAmount = accountBalance.getRemain();
             //调整金额为0
             if (adjustAmount.compareTo(BigDecimal.ZERO) == 0) {
@@ -628,7 +628,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .createTime(LocalDateTime.now()).build();
 
         if (pledgeType.equals(BorrowPledgeType.INCREASE)) {
-            AccountBalance accountBalance = accountBalanceService.getAndInit(uid, currencyCoin);
+            AccountBalance accountBalance = accountBalanceServiceImpl.getAndInit(uid, currencyCoin);
             BigDecimal availableAmount = accountBalance.getRemain();
             if (adjustAmount.compareTo(availableAmount) > 0) ErrorCodeEnum.ADJUST_GT_AVAILABLE_ERROR.throwException();
 
@@ -796,7 +796,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .createTime(LocalDateTime.now())
                 .build();
         orderService.save(order);
-        accountBalanceService.decrease(uid, ChargeType.pledge, coin, null, pledgeAmount, order.getOrderNo()
+        accountBalanceServiceImpl.decrease(uid, ChargeType.pledge, coin, null, pledgeAmount, order.getOrderNo()
                 , CurrencyLogDes.质押.name(), AccountOperationType.pledge);
 
     }
@@ -816,7 +816,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .createTime(LocalDateTime.now())
                 .build();
         orderService.save(order);
-        accountBalanceService.increase(uid, ChargeType.borrow, coin, null, pledgeAmount, order.getOrderNo()
+        accountBalanceServiceImpl.increase(uid, ChargeType.borrow, coin, null, pledgeAmount, order.getOrderNo()
                 , CurrencyLogDes.借币.name(), AccountOperationType.borrow);
     }
 
@@ -836,7 +836,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .relatedId(orderId)
                 .build();
         orderService.save(order);
-        accountBalanceService.increase(uid, ChargeType.release, coin, null, amount, order.getOrderNo()
+        accountBalanceServiceImpl.increase(uid, ChargeType.release, coin, null, amount, order.getOrderNo()
                 , CurrencyLogDes.释放质押.name(), AccountOperationType.release);
     }
 
@@ -856,7 +856,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
                 .relatedId(orderId)
                 .build();
         orderService.save(order);
-        accountBalanceService.decrease(uid, ChargeType.repay, coin, null, amount, order.getOrderNo()
+        accountBalanceServiceImpl.decrease(uid, ChargeType.repay, coin, null, amount, order.getOrderNo()
                 , CurrencyLogDes.还币.name(), AccountOperationType.repay);
     }
 }

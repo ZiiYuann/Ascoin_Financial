@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.accountred.convert.RedEnvelopeConvert;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
@@ -70,7 +70,7 @@ import java.util.concurrent.TimeUnit;
 public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEnvelope> implements RedEnvelopeService {
 
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private RedEnvelopeConvert redEnvelopeConvert;
     @Resource
@@ -166,7 +166,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         orderService.save(order);
 
         // 直接扣除红包金额
-        accountBalanceService.decrease(uid, ChargeType.red_give, redEnvelope.getCoin(), redEnvelope.getTotalAmount()
+        accountBalanceServiceImpl.decrease(uid, ChargeType.red_give, redEnvelope.getCoin(), redEnvelope.getTotalAmount()
                 , order.getOrderNo(), "发红包");
     }
 
@@ -401,7 +401,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                 .build();
         orderService.save(order);
 
-        accountBalanceService.increase(redEnvelope.getUid(), ChargeType.red_back, redEnvelope.getCoin(), rollbackAmount
+        accountBalanceServiceImpl.increase(redEnvelope.getUid(), ChargeType.red_back, redEnvelope.getCoin(), rollbackAmount
                 , order.getOrderNo(), "红包到期回退");
 
         this.overdue(redEnvelope.getId());
@@ -495,7 +495,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             ErrorCodeEnum.RED_AMOUNT_EXCEED_LIMIT_100.throwException();
         }
 
-        AccountBalance accountBalance = accountBalanceService.getAndInit(uid, coin);
+        AccountBalance accountBalance = accountBalanceServiceImpl.getAndInit(uid, coin);
         if (totalAmount.compareTo(accountBalance.getRemain()) > 0) {
             ErrorCodeEnum.INSUFFICIENT_BALANCE.throwException();
         }

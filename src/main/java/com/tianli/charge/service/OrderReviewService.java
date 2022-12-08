@@ -1,7 +1,7 @@
 package com.tianli.charge.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.charge.converter.ChargeConverter;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderChargeInfo;
@@ -102,7 +102,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
 
         // 审核不通过需要解冻金额
         if (!query.isPass()) {
-            accountBalanceService.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), orderNo, "提现申请未通过");
+            accountBalanceServiceImpl.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), orderNo, "提现申请未通过");
             order.setStatus(ChargeStatus.review_fail);
             order.setCompleteTime(LocalDateTime.now());
             orderService.saveOrUpdate(order);
@@ -113,7 +113,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
     @Transactional
     public void withdrawSuccess(Order order, OrderChargeInfo orderChargeInfo) {
         // 操作余额信息
-        accountBalanceService.reduce(order.getUid(), ChargeType.withdraw, order.getCoin()
+        accountBalanceServiceImpl.reduce(order.getUid(), ChargeType.withdraw, order.getCoin()
                 , orderChargeInfo.getNetwork(), orderChargeInfo.getFee(), order.getOrderNo(), "提现成功扣除");
 
         // 插入热钱包操作数据表
@@ -142,7 +142,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
     @Resource
     private OrderReviewMapper orderReviewMapper;
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private OrderChargeInfoService orderChargeInfoService;
     @Resource

@@ -1,6 +1,6 @@
 package com.tianli.management.controller;
 
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.chain.entity.ChainCallbackLog;
 import com.tianli.chain.entity.WalletImputation;
 import com.tianli.chain.entity.WalletImputationLog;
@@ -51,7 +51,7 @@ public class FinancialWalletController {
     @Resource
     private WalletImputationLogAppendixService walletImputationLogAppendixService;
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private OrderReviewService orderReviewService;
     @Resource
@@ -98,7 +98,7 @@ public class FinancialWalletController {
     @GetMapping("/accounts")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result accounts() {
-        return Result.success().setData(accountBalanceService.getTotalSummaryData());
+        return Result.success().setData(accountBalanceServiceImpl.getTotalSummaryData());
     }
 
     /**

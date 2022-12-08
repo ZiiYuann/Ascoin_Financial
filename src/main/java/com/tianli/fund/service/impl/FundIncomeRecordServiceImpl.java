@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.agent.management.auth.AgentContent;
 import com.tianli.agent.management.bo.FundAuditBO;
 import com.tianli.agent.management.vo.FundReviewVO;
@@ -74,7 +74,7 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     @Resource
     private FundRecordConvert fundRecordConvert;
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private IFundRecordService fundRecordService;
     @Resource
@@ -188,7 +188,7 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
                         .createTime(LocalDateTime.now()).completeTime(LocalDateTime.now()).build();
                 orderService.save(agentOrder);
                 // 减少余额
-                accountBalanceService.decrease(agentVO.getUid(), ChargeType.agent_fund_interest, fundIncomeRecord.getCoin(), fundIncomeRecord.getInterestAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金利息.name());
+                accountBalanceServiceImpl.decrease(agentVO.getUid(), ChargeType.agent_fund_interest, fundIncomeRecord.getCoin(), fundIncomeRecord.getInterestAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金利息.name());
 
                 //订单【基金利息】对于客户而言
                 Order order = Order.builder()
@@ -203,7 +203,7 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
                         .completeTime(LocalDateTime.now()).build();
                 orderService.save(order);
                 // 增加余额
-                accountBalanceService.increase(uid, ChargeType.fund_interest, fundIncomeRecord.getCoin(), fundIncomeRecord.getInterestAmount(), order.getOrderNo(), CurrencyLogDes.基金利息.name());
+                accountBalanceServiceImpl.increase(uid, ChargeType.fund_interest, fundIncomeRecord.getCoin(), fundIncomeRecord.getInterestAmount(), order.getOrderNo(), CurrencyLogDes.基金利息.name());
 
                 //持仓记录待发已发修改
                 FundRecord fundRecord = fundRecordService.getById(fundIncomeRecord.getFundId());

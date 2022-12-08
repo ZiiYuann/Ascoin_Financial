@@ -78,8 +78,8 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
         BigDecimal settleAmount = orderService.amountDollarSumByCompleteTime(ChargeType.settle, startTime, endTime);
         BigDecimal transferAmount = orderService.amountDollarSumByCompleteTime(ChargeType.transfer, startTime, endTime);
         BigDecimal income = Optional.ofNullable(financialIncomeAccrueService.getAmountDollarSum(endTime)).orElse(BigDecimal.ZERO);
-        BigDecimal fixedProductCount = financialRecordService.holdAmountDollar(ProductType.fixed);
-        BigDecimal currentProductCount = financialRecordService.holdAmountDollar(ProductType.current);
+        BigDecimal fixedProductCount = financialRecordService.dollarHold(ProductType.fixed);
+        BigDecimal currentProductCount = financialRecordService.dollarHold(ProductType.current);
         BigDecimal totalProductCount = currentProductCount.add(fixedProductCount);
         BigInteger holdUserCount = financialRecordService.countUid();
 

@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
@@ -98,7 +98,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     @Resource
     private WebHookService webHookService;
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private IWalletAgentProductService walletAgentProductService;
     @Resource
@@ -169,9 +169,9 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         }
 
         // 减少余额
-        accountBalanceService.decrease(uid, ChargeType.fund_purchase, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.基金申购.name());
+        accountBalanceServiceImpl.decrease(uid, ChargeType.fund_purchase, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.基金申购.name());
         //代理人钱包
-        AccountBalance agentAccountBalance = accountBalanceService.getAndInit(walletAgentProduct.getUid(), financialProduct.getCoin());
+        AccountBalance agentAccountBalance = accountBalanceServiceImpl.getAndInit(walletAgentProduct.getUid(), financialProduct.getCoin());
         //代理人生成一笔订单
         Order agentOrder = Order.builder()
                 .uid(agentAccountBalance.getUid())
@@ -185,7 +185,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
                 .completeTime(LocalDateTime.now())
                 .build();
         orderService.save(agentOrder);
-        accountBalanceService.increase(agentAccountBalance.getUid(), ChargeType.agent_fund_sale, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.代理基金销售.name());
+        accountBalanceServiceImpl.increase(agentAccountBalance.getUid(), ChargeType.agent_fund_sale, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.代理基金销售.name());
 
         //交易记录
         FundTransactionRecord transactionRecord;
@@ -256,7 +256,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         List<AmountDto> waitPayInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncome -> new AmountDto(fundIncome.getWaitInterestAmount(), fundIncome.getCoin())).collect(Collectors.toList());
         List<AmountDto> payInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncome -> new AmountDto(fundIncome.getPayInterestAmount(), fundIncome.getCoin())).collect(Collectors.toList());
         return FundMainPageVO.builder()
-                .holdAmount(this.holdAmountDollar(uid, null, null))
+                .holdAmount(this.dollarHold(uid, null, null))
                 .payInterestAmount(currencyService.calDollarAmount(payInterestAmount))
                 .waitPayInterestAmount(currencyService.calDollarAmount(waitPayInterestAmount))
                 .build();
@@ -289,7 +289,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
             ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
         Long uid = requestInitService.uid();
         BigDecimal personHoldAmount = fundRecordMapper.selectHoldAmountSum(productId, uid);
-        AccountBalance accountBalance = accountBalanceService.getAndInit(uid, product.getCoin());
+        AccountBalance accountBalance = accountBalanceServiceImpl.getAndInit(uid, product.getCoin());
         return FundApplyPageVO.builder()
                 .productId(product.getId())
                 .productName(product.getName())
@@ -393,7 +393,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         IPage<FundUserRecordVO> fundUserRecordPage = fundRecordMapper.selectDistinctUidPage(pageQuery.page(), query);
         return fundUserRecordPage.convert(fundUserRecordVO -> {
             Long uid = fundUserRecordVO.getUid();
-            fundUserRecordVO.setHoldAmount(this.holdAmountDollar(uid, null, query.getAgentId()));
+            fundUserRecordVO.setHoldAmount(this.dollarHold(uid, null, query.getAgentId()));
             // 累计利息 包括 待发 + 已经发
             fundUserRecordVO.setInterestAmount(fundIncomeRecordService.amountDollar(uid, query.getAgentId(), new ArrayList<>()));
 
@@ -500,9 +500,9 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     }
 
     @Override
-    public BigDecimal holdAmountDollar(Long uid, String coin, Long agentId) {
+    public BigDecimal dollarHold(Long uid, String coin, Long agentId) {
         FundRecordQuery query = new FundRecordQuery();
-        query.setQueryUid(uid + "");
+        query.setUid(uid);
         query.setCoin(query.getCoin());
         query.setAgentId(agentId);
         query.setCoin(coin);
@@ -511,12 +511,12 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     }
 
     @Override
-    public BigDecimal holdAmount(Long uid, String coin, Long agentId) {
+    public BigDecimal holdSingleCoin(Long uid, String coin, Long agentId) {
         if (Objects.isNull(coin)) {
             throw new UnsupportedOperationException();
         }
         FundRecordQuery query = new FundRecordQuery();
-        query.setQueryUid(uid + "");
+        query.setUid(uid);
         query.setCoin(query.getCoin());
         query.setAgentId(agentId);
         query.setCoin(coin);
@@ -526,7 +526,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
 
 
     @Override
-    public BigDecimal holdAmountDollar(FundRecordQuery query) {
+    public BigDecimal dollarHold(FundRecordQuery query) {
         List<AmountDto> amountDtos = fundRecordMapper.selectHoldAmount(query);
         return currencyService.calDollarAmount(amountDtos);
     }

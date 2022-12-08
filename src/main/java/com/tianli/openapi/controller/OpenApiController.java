@@ -1,6 +1,6 @@
 package com.tianli.openapi.controller;
 
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.ErrorCodeEnum;
@@ -28,7 +28,7 @@ public class OpenApiController {
     @Resource
     private OpenApiService openApiService;
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private ChargeService chargeService;
 
@@ -74,7 +74,7 @@ public class OpenApiController {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
 
-        return Result.success(accountBalanceService.getAccountBalanceList(uid));
+        return Result.success(accountBalanceServiceImpl.accountList(uid));
     }
 
     /**
@@ -89,7 +89,7 @@ public class OpenApiController {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
 
-        return Result.success(accountBalanceService.getAccountBalanceList(uid));
+        return Result.success(accountBalanceServiceImpl.accountList(uid));
     }
 
     /**

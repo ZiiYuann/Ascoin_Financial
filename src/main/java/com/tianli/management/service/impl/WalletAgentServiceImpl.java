@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.AccountBalanceVO;
 import com.tianli.address.AddressService;
 import com.tianli.charge.enums.ChargeType;
@@ -64,7 +64,7 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
     @Resource
     private FinancialProductService financialProductService;
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private OrderService orderService;
     @Resource
@@ -229,7 +229,7 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
     }
 
     private BigDecimal getWalletAmount(Long uid) {
-        List<AccountBalanceVO> accountBalanceList = accountBalanceService.getAccountBalanceList(uid);
+        List<AccountBalanceVO> accountBalanceList = accountBalanceServiceImpl.accountList(uid);
         List<AmountDto> amountDtoList = accountBalanceList.stream().map(accountBalanceVO ->
                 new AmountDto(accountBalanceVO.getRemain(), accountBalanceVO.getCoin())).collect(Collectors.toList());
         return currencyService.calDollarAmount(amountDtoList);

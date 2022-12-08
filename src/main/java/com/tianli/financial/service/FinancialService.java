@@ -116,4 +116,6 @@ public interface FinancialService {
      * 用户余额详情
      */
     UserAmountDetailsVO userAmountDetailsVO(Long uid);
+
+
 }

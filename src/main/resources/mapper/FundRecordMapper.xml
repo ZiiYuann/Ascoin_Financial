@@ -45,7 +45,10 @@
                 and a.coin = #{query.coin}
             </if>
             <if test="query.queryUid != null">
-                and a.uid = #{query.queryUid}
+                and a.uid like concat('%',#{query.queryUid},'%')
+            </if>
+            <if test="query.uid != null">
+                and a.uid = #{query.uid}
             </if>
         </where>
         group by a.coin

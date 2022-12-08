@@ -1,7 +1,7 @@
 package com.tianli.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderChargeInfo;
@@ -38,7 +38,7 @@ public class WithdrawOrderTask {
     @Resource
     private ContractAdapter contractAdapter;
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
 
     @Scheduled(cron = "0 0/15 * * * ?")
     public void withdrawTask() {
@@ -73,7 +73,7 @@ public class WithdrawOrderTask {
         order.setCompleteTime(LocalDateTime.now());
         orderService.updateById(order);
 
-        accountBalanceService.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), order.getOrderNo()
+        accountBalanceServiceImpl.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), order.getOrderNo()
                 , "提现上链失败");
 
         webHookService.dingTalkSend("异常提现订单:" + order.getOrderNo() + " 修改订单状态为：fail");
