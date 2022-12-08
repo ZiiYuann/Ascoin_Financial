@@ -1,15 +1,14 @@
 package com.tianli.management.controller;
 
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.mapper.Address;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.financial.service.FinancialService;
+import com.tianli.management.query.UidsQuery;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -49,6 +48,35 @@ public class FinancialUserController {
         return Result.success().setData(financialService.userAmountDetailsVO(uid));
     }
 
+    /**
+     * 用户资产
+     */
+    @GetMapping("assets/{uid}")
+    @AdminPrivilege(and = Privilege.理财管理, api = "/management/financial/user/assets/uid")
+    public Result assets(@PathVariable Long uid) {
+        return Result.success().setData(accountBalanceService.getUserAssetsVO(uid));
+    }
+
+    /**
+     * 用户资产
+     */
+    @GetMapping("assets/uids")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result assetsUids(@RequestBody UidsQuery query) {
+        return Result.success().setData(accountBalanceService.getUserAssetsVO(query.getUids()));
+    }
+
+    /**
+     * 用户资产
+     */
+    @GetMapping("assets/map")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result assetsMap(@RequestBody UidsQuery query) {
+        return Result.success().setData(accountBalanceService.getUserAssetsVOMap(query.getUids()));
+    }
+
     @Resource
     private FinancialService financialService;
+    @Resource
+    private AccountBalanceService accountBalanceService;
 }

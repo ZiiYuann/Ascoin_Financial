@@ -275,7 +275,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     /**
      * 正持有的产品数量
      */
-    public BigDecimal holdAmountDollar(ProductType productType) {
+    public BigDecimal dollarHold(ProductType productType) {
         List<AmountDto> amountDtos = financialRecordMapper.holdAmount(productType, null, null);
         return currencyService.calDollarAmount(amountDtos);
     }
@@ -283,20 +283,20 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     /**
      * 正持有的产品数量
      */
-    public BigDecimal holdAmountByUid(Long uid) {
+    public BigDecimal dollarHold(Long uid) {
         List<AmountDto> amountDtos = financialRecordMapper.holdAmount(null, null, uid);
-        return amountDtos.stream().map(AmountDto::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return currencyService.calDollarAmount(amountDtos);
     }
 
     /**
      * 正持有的产品数量
      */
-    public BigDecimal holdAmountByCoin(Long uid, String coin) {
+    public BigDecimal holdSingleCoin(Long uid, String coin) {
         List<AmountDto> amountDtos = financialRecordMapper.holdAmount(null, coin, uid);
         return amountDtos.stream().map(AmountDto::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public BigDecimal holdAmountDollar() {
+    public BigDecimal dollarHold() {
         List<AmountDto> amountDtos = financialRecordMapper.holdAmount(null, null, null);
         return currencyService.calDollarAmount(amountDtos);
     }

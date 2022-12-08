@@ -3,7 +3,7 @@ package com.tianli.openapi.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.AccountBalanceVO;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
@@ -44,7 +44,7 @@ public class OpenApiService {
     @Resource
     private OrderService orderService;
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private OrderRewardRecordService orderRewardRecordService;
     @Resource
@@ -96,7 +96,7 @@ public class OpenApiService {
             order = newOrder;
         }
 
-        accountBalanceService.increase(query.getUid(), query.getType(), query.getCoin()
+        accountBalanceServiceImpl.increase(query.getUid(), query.getType(), query.getCoin()
                 , query.getAmount(), order.getOrderNo(), query.getType().getNameZn());
         return new IdVO(recordId);
     }
@@ -134,12 +134,12 @@ public class OpenApiService {
         orderService.save(newOrder);
 
         if (ChargeType.transfer_increase.equals(query.getType())) {
-            accountBalanceService.increase(query.getUid(), query.getType(), query.getCoin()
+            accountBalanceServiceImpl.increase(query.getUid(), query.getType(), query.getCoin()
                     , query.getAmount(), newOrder.getOrderNo(), query.getType().getNameZn());
         }
 
         if (ChargeType.transfer_reduce.equals(query.getType())) {
-            accountBalanceService.decrease(query.getUid(), query.getType(), query.getCoin()
+            accountBalanceServiceImpl.decrease(query.getUid(), query.getType(), query.getCoin()
                     , query.getAmount(), newOrder.getOrderNo(), query.getType().getNameZn());
         }
 
@@ -204,7 +204,7 @@ public class OpenApiService {
     }
 
     private StatisticsData getStatisticsData(Long uid, List<Long> subUids, LocalDateTime startTime, LocalDateTime endTime) {
-        var totalSummaryData = accountBalanceService.accountBalanceVOS(uid);
+        var totalSummaryData = accountBalanceServiceImpl.accountList(uid);
         // 总余额
         BigDecimal balance = totalSummaryData.stream()
                 .map(AccountBalanceVO::getDollarBalance).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -236,7 +236,7 @@ public class OpenApiService {
                 .build();
 
         if (CollectionUtils.isNotEmpty(subUids)) {
-            Map<Long, BigDecimal> summaryBalanceAmount = accountBalanceService.getSummaryBalanceAmount(subUids);
+            Map<Long, BigDecimal> summaryBalanceAmount = accountBalanceServiceImpl.getSummaryBalanceAmount(subUids);
             BigDecimal subBalance = summaryBalanceAmount.values().stream()
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             BigDecimal subPurchaseAmount = orderService.uAmount(subUids, ChargeType.purchase);
@@ -280,7 +280,7 @@ public class OpenApiService {
         BigDecimal redeemAmount = orderService.uAmount(subUids, ChargeType.redeem);
         BigDecimal incomeAmount = CollectionUtils.isEmpty(subUids) ? BigDecimal.ZERO :
                 financialIncomeAccrueService.summaryIncomeByQuery(FinancialProductIncomeQuery.builder().uids(subUids).build());
-        Map<Long, BigDecimal> balanceMap = accountBalanceService.getSummaryBalanceAmount(subUids);
+        Map<Long, BigDecimal> balanceMap = accountBalanceServiceImpl.getSummaryBalanceAmount(subUids);
         BigDecimal balance = balanceMap.values().stream()
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 

@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.MoreObjects;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.entity.CoinBase;
@@ -106,7 +106,7 @@ public class FinancialServiceImpl implements FinancialService {
         }
 
         // 基金数据
-        BigDecimal fundHoldDollarAmount = fundRecordService.holdAmountDollar(uid, null, null)
+        BigDecimal fundHoldDollarAmount = fundRecordService.dollarHold(uid, null, null)
                 .setScale(2, RoundingMode.DOWN);
         BigDecimal fundTotalIncome = fundIncomeRecordService.amountDollar(uid, FundIncomeStatus.audit_success, null, null)
                 .setScale(2, RoundingMode.DOWN);
@@ -308,7 +308,7 @@ public class FinancialServiceImpl implements FinancialService {
         var addresses = addressService.page(page, queryWrapper);
         List<Long> uids = addresses.getRecords().stream().map(Address::getUid).collect(Collectors.toList());
 
-        var summaryBalanceAmount = accountBalanceService.getSummaryBalanceAmount(uids);
+        var summaryBalanceAmount = accountBalanceServiceImpl.getSummaryBalanceAmount(uids);
         var rechargeOrderAmount = orderService.getSummaryOrderAmount(uids, ChargeType.recharge);
         var withdrawBalanceAmount = orderService.getSummaryOrderAmount(uids, ChargeType.withdraw);
         var moneyAmount = financialRecordService.getSummaryAmount(uids, null, RecordStatus.PROCESS);
@@ -367,8 +367,8 @@ public class FinancialServiceImpl implements FinancialService {
         query.setChargeType(ChargeType.withdraw);
         withdrawAmount = orderService.orderAmountDollarSum(query);
         // 持有数量
-        BigDecimal currentAmount = financialRecordService.holdAmountDollar(ProductType.current);
-        BigDecimal fixedAmount = financialRecordService.holdAmountDollar(ProductType.fixed);
+        BigDecimal currentAmount = financialRecordService.dollarHold(ProductType.current);
+        BigDecimal fixedAmount = financialRecordService.dollarHold(ProductType.fixed);
         moneyAmount = moneyAmount.add(currentAmount).add(fixedAmount);
         // 累计盈亏
         incomeAmount = financialIncomeAccrueService.summaryIncomeByQuery(new FinancialProductIncomeQuery());
@@ -451,13 +451,13 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     public UserAmountDetailsVO userAmountDetailsVO(Long uid) {
-        BigDecimal dollarBalance = accountBalanceService.getDollarBalance(uid);
+        BigDecimal dollarBalance = accountBalanceServiceImpl.dollarBalance(uid);
         BigDecimal dollarRecharge = orderService.uAmount(uid, ChargeType.recharge);
         BigDecimal dollarWithdraw = orderService.uAmount(uid, ChargeType.withdraw);
         FundRecordQuery fundRecordQuery = new FundRecordQuery();
-        fundRecordQuery.setQueryUid(uid + "");
-        BigDecimal dollarFund = fundRecordService.holdAmountDollar(fundRecordQuery);
-        BigDecimal dollarFinancial = financialRecordService.holdAmountByUid(uid);
+        fundRecordQuery.setUid(uid);
+        BigDecimal dollarFund = fundRecordService.dollarHold(fundRecordQuery);
+        BigDecimal dollarFinancial = financialRecordService.dollarHold(uid);
 
         BigDecimal dollarFinancialIncome = financialIncomeAccrueService.getAccrueDollarAmount(uid, null);
         FundIncomeQuery fundIncomeQuery = new FundIncomeQuery();
@@ -511,7 +511,7 @@ public class FinancialServiceImpl implements FinancialService {
             BigDecimal totalQuota = product.getTotalQuota();
             BigDecimal personQuota = product.getPersonQuota();
             BigDecimal useQuota = MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO);
-            var accountBalance = accountBalanceService.getAndInit(requestInitService.uid(), product.getCoin());
+            var accountBalance = accountBalanceServiceImpl.getAndInit(requestInitService.uid(), product.getCoin());
             FinancialProductVO financialProductVO = financialConverter.toFinancialProductVO(product);
 
             // 设置额度信息
@@ -643,7 +643,7 @@ public class FinancialServiceImpl implements FinancialService {
 
 
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private RequestInitService requestInitService;
     @Resource

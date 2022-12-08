@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.account.enums.AccountChangeType;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
@@ -16,7 +16,6 @@ import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.exception.Result;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.ProductRateDTO;
 import com.tianli.financial.entity.FinancialProduct;
@@ -339,7 +338,7 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
         }
 
         // 减少余额
-        accountBalanceService.decrease(uid, ChargeType.purchase, product.getCoin(), amount, order.getOrderNo(), CurrencyLogDes.申购.name());
+        accountBalanceServiceImpl.decrease(uid, ChargeType.purchase, product.getCoin(), amount, order.getOrderNo(), CurrencyLogDes.申购.name());
 
         FinancialPurchaseResultVO financialPurchaseResultVO = financialConverter.toFinancialPurchaseResultVO(financialRecord);
         financialPurchaseResultVO.setName(product.getName());
@@ -350,7 +349,7 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
 
 
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private FinancialProductService financialProductService;
     @Resource

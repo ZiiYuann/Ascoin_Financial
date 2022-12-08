@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.entity.AccountBalance;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.charge.entity.Order;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.RedisService;
@@ -34,7 +34,7 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
     @Resource
     private FinancialProductService financialProductService;
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private IFundRecordService fundRecordService;
     @Resource
@@ -140,7 +140,7 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
      * @param amount 申购金额
      */
     public void validRemainAmount(Long uid, String currencyCoin, BigDecimal amount) {
-        AccountBalance accountBalanceBalance = accountBalanceService.getAndInit(uid, currencyCoin);
+        AccountBalance accountBalanceBalance = accountBalanceServiceImpl.getAndInit(uid, currencyCoin);
         if (accountBalanceBalance.getRemain().compareTo(amount) < 0) {
             ErrorCodeEnum.INSUFFICIENT_BALANCE.throwException();
         }

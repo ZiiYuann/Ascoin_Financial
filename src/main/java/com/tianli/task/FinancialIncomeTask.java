@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.MoreObjects;
 import com.google.gson.Gson;
 import com.tianli.account.enums.AccountChangeType;
-import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
@@ -55,7 +55,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FinancialIncomeTask {
 
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private FinancialRecordService financialRecordService;
     @Resource
@@ -299,7 +299,7 @@ public class FinancialIncomeTask {
         financialRecordService.updateById(financialRecord);
 
         // 增加
-        accountBalanceService.increase(financialRecord.getUid(), ChargeType.settle, financialRecord.getCoin()
+        accountBalanceServiceImpl.increase(financialRecord.getUid(), ChargeType.settle, financialRecord.getCoin()
                 , financialRecord.getHoldAmount(), order.getOrderNo(), CurrencyLogDes.结算.name());
         // 减少产品使用额度
         financialProductService.reduceUseQuota(financialRecord.getProductId(), financialRecord.getHoldAmount());
@@ -350,7 +350,7 @@ public class FinancialIncomeTask {
         orderService.save(order);
 
         // 操作余额
-        accountBalanceService.increase(uid, ChargeType.income, financialRecord.getCoin()
+        accountBalanceServiceImpl.increase(uid, ChargeType.income, financialRecord.getCoin()
                 , income, order.getOrderNo(), CurrencyLogDes.收益.name());
 
 
