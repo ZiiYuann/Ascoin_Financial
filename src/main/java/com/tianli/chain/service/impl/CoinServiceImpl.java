@@ -203,6 +203,13 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     }
 
     @Override
+    public Coin mainToken(String name) {
+        return this.getOne(new LambdaQueryWrapper<Coin>()
+                .eq(Coin::getName, name)
+                .eq(Coin::isMainToken, true));
+    }
+
+    @Override
     @Transactional
     public void withdrawConfig(Long uid, CoinWithdrawQuery query) {
         Coin coin = this.getById(query.getId());

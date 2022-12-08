@@ -73,6 +73,14 @@ public interface CoinService extends IService<Coin> {
     Coin getByContract(String contract);
 
     /**
+     * 根据合约币别
+     *
+     * @param name 币名
+     * @return 币信息
+     */
+    Coin mainToken(String name);
+
+    /**
      * 提现配置
      *
      * @param uid   操作人id
