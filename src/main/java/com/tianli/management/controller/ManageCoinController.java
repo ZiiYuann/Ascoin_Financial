@@ -34,8 +34,8 @@ public class ManageCoinController {
      */
     @PostMapping("/save")
     public Result saveOrUpdate(@RequestBody @Valid CoinIoUQuery query) {
-        Long uid = AdminContent.get().getAid();
-        coinService.saveOrUpdate(uid, query);
+        String nickname = AdminContent.get().getNickname();
+        coinService.saveOrUpdate(nickname, query);
         coinService.flushCache();
         return Result.success();
     }
@@ -45,8 +45,8 @@ public class ManageCoinController {
      */
     @PostMapping("/push")
     public Result saveOrUpdate(@RequestBody @Valid CoinStatusQuery query) {
-        Long uid = AdminContent.get().getAid();
-        coinService.push(uid, query);
+        String nickname = AdminContent.get().getNickname();
+        coinService.push(nickname, query);
         return Result.success();
     }
 
@@ -63,8 +63,8 @@ public class ManageCoinController {
      */
     @PostMapping("/withdraw")
     public Result saveOrUpdate(@RequestBody @Valid CoinWithdrawQuery query) {
-        Long uid = AdminContent.get().getAid();
-        coinService.withdrawConfig(uid, query);
+        String nickname = AdminContent.get().getNickname();
+        coinService.withdrawConfig(nickname, query);
         return Result.success();
     }
 

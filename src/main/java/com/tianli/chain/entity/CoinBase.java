@@ -33,9 +33,9 @@ public class CoinBase {
     @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 
-    private Long createBy;
+    private String createBy;
 
-    private Long updateBy;
+    private String updateBy;
 
     private String rateUrl;
 
