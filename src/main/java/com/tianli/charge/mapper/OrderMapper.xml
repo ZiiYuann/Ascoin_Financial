@@ -101,8 +101,9 @@
         FROM `order` o
         INNER JOIN order_charge_info charge on charge.id = o.related_id
         WHERE 1 = 1
-        <include refid="FinancialChargeQuery"/>
         AND o.status = 'chain_success'
+        <include refid="FinancialChargeQuery"/>
+
     </select>
 
     <select id="serviceAmountSumByCompleteTime" resultType="com.tianli.management.dto.AmountDto">
