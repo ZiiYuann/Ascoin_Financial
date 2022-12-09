@@ -24,6 +24,7 @@ import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.query.*;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
+import com.tianli.sso.permission.admin.AdminContent;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.web.bind.annotation.*;
@@ -148,6 +149,10 @@ public class ManageWalletController {
     @PostMapping("/order/withdraw/review")
     @AdminPrivilege
     public Result orderReview(@RequestBody @Valid OrderReviewQuery query) {
+        String nickname = AdminContent.get().getNickname();
+        Long aid = AdminContent.get().getAid();
+        query.setRid(aid);
+        query.setReviewBy(nickname);
         RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW_REVIEW + query.getOrderNo());
         try {
             lock.lock();

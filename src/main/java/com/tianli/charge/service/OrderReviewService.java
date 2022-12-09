@@ -8,11 +8,11 @@ import com.tianli.charge.entity.OrderChargeInfo;
 import com.tianli.charge.entity.OrderReview;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.enums.OrderReviewStrategy;
 import com.tianli.charge.mapper.OrderReviewMapper;
 import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.vo.OrderReviewVO;
 import com.tianli.common.CommonFunction;
-import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.entity.HotWalletDetailed;
 import com.tianli.management.enums.HotWalletOperationType;
@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
@@ -63,28 +62,39 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         if (!ChargeType.withdraw.equals(order.getType())) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "仅限制提现订单能通过审核");
         }
+        if (ChargeStatus.created.equals(order.getStatus())) {
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "仅未审核订单可以通过审核");
+        }
         if (Objects.nonNull(order.getReviewerId()) || !ChargeStatus.created.equals(order.getStatus())) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "已存在审核记录，reviewId: " + order.getReviewerId());
         }
+
+        // 订单详情
+        OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
+        // 获取审核策略
+        OrderReviewStrategy strategy = withdrawReviewStrategy.getStrategy(order, orderChargeInfo);
+        // 人工审核人工打币判断
+        if (OrderReviewStrategy.MANUAL_REVIEW_MANUAL_TRANSFER.equals(strategy)
+                && StringUtils.isBlank(query.getHash()) && query.isPass()) {
+            ErrorCodeEnum.MANUAL_TRANSFER_HASH_NULL.throwException();
+        }
+
         ChargeStatus status = query.isPass() ? ChargeStatus.chaining : ChargeStatus.review_fail;
         LocalDateTime now = LocalDateTime.now();
         OrderReview orderReview = OrderReview.builder().id(CommonFunction.generalId())
                 .remarks(query.getRemarks())
-                .rid(1000000000L)
+                .rid(query.getRid())
                 .status(status)
+                .reviewBy(query.getReviewBy())
+                .type(strategy.getReviewType().getType())
                 .createTime(now).build();
         orderReviewMapper.insert(orderReview);
 
         order.setReviewerId(orderReview.getId());
 
-        OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
         // 审核通过需要上链 如果传入的hash值为空说明是自动转账
-        if (query.isPass() && StringUtils.isBlank(query.getHash())) {
-            BigDecimal uAmount = currencyService.getDollarRate(orderChargeInfo.getCoin()).multiply(orderChargeInfo.getFee());
-            if (uAmount.compareTo(BigDecimal.valueOf(5000L)) > 0) {
-                ErrorCodeEnum.AUTO_PASS_ERROR.throwException();
-            }
-
+        if (OrderReviewStrategy.MANUAL_REVIEW_AUTO_TRANSFER.equals(strategy) &&
+                query.isPass() && StringUtils.isBlank(query.getHash())) {
             chargeService.withdrawChain(order);
             order.setStatus(ChargeStatus.chaining);
             orderService.saveOrUpdate(order);
@@ -92,7 +102,9 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
             return;
         }
 
-        if (query.isPass() && StringUtils.isNotBlank(query.getHash())) {
+        // 手动打币
+        if (OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy) &&
+                query.isPass() && StringUtils.isNotBlank(query.getHash())) {
             // 更新order相关链信息
             orderChargeInfo.setTxid(query.getHash());
             orderChargeInfoService.updateById(orderChargeInfo);
@@ -150,6 +162,6 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
     @Resource
     private ChargeService chargeService;
     @Resource
-    private CurrencyService currencyService;
+    private WithdrawReviewStrategy withdrawReviewStrategy;
 
 }

@@ -147,6 +147,7 @@ public enum ErrorCodeEnum {
     COIN_RATE_ERROR(3803,"币别汇率获取异常"),
     COIN_NOT_ALLOW_OPERATION(3804,"币种不允许操作"),
     COIN_NOT_CONFIG_NOT_EXIST(3805,"币种上线前请先配置最小提币和手续费"),
+    MANUAL_TRANSFER_HASH_NULL(3806,"人工审核转账HASH为空"),
 
     ;
     private int errorNo;

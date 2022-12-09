@@ -28,11 +28,6 @@ public class CoinReviewConfig {
     private int autoReviewAutoTransfer;
 
     /**
-     * 人工审核，自动打币
-     */
-    private int manualReviewAutoTransfer;
-
-    /**
      * 人工审核，人工打币
      */
     private int manualReviewManualTransfer;

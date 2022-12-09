@@ -30,6 +30,8 @@ public class OrderReview {
      */
     private Long rid;
 
+    private String reviewBy;
+
     /**
      * 审核备注
      */
@@ -46,7 +48,7 @@ public class OrderReview {
     private LocalDateTime createTime;
 
     /**
-     * 0：人共审核 1：自动审核
+     * 0：人工审核 1：自动审核
      */
     private byte type;
 }

@@ -27,12 +27,6 @@ public class CoinReviewConfigIoUQuery extends IoUQuery {
     private int autoReviewAutoTransfer;
 
     /**
-     * 人工审核，自动打币
-     */
-    @Min(value = 20)
-    private int manualReviewAutoTransfer;
-
-    /**
      * 人工审核，人工打币
      */
     @Min(value = 5000)

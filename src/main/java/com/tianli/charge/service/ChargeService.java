@@ -26,11 +26,9 @@ import com.tianli.chain.service.contract.ContractOperation;
 import com.tianli.charge.converter.ChargeConverter;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderChargeInfo;
-import com.tianli.charge.enums.ChargeGroup;
-import com.tianli.charge.enums.ChargeRemarks;
-import com.tianli.charge.enums.ChargeStatus;
-import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.enums.*;
 import com.tianli.charge.mapper.OrderMapper;
+import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.query.RedeemQuery;
 import com.tianli.charge.query.WithdrawQuery;
 import com.tianli.charge.vo.OrderBaseVO;
@@ -309,13 +307,28 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         accountBalanceServiceImpl.freeze(uid, ChargeType.withdraw, coin.getName(), coin.getNetwork()
                 , withdrawAmount, order.getOrderNo(), CurrencyLogDes.提现.name());
 
-        StringBuilder msg = new StringBuilder()
-                .append("监测到用户提现申请,请管理员尽快处理，金额：")
-                .append(query.getAmount())
-                .append(" ").append(query.getCoin())
-                .append("，时间：")
-                .append(LocalDateTime.now());
-        webHookService.dingTalkSend(msg.toString(), WebHookToken.FINANCIAL_PRODUCT);
+        OrderReviewStrategy strategy = withdrawReviewStrategy.getStrategy(order, orderChargeInfo);
+        if (!OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy)) {
+            StringBuilder msg = new StringBuilder()
+                    .append("监测到用户提现申请,请管理员尽快处理，金额：")
+                    .append(query.getAmount())
+                    .append(" ").append(query.getCoin())
+                    .append("，时间：")
+                    .append(LocalDateTime.now());
+            webHookService.dingTalkSend(msg.toString(), WebHookToken.FINANCIAL_PRODUCT);
+        }
+
+        // 自动打币
+        if (OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy)) {
+            OrderReviewQuery reviewQuery = OrderReviewQuery.builder()
+                    .orderNo(order.getOrderNo())
+                    .remarks("自动审核通过")
+                    .rid(0L)
+                    .reviewBy("系统自动")
+                    .pass(true).build();
+            orderReviewService.review(reviewQuery);
+        }
+
     }
 
     /**
@@ -723,4 +736,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     private CoinBaseService coinBaseService;
     @Resource
     private CoinService coinService;
+    @Resource
+    private WithdrawReviewStrategy withdrawReviewStrategy;
 }
