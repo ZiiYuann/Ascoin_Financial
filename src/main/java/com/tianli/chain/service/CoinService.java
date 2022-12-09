@@ -5,7 +5,6 @@ import com.tianli.chain.entity.Coin;
 import com.tianli.chain.entity.CoinBase;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.management.query.CoinIoUQuery;
-import com.tianli.chain.query.CoinReviewConfigQuery;
 import com.tianli.management.query.CoinStatusQuery;
 import com.tianli.management.query.CoinWithdrawQuery;
 
