@@ -91,7 +91,7 @@
         LEFT JOIN order_review review on review.id = o.reviewer_id
         WHERE 1 = 1
         <include refid="FinancialChargeQuery"/>
-        ORDER BY o.create_time DESC
+
 
     </select>
 
@@ -166,11 +166,21 @@
         <if test="query.networkType != null">
             AND charge.network = #{query.networkType}
         </if>
-        <if test="query.startTime != null and query.endTime">
+        <if test="query.startTime != null and query.endTime and noReview == false ">
             AND o.create_time BETWEEN #{query.startTime} AND #{query.endTime}
+        </if>
+        <if test="query.startTime != null and query.endTime and noReview == true ">
+            AND o.complete_time BETWEEN #{query.startTime} AND #{query.endTime}
         </if>
         <if test="query.noReview == true and query.chargeStatus == null">
             AND o.status != 'created'
+        </if>
+
+        <if test=" noReview == false ">
+            ORDER BY o.create_time DESC
+        </if>
+        <if test=" noReview == true ">
+            ORDER BY o.complete_time DESC
         </if>
 
     </sql>
