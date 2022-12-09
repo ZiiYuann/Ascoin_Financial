@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.Objects;
 
 /**
  * @author chenb
@@ -124,9 +125,13 @@ public class OpenApiController {
      * 用户资产
      */
     @PostMapping("/assets/uids")
-    public Result assetsUids(@RequestBody UidsQuery query,
+    public Result assetsUids(@RequestBody(required = false) UidsQuery query,
                              @RequestHeader("sign") String sign,
                              @RequestHeader("timestamp") String timestamp) {
+
+        if (Objects.isNull(query)) {
+            return Result.success();
+        }
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
@@ -137,9 +142,12 @@ public class OpenApiController {
      * 用户资产
      */
     @PostMapping("/assets/map")
-    public Result assetsMap(@RequestBody UidsQuery query,
+    public Result assetsMap(@RequestBody(required = false) UidsQuery query,
                             @RequestHeader("sign") String sign,
                             @RequestHeader("timestamp") String timestamp) {
+        if (Objects.isNull(query)) {
+            return Result.success();
+        }
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
