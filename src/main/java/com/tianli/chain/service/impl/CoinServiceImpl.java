@@ -62,6 +62,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     private CoinBaseService coinBaseService;
     @Resource
     private ContractAdapter contractAdapter;
+
     // 存储每批数据的临时容器
     private final List<Address> addresses = new ArrayList<>();
     private int size = 0;
@@ -81,21 +82,28 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     }
 
     @Override
+    public List<Coin> pushCoinsWithCache(String name) {
+        List<Coin> coins = pushCoinsWithCache();
+        return coins.stream().filter(coin -> name.equals(coin.getName()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
-    public void saveOrUpdate(Long uid, CoinIoUQuery query) {
+    public void saveOrUpdate(String nickName, CoinIoUQuery query) {
         // 判断是否存在汇率
         currencyService.huobiUsdtRate(query.getName().toLowerCase(Locale.ROOT));
         // 获取小数点位数
         Integer decimals = contractAdapter.getOne(query.getNetwork()).decimals(query.getContract());
         query.setDecimals(decimals);
 
-        coinBaseService.saveOrUpdate(uid, query);
+        coinBaseService.saveOrUpdate(nickName, query);
 
         // insert
         if (Objects.isNull(query.getId())) {
             Coin coin = managementConverter.toDO(query);
-            coin.setCreateBy(uid);
-            coin.setUpdateBy(uid);
+            coin.setCreateBy(nickName);
+            coin.setUpdateBy(nickName);
             coinMapper.insert(coin);
             return;
         }
@@ -106,7 +114,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
             return;
         }
         coin = managementConverter.toDO(query);
-        coin.setUpdateBy(uid);
+        coin.setUpdateBy(nickName);
         coinMapper.updateById(coin);
     }
 
@@ -126,9 +134,9 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
 
     @Override
     @Transactional
-    public void push(Long uid, CoinStatusQuery query) {
+    public void push(String nickname, CoinStatusQuery query) {
         Long id = query.getId();
-        var coin = processStatus(id);
+        var coin = processStatus(nickname, id);
         asyncService.async(() -> this.asyncPush(coin));
     }
 
@@ -211,9 +219,9 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
 
     @Override
     @Transactional
-    public void withdrawConfig(Long uid, CoinWithdrawQuery query) {
+    public void withdrawConfig(String nickname, CoinWithdrawQuery query) {
         Coin coin = this.getById(query.getId());
-        coin.setUpdateBy(uid);
+        coin.setUpdateBy(nickname);
         coin.setWithdrawDecimals(query.getWithdrawDecimals());
         coin.setWithdrawMin(query.getWithdrawMin());
         coin.setWithdrawFixedAmount(query.getWithdrawFixedAmount());
@@ -248,7 +256,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Coin processStatus(Long id) {
+    public Coin processStatus(String nickname, Long id) {
         Coin coin = coinMapper.selectById(id);
         Optional.ofNullable(coin).orElseThrow(NullPointerException::new);
 
@@ -262,6 +270,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
 
         // 修改状态为 上架中
         coin.setStatus((byte) 1);
+        coin.setUpdateBy(nickname);
         coinMapper.updateById(coin);
         return coin;
     }

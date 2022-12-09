@@ -5,6 +5,7 @@ import com.tianli.chain.entity.Coin;
 import com.tianli.chain.entity.CoinBase;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.management.query.CoinIoUQuery;
+import com.tianli.chain.query.CoinReviewConfigQuery;
 import com.tianli.management.query.CoinStatusQuery;
 import com.tianli.management.query.CoinWithdrawQuery;
 
@@ -19,16 +20,27 @@ import java.util.Set;
 public interface CoinService extends IService<Coin> {
 
     /**
+     * 已经发布币别列表缓存
+     *
      * @return 集合列表
      */
     List<Coin> pushCoinsWithCache();
 
     /**
+     * 已经发布币别列表缓存
+     *
+     * @param name 币种名称
+     * @return 集合列表
+     */
+    List<Coin> pushCoinsWithCache(String name);
+
+    /**
      * 保存或者更新
      *
-     * @param query 请求
+     * @param nickname 操作人
+     * @param query    请求
      */
-    void saveOrUpdate(Long uid, CoinIoUQuery query);
+    void saveOrUpdate(String nickname, CoinIoUQuery query);
 
 
     /**
@@ -39,10 +51,10 @@ public interface CoinService extends IService<Coin> {
     /**
      * 币别上架
      *
-     * @param uid   操作人id
-     * @param query 请求
+     * @param nickname 操作人
+     * @param query    请求
      */
-    void push(Long uid, CoinStatusQuery query);
+    void push(String nickname, CoinStatusQuery query);
 
     /**
      * @return 有效的币种列表
@@ -83,9 +95,10 @@ public interface CoinService extends IService<Coin> {
     /**
      * 提现配置
      *
-     * @param uid   操作人id
-     * @param query 请求参数
+     * @param nickname 操作人
+     * @param query    请求参数
      */
-    void withdrawConfig(Long uid, CoinWithdrawQuery query);
+    void withdrawConfig(String nickname, CoinWithdrawQuery query);
+
 
 }

@@ -34,7 +34,7 @@ public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> i
 
     @Override
     @Transactional
-    public CoinBase saveOrUpdate(Long uid, CoinIoUQuery query) {
+    public CoinBase saveOrUpdate(String nickName, CoinIoUQuery query) {
 
         CoinBase coinBase = coinBaseMapper.selectByName(query.getName());
 
@@ -43,13 +43,13 @@ public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> i
                     .name(query.getName())
                     .logo(query.getLogo())
                     .weight(query.getWeight())
-                    .createBy(uid)
-                    .updateBy(uid).build();
+                    .createBy(nickName)
+                    .updateBy(nickName).build();
             coinBaseMapper.insert(coinBase);
             return coinBase;
         }
 
-        coinBase.setUpdateBy(uid);
+        coinBase.setUpdateBy(nickName);
         coinBase.setLogo(query.getLogo());
         coinBase.setWeight(query.getWeight());
 

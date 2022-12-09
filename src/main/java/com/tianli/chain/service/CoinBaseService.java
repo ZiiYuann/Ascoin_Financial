@@ -18,11 +18,11 @@ public interface CoinBaseService extends IService<CoinBase> {
 
 
     /**
-     * @param uid   操作人id
-     * @param query 请求参数
+     * @param nickName 昵称
+     * @param query    请求参数
      * @return 币别配置信息
      */
-    CoinBase saveOrUpdate(Long uid, CoinIoUQuery query);
+    CoinBase saveOrUpdate(String nickName, CoinIoUQuery query);
 
     /**
      * 分页列表

@@ -39,9 +39,9 @@ public class Coin {
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
-    private Long createBy;
+    private String createBy;
 
-    private Long updateBy;
+    private String updateBy;
 
     private boolean mainToken;
 
