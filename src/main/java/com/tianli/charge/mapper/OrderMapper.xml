@@ -166,10 +166,10 @@
         <if test="query.networkType != null">
             AND charge.network = #{query.networkType}
         </if>
-        <if test="query.startTime != null and query.endTime and query.noReview == false ">
+        <if test="query.startTime != null and query.endTime != null and query.noReview == false ">
             AND o.create_time BETWEEN #{query.startTime} AND #{query.endTime}
         </if>
-        <if test="query.startTime != null and query.endTime and query.noReview == true ">
+        <if test="query.startTime != null and query.endTime != null and query.noReview == true ">
             AND o.complete_time BETWEEN #{query.startTime} AND #{query.endTime}
         </if>
         <if test="query.noReview == true and query.chargeStatus == null">
