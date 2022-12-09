@@ -2,11 +2,13 @@ package com.tianli.financial.vo;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.tianli.chain.vo.CoinVO;
 import com.tianli.financial.enums.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author chenb
@@ -151,6 +153,11 @@ public class FinancialProductVO {
     private boolean hold;
 
     private boolean newUser;
+
+    /**
+     * 币别信息
+     */
+    private List<CoinVO> coins;
 
 
 }

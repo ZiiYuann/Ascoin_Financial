@@ -1,9 +1,7 @@
 package com.tianli.chain.converter;
 
-import com.tianli.chain.entity.Coin;
-import com.tianli.chain.entity.WalletImputation;
-import com.tianli.chain.entity.WalletImputationLog;
-import com.tianli.chain.entity.WalletImputationLogAppendix;
+import com.tianli.chain.entity.*;
+import com.tianli.chain.query.CoinReviewConfigIoUQuery;
 import com.tianli.chain.vo.CoinVO;
 import com.tianli.chain.vo.WalletImputationLogAppendixVO;
 import com.tianli.chain.vo.WalletImputationLogVO;
@@ -21,4 +19,5 @@ public interface ChainConverter {
 
     CoinVO toCoinVO(Coin coin);
 
+    CoinReviewConfig toDO(CoinReviewConfigIoUQuery query);
 }

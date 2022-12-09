@@ -9,8 +9,10 @@ import com.google.common.base.MoreObjects;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
+import com.tianli.chain.converter.ChainConverter;
 import com.tianli.chain.entity.CoinBase;
 import com.tianli.chain.service.CoinBaseService;
+import com.tianli.chain.service.CoinService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.RedisConstants;
@@ -562,6 +564,8 @@ public class FinancialServiceImpl implements FinancialService {
             financialProductVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
 
             financialProductVO.setNewUser(isNewUser);
+            financialProductVO.setCoins(coinService.pushCoinsWithCache(product.getCoin()).stream()
+                    .map(chainConverter::toCoinVO).collect(Collectors.toList()));
 
             return financialProductVO;
         });
@@ -680,5 +684,9 @@ public class FinancialServiceImpl implements FinancialService {
     private RedisService redisService;
     @Resource
     private CoinBaseService coinBaseService;
+    @Resource
+    private CoinService coinService;
+    @Resource
+    private ChainConverter chainConverter;
 
 }
