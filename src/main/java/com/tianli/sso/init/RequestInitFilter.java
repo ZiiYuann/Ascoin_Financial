@@ -39,20 +39,20 @@ public class RequestInitFilter implements Filter {
                 requestBody = new Gson().toJson(httpServletRequest.getParameterMap());
             else
                 requestBody = Utf8.decode(requestByte);
-//            System.out.println(MapTool.Map()
-//                    .put("uid", requestInitService._uid() == null ? 0 : requestInitService._uid())
-//                    .put("requestBody", requestBody)
-//                    .put("requestMethod", httpServletRequest.getMethod())
-//                    .put("requestPath", httpServletRequest.getRequestURI())
-//                    .put("responseStatus", httpServletResponse.getStatus())
-//                    .put("responseBody", Utf8.decode(httpServletResponse.getContentAsByteArray()))
-//                    .put("imei", requestInitService.imei())
-//                    .put("deviceType", requestInitService.deviceType())
-//                    .put("ip", requestInitService.ip())
-//                    .put("requestId", requestInitService.requestId())
-//                    .put("lat", requestInitService.lat())
-//                    .put("lng", requestInitService.lng())
-//            );
+            System.out.println(MapTool.Map()
+                    .put("uid", requestInitService._uid() == null ? 0 : requestInitService._uid())
+                    .put("requestBody", requestBody)
+                    .put("requestMethod", httpServletRequest.getMethod())
+                    .put("requestPath", httpServletRequest.getRequestURI())
+                    .put("responseStatus", httpServletResponse.getStatus())
+                    .put("responseBody", Utf8.decode(httpServletResponse.getContentAsByteArray()))
+                    .put("imei", requestInitService.imei())
+                    .put("deviceType", requestInitService.deviceType())
+                    .put("ip", requestInitService.ip())
+                    .put("requestId", requestInitService.requestId())
+                    .put("lat", requestInitService.lat())
+                    .put("lng", requestInitService.lng())
+            );
         } catch (IllegalArgumentException ignored) {
         }
         httpServletResponse.copyBodyToResponse();
