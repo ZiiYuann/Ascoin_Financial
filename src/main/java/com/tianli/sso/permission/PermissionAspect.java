@@ -29,9 +29,9 @@ public class PermissionAspect {
     @Before(value = "@annotation(privilege)")
     public void verifyActiveAdmin(AdminPrivilege privilege){
         String url = request.getRequestURL().toString();
-        if(url.contains("127.0.0.1")||url.contains("localhost")){
-            return;
-        }
+//        if(url.contains("127.0.0.1")||url.contains("localhost")){
+//            return;
+//        }
         String contextPath = privilege.api();
         if (StringUtils.isBlank(contextPath)) {
             contextPath = request.getServletPath();

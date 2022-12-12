@@ -11,12 +11,15 @@ import com.tianli.task.FundIncomeTask;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static com.tianli.common.RedisConstants.USER_WITHDRAW_LIMIT;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = FinancialApplication.class)
@@ -35,6 +38,9 @@ class BootTest {
     private TronWeb3jContract tronWeb3jContract;
     @Resource
     private TronTriggerContract tronTriggerContract;
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
+
 
     @Test
     void getStatusByHash() {
@@ -72,6 +78,12 @@ class BootTest {
     @Test
     void contract() throws InterruptedException, IOException {
         tronTriggerContract.decimals("TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8");
+    }
+
+    @Test
+    void test() {
+        String key = USER_WITHDRAW_LIMIT + "0";
+        redisTemplate.opsForList().rightPush(key,LocalDateTime.now());
     }
 
 

@@ -308,6 +308,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 , withdrawAmount, order.getOrderNo(), CurrencyLogDes.提现.name());
 
         OrderReviewStrategy strategy = withdrawReviewStrategy.getStrategy(order, orderChargeInfo);
+        log.info("当前提现策略是 ： " + strategy.name());
         if (!OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy)) {
             StringBuilder msg = new StringBuilder()
                     .append("监测到用户提现申请,请管理员尽快处理，金额：")
