@@ -298,6 +298,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         accountBalanceVO.setDollarRemain(dollarRate.multiply(accountBalanceVO.getRemain()));
         accountBalanceVO.setDollarBalance(dollarRate.multiply(accountBalanceVO.getBalance()));
         accountBalanceVO.setLogo(coinBase.getLogo());
+        accountBalanceVO.setWeight(coinBase.getWeight());
         return accountBalanceVO;
 
     }
