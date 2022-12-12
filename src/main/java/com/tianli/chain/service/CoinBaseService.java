@@ -9,6 +9,9 @@ import com.tianli.management.query.CoinIoUQuery;
 import com.tianli.management.query.CoinsQuery;
 import com.tianli.management.vo.MCoinListVO;
 
+import java.util.List;
+import java.util.Set;
+
 /**
  * @author chenb
  * @apiNote
@@ -37,7 +40,7 @@ public interface CoinBaseService extends IService<CoinBase> {
     /**
      * 根据名称获取币
      *
-     * @param name
+     * @param name 币别名称
      * @return 币别
      */
     CoinBase getByName(String name);
@@ -48,4 +51,31 @@ public interface CoinBaseService extends IService<CoinBase> {
      * @param name 币名称
      */
     void show(String name);
+
+    /**
+     * 删除缓存
+     *
+     * @param name 币别名称
+     */
+    void deleteCache(String name);
+
+    /**
+     * 刷新缓存
+     */
+    List<CoinBase> flushPushListCache();
+
+    /**
+     * 获取缓存
+     */
+    List<CoinBase> getPushListCache();
+
+    /**
+     * 删除缓存
+     */
+    void deletePushListCache();
+
+    /**
+     * @return 有效的币种名称
+     */
+    Set<String> pushCoinNames();
 }

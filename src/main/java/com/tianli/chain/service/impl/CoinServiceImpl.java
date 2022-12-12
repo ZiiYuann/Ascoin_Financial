@@ -119,20 +119,6 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     }
 
     @Override
-    public List<CoinBase> flushCache() {
-        // 删除缓存
-        redisTemplate.delete(RedisConstants.COIN_BASE_LIST);
-        deletePushListCache();
-
-        // 只缓存上架的数据
-        List<CoinBase> coins = coinBaseService.list(new LambdaQueryWrapper<CoinBase>()
-                .eq(CoinBase::isDisplay, true));
-
-        redisTemplate.opsForValue().set(RedisConstants.COIN_BASE_LIST, coins);
-        return coins;
-    }
-
-    @Override
     @Transactional
     public void push(String nickname, CoinStatusQuery query) {
         Long id = query.getId();
@@ -163,7 +149,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
             for (int i = 0; i < 300; i++) {
                 if (sqsService.receiveAndDelete(null, 5) == 0) {
                     successStatus(coin.getId());
-                    flushCache();
+                    coinBaseService.flushPushListCache();
                     webHookService.dingTalkSend("新币种注册消费结束");
                     return;
                 }
@@ -176,25 +162,6 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         } catch (Exception e) {
             webHookService.dingTalkSend("异步push注册信息结束异常", e);
         }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<CoinBase> effectiveCoinsWithCache() {
-        Object o = redisTemplate.opsForValue().get(RedisConstants.COIN_BASE_LIST);
-        if (Objects.isNull(o)) {
-            return flushCache();
-        }
-
-        return (List<CoinBase>) o;
-    }
-
-    @Override
-    public Set<String> effectiveCoinNames() {
-        List<CoinBase> coins = effectiveCoinsWithCache();
-        return coins.stream()
-                .map(coin -> coin.getName().toLowerCase(Locale.ROOT))
-                .collect(Collectors.toSet());
     }
 
     @Override
@@ -226,7 +193,6 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         coin.setWithdrawMin(query.getWithdrawMin());
         coin.setWithdrawFixedAmount(query.getWithdrawFixedAmount());
         this.updateById(coin);
-        deletePushListCache();
     }
 
     private void pushSqs(Coin coin) {
@@ -291,8 +257,5 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         return coin;
     }
 
-    private void deletePushListCache() {
-        redisTemplate.delete(RedisConstants.COIN_PUSH_LIST);
-    }
 
 }

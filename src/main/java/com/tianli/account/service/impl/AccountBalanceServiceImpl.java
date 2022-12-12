@@ -13,6 +13,7 @@ import com.tianli.account.vo.AccountBalanceMainPageVO;
 import com.tianli.account.vo.AccountBalanceSimpleVO;
 import com.tianli.account.vo.AccountBalanceVO;
 import com.tianli.chain.entity.CoinBase;
+import com.tianli.chain.service.CoinBaseService;
 import com.tianli.chain.service.CoinService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.CommonFunction;
@@ -225,7 +226,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
 
         var existCoinNames =
                 accountBalanceVOS.stream().map(AccountBalanceVO::getCoin).collect(Collectors.toList());
-        Set<String> coinNames = coinService.effectiveCoinNames();
+        Set<String> coinNames = coinBaseService.pushCoinNames();
         existCoinNames.forEach(coinNames::remove);
 
         for (String coin : coinNames) {
@@ -376,7 +377,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
      * @param tokenName 币别类型
      */
     private CoinBase validCurrencyToken(String tokenName) {
-        List<CoinBase> coins = coinService.effectiveCoinsWithCache();
+        List<CoinBase> coins = coinBaseService.getPushListCache();
         for (CoinBase coinBase : coins) {
             if (coinBase.getName().equalsIgnoreCase(tokenName)) {
                 return coinBase;
@@ -401,6 +402,8 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
     private FinancialRecordService financialRecordService;
     @Resource
     private CoinService coinService;
+    @Resource
+    private CoinBaseService coinBaseService;
 
 
 }

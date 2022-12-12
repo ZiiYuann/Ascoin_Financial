@@ -17,7 +17,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -76,6 +80,49 @@ public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> i
     @Override
     public void show(String name) {
         coinBaseMapper.displayOpen(name);
+    }
+
+    @Override
+    public void deleteCache(String name) {
+        redisTemplate.delete(RedisConstants.COIN_BASE + name);
+    }
+
+    @Override
+    public List<CoinBase> flushPushListCache() {
+        // 删除缓存
+        redisTemplate.delete(RedisConstants.COIN_BASE_LIST);
+        deletePushListCache();
+
+        // 只缓存上架的数据
+        List<CoinBase> coins = this.list(new LambdaQueryWrapper<CoinBase>()
+                .eq(CoinBase::isDisplay, true));
+
+        redisTemplate.opsForValue().set(RedisConstants.COIN_BASE_LIST, coins);
+        return coins;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<CoinBase> getPushListCache() {
+        Object o = redisTemplate.opsForValue().get(RedisConstants.COIN_BASE_LIST);
+        if (Objects.isNull(o)) {
+            return flushPushListCache();
+        }
+
+        return (List<CoinBase>) o;
+    }
+
+    @Override
+    public Set<String> pushCoinNames() {
+        List<CoinBase> coins = getPushListCache();
+        return coins.stream()
+                .map(coin -> coin.getName().toLowerCase(Locale.ROOT))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void deletePushListCache() {
+        redisTemplate.delete(RedisConstants.COIN_PUSH_LIST);
     }
 
 }
