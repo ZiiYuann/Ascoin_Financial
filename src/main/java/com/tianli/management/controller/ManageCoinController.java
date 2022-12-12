@@ -36,7 +36,8 @@ public class ManageCoinController {
     public Result saveOrUpdate(@RequestBody @Valid CoinIoUQuery query) {
         String nickname = AdminContent.get().getNickname();
         coinService.saveOrUpdate(nickname, query);
-        coinService.flushCache();
+        coinBaseService.deleteCache(query.getName());
+        coinBaseService.flushPushListCache();
         return Result.success();
     }
 

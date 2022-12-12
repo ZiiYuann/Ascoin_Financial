@@ -41,12 +41,6 @@ public interface CoinService extends IService<Coin> {
      */
     void saveOrUpdate(String nickname, CoinIoUQuery query);
 
-
-    /**
-     * 刷新缓存
-     */
-    List<CoinBase> flushCache();
-
     /**
      * 币别上架
      *
@@ -54,17 +48,6 @@ public interface CoinService extends IService<Coin> {
      * @param query    请求
      */
     void push(String nickname, CoinStatusQuery query);
-
-    /**
-     * @return 有效的币种列表
-     */
-    List<CoinBase> effectiveCoinsWithCache();
-
-
-    /**
-     * @return 有效的币种名称
-     */
-    Set<String> effectiveCoinNames();
 
     /**
      * 根据币别名称和网络获取币别

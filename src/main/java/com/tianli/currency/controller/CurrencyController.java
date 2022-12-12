@@ -1,5 +1,6 @@
 package com.tianli.currency.controller;
 
+import com.tianli.chain.service.CoinBaseService;
 import com.tianli.chain.service.CoinService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.Result;
@@ -24,12 +25,11 @@ public class CurrencyController {
     @Resource
     private CurrencyService currencyService;
     @Resource
-    private CoinService coinService;
+    private CoinBaseService coinBaseService;
 
     @GetMapping("coin")
     public Result coin() {
-
-        Set<String> coins = coinService.effectiveCoinNames();
+        Set<String> coins = coinBaseService.pushCoinNames();
 
         Map<String, Set<String>> result = new HashMap<>();
         result.put("coins", coins);

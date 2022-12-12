@@ -6,6 +6,7 @@ import com.tianli.chain.service.CoinService;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.vo.CoinMapVO;
 import com.tianli.chain.vo.CoinVO;
+import com.tianli.chain.vo.NetworkTypeVO;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.exception.Result;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -69,4 +70,20 @@ public class ChainController {
         return Result.success().setData(result);
     }
 
+    @GetMapping("/network")
+    public Result network() {
+        List<NetworkType> list = List.of(NetworkType.values());
+        final List<NetworkTypeVO> result = new ArrayList<>();
+
+        list.stream()
+                .collect(Collectors.groupingBy(NetworkType::getChainType))
+                .forEach((key, value) -> {
+                    NetworkTypeVO networkTypeVO = new NetworkTypeVO();
+                    networkTypeVO.setChainType(key);
+                    networkTypeVO.setNetworkTypes(value.stream().map(NetworkType::name).collect(Collectors.toSet()));
+                    result.add(networkTypeVO);
+                });
+
+        return Result.success().setData(result);
+    }
 }
