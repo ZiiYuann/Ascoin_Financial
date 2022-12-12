@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -73,7 +74,7 @@ public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> i
             return (CoinBase) o;
         }
         CoinBase coinBase = coinBaseMapper.selectByName(name);
-        redisTemplate.opsForValue().set(RedisConstants.COIN_BASE + name, coinBase);
+        redisTemplate.opsForValue().set(RedisConstants.COIN_BASE + name, coinBase, 7, TimeUnit.DAYS);
         return coinBase;
     }
 
@@ -97,7 +98,7 @@ public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> i
         List<CoinBase> coins = this.list(new LambdaQueryWrapper<CoinBase>()
                 .eq(CoinBase::isDisplay, true));
 
-        redisTemplate.opsForValue().set(RedisConstants.COIN_BASE_LIST, coins);
+        redisTemplate.opsForValue().set(RedisConstants.COIN_BASE_LIST, coins, 7, TimeUnit.DAYS);
         return coins;
     }
 
