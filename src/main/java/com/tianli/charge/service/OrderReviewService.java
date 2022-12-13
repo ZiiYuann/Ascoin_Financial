@@ -62,7 +62,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         if (!ChargeType.withdraw.equals(order.getType())) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "仅限制提现订单能通过审核");
         }
-        if (ChargeStatus.created.equals(order.getStatus())) {
+        if (!ChargeStatus.created.equals(order.getStatus())) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "仅未审核订单可以通过审核");
         }
         if (Objects.nonNull(order.getReviewerId()) || !ChargeStatus.created.equals(order.getStatus())) {
