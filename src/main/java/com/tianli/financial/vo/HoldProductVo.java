@@ -19,6 +19,11 @@ public class HoldProductVo {
     /**
      * 记录id
      */
+    private Long productId;
+
+    /**
+     * 记录id
+     */
     private Long recordId;
 
     /**

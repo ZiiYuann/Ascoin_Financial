@@ -88,6 +88,15 @@ public class FinancialController {
     /**
      * 【我的持用】
      */
+    @GetMapping("/hold/hierarchy")
+    public Result myHoldHierarchy(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(financialService.holdProduct(pageQuery.page(), uid, productType));
+    }
+
+    /**
+     * 【我的持用】
+     */
     @GetMapping("/hold")
     public Result myHold(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
         Long uid = requestInitService.uid();

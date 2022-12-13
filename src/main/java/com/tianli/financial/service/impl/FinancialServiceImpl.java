@@ -59,6 +59,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.tron.tronj.crypto.Hash;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -198,6 +199,22 @@ public class FinancialServiceImpl implements FinancialService {
             return holdProductVo;
         });
         return holdProductVoPage;
+    }
+
+    @Override
+    public IPage<?> holdProduct(IPage<FinancialProduct> page, Long uid, ProductType type) {
+        IPage<Long> holdProductIdsPage = productMapper.holdProductIds(page, uid, Objects.isNull(type) ? null : type.name());
+        List<Long> productIds = new ArrayList<>(holdProductIdsPage.getRecords());
+
+        var holdProductVoMap = productMapper.holdProducts(uid, productIds)
+                .stream().collect(Collectors.groupingBy(HoldProductVo::getProductId));
+
+        return holdProductIdsPage.convert(productId -> {
+            HashMap<String, Object> index = new HashMap<>();
+            index.put("product", financialProductService.getById(productId));
+            index.put("holdProducts", holdProductVoMap.get(productId));
+            return index;
+        });
     }
 
     @Override
