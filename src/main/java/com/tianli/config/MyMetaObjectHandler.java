@@ -1,6 +1,7 @@
 package com.tianli.config;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import com.tianli.sso.permission.admin.AdminContent;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
 
@@ -19,11 +20,14 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
         // createTime 这个字段与pojo类中字段对应
         this.setFieldValByName("createTime", LocalDateTime.now(), metaObject);
         this.setFieldValByName("updateTime", LocalDateTime.now(), metaObject);
+        this.setFieldValByName("createBy", AdminContent.get().getNickname(), metaObject);
+        this.setFieldValByName("updateBy", AdminContent.get().getNickname(), metaObject);
     }
 
     @Override
     public void updateFill(MetaObject metaObject) {
         this.setFieldValByName("updateTime", LocalDateTime.now(), metaObject);
+        this.setFieldValByName("updateBy", AdminContent.get().getNickname(), metaObject);
     }
 
 }

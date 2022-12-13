@@ -4,6 +4,8 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.chain.entity.WalletImputationLog;
+import com.tianli.chain.service.WalletImputationLogService;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.service.contract.Web3jContractOperation;
 import com.tianli.charge.entity.Order;
@@ -13,13 +15,15 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderChargeInfoService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
-import com.tianli.common.webhook.WebHookService;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.entity.WithdrawServiceFee;
 import com.tianli.management.mapper.WithdrawServiceFeeMapper;
 import com.tianli.management.service.WithdrawServiceFeeService;
 import com.tianli.management.vo.WithdrawServiceFeeVO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,34 +50,29 @@ public class WithdrawServiceFeeServiceImpl extends ServiceImpl<WithdrawServiceFe
     @Resource
     private ContractAdapter contractAdapter;
     @Resource
-    private WebHookService webHookService;
-    @Resource
     private ManagementConverter managementConverter;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private WalletImputationLogService walletImputationLogService;
 
 
     @Override
     @Transactional
     public void init(LocalDate startTime, LocalDate endTime) {
 
-        LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
-                .eq(Order::getType, ChargeType.withdraw)
-                .in(Order::getStatus, List.of(ChargeStatus.chain_success, ChargeStatus.chain_fail));
 
-        if (Objects.nonNull(startTime) && Objects.nonNull(endTime)) {
-            queryWrapper = queryWrapper.between(Order::getCreateTime, startTime, endTime);
-        }
+        var withdrawServiceFeeDTOs = getWithdrawServiceFeeDTOs(startTime, endTime);
+        var imputationServiceFeeDTOs = getImputationServiceFeeDTOs(startTime, endTime);
 
-        if (Objects.nonNull(startTime) && Objects.isNull(endTime)) {
-            queryWrapper = queryWrapper.ge(Order::getCreateTime, startTime);
-        }
+        withdrawServiceFeeDTOs.addAll(imputationServiceFeeDTOs);
 
-        List<Order> withdrawOrders = orderService.list(queryWrapper);
-        var orderMap = withdrawOrders.stream()
-                .collect(Collectors.groupingBy(order -> order.getCreateTime().toLocalDate().toString()));
 
-        for (Map.Entry<String, List<Order>> entry : orderMap.entrySet()) {
+        var serviceFeeMap = withdrawServiceFeeDTOs.stream()
+                .collect(Collectors.groupingBy(ServiceFeeDTO::getTime));
+
+
+        for (Map.Entry<String, List<ServiceFeeDTO>> entry : serviceFeeMap.entrySet()) {
             BigDecimal eth = BigDecimal.ZERO;
             BigDecimal bnb = BigDecimal.ZERO;
             BigDecimal trx = BigDecimal.ZERO;
@@ -81,16 +80,15 @@ public class WithdrawServiceFeeServiceImpl extends ServiceImpl<WithdrawServiceFe
             LocalDate date = LocalDate.parse(entry.getKey());
 
 
-            List<Order> orders = entry.getValue();
+            List<ServiceFeeDTO> serviceFeeDTOS = entry.getValue();
 
-            for (Order order : orders) {
-                OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
+            for (ServiceFeeDTO serviceFeeDTO : serviceFeeDTOS) {
                 try {
-                    Web3jContractOperation web3j = contractAdapter.getWeb3j(orderChargeInfo.getNetwork());
+                    Web3jContractOperation web3j = contractAdapter.getWeb3j(serviceFeeDTO.getNetworkType());
 
-                    BigDecimal amount = web3j.getConsumeFee(orderChargeInfo.getTxid());
+                    BigDecimal amount = web3j.getConsumeFee(serviceFeeDTO.getTxid());
 
-                    switch (orderChargeInfo.getNetwork()) {
+                    switch (serviceFeeDTO.getNetworkType()) {
                         case bep20:
                             bnb = bnb.add(amount);
                             break;
@@ -104,8 +102,9 @@ public class WithdrawServiceFeeServiceImpl extends ServiceImpl<WithdrawServiceFe
                             break;
                     }
                 } catch (Exception e) {
-                    webHookService.dingTalkSend("异常提现订单【hash数值异常】：" + order.getOrderNo());
-                    e.printStackTrace();
+//                    webHookService.dingTalkSend("异常提现订单【hash数值异常】：" + order.getOrderNo());
+                    log.error("异常提现订单【hash数值异常】：" + serviceFeeDTO.getTxid());
+//                    e.printStackTrace();
                 }
 
             }
@@ -119,6 +118,65 @@ public class WithdrawServiceFeeServiceImpl extends ServiceImpl<WithdrawServiceFe
             this.saveOrUpdate(withdrawServiceFee, new LambdaQueryWrapper<WithdrawServiceFee>()
                     .eq(WithdrawServiceFee::getCreateTime, date));
         }
+    }
+
+
+    /**
+     * 获取提现手续费信息
+     *
+     * @param startTime 开始时间
+     * @param endTime   结束时间
+     * @return 提现数据信息
+     */
+    private List<ServiceFeeDTO> getWithdrawServiceFeeDTOs(LocalDate startTime, LocalDate endTime) {
+        LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
+                .in(Order::getType, ChargeType.withdraw)
+                .in(Order::getStatus, List.of(ChargeStatus.chain_success, ChargeStatus.chain_fail));
+
+        if (Objects.nonNull(startTime) && Objects.nonNull(endTime)) {
+            queryWrapper = queryWrapper.between(Order::getCreateTime, startTime, endTime);
+        }
+
+        if (Objects.nonNull(startTime) && Objects.isNull(endTime)) {
+            queryWrapper = queryWrapper.ge(Order::getCreateTime, startTime);
+        }
+
+        // 提现订单
+        List<Order> withdrawOrders = orderService.list(queryWrapper);
+
+        return withdrawOrders.stream().map(order -> {
+            OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
+            return new ServiceFeeDTO(orderChargeInfo.getNetwork(), orderChargeInfo.getTxid()
+                    , orderChargeInfo.getCreateTime().toLocalDate().toString());
+        }).collect(Collectors.toList());
+    }
+
+
+    /**
+     * 获取提现归集手续费信息
+     *
+     * @param startTime 开始时间
+     * @param endTime   结束时间
+     * @return 提现数据信息
+     */
+    private List<ServiceFeeDTO> getImputationServiceFeeDTOs(LocalDate startTime, LocalDate endTime) {
+        LambdaQueryWrapper<WalletImputationLog> queryWrapper = new LambdaQueryWrapper<>();
+
+        if (Objects.nonNull(startTime) && Objects.nonNull(endTime)) {
+            queryWrapper = queryWrapper.between(WalletImputationLog::getFinishTime, startTime, endTime);
+        }
+
+        if (Objects.nonNull(startTime) && Objects.isNull(endTime)) {
+            queryWrapper = queryWrapper.ge(WalletImputationLog::getFinishTime, startTime);
+        }
+
+        // 提现订单
+        List<WalletImputationLog> walletImputationLogs = walletImputationLogService.list(queryWrapper);
+
+        return walletImputationLogs.stream().map(walletImputationLog ->
+                new ServiceFeeDTO(walletImputationLog.getNetwork(), walletImputationLog.getTxid()
+                        , walletImputationLog.getFinishTime().toLocalDate().toString())).collect(Collectors.toList());
+
     }
 
     @Override
@@ -172,5 +230,13 @@ public class WithdrawServiceFeeServiceImpl extends ServiceImpl<WithdrawServiceFe
         vo.setFees(new ArrayList<>(withdrawServiceFeeVOMap.values()));
 
         return vo;
+    }
+
+    @Data
+    @AllArgsConstructor
+    private class ServiceFeeDTO {
+        private NetworkType networkType;
+        private String txid;
+        private String time;
     }
 }
