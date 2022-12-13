@@ -38,4 +38,17 @@ public class MBannerVO {
 
     private byte weight;
 
+    private byte status;
+
+    public byte getStatus() {
+        LocalDateTime now = LocalDateTime.now();
+
+        if (now.compareTo(startTime) < 0) {
+            return 0;
+        }
+        if (now.compareTo(endTime) > 0) {
+            return 2;
+        }
+        return 1;
+    }
 }
