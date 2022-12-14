@@ -13,14 +13,11 @@ import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.ExpectIncomeVO;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.sso.init.RequestInitService;
-import com.tianli.tool.IPUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/financial")
@@ -165,7 +162,7 @@ public class FinancialController {
      * 额外的产品信息
      */
     @GetMapping("/extraInfo/{productId}")
-    public Result productInfo(@PathVariable Long productId, HttpServletRequest request) {
+    public Result productInfo(@PathVariable Long productId) {
         Long uid = requestInitService.uid();
         return Result.instance().setData(financialService.productExtraInfo(uid, productId));
     }

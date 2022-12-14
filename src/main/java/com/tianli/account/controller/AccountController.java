@@ -126,7 +126,7 @@ public class AccountController {
      */
     @GetMapping("/service/amount")
     public Result serviceRate(String coin, NetworkType networkType) {
-        if (StringUtils.isBlank(coin)){
+        if (StringUtils.isBlank(coin)) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
         Coin coinEntity = coinService.getByNameAndNetwork(coin, networkType);
@@ -141,7 +141,7 @@ public class AccountController {
      */
     @GetMapping("/withdraw/limit")
     public Result withdrawLimit(String coin, NetworkType networkType) {
-        if (StringUtils.isBlank(coin)){
+        if (StringUtils.isBlank(coin)) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
         Coin coinEntity = coinService.getByNameAndNetwork(coin, networkType);
@@ -156,6 +156,15 @@ public class AccountController {
      */
     @GetMapping("/balance/summary")
     public Result accountBalance() {
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(accountBalanceServiceImpl.accountSummary(uid, true));
+    }
+
+    /**
+     * 【云钱包】总资产 + 账户列表
+     */
+    @GetMapping("/balance/summary/dynamic")
+    public Result accountBalanceDynamic() {
         Long uid = requestInitService.uid();
         return Result.instance().setData(accountBalanceServiceImpl.accountSummary(uid));
     }

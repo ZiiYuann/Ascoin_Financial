@@ -23,6 +23,15 @@ public interface AccountBalanceService {
     AccountBalanceMainPageVO accountSummary(Long uid);
 
     /**
+     * 获取用户云钱包汇总信息（总资产 + 各个币种资产）
+     *
+     * @param uid       用户id
+     * @param fixedCoin 固定币别
+     * @return 汇总信息
+     */
+    AccountBalanceMainPageVO accountSummary(Long uid, boolean fixedCoin);
+
+    /**
      * 获取用户所有币别列表
      * {@link AccountBalanceService#accountSingleCoin(Long, String)} 的列表形式
      *
