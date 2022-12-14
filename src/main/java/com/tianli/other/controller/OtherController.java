@@ -1,5 +1,6 @@
 package com.tianli.other.controller;
 
+import cn.hutool.json.JSONObject;
 import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.Result;
 import com.tianli.other.service.BannerService;
@@ -40,8 +41,8 @@ public class OtherController {
     @GetMapping("/ip")
     public Result ip(HttpServletRequest request) {
         try {
-            var mapOptional = Optional.ofNullable(IPUtils.ipAnalysis(IPUtils.getIpAddress(request)));
-            var result = mapOptional.orElse(Collections.emptyMap());
+            var mapOptional = Optional.of(IPUtils.ipAnalysis(IPUtils.getIpAddress(request)));
+            var result = mapOptional.orElse(new JSONObject());
             return Result.success(result);
 
         } catch (Exception e) {

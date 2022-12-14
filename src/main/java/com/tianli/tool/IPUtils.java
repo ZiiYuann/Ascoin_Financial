@@ -1,25 +1,28 @@
 package com.tianli.tool;
 
-import com.google.gson.Gson;
-import com.tianli.common.HttpUtils;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
-import java.util.Objects;
 
 @Slf4j
 public class IPUtils {
 
 
-    public static Map<String, String> ipAnalysis(String ip) throws Exception {
-        HttpResponse get = HttpUtils.doGet("https://api.ip.sb/geoip/" + ip, "", "", Map.of(), Map.of());
-        String s = EntityUtils.toString(get.getEntity());
-        IpAnalysisInfo result = new Gson().fromJson(s, IpAnalysisInfo.class);
-        return Objects.isNull(result) ? Map.of() : result.getData();
+    public static JSONObject ipAnalysis(String ip) throws Exception {
+        CloseableHttpClient client = HttpClients.createDefault();
+        HttpGet httpGet = new HttpGet("https://api.ip.sb/geoip/" + ip);
+        HttpResponse response = client.execute(httpGet);
+        String s = EntityUtils.toString(response.getEntity());
+        return JSONUtil.parseObj(s);
     }
 
     @Data
