@@ -29,7 +29,7 @@ public class CoinReviewConfigIoUQuery extends IoUQuery {
     /**
      * 人工审核，人工打币
      */
-    @Min(value = 5000)
+    @Min(value = 50)
     private int manualReviewManualTransfer;
 
     /**
