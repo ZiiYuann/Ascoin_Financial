@@ -53,10 +53,10 @@ public class OtherController {
     /**
      * 获取usdt兑cny汇率
      */
-    @GetMapping("/usdtCny")
+    @GetMapping("/cnyUsdt")
     public Result cnyUsdt() {
-        HashMap<String, BigDecimal> result = new HashMap<>();
-        result.put("rate", BigDecimal.valueOf(digitalCurrencyExchange.usdtCnyPrice()));
+        HashMap<String, Double> result = new HashMap<>();
+        result.put("rate", digitalCurrencyExchange.usdtCnyPrice());
         return Result.success(result);
     }
 

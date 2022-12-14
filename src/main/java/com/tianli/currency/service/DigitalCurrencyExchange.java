@@ -112,13 +112,14 @@ public class DigitalCurrencyExchange {
         if (o != null && !"null".equals(o)) return Double.valueOf(o.toString());
         Double aDouble = null;
         try {
-            String stringResult = HttpHandler.execute(new HttpRequest().setUrl("https://otc-api.ri16.com/v1/data/trade-market?coinId=2&currency=2&tradeType=sell&currPage=1&payMethod=0&acceptOrder=-1&country=&blockType=general&online=1&range=0&amount=")).getStringResult();
+            String stringResult = HttpHandler.execute(new HttpRequest().setUrl("https://api.coingecko.com/api/v3/simple/token_price/binance-smart-chain?contract_addresses=0x55d398326f99059ff775485246999027b3197955&vs_currencies=cny")).getStringResult();
             JsonObject jsonObject = new Gson().fromJson(stringResult, JsonObject.class);
-            aDouble = JsonObjectTool.getAsDouble(jsonObject, "data[0].price");
-        } catch (Exception ignore) {}
+            aDouble = JsonObjectTool.getAsDouble(jsonObject, "0x55d398326f99059ff775485246999027b3197955.cny");
+        } catch (Exception ignore) {
+            ignore.printStackTrace();
+        }
         if (aDouble == null) return 0.0;
-        aDouble *= usd2Cny();
-        ops.set(aDouble, 1L, TimeUnit.MINUTES);
+        ops.set(aDouble, 1L, TimeUnit.HOURS);
         return aDouble;
     }
 
