@@ -495,6 +495,19 @@ public class FinancialServiceImpl implements FinancialService {
                 .build();
     }
 
+    @Override
+    public ProductInfoVO productExtraInfo(Long uid, Long productId) {
+        Boolean newUser = financialRecordService.isNewUser(requestInitService.uid());
+        FinancialProduct product = financialProductService.getById(productId);
+
+        return ProductInfoVO.builder()
+                .sellOut(!Objects.isNull(product.getTotalQuota())
+                        && product.getTotalQuota().compareTo(MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO)) >= 0)
+                .businessType(product.getBusinessType())
+                .newUser(newUser)
+                .type(product.getType()).build();
+    }
+
     private List<FinancialProductVO> getFinancialProductVOs(Long productId) {
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
                 .eq(FinancialProduct::getId, productId);

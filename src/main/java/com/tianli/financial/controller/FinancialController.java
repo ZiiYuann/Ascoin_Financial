@@ -7,18 +7,20 @@ import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.query.RecordRenewalQuery;
-import com.tianli.financial.service.FinancialProductLadderRateService;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.ExpectIncomeVO;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.sso.init.RequestInitService;
+import com.tianli.tool.IPUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/financial")
@@ -32,9 +34,6 @@ public class FinancialController {
     private FinancialService financialService;
     @Resource
     private FinancialRecordService financialRecordService;
-    @Resource
-    private FinancialProductLadderRateService financialProductLadderRateService;
-
 
     /**
      * 【量化理财主页面】产品汇总列表
@@ -162,5 +161,13 @@ public class FinancialController {
         return Result.instance().setData(financialService.dailyIncomePage(pageQuery.page(), uid, recordId));
     }
 
+    /**
+     * 额外的产品信息
+     */
+    @GetMapping("/extraInfo/{productId}")
+    public Result productInfo(@PathVariable Long productId, HttpServletRequest request) {
+        Long uid = requestInitService.uid();
+        return Result.instance().setData(financialService.productExtraInfo(uid, productId));
+    }
 
 }

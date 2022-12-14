@@ -122,5 +122,12 @@ public interface FinancialService {
      */
     UserAmountDetailsVO userAmountDetailsVO(Long uid);
 
-
+    /**
+     * 产品信息（是否售罄、是否新用户等）
+     *
+     * @param uid       用户uid
+     * @param productId 产品id
+     * @return 产品信息
+     */
+    ProductInfoVO productExtraInfo(Long uid, Long productId);
 }
