@@ -59,7 +59,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.tron.tronj.crypto.Hash;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -501,6 +500,7 @@ public class FinancialServiceImpl implements FinancialService {
         FinancialProduct product = financialProductService.getById(productId);
 
         return ProductInfoVO.builder()
+                .productId(productId)
                 .sellOut(!Objects.isNull(product.getTotalQuota())
                         && product.getTotalQuota().compareTo(MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO)) >= 0)
                 .businessType(product.getBusinessType())

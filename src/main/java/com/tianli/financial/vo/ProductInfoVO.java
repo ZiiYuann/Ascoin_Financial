@@ -18,6 +18,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProductInfoVO {
 
+    private Long productId;
+
     private boolean sellOut;
 
     private boolean newUser;
