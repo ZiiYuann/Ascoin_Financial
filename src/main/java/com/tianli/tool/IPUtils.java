@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Map;
 
 @Slf4j
@@ -14,7 +16,7 @@ public class IPUtils {
 
 
     public static IpInfoVO ipAnalysis(String ip) throws Exception {
-        return JSONUtil.toBean(HttpUtil.get("https://api.ip.sb/geoip/" + ip),IpInfoVO.class);
+        return JSONUtil.toBean(HttpUtil.get("https://api.ip.sb/geoip/" + ip), IpInfoVO.class);
     }
 
     @Data
@@ -24,29 +26,39 @@ public class IPUtils {
         private Map<String, String> data;
     }
 
-    public static String getIpAddress(HttpServletRequest request) {
-        String ip = "";
+    public static String getIpAddress(HttpServletRequest request) {//获得客户端的IP,如果有更好的方法可以直接代替
+        String ipAddress = null;
         try {
-            // 获取请求主机IP地址,如果通过代理进来，则透过防火墙获取真实IP地址
-            ip = request.getHeader("X-Forwarded-For");
-            if (ip != null && ip.length() > 0 && !"unKnown".equalsIgnoreCase(ip)) {
-                // 多次反向代理后会有多个ip值，第一个ip才是真实ip
-                int index = ip.indexOf(",");
-                if (index != -1) {
-                    return ip.substring(0, index);
-                } else {
-                    return ip;
+            ipAddress = request.getHeader("x-forwarded-for");
+            if (ipAddress == null || ipAddress.length() == 0 || "unknown".equalsIgnoreCase(ipAddress)) {
+                ipAddress = request.getHeader("Proxy-Client-IP");
+            }
+            if (ipAddress == null || ipAddress.length() == 0 || "unknown".equalsIgnoreCase(ipAddress)) {
+                ipAddress = request.getHeader("WL-Proxy-Client-IP");
+            }
+            if (ipAddress == null || ipAddress.length() == 0 || "unknown".equalsIgnoreCase(ipAddress)) {
+                ipAddress = request.getRemoteAddr();
+                if (ipAddress.equals("127.0.0.1")) {
+                    // 根据网卡取本机配置的IP
+                    InetAddress inet = null;
+                    try {
+                        inet = InetAddress.getLocalHost();
+                        ipAddress = inet.getHostAddress();
+                    } catch (UnknownHostException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
-            ip = request.getHeader("X-Real-IP");
-            if (ip != null && ip.length() > 0 && !"unKnown".equalsIgnoreCase(ip)) {
-                return ip;
+            if (ipAddress != null && ipAddress.length() > 15) {
+                if (ipAddress.indexOf(",") > 0) {
+                    ipAddress = ipAddress.substring(0, ipAddress.indexOf(","));
+                }
             }
-            ip = request.getRemoteAddr();
         } catch (Exception e) {
-            e.printStackTrace();
+            ipAddress = "";
         }
-        return ip;
+
+        return ipAddress;
     }
 
 
