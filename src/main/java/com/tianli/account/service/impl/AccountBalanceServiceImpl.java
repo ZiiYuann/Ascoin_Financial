@@ -49,6 +49,16 @@ import java.util.stream.Collectors;
 public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper, AccountBalance>
         implements AccountBalanceService {
 
+    private static final Set<String> FIXED_COINS = new HashSet<>();
+
+    static {
+        FIXED_COINS.add("usdt");
+        FIXED_COINS.add("usdc");
+        FIXED_COINS.add("eth");
+        FIXED_COINS.add("bnb");
+    }
+
+
     /**
      * 冻结金额
      *
@@ -226,7 +236,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         var existCoinNames =
                 accountBalanceVOS.stream().map(AccountBalanceVO::getCoin).collect(Collectors.toList());
         // 需要显示的币别
-        Set<String> coinNames = fixedCoin ? Set.of("usdt", "usdc", "eth", "bnb") : coinBaseService.pushCoinNames();
+        Set<String> coinNames = fixedCoin ? FIXED_COINS : coinBaseService.pushCoinNames();
         // 过滤掉不显示掉币别账户
         accountBalanceVOS = accountBalanceVOS.stream()
                 .filter(accountBalanceVO -> coinNames.contains(accountBalanceVO.getCoin())).collect(Collectors.toList());
