@@ -12,9 +12,9 @@ import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.vo.AccountBalanceMainPageVO;
 import com.tianli.account.vo.AccountBalanceSimpleVO;
 import com.tianli.account.vo.AccountBalanceVO;
+import com.tianli.account.vo.UserAssetsVO;
 import com.tianli.chain.entity.CoinBase;
 import com.tianli.chain.service.CoinBaseService;
-import com.tianli.chain.service.CoinService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.blockchain.NetworkType;
@@ -26,7 +26,6 @@ import com.tianli.financial.vo.DollarIncomeVO;
 import com.tianli.fund.query.FundRecordQuery;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.management.dto.AmountDto;
-import com.tianli.account.vo.UserAssetsVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
@@ -49,6 +48,16 @@ import java.util.stream.Collectors;
 @Service
 public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper, AccountBalance>
         implements AccountBalanceService {
+
+    private static final Set<String> FIXED_COINS = new HashSet<>();
+
+    static {
+        FIXED_COINS.add("usdt");
+        FIXED_COINS.add("usdc");
+        FIXED_COINS.add("eth");
+        FIXED_COINS.add("bnb");
+    }
+
 
     /**
      * 冻结金额
@@ -207,7 +216,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
      * @param uid 用户id
      * @return 账户余额主页面VO
      */
-    public AccountBalanceMainPageVO accountSummary(Long uid) {
+    public AccountBalanceMainPageVO accountSummary(Long uid, boolean fixedCoin) {
 
 
         DollarIncomeVO income = financialService.income(uid);
@@ -226,7 +235,11 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
 
         var existCoinNames =
                 accountBalanceVOS.stream().map(AccountBalanceVO::getCoin).collect(Collectors.toList());
-        Set<String> coinNames = coinBaseService.pushCoinNames();
+        // 需要显示的币别
+        Set<String> coinNames = fixedCoin ? new HashSet<>(FIXED_COINS) : coinBaseService.pushCoinNames();
+        // 过滤掉不显示掉币别账户
+        accountBalanceVOS = accountBalanceVOS.stream()
+                .filter(accountBalanceVO -> coinNames.contains(accountBalanceVO.getCoin())).collect(Collectors.toList());
         existCoinNames.forEach(coinNames::remove);
 
         for (String coin : coinNames) {
@@ -264,6 +277,11 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         return result;
     }
 
+    @Override
+    public AccountBalanceMainPageVO accountSummary(Long uid) {
+        return accountSummary(uid, false);
+    }
+
     public BigDecimal dollarBalance(Long uid) {
         List<AccountBalanceVO> accountBalanceList = accountList(uid);
         List<AmountDto> amountDtoList = accountBalanceList.stream().map(accountBalanceVO ->
@@ -274,7 +292,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
     public List<AccountBalanceVO> accountList(Long uid) {
         List<AccountBalance> accountBalances = Optional.ofNullable(this.list(uid)).orElse(new ArrayList<>());
         List<AccountBalanceVO> accountBalanceVOS = new ArrayList<>(accountBalances.size());
-        accountBalances.forEach(accountBalance -> accountBalanceVOS.add(accountSingleCoin(uid,accountBalance.getCoin())));
+        accountBalances.forEach(accountBalance -> accountBalanceVOS.add(accountSingleCoin(uid, accountBalance.getCoin())));
         return accountBalanceVOS;
     }
 
@@ -401,8 +419,6 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
     private IFundRecordService fundRecordService;
     @Resource
     private FinancialRecordService financialRecordService;
-    @Resource
-    private CoinService coinService;
     @Resource
     private CoinBaseService coinBaseService;
 

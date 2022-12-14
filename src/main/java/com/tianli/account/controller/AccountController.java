@@ -157,6 +157,15 @@ public class AccountController {
     @GetMapping("/balance/summary")
     public Result accountBalance() {
         Long uid = requestInitService.uid();
+        return Result.instance().setData(accountBalanceServiceImpl.accountSummary(uid, true));
+    }
+
+    /**
+     * 【云钱包】总资产 + 账户列表
+     */
+    @GetMapping("/balance/summary/dynamic")
+    public Result accountBalanceDynamic() {
+        Long uid = requestInitService.uid();
         return Result.instance().setData(accountBalanceServiceImpl.accountSummary(uid));
     }
 
