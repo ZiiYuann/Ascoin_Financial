@@ -4,6 +4,7 @@ import cn.hutool.json.JSONObject;
 import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.Result;
 import com.tianli.other.service.BannerService;
+import com.tianli.other.vo.IpInfoVO;
 import com.tianli.tool.IPUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,12 +43,12 @@ public class OtherController {
     public Result ip(HttpServletRequest request) {
         try {
             var mapOptional = Optional.of(IPUtils.ipAnalysis(IPUtils.getIpAddress(request)));
-            var result = mapOptional.orElse(new JSONObject());
+            var result = mapOptional.orElse(new IpInfoVO() );
             return Result.success(result);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return Result.success(Collections.emptyMap());
+            return Result.success(new IpInfoVO());
         }
     }
 

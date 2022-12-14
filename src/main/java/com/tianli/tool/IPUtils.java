@@ -1,14 +1,10 @@
 package com.tianli.tool;
 
-import cn.hutool.json.JSONObject;
+import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
+import com.tianli.other.vo.IpInfoVO;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
@@ -17,12 +13,8 @@ import java.util.Map;
 public class IPUtils {
 
 
-    public static JSONObject ipAnalysis(String ip) throws Exception {
-        CloseableHttpClient client = HttpClients.createDefault();
-        HttpGet httpGet = new HttpGet("https://api.ip.sb/geoip/" + ip);
-        HttpResponse response = client.execute(httpGet);
-        String s = EntityUtils.toString(response.getEntity());
-        return JSONUtil.parseObj(s);
+    public static IpInfoVO ipAnalysis(String ip) throws Exception {
+        return JSONUtil.toBean(HttpUtil.get("https://api.ip.sb/geoip/" + ip),IpInfoVO.class);
     }
 
     @Data
