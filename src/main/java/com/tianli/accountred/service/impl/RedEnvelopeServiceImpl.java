@@ -216,11 +216,13 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         RedEnvelope redEnvelope = this.getWithCache(query.getRid());
         Optional.ofNullable(redEnvelope).orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
         if (!redEnvelope.getFlag().equals(query.getFlag())) {
+            webHookService.dingTalkSend("FLAG不一致！领取FLAG：" + redEnvelope.getFlag() + "  红包FLAG：" + redEnvelope.getFlag());
             ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
         }
 
         // 如果是私聊红包，判断领取对象和红包标示是否一致
         if (RedEnvelopeType.PRIVATE.equals(redEnvelope.getType()) && !String.valueOf(shortUid).equals(redEnvelope.getFlag())) {
+            webHookService.dingTalkSend("ID不一致！领取红包用户ID：" + shortUid + "  与标识用户ID：" + redEnvelope.getFlag());
             ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
         }
 

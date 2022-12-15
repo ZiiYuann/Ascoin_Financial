@@ -37,6 +37,8 @@ class BootTest {
     @Resource
     private TronWeb3jContract tronWeb3jContract;
     @Resource
+    private TronWeb3jContract tronWeb3jContract;
+    @Resource
     private TronTriggerContract tronTriggerContract;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
@@ -80,11 +82,7 @@ class BootTest {
         tronTriggerContract.decimals("TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8");
     }
 
-    @Test
-    void test() {
-        String key = USER_WITHDRAW_LIMIT + "0";
-        redisTemplate.opsForList().rightPush(key,LocalDateTime.now());
-    }
+
 
 
 }
