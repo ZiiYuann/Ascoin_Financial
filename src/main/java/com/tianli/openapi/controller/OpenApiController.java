@@ -153,5 +153,4 @@ public class OpenApiController {
         }
         return Result.success().setData(accountBalanceService.getUserAssetsVOMap(query.getUids()));
     }
-
 }
