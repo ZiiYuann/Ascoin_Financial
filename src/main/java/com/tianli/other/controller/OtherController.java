@@ -1,6 +1,5 @@
 package com.tianli.other.controller;
 
-import cn.hutool.json.JSONObject;
 import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.Result;
 import com.tianli.other.service.BannerService;
@@ -12,8 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -55,8 +52,8 @@ public class OtherController {
     /**
      * 获取usdt兑cny汇率
      */
-    @GetMapping("/cnyUsdt")
-    public Result cnyUsdt() {
+    @GetMapping("/usdtCny")
+    public Result usdtCny() {
         HashMap<String, Double> result = new HashMap<>();
         result.put("rate", digitalCurrencyExchange.usdtCnyPrice());
         return Result.success(result);
