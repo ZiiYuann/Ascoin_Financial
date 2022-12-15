@@ -1,5 +1,7 @@
 package com.tianli.charge.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -62,16 +64,6 @@ public class Order {
     private BigDecimal serviceAmount = BigDecimal.ZERO;
 
     /**
-     * 订单创建时间
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 订单完成时间
-     */
-    private LocalDateTime completeTime;
-
-    /**
      * 不同类型的交易关联不同的附录表 设计的不合理（我的锅）
      * <p>
      * 红包发送: red_envelope 红包id
@@ -81,7 +73,6 @@ public class Order {
      * 本地申购 order_advance id 一般申购（基金：基金持用fund_record id 理财：理财持用 financial_record id）
      * 借贷：弃用
      * 赎回：financial_record id
-     *
      */
     private Long relatedId;
 
@@ -89,5 +80,22 @@ public class Order {
      * 审核信息关联ID
      */
     private Long reviewerId;
+
+    /**
+     * 订单创建时间
+     */
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
+
+    /**
+     * 订单更新时间
+     */
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateTime;
+
+    /**
+     * 订单完成时间
+     */
+    private LocalDateTime completeTime;
 
 }

@@ -82,10 +82,11 @@
     </select>
     <select id="selectOrderChargeInfoVOPage" resultType="com.tianli.charge.vo.OrderChargeInfoVO">
         SELECT
-        o.uid,
+        o.uid,o.update_time,
         o.order_no,o.type,o.status,o.create_time,o.complete_time,charge.txid,charge.from_address,charge.to_address,
         charge.fee as amount,charge.coin,charge.network as networkType,o.service_amount,
-        review.rid as review_uid , review.type as review_type,review.remarks as review_remarks
+        review.rid as review_uid , review.type as review_type,review.remarks as review_remarks,
+        review.review_by
         FROM `order` o
         INNER JOIN order_charge_info charge on charge.id = o.related_id
         LEFT JOIN order_review review on review.id = o.reviewer_id
@@ -167,22 +168,15 @@
         <if test="query.networkType != null">
             AND charge.network = #{query.networkType}
         </if>
-        <if test="query.startTime != null and query.endTime != null and query.noReview == false ">
-            AND o.create_time BETWEEN #{query.startTime} AND #{query.endTime}
+        <if test="query.startTime != null and query.endTime != null ">
+            AND o.update_time BETWEEN #{query.startTime} AND #{query.endTime}
         </if>
-        <if test="query.startTime != null and query.endTime != null and query.noReview == true ">
-            AND o.complete_time BETWEEN #{query.startTime} AND #{query.endTime}
-        </if>
+
         <if test="query.noReview == true and query.chargeStatus == null">
             AND o.status != 'created'
         </if>
 
-        <if test=" query.noReview == false ">
-            ORDER BY o.create_time DESC
-        </if>
-        <if test=" query.noReview == true ">
-            ORDER BY o.complete_time DESC
-        </if>
+        ORDER BY o.update_time DESC
 
     </sql>
 </mapper>

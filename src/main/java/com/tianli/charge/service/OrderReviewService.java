@@ -93,7 +93,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         order.setReviewerId(orderReview.getId());
 
         // 审核通过需要上链 如果传入的hash值为空说明是自动转账
-        if (OrderReviewStrategy.MANUAL_REVIEW_AUTO_TRANSFER.equals(strategy) &&
+        if (OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy) &&
                 query.isPass() && StringUtils.isBlank(query.getHash())) {
             chargeService.withdrawChain(order);
             order.setStatus(ChargeStatus.chaining);
@@ -103,7 +103,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         }
 
         // 手动打币
-        if (OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy) &&
+        if (OrderReviewStrategy.MANUAL_REVIEW_AUTO_TRANSFER.equals(strategy) &&
                 query.isPass() && StringUtils.isNotBlank(query.getHash())) {
             // 更新order相关链信息
             orderChargeInfo.setTxid(query.getHash());

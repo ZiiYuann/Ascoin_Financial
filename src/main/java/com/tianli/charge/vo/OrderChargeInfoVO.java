@@ -107,6 +107,10 @@ public class OrderChargeInfoVO {
 
     private Long reviewUid;
 
+    private String reviewBy;
+
+    private LocalDateTime updateTime;
+
     public String getTypeName() {
         return type.getNameZn();
     }
