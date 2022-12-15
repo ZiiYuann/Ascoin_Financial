@@ -331,7 +331,11 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
 
         BigDecimal assets = dollarBalance.add(financialHoldAmount).add(fundHoldAmount);
 
-        return UserAssetsVO.builder().uid(uid).assets(assets).build();
+        return UserAssetsVO.builder().uid(uid)
+                .assets(assets)
+                .financialHoldAmount(financialHoldAmount)
+                .fundHoldAmount(fundHoldAmount)
+                .build();
     }
 
     @Override

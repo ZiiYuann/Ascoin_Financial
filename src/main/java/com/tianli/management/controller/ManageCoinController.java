@@ -75,6 +75,7 @@ public class ManageCoinController {
     public Result saveOrUpdate(@RequestBody @Valid CoinWithdrawQuery query) {
         String nickname = AdminContent.get().getNickname();
         coinService.withdrawConfig(nickname, query);
+        coinBaseService.deletePushListCache();
         return Result.success();
     }
 
