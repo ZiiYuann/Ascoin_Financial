@@ -23,4 +23,10 @@ public class UserAssetsVO {
 
     @BigDecimalFormat("0.00")
     private BigDecimal assets;
+
+    @BigDecimalFormat("0.00")
+    private BigDecimal financialHoldAmount;
+
+    @BigDecimalFormat("0.00")
+    private BigDecimal fundHoldAmount;
 }
