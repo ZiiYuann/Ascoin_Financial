@@ -29,4 +29,7 @@ public class UserAssetsVO {
 
     @BigDecimalFormat("0.00")
     private BigDecimal fundHoldAmount;
+
+    @BigDecimalFormat("0.00")
+    private BigDecimal purchaseAmount;
 }
