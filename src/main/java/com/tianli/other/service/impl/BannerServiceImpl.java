@@ -105,5 +105,10 @@ public class BannerServiceImpl extends ServiceImpl<BannerMapper, Banner> impleme
         return this.list(queryWrapper).stream().map(otherConvert::toBannerVO).collect(Collectors.toList());
     }
 
+    @Override
+    public void delete(List<Long> ids) {
+        bannerMapper.deleteBatchIds(ids);
+    }
+
 
 }

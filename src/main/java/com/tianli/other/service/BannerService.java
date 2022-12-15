@@ -37,4 +37,11 @@ public interface BannerService extends IService<Banner> {
      * @return 进行中列表
      */
     List<BannerVO> processList();
+
+    /**
+     * 删除
+     *
+     * @param ids id集合
+     */
+    void delete(List<Long> ids);
 }

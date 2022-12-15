@@ -1,5 +1,6 @@
 package com.tianli.management.controller;
 
+import com.tianli.account.query.IdsQuery;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.other.entity.Banner;
@@ -35,6 +36,13 @@ public class ManageOtherController {
     @AdminPrivilege(and = Privilege.理财配置)
     public Result bannerSave(@RequestBody @Valid BannerIoUQuery query) {
         bannerService.saveOrUpdate(query);
+        return Result.success();
+    }
+
+    @DeleteMapping("/banner")
+    @AdminPrivilege(and = Privilege.理财配置)
+    public Result delete(@RequestBody IdsQuery query) {
+        bannerService.delete(query.getIds());
         return Result.success();
     }
 }

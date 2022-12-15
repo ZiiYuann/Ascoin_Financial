@@ -1,9 +1,8 @@
 package com.tianli.management.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.tianli.management.entity.WithdrawServiceFee;
-import com.tianli.management.query.FinancialBoardQuery;
-import com.tianli.management.vo.WithdrawServiceFeeVO;
+import com.tianli.management.entity.ServiceFee;
+import com.tianli.management.vo.ServiceFeeVO;
 
 import java.time.LocalDate;
 
@@ -12,7 +11,7 @@ import java.time.LocalDate;
  * @apiNote
  * @since 2022-10-27
  **/
-public interface WithdrawServiceFeeService extends IService<WithdrawServiceFee> {
+public interface ServiceFeeService extends IService<ServiceFee> {
 
     /**
      * 初始化init
@@ -34,5 +33,5 @@ public interface WithdrawServiceFeeService extends IService<WithdrawServiceFee> 
     /**
      * 手续费展板
      */
-    WithdrawServiceFeeVO board();
+    ServiceFeeVO board(byte type);
 }

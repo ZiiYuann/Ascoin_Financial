@@ -1,5 +1,6 @@
 package com.tianli.management.entity;
 
+import com.tianli.common.blockchain.NetworkType;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 
@@ -15,16 +16,18 @@ import java.time.LocalDate;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class WithdrawServiceFee {
+public class ServiceFee {
 
     @Id
     private Long id;
 
     private LocalDate createTime;
 
-    private BigDecimal eth;
+    private String coin;
 
-    private BigDecimal bnb;
+    private BigDecimal amount;
 
-    private BigDecimal trx;
+    private byte type;
+
+    private NetworkType network;
 }

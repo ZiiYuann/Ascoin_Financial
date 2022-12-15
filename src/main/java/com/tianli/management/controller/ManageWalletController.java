@@ -19,7 +19,7 @@ import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.Result;
 import com.tianli.management.service.FinancialBoardWalletService;
-import com.tianli.management.service.WithdrawServiceFeeService;
+import com.tianli.management.service.ServiceFeeService;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.query.*;
 import com.tianli.sso.permission.AdminPrivilege;
@@ -60,7 +60,7 @@ public class ManageWalletController {
     @Resource
     private RedissonClient redissonClient;
     @Resource
-    private WithdrawServiceFeeService withdrawServiceFeeService;
+    private ServiceFeeService withdrawServiceFeeService;
 
     /**
      * 【云钱包数据展板】
@@ -241,7 +241,7 @@ public class ManageWalletController {
     /**
      * 提现手续费 init
      */
-    @PostMapping("/withdraw/init")
+    @PostMapping("/serviceFee/init")
     public Result withdrawServiceFeeInit() {
         withdrawServiceFeeService.init();
         return Result.success();
@@ -250,9 +250,9 @@ public class ManageWalletController {
     /**
      * 提现手续费展板
      */
-    @GetMapping("/withdraw/board")
-    public Result withdrawServiceFeeBoard() {
-        return Result.success(withdrawServiceFeeService.board());
+    @GetMapping("/serviceFee/board")
+    public Result withdrawServiceFeeBoard(byte type) {
+        return Result.success(withdrawServiceFeeService.board(type));
     }
 
 }

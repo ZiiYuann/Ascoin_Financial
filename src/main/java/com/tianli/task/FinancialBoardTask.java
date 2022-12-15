@@ -7,7 +7,7 @@ import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.service.FinancialBoardProductService;
 import com.tianli.management.service.FinancialBoardWalletService;
-import com.tianli.management.service.WithdrawServiceFeeService;
+import com.tianli.management.service.ServiceFeeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FinancialBoardTask {
 
     @Resource
-    private WithdrawServiceFeeService withdrawServiceFeeService;
+    private ServiceFeeService withdrawServiceFeeService;
     @Resource
     private FinancialBoardProductService financialBoardProductService;
     @Resource
