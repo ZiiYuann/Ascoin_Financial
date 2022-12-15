@@ -37,8 +37,6 @@ class BootTest {
     @Resource
     private TronWeb3jContract tronWeb3jContract;
     @Resource
-    private TronWeb3jContract tronWeb3jContract;
-    @Resource
     private TronTriggerContract tronTriggerContract;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
