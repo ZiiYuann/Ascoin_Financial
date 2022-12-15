@@ -54,4 +54,5 @@ public class HoldProductVo {
 
     private BigDecimal accrueIncomeAmount;
 
+
 }

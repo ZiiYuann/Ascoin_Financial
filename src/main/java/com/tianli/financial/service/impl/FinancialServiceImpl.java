@@ -174,30 +174,38 @@ public class FinancialServiceImpl implements FinancialService {
     public IPage<HoldProductVo> holdProductPage(IPage<FinancialProduct> page, Long uid, ProductType type) {
 
         IPage<HoldProductVo> holdProductVoPage = productMapper.holdProductPage(page, uid, Objects.isNull(type) ? null : type.name());
-        holdProductVoPage.convert(holdProductVo -> {
-
-            IncomeVO incomeVO = new IncomeVO();
-            BigDecimal dollarRate = currencyService.getDollarRate(holdProductVo.getCoin());
-            incomeVO.setHoldFee(dollarRate.multiply(holdProductVo.getHoldAmount()));
-            incomeVO.setAccrueIncomeFee(dollarRate.multiply(Objects.isNull(holdProductVo.getAccrueIncomeAmount())
-                    ? BigDecimal.ZERO : holdProductVo.getAccrueIncomeAmount()));
-            if (ProductType.fund.equals(holdProductVo.getProductType())) {
-                FundIncomeQuery query = new FundIncomeQuery();
-                query.setUid(uid);
-                query.setStatus(List.of(FundIncomeStatus.calculated, FundIncomeStatus.wait_audit));
-                query.setFundId(holdProductVo.getRecordId());
-                BigDecimal waitInterestAmount = fundIncomeRecordService.getAmount(query).stream().map(FundIncomeAmountDTO::getWaitInterestAmount)
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-                incomeVO.setWaitAuditIncomeAmount(waitInterestAmount);
-            }
-            if (!ProductType.fund.equals(holdProductVo.getProductType())) {
-                incomeVO.setYesterdayIncomeAmount(financialIncomeDailyService.amountYesterday(holdProductVo.getRecordId()));
-            }
-
-            holdProductVo.setIncomeVO(incomeVO);
-            return holdProductVo;
-        });
+        holdProductVoPage.convert(holdProductVo -> addHoldIncomeInfo(uid, holdProductVo));
         return holdProductVoPage;
+    }
+
+    /**
+     * 添加持有的收益信息
+     *
+     * @param uid           uid
+     * @param holdProductVo 持有基础信息
+     * @return 本身
+     */
+    private HoldProductVo addHoldIncomeInfo(Long uid, HoldProductVo holdProductVo) {
+        IncomeVO incomeVO = new IncomeVO();
+        BigDecimal dollarRate = currencyService.getDollarRate(holdProductVo.getCoin());
+        incomeVO.setHoldFee(dollarRate.multiply(holdProductVo.getHoldAmount()));
+        incomeVO.setAccrueIncomeFee(dollarRate.multiply(Objects.isNull(holdProductVo.getAccrueIncomeAmount())
+                ? BigDecimal.ZERO : holdProductVo.getAccrueIncomeAmount()));
+        if (ProductType.fund.equals(holdProductVo.getProductType())) {
+            FundIncomeQuery query = new FundIncomeQuery();
+            query.setUid(uid);
+            query.setStatus(List.of(FundIncomeStatus.calculated, FundIncomeStatus.wait_audit));
+            query.setFundId(holdProductVo.getRecordId());
+            BigDecimal waitInterestAmount = fundIncomeRecordService.getAmount(query).stream().map(FundIncomeAmountDTO::getWaitInterestAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            incomeVO.setWaitAuditIncomeAmount(waitInterestAmount);
+        }
+        if (!ProductType.fund.equals(holdProductVo.getProductType())) {
+            incomeVO.setYesterdayIncomeAmount(financialIncomeDailyService.amountYesterday(holdProductVo.getRecordId()));
+        }
+
+        holdProductVo.setIncomeVO(incomeVO);
+        return holdProductVo;
     }
 
     @Override
@@ -206,7 +214,9 @@ public class FinancialServiceImpl implements FinancialService {
         List<Long> productIds = new ArrayList<>(holdProductIdsPage.getRecords());
 
         var holdProductVoMap = productMapper.holdProducts(uid, productIds)
-                .stream().collect(Collectors.groupingBy(HoldProductVo::getProductId));
+                .stream()
+                .map(holdProductVo -> addHoldIncomeInfo(uid, holdProductVo))
+                .collect(Collectors.groupingBy(HoldProductVo::getProductId));
 
         return holdProductIdsPage.convert(productId -> {
             HashMap<String, Object> index = new HashMap<>();
@@ -499,10 +509,11 @@ public class FinancialServiceImpl implements FinancialService {
         Boolean newUser = financialRecordService.isNewUser(requestInitService.uid());
         FinancialProduct product = financialProductService.getById(productId);
 
+
         return ProductInfoVO.builder()
                 .productId(productId)
                 .sellOut(!Objects.isNull(product.getTotalQuota())
-                        && product.getTotalQuota().compareTo(MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO)) >= 0)
+                        && product.getTotalQuota().compareTo(MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO)) <= 0)
                 .businessType(product.getBusinessType())
                 .newUser(newUser)
                 .type(product.getType()).build();
