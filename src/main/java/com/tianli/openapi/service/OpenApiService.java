@@ -297,7 +297,7 @@ public class OpenApiService {
         resultRecords.add(firstRow);
         resultRecords.addAll(records);
 
-        result.setTotal(subUids.size());
+        result.setTotal(list.size());
         result.setRecords(resultRecords);
         return result;
 
