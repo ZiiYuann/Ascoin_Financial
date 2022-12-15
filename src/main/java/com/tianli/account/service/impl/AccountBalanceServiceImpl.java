@@ -16,6 +16,7 @@ import com.tianli.account.vo.UserAssetsVO;
 import com.tianli.chain.entity.CoinBase;
 import com.tianli.chain.service.CoinBaseService;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.service.CurrencyService;
@@ -331,10 +332,13 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
 
         BigDecimal assets = dollarBalance.add(financialHoldAmount).add(fundHoldAmount);
 
+        BigDecimal purchaseAmount = orderService.uAmount(uid,ChargeType.purchase);
+
         return UserAssetsVO.builder().uid(uid)
                 .assets(assets)
                 .financialHoldAmount(financialHoldAmount)
                 .fundHoldAmount(fundHoldAmount)
+                .purchaseAmount(purchaseAmount)
                 .build();
     }
 
@@ -425,6 +429,8 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
     private FinancialRecordService financialRecordService;
     @Resource
     private CoinBaseService coinBaseService;
+    @Resource
+    private OrderService orderService;
 
 
 }
