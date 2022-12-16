@@ -251,8 +251,8 @@ public class ManageWalletController {
      * 提现手续费展板
      */
     @GetMapping("/serviceFee/board")
-    public Result withdrawServiceFeeBoard(byte type) {
-        return Result.success(withdrawServiceFeeService.board(type));
+    public Result withdrawServiceFeeBoard(TimeQuery timeQuery,byte type) {
+        return Result.success(withdrawServiceFeeService.board(timeQuery,type));
     }
 
 }

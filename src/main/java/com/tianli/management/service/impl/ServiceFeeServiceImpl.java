@@ -21,6 +21,7 @@ import com.tianli.currency.service.CurrencyService;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.entity.ServiceFee;
 import com.tianli.management.mapper.ServiceFeeMapper;
+import com.tianli.management.query.TimeQuery;
 import com.tianli.management.service.ServiceFeeService;
 import com.tianli.management.vo.ServiceFeeVO;
 import lombok.AllArgsConstructor;
@@ -189,9 +190,9 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
     }
 
     @Override
-    public ServiceFeeVO board(byte type) {
-
-        List<ServiceFee> allFeeByType = this.getBaseMapper().getTotalAmount(type);
+    public ServiceFeeVO board(TimeQuery timeQuery, byte type) {
+        timeQuery.calTime();
+        List<ServiceFee> allFeeByType = this.getBaseMapper().getTotalAmount(timeQuery, type);
         List<ServiceFeeVO> allSummaryFee = allFeeByType.stream().map(serviceFee -> {
             ServiceFeeVO serviceFeeVO = managementConverter.toServiceFeeVO(serviceFee);
             serviceFeeVO.setRate(currencyService.getDollarRate(serviceFee.getCoin()));
@@ -202,6 +203,8 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
         BigDecimal allFeeDollar = allSummaryFee.stream()
                 .map(serviceFeeVO -> serviceFeeVO.getRate().multiply(serviceFeeVO.getAmount()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+
         // 更新今日数据
         init(LocalDate.now());
 
