@@ -79,13 +79,18 @@ public class TronTriggerContract extends AbstractContractOperation {
         return triggerSmartContract(ownerAddress, contractAddress, data, 40000000L);
     }
 
+    /**
+     * 1000000000 = 1000 trx
+     * 用户首次归集 = 200trx（120实际查询差不多）
+     * 1000trx
+     */
     public String recycle(String toAddress, List<Long> addressIds, List<String> tokenContractAddresses) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
         String contractAddress = configService.getOrDefault(ConfigConstants.TRON_TRIGGER_ADDRESS, "TEuLfwtYM83r4TjkewRWFFFS1inHzdpsP2");
         if (toAddress == null || toAddress.isEmpty()) toAddress = ownerAddress;
 
         String data = super.buildRecycleData(toAddress, addressIds, tokenContractAddresses);
-        return triggerSmartContract(ownerAddress, contractAddress, data, 1000000000L);
+        return triggerSmartContract(ownerAddress, contractAddress, data, 150000000L * addressIds.size());
     }
 
     @Override
