@@ -253,7 +253,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
 
         // 重新排序
         accountBalanceVOS.sort((a, b) -> {
-            if (a.getDollarBalance().compareTo(b.getDollarBalance()) == 0) {
+            if (a.getDollarAssets().compareTo(b.getDollarAssets()) == 0) {
                 if (a.getWeight() > b.getWeight()) {
                     return -1;
                 }
