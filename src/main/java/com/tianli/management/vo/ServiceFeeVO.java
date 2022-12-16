@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -41,5 +42,17 @@ public class ServiceFeeVO {
         withdrawServiceFeeVO.setCreateTime(createTime);
         withdrawServiceFeeVO.setAmount(BigDecimal.ZERO);
         return withdrawServiceFeeVO;
+    }
+
+    public static HashMap<ChainType, ServiceFeeVO> getDefaultChainMap() {
+        HashMap<ChainType, ServiceFeeVO> result = new HashMap<>();
+        for (ChainType chainType : ChainType.values()) {
+            ServiceFeeVO aDefault = getDefault(null);
+            aDefault.setCoin(chainType.getMainToken());
+            aDefault.setRate(BigDecimal.ONE);
+            result.put(chainType, aDefault);
+
+        }
+        return result;
     }
 }

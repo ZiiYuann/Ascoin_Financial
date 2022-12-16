@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.chain.entity.WalletImputationLog;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.WalletImputationLogService;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.service.contract.Web3jContractOperation;
@@ -193,14 +194,16 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
     public ServiceFeeVO board(TimeQuery timeQuery, byte type) {
         timeQuery.calTime();
         List<ServiceFee> allFeeByType = this.getBaseMapper().getTotalAmount(timeQuery, type);
-        List<ServiceFeeVO> allSummaryFee = allFeeByType.stream().map(serviceFee -> {
+
+        HashMap<ChainType, ServiceFeeVO> defaultChainMap = ServiceFeeVO.getDefaultChainMap();
+        allFeeByType.forEach(serviceFee -> {
             ServiceFeeVO serviceFeeVO = managementConverter.toServiceFeeVO(serviceFee);
             serviceFeeVO.setRate(currencyService.getDollarRate(serviceFee.getCoin()));
             serviceFeeVO.setChainType(serviceFee.getNetwork().getChainType());
-            return serviceFeeVO;
-        }).collect(Collectors.toList());
-
-        BigDecimal allFeeDollar = allSummaryFee.stream()
+            defaultChainMap.put(serviceFee.getNetwork().getChainType(), serviceFeeVO);
+        });
+        var allSummaryFee = defaultChainMap.values();
+        BigDecimal allFeeDollar = defaultChainMap.values().stream()
                 .map(serviceFeeVO -> serviceFeeVO.getRate().multiply(serviceFeeVO.getAmount()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -254,7 +257,7 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
         ServiceFeeVO result = new ServiceFeeVO();
         result.setAmount(allFeeDollar);
         result.setFees(new ArrayList<>(withdrawServiceFeeVOMap.values()));
-        result.setSummaryFees(allSummaryFee);
+        result.setSummaryFees(new ArrayList<>(allSummaryFee));
         return result;
     }
 
