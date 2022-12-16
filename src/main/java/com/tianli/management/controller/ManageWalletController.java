@@ -60,7 +60,7 @@ public class ManageWalletController {
     @Resource
     private RedissonClient redissonClient;
     @Resource
-    private ServiceFeeService withdrawServiceFeeService;
+    private ServiceFeeService serviceFeeService;
 
     /**
      * 【云钱包数据展板】
@@ -243,7 +243,7 @@ public class ManageWalletController {
      */
     @PostMapping("/serviceFee/init")
     public Result withdrawServiceFeeInit() {
-        withdrawServiceFeeService.init();
+        serviceFeeService.init();
         return Result.success();
     }
 
@@ -252,7 +252,7 @@ public class ManageWalletController {
      */
     @GetMapping("/serviceFee/board")
     public Result withdrawServiceFeeBoard(TimeQuery timeQuery,byte type) {
-        return Result.success(withdrawServiceFeeService.board(timeQuery,type));
+        return Result.success(serviceFeeService.board(timeQuery,type));
     }
 
 }

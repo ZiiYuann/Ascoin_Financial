@@ -1,7 +1,6 @@
 package com.tianli.chain.service.contract;
 
 import com.tianli.chain.entity.Coin;
-import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import org.apache.commons.lang3.StringUtils;

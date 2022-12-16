@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FinancialBoardTask {
 
     @Resource
-    private ServiceFeeService withdrawServiceFeeService;
+    private ServiceFeeService serviceFeeService;
     @Resource
     private FinancialBoardProductService financialBoardProductService;
     @Resource
@@ -78,7 +78,7 @@ public class FinancialBoardTask {
 
 
         // 提现数据展板
-        withdrawServiceFeeService.init(todayBegin.toLocalDate());
+        serviceFeeService.init(todayBegin.toLocalDate());
     }
 
 

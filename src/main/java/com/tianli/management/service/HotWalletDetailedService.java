@@ -7,21 +7,20 @@ import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.service.contract.ContractOperation;
-import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.management.converter.ManagementConverter;
+import com.tianli.management.entity.HotWalletDetailed;
+import com.tianli.management.enums.HotWalletOperationType;
+import com.tianli.management.mapper.HotWalletDetailedMapper;
 import com.tianli.management.query.HotWalletDetailedIoUQuery;
 import com.tianli.management.query.HotWalletDetailedPQuery;
 import com.tianli.management.vo.HotWalletBalanceVO;
 import com.tianli.management.vo.HotWalletDetailedSummaryDataVO;
 import com.tianli.management.vo.HotWalletDetailedVO;
-import com.tianli.management.converter.ManagementConverter;
-import com.tianli.management.entity.HotWalletDetailed;
-import com.tianli.management.enums.HotWalletOperationType;
-import com.tianli.management.mapper.HotWalletDetailedMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,8 +39,6 @@ public class HotWalletDetailedService extends ServiceImpl<HotWalletDetailedMappe
 
     @Resource
     private ManagementConverter managementConverter;
-    @Resource
-    private OrderService orderService;
     @Resource
     private AddressService addressService;
     @Resource
