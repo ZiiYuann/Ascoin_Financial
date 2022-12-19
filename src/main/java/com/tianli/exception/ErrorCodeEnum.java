@@ -139,6 +139,8 @@ public enum ErrorCodeEnum {
     RED_RECEIVE_NOT_ALLOW(3705, "红包没权限领取"),
     RED_LIMIT_AMOUNT(3706, "单个红包数额不得低于0.000001"),
     RED_ORDER_NOT_FIND(3707, "红包订单未找到"),
+    RED_SET_BLOOM_FAIl(3708, "红包发送失败(bloom)"),
+
 
 
     /*** －－－－－－业务错误码-理财相关－－－－－－*/

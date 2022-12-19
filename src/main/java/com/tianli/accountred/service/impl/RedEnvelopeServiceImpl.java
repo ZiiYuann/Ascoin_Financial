@@ -481,7 +481,11 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
      */
     private void setRedisCache(RedEnvelope redEnvelope) {
         final RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConstants.RED_ENVELOPE + "bloom");
-        bloomFilter.add(redEnvelope.getId());
+        boolean success = bloomFilter.add(redEnvelope.getId());
+        if (!success) {
+            ErrorCodeEnum.RED_SET_BLOOM_FAIl.throwException();
+
+        }
         redisService.set(RedisConstants.RED_ENVELOPE + redEnvelope.getId(), redEnvelope, 1L, TimeUnit.DAYS);
     }
 
