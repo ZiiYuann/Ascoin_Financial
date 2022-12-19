@@ -65,6 +65,7 @@ import java.util.concurrent.TimeUnit;
  * @apiNote
  * @since 2022-10-17
  **/
+// TODO 1、抢红包任何阻塞性操作都改为sqs异步消费 2、如果缓存丢失，如何补偿缓存
 @Slf4j
 @Service
 public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEnvelope> implements RedEnvelopeService {
@@ -113,7 +114,6 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         ids.forEach(bloomFilter::add);
 
     }
-
 
     @Override
     @Transactional
