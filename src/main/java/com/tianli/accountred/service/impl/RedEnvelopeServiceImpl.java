@@ -135,6 +135,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         }
 
         setRedisCache(redEnvelope);
+        setBloomCache(redEnvelope.getId());
         return Result.success(new RedEnvelopeGiveVO(redEnvelope.getId()));
     }
 
@@ -480,13 +481,18 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
      * 3、getWithCache
      */
     private void setRedisCache(RedEnvelope redEnvelope) {
+        redisService.set(RedisConstants.RED_ENVELOPE + redEnvelope.getId(), redEnvelope, 1L, TimeUnit.DAYS);
+    }
+
+    /**
+     * 设置步隆过滤器缓存
+     */
+    private void setBloomCache(Long id) {
         final RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConstants.RED_ENVELOPE + "bloom");
-        boolean success = bloomFilter.add(redEnvelope.getId());
+        boolean success = bloomFilter.add(id);
         if (!success) {
             ErrorCodeEnum.RED_SET_BLOOM_FAIl.throwException();
-
         }
-        redisService.set(RedisConstants.RED_ENVELOPE + redEnvelope.getId(), redEnvelope, 1L, TimeUnit.DAYS);
     }
 
     /**
