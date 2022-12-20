@@ -39,7 +39,6 @@ import com.tianli.management.dto.AmountDto;
 import com.tianli.management.service.IWalletAgentService;
 import com.tianli.management.vo.FundIncomeAmountVO;
 import com.tianli.management.vo.WalletAgentVO;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,7 +46,6 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -213,7 +211,7 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
                 fundRecordService.updateById(fundRecord);
                 fundIncomeRecord.setOrderNo(order.getOrderNo());
 
-                totalAmount.add(fundIncomeRecord.getInterestAmount());
+                totalAmount.add(currencyService.getDollarRate(fundRecord.getCoin()).multiply(fundIncomeRecord.getInterestAmount()));
 
             }
 
@@ -221,19 +219,11 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
         });
 
         if (status == FundReviewStatus.success) {
-
             // 发送消息
-            String fundPurchaseTemplate = WebHookTemplate.FUND_INCOME_PUSH;
-            String[] searchList = new String[3];
-            searchList[0] = "#{time}";
-            searchList[1] = "#{amount}";
-            searchList[2] = "#{coin}";
-            String[] replacementList = new String[3];
-            replacementList[0] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            replacementList[1] = totalAmount.stream().reduce(BigDecimal.ZERO, BigDecimal::add).toPlainString();
-            replacementList[2] = "u";
-            String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
-            webHookService.fundSend(s);
+            String msg =
+                    WebHookTemplate.fundIncomePush(totalAmount.stream().reduce(BigDecimal.ZERO, BigDecimal::add), "usdt");
+            webHookService.fundSend(msg
+            );
         }
     }
 

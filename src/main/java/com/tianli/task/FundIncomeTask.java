@@ -120,21 +120,9 @@ public class FundIncomeTask {
                 });
 
                 // 发送消息
-                String fundPurchaseTemplate = WebHookTemplate.FUND_INCOME;
-                String[] searchList = new String[5];
-                searchList[0] = "#{uid}";
-                searchList[1] = "#{holdAmount}";
-                searchList[2] = "#{incomeAmount}";
-                searchList[3] = "#{coin}";
-                searchList[4] = "#{time}";
-                String[] replacementList = new String[5];
-                replacementList[0] = fundRecord.getUid() + "";
-                replacementList[1] = fundRecord.getHoldAmount().toPlainString();
-                replacementList[2] = fundRecord.getWaitIncomeAmount().toPlainString();
-                replacementList[3] = fundRecord.getCoin();
-                replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
-                webHookService.fundSend(s);
+                String msg = WebHookTemplate.fundIncome(fundRecord.getUid(), fundRecord.getHoldAmount()
+                        , fundRecord.getWaitIncomeAmount(), fundRecord.getCoin());
+                webHookService.fundSend(msg);
             }
         }
 
@@ -147,7 +135,7 @@ public class FundIncomeTask {
         var fundRecord = fundRecordService.getById(query.getFundId());
         LocalDateTime createTime = fundRecord.getCreateTime();
 
-        BigDecimal holdAmount  = MoreObjects.firstNonNull(query.getAmount(),fundRecord.getHoldAmount());
+        BigDecimal holdAmount = MoreObjects.firstNonNull(query.getAmount(), fundRecord.getHoldAmount());
         //四天后开始计息
         if (createTime.toLocalDate().until(query.getNow(), ChronoUnit.DAYS) >= FundCycle.interestCalculationCycle) {
             if (BigDecimal.ZERO.compareTo(holdAmount) == 0) {
@@ -174,7 +162,7 @@ public class FundIncomeTask {
             fundRecord.setCumulativeIncomeAmount(fundRecord.getCumulativeIncomeAmount().add(dailyIncome));
             // 增加待发放利息
             fundRecord.setWaitIncomeAmount(fundRecord.getWaitIncomeAmount().add(dailyIncome));
-            webHookService.dingTalkSend("补偿利息 fundId:" + query.getFundId()+"  金额:" + dailyIncome.toPlainString());
+            webHookService.dingTalkSend("补偿利息 fundId:" + query.getFundId() + "  金额:" + dailyIncome.toPlainString());
         }
         fundRecordService.updateById(fundRecord);
     }

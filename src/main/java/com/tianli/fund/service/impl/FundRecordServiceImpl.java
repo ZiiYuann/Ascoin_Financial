@@ -225,26 +225,8 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
 
     @Override
     public void finishPurchase(Long uid, FinancialProduct product, PurchaseQuery purchaseQuery) {
-
-        // 发送消息
-        String fundPurchaseTemplate = WebHookTemplate.FUND_PURCHASE;
-
-        String[] searchList = new String[5];
-        searchList[0] = "#{uid}";
-        searchList[1] = "#{productName}";
-        searchList[2] = "#{amount}";
-        searchList[3] = "#{coin}";
-        searchList[4] = "#{time}";
-
-        String[] replacementList = new String[5];
-        replacementList[0] = uid + "";
-        replacementList[1] = product.getName();
-        replacementList[2] = purchaseQuery.getAmount().toPlainString();
-        replacementList[3] = product.getCoin();
-        replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
-        String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
-        webHookService.fundSend(s);
+        String msg = WebHookTemplate.fundPurchase(uid, product.getName(), purchaseQuery.getAmount(), product.getCoin());
+        webHookService.fundSend(msg);
     }
 
     @Override
@@ -467,23 +449,9 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
                 .createTime(LocalDateTime.now()).build();
         fundTransactionRecordService.save(transactionRecord);
 
-
-        // 发送消息
-        String fundPurchaseTemplate = WebHookTemplate.FUND_REDEEM;
-        String[] searchList = new String[5];
-        searchList[0] = "#{uid}";
-        searchList[1] = "#{productName}";
-        searchList[2] = "#{amount}";
-        searchList[3] = "#{coin}";
-        searchList[4] = "#{time}";
-        String[] replacementList = new String[5];
-        replacementList[0] = fundRecord.getUid() + "";
-        replacementList[1] = fundRecord.getProductName();
-        replacementList[2] = redemptionAmount.toPlainString();
-        replacementList[3] = fundRecord.getCoin();
-        replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
-        webHookService.fundSend(s);
+        String msg =
+                WebHookTemplate.fundRedeem(fundRecord.getUid(), fundRecord.getProductName(), redemptionAmount, fundRecord.getCoin());
+        webHookService.fundSend(msg);
 
         return FundTransactionRecordVO.builder()
                 .id(transactionRecord.getId())

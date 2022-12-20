@@ -1,6 +1,13 @@
 package com.tianli.common.webhook;
 
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+
 /**
  * @author chenb
  * @apiNote
@@ -8,6 +15,99 @@ package com.tianli.common.webhook;
  **/
 public class WebHookTemplate {
 
+    public static final HashMap<String, String> COIN_ALIAS = new HashMap<>();
+
+    static {
+        COIN_ALIAS.put("usdt", "积分");
+        COIN_ALIAS.put("eth", "积分e");
+        COIN_ALIAS.put("bnb", "积分b");
+        COIN_ALIAS.put("usdc", "积分uc");
+    }
+
+    public static String fundPurchase(Long uid, String productName, BigDecimal amount, String coin) {
+        // 发送消息
+        String fundPurchaseTemplate = WebHookTemplate.FUND_PURCHASE;
+
+        String[] searchList = new String[5];
+        searchList[0] = "#{uid}";
+        searchList[1] = "#{productName}";
+        searchList[2] = "#{amount}";
+        searchList[3] = "#{coin}";
+        searchList[4] = "#{time}";
+
+        String[] replacementList = new String[5];
+        replacementList[0] = uid + "";
+        replacementList[1] = productName;
+        replacementList[2] = amount.toPlainString();
+        replacementList[3] = COIN_ALIAS.getOrDefault(coin, coin);
+        replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        return StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
+    }
+
+    public static String fundRedeem(Long uid, String productName, BigDecimal amount, String coin) {
+        String fundPurchaseTemplate = WebHookTemplate.FUND_REDEEM;
+        String[] searchList = new String[5];
+        searchList[0] = "#{uid}";
+        searchList[1] = "#{productName}";
+        searchList[2] = "#{amount}";
+        searchList[3] = "#{coin}";
+        searchList[4] = "#{time}";
+        String[] replacementList = new String[5];
+        replacementList[0] = uid + "";
+        replacementList[1] = productName;
+        replacementList[2] = amount.toPlainString();
+        replacementList[3] = COIN_ALIAS.getOrDefault(coin, coin);
+        replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        return StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
+    }
+
+
+    public static String fundIncome(Long uid, BigDecimal holdAmount, BigDecimal waitIncomeAmount, String coin) {
+        String fundPurchaseTemplate = WebHookTemplate.FUND_INCOME;
+        String[] searchList = new String[5];
+        searchList[0] = "#{uid}";
+        searchList[1] = "#{holdAmount}";
+        searchList[2] = "#{incomeAmount}";
+        searchList[3] = "#{coin}";
+        searchList[4] = "#{time}";
+        String[] replacementList = new String[5];
+        replacementList[0] = uid + "";
+        replacementList[1] = holdAmount.toPlainString();
+        replacementList[2] = waitIncomeAmount.toPlainString();
+        replacementList[3] = COIN_ALIAS.getOrDefault(coin, coin);
+        replacementList[4] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        return StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
+    }
+
+    public static String fundExamine(Long uid, BigDecimal amount, String coin) {
+        // 发送消息
+        String fundPurchaseTemplate = WebHookTemplate.FUND_EXAMINE;
+        String[] searchList = new String[4];
+        searchList[0] = "#{uid}";
+        searchList[1] = "#{amount}";
+        searchList[2] = "#{coin}";
+        searchList[3] = "#{time}";
+        String[] replacementList = new String[4];
+        replacementList[0] = uid + "";
+        replacementList[1] = amount.toPlainString();
+        replacementList[2] = COIN_ALIAS.getOrDefault(coin, coin);
+        replacementList[3] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        return StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
+    }
+
+    public static String fundIncomePush(BigDecimal amount, String coin) {
+        String fundPurchaseTemplate = WebHookTemplate.FUND_INCOME_PUSH;
+        String[] searchList = new String[3];
+        searchList[0] = "#{time}";
+        searchList[1] = "#{amount}";
+        searchList[2] = "#{coin}";
+        String[] replacementList = new String[3];
+        replacementList[0] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        replacementList[1] = amount.toPlainString();
+        replacementList[2] = COIN_ALIAS.getOrDefault(coin, coin);
+        return StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
+    }
 
     public static String FUND_PURCHASE =
             "【申购提醒】\n" +

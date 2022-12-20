@@ -45,14 +45,12 @@ import com.tianli.management.service.IWalletAgentService;
 import com.tianli.management.vo.FundTransactionAmountVO;
 import com.tianli.management.vo.WalletAgentVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -260,19 +258,9 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
         financialProductService.reduceUseQuota(fundTransactionRecord.getProductId(), fundTransactionRecord.getTransactionAmount());
 
         // 发送消息
-        String fundPurchaseTemplate = WebHookTemplate.FUND_EXAMINE;
-        String[] searchList = new String[4];
-        searchList[0] = "#{uid}";
-        searchList[1] = "#{amount}";
-        searchList[2] = "#{coin}";
-        searchList[3] = "#{time}";
-        String[] replacementList = new String[4];
-        replacementList[0] = uid + "";
-        replacementList[1] = fundTransactionRecord.getTransactionAmount().toPlainString();
-        replacementList[2] = fundTransactionRecord.getCoin();
-        replacementList[3] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        String s = StringUtils.replaceEach(fundPurchaseTemplate, searchList, replacementList);
-        webHookService.fundSend(s);
+        String msg = WebHookTemplate.fundExamine(uid, fundTransactionRecord.getTransactionAmount()
+                , fundTransactionRecord.getCoin());
+        webHookService.fundSend(msg);
     }
 
     @Override
