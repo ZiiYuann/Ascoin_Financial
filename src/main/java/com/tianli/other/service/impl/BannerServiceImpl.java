@@ -77,7 +77,7 @@ public class BannerServiceImpl extends ServiceImpl<BannerMapper, Banner> impleme
                     queryWrapper = queryWrapper.lt(Banner::getStartTime, now);
                     queryWrapper = queryWrapper.ge(Banner::getEndTime, now);
                     break;
-                case 3:
+                case 2:
                     queryWrapper = queryWrapper.lt(Banner::getEndTime, now);
                     break;
             }

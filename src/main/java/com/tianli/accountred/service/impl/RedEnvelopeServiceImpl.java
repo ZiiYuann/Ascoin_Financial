@@ -217,7 +217,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         RedEnvelope redEnvelope = this.getWithCache(query.getRid());
         Optional.ofNullable(redEnvelope).orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
         if (!redEnvelope.getFlag().equals(query.getFlag())) {
-            webHookService.dingTalkSend("FLAG不一致！领取FLAG：" + redEnvelope.getFlag() + "  红包FLAG：" + redEnvelope.getFlag());
+            webHookService.dingTalkSend("FLAG不一致！领取FLAG：" + query.getFlag() + "  红包FLAG：" + redEnvelope.getFlag());
             ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
         }
 
