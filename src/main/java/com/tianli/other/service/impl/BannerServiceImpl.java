@@ -101,7 +101,8 @@ public class BannerServiceImpl extends ServiceImpl<BannerMapper, Banner> impleme
         LocalDateTime now = LocalDateTime.now();
         var queryWrapper = new LambdaQueryWrapper<Banner>()
                 .lt(Banner::getStartTime, now)
-                .ge(Banner::getEndTime, now);
+                .ge(Banner::getEndTime, now)
+                .orderByDesc(Banner :: getWeight);
         return this.list(queryWrapper).stream().map(otherConvert::toBannerVO).collect(Collectors.toList());
     }
 
