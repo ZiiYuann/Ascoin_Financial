@@ -71,14 +71,14 @@ public class BannerServiceImpl extends ServiceImpl<BannerMapper, Banner> impleme
             LocalDateTime now = LocalDateTime.now();
             switch (query.getStatus()) {
                 case 0:
-                    queryWrapper = queryWrapper.lt(Banner::getStartTime, now);
+                    queryWrapper = queryWrapper.ge(Banner::getStartTime, now);
                     break;
                 case 1:
-                    queryWrapper = queryWrapper.ge(Banner::getStartTime, now);
-                    queryWrapper = queryWrapper.lt(Banner::getEndTime, now);
+                    queryWrapper = queryWrapper.lt(Banner::getStartTime, now);
+                    queryWrapper = queryWrapper.ge(Banner::getEndTime, now);
                     break;
                 case 3:
-                    queryWrapper = queryWrapper.ge(Banner::getEndTime, now);
+                    queryWrapper = queryWrapper.lt(Banner::getEndTime, now);
                     break;
             }
         }
