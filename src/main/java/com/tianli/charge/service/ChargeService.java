@@ -42,6 +42,7 @@ import com.tianli.common.RedisService;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
+import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.common.webhook.WebHookToken;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.log.CurrencyLogDes;
@@ -310,13 +311,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         OrderReviewStrategy strategy = withdrawReviewStrategy.getStrategy(order, orderChargeInfo);
         log.info("当前提现策略是 ： " + strategy.name());
         if (!OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy)) {
-            StringBuilder msg = new StringBuilder()
-                    .append("监测到用户提现申请,请管理员尽快处理，金额：")
-                    .append(query.getAmount())
-                    .append(" ").append(query.getCoin())
-                    .append("，时间：")
-                    .append(LocalDateTime.now());
-            webHookService.dingTalkSend(msg.toString(), WebHookToken.FINANCIAL_PRODUCT);
+            String msg = WebHookTemplate.withdrawApply(query.getAmount(), query.getCoin());
+            webHookService.dingTalkSend(msg, WebHookToken.FINANCIAL_PRODUCT);
         }
 
         // 自动打币

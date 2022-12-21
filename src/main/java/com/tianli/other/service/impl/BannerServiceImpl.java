@@ -88,7 +88,7 @@ public class BannerServiceImpl extends ServiceImpl<BannerMapper, Banner> impleme
         }
 
         if (Objects.nonNull(query.getEndTime())) {
-            queryWrapper = queryWrapper.lt(Banner::getEndTime, query.getStartTime());
+            queryWrapper = queryWrapper.le(Banner::getEndTime, query.getEndTime());
         }
 
         queryWrapper.orderByDesc(Banner::getWeight);

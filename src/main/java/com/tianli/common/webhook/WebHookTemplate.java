@@ -24,6 +24,15 @@ public class WebHookTemplate {
         COIN_ALIAS.put("usdc", "积分uc");
     }
 
+    public static String withdrawApply(double amount, String coin) {
+        String msg = "监测到用户提现申请,请管理员尽快处理，金额：" +
+                amount +
+                " " + COIN_ALIAS.getOrDefault(coin, coin) +
+                "，时间：" +
+                LocalDateTime.now();
+        return msg;
+    }
+
     public static String fundPurchase(Long uid, String productName, BigDecimal amount, String coin) {
         // 发送消息
         String fundPurchaseTemplate = WebHookTemplate.FUND_PURCHASE;
