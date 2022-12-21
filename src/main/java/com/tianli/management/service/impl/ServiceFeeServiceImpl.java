@@ -192,6 +192,9 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
 
     @Override
     public ServiceFeeVO board(TimeQuery timeQuery, byte type) {
+        // 更新今日数据
+        init(LocalDate.now());
+
         timeQuery.calTime();
         List<ServiceFee> allFeeByType = this.getBaseMapper().getTotalAmount(timeQuery, type);
 
@@ -206,10 +209,6 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
         BigDecimal allFeeDollar = defaultChainMap.values().stream()
                 .map(serviceFeeVO -> serviceFeeVO.getRate().multiply(serviceFeeVO.getAmount()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-
-        // 更新今日数据
-        init(LocalDate.now());
 
         // 按用户输入时间
         var queryWrapper =
