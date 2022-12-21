@@ -308,7 +308,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         accountBalanceServiceImpl.freeze(uid, ChargeType.withdraw, coin.getName(), coin.getNetwork()
                 , withdrawAmount, order.getOrderNo(), CurrencyLogDes.提现.name());
 
-        OrderReviewStrategy strategy = withdrawReviewStrategy.getStrategy(order, orderChargeInfo);
+        OrderReviewStrategy strategy = withdrawReviewStrategy.getStrategy(order, orderChargeInfo, true);
         log.info("当前提现策略是 ： " + strategy.name());
         if (!OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy)) {
             String msg = WebHookTemplate.withdrawApply(query.getAmount(), query.getCoin());

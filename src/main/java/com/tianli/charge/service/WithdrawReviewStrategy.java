@@ -33,14 +33,19 @@ public class WithdrawReviewStrategy {
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
+    public OrderReviewStrategy getStrategy(Order order, OrderChargeInfo orderChargeInfo) {
+        return this.getStrategy(order, orderChargeInfo, false);
+    }
+
     /**
      * 获取提现审核策略
      *
      * @param order           订单信息
      * @param orderChargeInfo 订单详情信息
+     * @param apply           是否申请
      * @return 策略
      */
-    public OrderReviewStrategy getStrategy(Order order, OrderChargeInfo orderChargeInfo) {
+    public OrderReviewStrategy getStrategy(Order order, OrderChargeInfo orderChargeInfo, boolean apply) {
         BigDecimal withdrawAmountDollar = orderChargeInfo.getFee().multiply(currencyService.huobiUsdtRate(order.getCoin()));
         CoinReviewConfig coinReviewConfig = coinReviewConfigService.reviewConfig();
 
@@ -56,55 +61,59 @@ public class WithdrawReviewStrategy {
             return OrderReviewStrategy.MANUAL_REVIEW_AUTO_TRANSFER;
         }
 
-        String key = RedisConstants.USER_WITHDRAW_LIMIT + order.getUid();
-        // 当前时间
-        String timestamp = System.currentTimeMillis() + "";
-        String expireSeconds = coinReviewConfig.getHourLimit() * 60 * 60 + "";
-        String timesLimit = coinReviewConfig.getTimesLimit() + "";
+        if (apply) {
+            String key = RedisConstants.USER_WITHDRAW_LIMIT + order.getUid();
+            // 当前时间
+            String timestamp = System.currentTimeMillis() + "";
+            String expireSeconds = coinReviewConfig.getHourLimit() * 60 * 60 + "";
+            String timesLimit = coinReviewConfig.getTimesLimit() + "";
 
-        // 使用redis ZSET 实现滑动窗口算法
-        String script = // 获取key
-                "local key = KEYS[1] \n" +
-                        // 缓存时间 vale1
-                        "local expire = tonumber(ARGV[1]) \n" +
-                        // 当前时间 value2
-                        "local currentMs = tonumber(ARGV[2]) \n" +
-                        // 最大次数 value3
-                        "local count = tonumber(ARGV[3]) \n" +
-                        // 窗口开始时间
-                        "local windowStartMs = currentMs - expire * 1000 \n" +
-                        // 获取key的次数
-                        "local current = redis.call('ZCOUNT', key, windowStartMs, currentMs) \n" +
-                        // 如果key的次数存在且大于预设值直接返回当前key的次数
-                        "if current and tonumber(current) >= count then\n" +
-                        "    return tostring(current)\n" +
-                        "end \n" +
-                        // 清除所有过期成员
-                        "redis.call('ZREMRANGEBYSCORE', key, 0, windowStartMs) \n" +
-                        // 添加当前成员
-                        "redis.call('ZADD', key, currentMs, currentMs) \n" +
-                        // 设置过期时间
-                        "redis.call('EXPIRE', key, expire) \n" +
-                        // 返回当前次数
-                        "return tostring(current) ";
+            // 使用redis ZSET 实现滑动窗口算法
+            String script = // 获取key
+                    "local key = KEYS[1] \n" +
+                            // 缓存时间 vale1
+                            "local expire = tonumber(ARGV[1]) \n" +
+                            // 当前时间 value2
+                            "local currentMs = tonumber(ARGV[2]) \n" +
+                            // 最大次数 value3
+                            "local count = tonumber(ARGV[3]) \n" +
+                            // 窗口开始时间
+                            "local windowStartMs = currentMs - expire * 1000 \n" +
+                            // 获取key的次数
+                            "local current = redis.call('ZCOUNT', key, windowStartMs, currentMs) \n" +
+                            // 如果key的次数存在且大于预设值直接返回当前key的次数
+                            "if current and tonumber(current) >= count then\n" +
+                            "    return tostring(current)\n" +
+                            "end \n" +
+                            // 清除所有过期成员
+                            "redis.call('ZREMRANGEBYSCORE', key, 0, windowStartMs) \n" +
+                            // 添加当前成员
+                            "redis.call('ZADD', key, currentMs, currentMs) \n" +
+                            // 设置过期时间
+                            "redis.call('EXPIRE', key, expire) \n" +
+                            // 返回当前次数
+                            "return tostring(current) ";
 
-        DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
-        redisScript.setResultType(String.class);
-        redisScript.setScriptText(script);
-        //采用字符串序列化器
-        RedisSerializer<String> stringRedisSerializer = redisTemplate.getStringSerializer();
-        Object[] objects = new Object[]{expireSeconds, timestamp, timesLimit};
-        String result = redisTemplate.execute(redisScript
-                , stringRedisSerializer
-                , stringRedisSerializer
-                , List.of(key), objects);
-        if (StringUtils.isBlank(result)) {
-            ErrorCodeEnum.SYSTEM_ERROR.throwException();
+            DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
+            redisScript.setResultType(String.class);
+            redisScript.setScriptText(script);
+            //采用字符串序列化器
+            RedisSerializer<String> stringRedisSerializer = redisTemplate.getStringSerializer();
+            Object[] objects = new Object[]{expireSeconds, timestamp, timesLimit};
+            String result = redisTemplate.execute(redisScript
+                    , stringRedisSerializer
+                    , stringRedisSerializer
+                    , List.of(key), objects);
+            if (StringUtils.isBlank(result)) {
+                ErrorCodeEnum.SYSTEM_ERROR.throwException();
+            }
+            if (Integer.parseInt(result) >= Integer.parseInt(timesLimit)) {
+                return OrderReviewStrategy.MANUAL_REVIEW_AUTO_TRANSFER;
+            }
+            return OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER;
         }
-        if (Integer.parseInt(result) >= Integer.parseInt(timesLimit)) {
-            return OrderReviewStrategy.MANUAL_REVIEW_AUTO_TRANSFER;
-        }
-        return OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER;
+
+        return OrderReviewStrategy.MANUAL_REVIEW_AUTO_TRANSFER;
     }
 
 }
