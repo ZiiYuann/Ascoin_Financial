@@ -23,16 +23,16 @@ public interface ServiceFeeService extends IService<ServiceFee> {
     /**
      * 初始化init
      */
-    void init(LocalDate startTime);
+    void init(LocalDate startTime, Byte type);
 
     /**
      * 初始化init
      */
-    void init(LocalDate startTime, LocalDate endTime);
+    void init(LocalDate startTime, LocalDate endTime, Byte type);
 
 
     /**
      * 手续费展板
      */
-    ServiceFeeVO board(TimeQuery timeQuery, byte type);
+    ServiceFeeVO board(TimeQuery timeQuery, Byte type);
 }

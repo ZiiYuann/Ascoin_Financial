@@ -63,12 +63,20 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
 
     @Override
     @Transactional
-    public void init(LocalDate startTime, LocalDate endTime) {
+    public void init(LocalDate startTime, LocalDate endTime, Byte type) {
 
 
         var serviceFeeDTOs = new ArrayList<ServiceFeeDTO>();
-        serviceFeeDTOs.addAll(getWithdrawServiceFeeDTOs(startTime, endTime));
-        serviceFeeDTOs.addAll(getImputationServiceFeeDTOs(startTime, endTime));
+        if (Objects.isNull(type)) {
+            serviceFeeDTOs.addAll(getWithdrawServiceFeeDTOs(startTime, endTime));
+            serviceFeeDTOs.addAll(getImputationServiceFeeDTOs(startTime, endTime));
+        }
+        if (Objects.nonNull(type) && type == 0) {
+            serviceFeeDTOs.addAll(getWithdrawServiceFeeDTOs(startTime, endTime));
+        }
+        if (Objects.nonNull(type) && type == 1) {
+            serviceFeeDTOs.addAll(getImputationServiceFeeDTOs(startTime, endTime));
+        }
 
         // 根据时间 + 币别 + type进行分类
         Map<String, List<ServiceFeeDTO>> feeByTime =
@@ -182,18 +190,18 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
 
     @Override
     public void init() {
-        this.init(null, null);
+        this.init(null, null, null);
     }
 
     @Override
-    public void init(LocalDate startTime) {
-        this.init(startTime, null);
+    public void init(LocalDate startTime, Byte type) {
+        this.init(startTime, null, type);
     }
 
     @Override
-    public ServiceFeeVO board(TimeQuery timeQuery, byte type) {
+    public ServiceFeeVO board(TimeQuery timeQuery, Byte type) {
         // 更新今日数据
-        init(LocalDate.now());
+        init(LocalDate.now(), type);
 
         timeQuery.calTime();
         List<ServiceFee> allFeeByType = this.getBaseMapper().getTotalAmount(timeQuery, type);
