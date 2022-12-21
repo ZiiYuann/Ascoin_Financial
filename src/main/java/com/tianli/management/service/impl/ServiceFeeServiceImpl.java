@@ -9,7 +9,6 @@ import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.WalletImputationLogService;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.service.contract.ContractOperation;
-import com.tianli.chain.service.contract.Web3jContractOperation;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderChargeInfo;
 import com.tianli.charge.enums.ChargeStatus;
