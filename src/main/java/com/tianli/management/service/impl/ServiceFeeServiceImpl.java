@@ -90,7 +90,7 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
                 Web3jContractOperation web3j = contractAdapter.getWeb3j(serviceFeeDTO.getNetworkType());
                 BigDecimal amount = BigDecimal.ZERO;
                 try {
-                    amount = web3j.getConsumeFee(serviceFeeDTO.getTxid());
+                    amount = web3j.getConsumeFee(txid);
                 } catch (Exception e) {
                     log.error("异常提现订单【hash数值异常】：" + serviceFeeDTO.getNetworkType() + " " + txid);
                 }

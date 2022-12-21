@@ -23,7 +23,6 @@ public class CoinReviewConfigIoUQuery extends IoUQuery {
     /**
      * 系统自动审核，自动打币
      */
-    @Min(value = 10)
     private int autoReviewAutoTransfer;
 
     /**
