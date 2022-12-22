@@ -77,7 +77,7 @@ public class FinancialBoardTask {
 
 
         // 提现数据展板
-        serviceFeeService.init(todayBegin.toLocalDate());
+        serviceFeeService.init(todayBegin.toLocalDate(),null);
     }
 
 
