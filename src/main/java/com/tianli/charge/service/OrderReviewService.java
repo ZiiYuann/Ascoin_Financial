@@ -72,7 +72,8 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         // 订单详情
         OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
         // 获取审核策略
-        OrderReviewStrategy strategy = withdrawReviewStrategy.getStrategy(order, orderChargeInfo);
+        OrderReviewStrategy strategy = query.isAutoPass() ? OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER :
+                withdrawReviewStrategy.getStrategy(order, orderChargeInfo);
         // 人工审核人工打币判断
         if (OrderReviewStrategy.MANUAL_REVIEW_MANUAL_TRANSFER.equals(strategy)
                 && StringUtils.isBlank(query.getHash()) && query.isPass()) {

@@ -322,6 +322,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                     .remarks("自动审核通过")
                     .rid(0L)
                     .reviewBy("系统自动")
+                    .autoPass(true)
                     .pass(true).build();
             orderReviewService.review(reviewQuery);
         }

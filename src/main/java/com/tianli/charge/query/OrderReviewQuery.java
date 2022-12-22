@@ -37,4 +37,6 @@ public class OrderReviewQuery {
 
     private Long rid;
 
+    private boolean autoPass;
+
 }
