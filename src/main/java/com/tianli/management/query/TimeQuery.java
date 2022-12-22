@@ -31,11 +31,11 @@ public class TimeQuery {
 
     public void calTime() {
         if (Objects.nonNull(timeRange)) {
-            if (timeRange == TimeQueryEnum.day) {
+            if (timeRange == TimeQueryEnum.day || timeRange == TimeQueryEnum.DAY ) {
                 startTime = TimeTool.toLocalDateTime(DateUtil.beginOfDay(new Date()));
-            } else if (timeRange == TimeQueryEnum.week) {
+            } else if (timeRange == TimeQueryEnum.week || timeRange == TimeQueryEnum.WEEK) {
                 startTime = TimeTool.toLocalDateTime(DateUtil.beginOfWeek(new Date()));
-            } else if (timeRange == TimeQueryEnum.month) {
+            } else if (timeRange == TimeQueryEnum.month || timeRange == TimeQueryEnum.MONTH) {
                 startTime = TimeTool.toLocalDateTime(DateUtil.beginOfMonth(new Date()));
             }
             if (Objects.isNull(endTime)){
