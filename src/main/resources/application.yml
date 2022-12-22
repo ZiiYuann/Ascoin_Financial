@@ -2,15 +2,21 @@ spring:
   application:
     name: financial
   datasource:
-
-    url: jdbc:mysql://rm-6we8u0l05o7z6tf76jo.mysql.japan.rds.aliyuncs.com:3306/financial?characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true
+#    url: jdbc:mysql://rm-6we8u0l05o7z6tf76jo.mysql.japan.rds.aliyuncs.com:3306/financial?characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    username: financial
+#    password: "@tianli123456TL"
+    url: jdbc:mysql://localhost:3306/financial?characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: financial
-    password: "@tianli123456TL"
+    username: root
+    password: "123456"
+#  redis:
+#    host: r-6wes3xh85wv4t8xp2jpd.redis.japan.rds.aliyuncs.com
+#    database: 56
+#    password: "@tianli123456TL"
   redis:
-    host: r-6wes3xh85wv4t8xp2jpd.redis.japan.rds.aliyuncs.com
-    database: 56
-    password: "@tianli123456TL"
+    host: localhost
+    database: 0
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     default-property-inclusion: non_null

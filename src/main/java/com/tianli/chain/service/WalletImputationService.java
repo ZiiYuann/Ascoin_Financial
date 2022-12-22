@@ -20,7 +20,6 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.lock.RedisLock;
-import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.dto.AmountDto;
@@ -33,6 +32,7 @@ import com.tianli.management.vo.ImputationAmountVO;
 import com.tianli.task.RetryScheduledExecutor;
 import com.tianli.task.RetryTaskInfo;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +40,10 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -88,14 +91,15 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         LambdaQueryWrapper<WalletImputation> query = new LambdaQueryWrapper<WalletImputation>()
                 .eq(WalletImputation::getUid, uid)
                 .eq(WalletImputation::getNetwork, coin.getNetwork())
-                .eq(WalletImputation::getCoin, coin.getNetwork())
-                .eq(WalletImputation::getStatus, ImputationStatus.wait);
+                .eq(WalletImputation::getCoin, coin.getName())
+                .eq(WalletImputation::getStatus, ImputationStatus.wait)
+                .orderByDesc(WalletImputation :: getCreateTime);
 
         // 操作归集信息的时候不允许管理端进行归集操作
-        WalletImputation walletImputation = walletImputationMapper.selectOne(query);
+        List<WalletImputation> walletImputations = walletImputationMapper.selectList(query);
 
-        if (Objects.nonNull(walletImputation)) {
-            walletImputationMapper.increase(walletImputation.getId(), finalAmount);
+        if (CollectionUtils.isNotEmpty(walletImputations)) {
+            walletImputationMapper.increase(walletImputations.get(0).getId(), finalAmount);
             return;
         }
 
