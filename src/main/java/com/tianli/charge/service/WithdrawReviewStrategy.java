@@ -77,6 +77,8 @@ public class WithdrawReviewStrategy {
                             "local currentMs = tonumber(ARGV[2]) \n" +
                             // 最大次数 value3
                             "local count = tonumber(ARGV[3]) \n" +
+                            // 参数 value4
+                            "local value = ARGV[4] \n" +
                             // 窗口开始时间
                             "local windowStartMs = currentMs - expire * 1000 \n" +
                             // 获取key的次数
@@ -88,7 +90,7 @@ public class WithdrawReviewStrategy {
                             // 清除所有过期成员
                             "redis.call('ZREMRANGEBYSCORE', key, 0, windowStartMs) \n" +
                             // 添加当前成员
-                            "redis.call('ZADD', key, currentMs, currentMs) \n" +
+                            "redis.call('ZADD', key, currentMs, value) \n" +
                             // 设置过期时间
                             "redis.call('EXPIRE', key, expire) \n" +
                             // 返回当前次数
@@ -99,7 +101,7 @@ public class WithdrawReviewStrategy {
             redisScript.setScriptText(script);
             //采用字符串序列化器
             RedisSerializer<String> stringRedisSerializer = redisTemplate.getStringSerializer();
-            Object[] objects = new Object[]{expireSeconds, timestamp, timesLimit};
+            Object[] objects = new Object[]{expireSeconds, timestamp, timesLimit,order.getOrderNo()};
             String result = redisTemplate.execute(redisScript
                     , stringRedisSerializer
                     , stringRedisSerializer
