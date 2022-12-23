@@ -105,4 +105,6 @@ public class FundRecordVO implements Serializable {
 
     private boolean sellOut;
 
+    private BigDecimal earningRate;
+
 }

@@ -18,7 +18,6 @@ import com.tianli.charge.service.OrderService;
 import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisService;
 import com.tianli.currency.service.CurrencyService;
-import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.dto.ProductRateDTO;
@@ -163,6 +162,7 @@ public class FinancialServiceImpl implements FinancialService {
         incomeByRecordIdVO.setMinRate(product.getMinRate());
         incomeByRecordIdVO.setRateType(product.getRateType());
         incomeByRecordIdVO.setRate(product.getRate());
+        incomeByRecordIdVO.setEarningRate(financialProductService.incomeRate(uid,record.getProductId(),recordId));
         if (Objects.nonNull(product.getTotalQuota())) {
             incomeByRecordIdVO.setSellOut(MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO)
                     .compareTo(product.getTotalQuota()) >= 0);
@@ -518,23 +518,6 @@ public class FinancialServiceImpl implements FinancialService {
                 .businessType(product.getBusinessType())
                 .newUser(newUser)
                 .type(product.getType()).build();
-    }
-
-    @Override
-    public BigDecimal incomeRate(Long uid, Long productId, Long recordId) {
-
-        FinancialProduct product = financialProductService.getById(productId);
-
-        // 基金收益
-        if (ProductType.fund.equals(product.getType())) {
-            return fundRecordService.incomeRate(uid, productId, recordId);
-        }
-
-        if (!ProductType.fund.equals(product.getType())) {
-            return financialProductService.incomeRate(uid, productId, recordId);
-        }
-
-        throw ErrorCodeEnum.SYSTEM_ERROR.generalException();
     }
 
     private List<FinancialProductVO> getFinancialProductVOs(Long productId) {

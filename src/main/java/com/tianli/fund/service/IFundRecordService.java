@@ -38,7 +38,7 @@ public interface IFundRecordService extends IService<FundRecord> {
 
     FundTransactionRecordVO purchase(FundPurchaseBO bo);
 
-    FundRecordVO detail(Long id);
+    FundRecordVO detail(Long uid,Long id);
 
     IPage<FundIncomeRecordVO> incomeRecord(PageQuery<FundIncomeRecord> page, FundIncomeQuery query);
 

@@ -298,7 +298,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     }
 
     @Override
-    public FundRecordVO detail(Long id) {
+    public FundRecordVO detail(Long uid, Long id) {
         FundRecord fundRecord = this.getById(id);
         FundRecordVO fundRecordVO = fundRecordConvert.toFundVO(fundRecord);
         long until = fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS);
@@ -313,6 +313,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
 
         // 设置基金昨日收益
         fundRecordVO.setYesterdayIncomeAmount(fundIncomeRecordService.yesterdayIncomeAmount(id));
+        fundRecordVO.setEarningRate(this.incomeRate(uid, fundRecord.getProductId(), id));
         return fundRecordVO;
     }
 
@@ -541,10 +542,10 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         BigDecimal calIncomeAmount = fundRecord.getCumulativeIncomeAmount();
 
         BigDecimal allHoldAmount = fundRecord.getHoldAmount()
-                .add(redemptionRecords.stream().map(FundTransactionRecord :: getTransactionAmount)
-                        .reduce(BigDecimal.ZERO,BigDecimal::add));
+                .add(redemptionRecords.stream().map(FundTransactionRecord::getTransactionAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add));
 
-        return calIncomeAmount.divide(allHoldAmount,4,RoundingMode.HALF_UP);
+        return calIncomeAmount.divide(allHoldAmount, 4, RoundingMode.HALF_UP);
     }
 
     @Override

@@ -80,4 +80,6 @@ public class RecordIncomeVO {
 
     private boolean sellOut;
 
+    private BigDecimal earningRate;
+
 }

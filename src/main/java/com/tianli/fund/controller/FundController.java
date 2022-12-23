@@ -110,7 +110,8 @@ public class FundController {
      */
     @GetMapping("/detail/{id}")
     public Result detail(@PathVariable Long id) {
-        FundRecordVO detail = fundRecordService.detail(id);
+        Long uid = requestInitService.uid();
+        FundRecordVO detail = fundRecordService.detail(uid,id);
         return Result.success(detail);
     }
 

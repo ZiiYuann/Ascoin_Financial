@@ -131,14 +131,4 @@ public interface FinancialService {
      * @return 产品信息
      */
     ProductInfoVO productExtraInfo(Long uid, Long productId);
-
-    /**
-     * 持有收益率
-     *
-     * @param uid       用户id
-     * @param productId 产品id
-     * @param recordId  持有记录
-     * @return 收益率
-     */
-    BigDecimal incomeRate(Long uid, Long productId, Long recordId);
 }
