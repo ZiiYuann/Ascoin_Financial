@@ -101,6 +101,7 @@
         o.amount,o.coin
         FROM `order` o
         INNER JOIN order_charge_info charge on charge.id = o.related_id
+        LEFT JOIN order_review review on review.id = o.reviewer_id
         WHERE 1 = 1
         AND o.status = 'chain_success'
         <include refid="FinancialChargeQuery"/>
