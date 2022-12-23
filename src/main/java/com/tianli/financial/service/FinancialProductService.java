@@ -86,6 +86,7 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
     private RedisTemplate<String, Object> redisTemplate;
     @Resource
     private FinancialIncomeAccrueService financialIncomeAccrueService;
+
     /**
      * 删除产品
      */
@@ -408,6 +409,9 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
 
     public BigDecimal incomeRate(Long uid, Long productId, Long recordId) {
         FinancialIncomeAccrue financialIncomeAccrue = financialIncomeAccrueService.getByRecordId(uid, recordId);
+        if (Objects.isNull(financialIncomeAccrue)) {
+            return BigDecimal.ZERO;
+        }
         // 累计收益
         BigDecimal incomeAmount = financialIncomeAccrue.getIncomeAmount();
 
@@ -420,9 +424,9 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
                 .eq(Order::getRelatedId, recordId));
 
         BigDecimal allHoldAmount = financialRecord.getHoldAmount()
-                .add(redeemOrders.stream().map(Order:: getAmount)
-                        .reduce(BigDecimal.ZERO,BigDecimal::add));
+                .add(redeemOrders.stream().map(Order::getAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add));
 
-        return incomeAmount.divide(allHoldAmount,4,RoundingMode.HALF_UP);
+        return incomeAmount.divide(allHoldAmount, 4, RoundingMode.HALF_UP);
     }
 }
