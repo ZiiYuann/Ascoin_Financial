@@ -62,10 +62,6 @@ ALTER TABLE `financial_product`
     MODIFY COLUMN `rate_type` tinyint(1) NULL DEFAULT 0 COMMENT '利率类型 0 正常 1阶梯' AFTER `use_quota`;
 
 ALTER TABLE `financial_board_product`
-DROP
-PRIMARY KEY;
-
-ALTER TABLE `financial_board_product`
     MODIFY COLUMN `create_time` datetime NOT NULL COMMENT '创建时间' FIRST;
 
 INSERT INTO `coin_review_config` (`id`, `auto_review_auto_transfer`, `manual_review_manual_transfer`,
