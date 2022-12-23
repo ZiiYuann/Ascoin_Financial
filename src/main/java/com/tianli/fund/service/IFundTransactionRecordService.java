@@ -36,4 +36,5 @@ public interface IFundTransactionRecordService extends IService<FundTransactionR
     Integer getWaitRedemptionCount(Long productId);
 
 
+
 }

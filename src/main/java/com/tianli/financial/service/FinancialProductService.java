@@ -18,6 +18,7 @@ import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.financial.convert.FinancialConverter;
 import com.tianli.financial.dto.ProductRateDTO;
+import com.tianli.financial.entity.FinancialIncomeAccrue;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductStatus;
@@ -83,7 +84,8 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
     private IWalletAgentProductService walletAgentProductService;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
-
+    @Resource
+    private FinancialIncomeAccrueService financialIncomeAccrueService;
     /**
      * 删除产品
      */
@@ -402,5 +404,25 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
 
 
         return expectIncomeVO;
+    }
+
+    public BigDecimal incomeRate(Long uid, Long productId, Long recordId) {
+        FinancialIncomeAccrue financialIncomeAccrue = financialIncomeAccrueService.getByRecordId(uid, recordId);
+        // 累计收益
+        BigDecimal incomeAmount = financialIncomeAccrue.getIncomeAmount();
+
+        FinancialRecord financialRecord = financialRecordService.selectById(recordId, uid);
+
+        List<Order> redeemOrders = orderService.list(new LambdaQueryWrapper<Order>()
+                .eq(Order::getStatus, ChargeStatus.chain_success)
+                .eq(Order::getType, ChargeType.redeem)
+                .eq(Order::getUid, uid)
+                .eq(Order::getRelatedId, recordId));
+
+        BigDecimal allHoldAmount = financialRecord.getHoldAmount()
+                .add(redeemOrders.stream().map(Order:: getAmount)
+                        .reduce(BigDecimal.ZERO,BigDecimal::add));
+
+        return incomeAmount.divide(allHoldAmount,4,RoundingMode.HALF_UP);
     }
 }

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/financial")
@@ -165,6 +166,18 @@ public class FinancialController {
     public Result productInfo(@PathVariable Long productId) {
         Long uid = requestInitService.uid();
         return Result.instance().setData(financialService.productExtraInfo(uid, productId));
+    }
+
+    /**
+     * 持有收益率
+     */
+    @GetMapping("/income/rate")
+    public Result productInfo(Long productId, Long recordId) {
+        Long uid = requestInitService.uid();
+        BigDecimal rate = financialService.incomeRate(uid, productId, recordId);
+        HashMap<String, String> rateMap = new HashMap<>();
+        rateMap.put("incomeRate", rate.toPlainString());
+        return Result.instance().setData(rateMap);
     }
 
 }

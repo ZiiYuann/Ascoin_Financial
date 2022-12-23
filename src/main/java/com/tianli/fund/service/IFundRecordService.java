@@ -82,4 +82,5 @@ public interface IFundRecordService extends IService<FundRecord> {
 
     List<FundRecord> listByUidAndProductId(Long uid, Long productId);
 
+    BigDecimal incomeRate(Long uid, Long productId, Long recordId);
 }
