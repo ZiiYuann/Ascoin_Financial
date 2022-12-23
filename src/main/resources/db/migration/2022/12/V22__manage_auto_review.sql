@@ -71,6 +71,6 @@ ALTER TABLE `financial_board_product`
 ALTER TABLE `financial_board_product`
     ADD PRIMARY KEY (`create_time`) USING BTREE;
 
-INSERT INTO `financial`.`coin_review_config` (`id`, `auto_review_auto_transfer`, `manual_review_manual_transfer`,
+INSERT INTO `coin_review_config` (`id`, `auto_review_auto_transfer`, `manual_review_manual_transfer`,
                                               `hour_limit`, `times_limit`, `create_by`, `create_time`, `deleted`)
 VALUES (1752989274678679791, 10, 5000, 2, 2, '超级管理员', '2022-12-23 15:34:08', 0);
