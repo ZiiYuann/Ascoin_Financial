@@ -52,6 +52,8 @@
         <redisson.version>3.17.4</redisson.version>
         <kaptcha.version>2.3.2</kaptcha.version>
         <testable.version>0.7.7</testable.version>
+        <party.52it.version>1.0.0</party.52it.version>
+        <org.bitcoinj.version>0.16.1</org.bitcoinj.version>
     </properties>
 
     <dependencies>
@@ -297,6 +299,22 @@
             <groupId>com.github.whvcse</groupId>
             <artifactId>easy-captcha</artifactId>
             <version>1.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>party.52it</groupId>
+            <artifactId>Bip44ForJava</artifactId>
+            <version>${party.52it.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bitcoinj</groupId>
+            <artifactId>bitcoinj-core</artifactId>
+            <version>${org.bitcoinj.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcprov-jdk15to18</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>

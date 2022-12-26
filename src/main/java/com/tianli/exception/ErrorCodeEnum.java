@@ -33,6 +33,8 @@ public enum ErrorCodeEnum {
     INSUFFICIENT_BALANCE(123, "余额不足"),
     PURCHASE_AMOUNT_TO_SMALL(124, "申购金额低于系统限制"),
     ACCOUNT_ERROR(125, "账户异常"),
+    GENERATE_MNEMONIC_FAILED(126, "生成助记词失败"),
+    GENERATE_CHARGE_ADDRESS_FAILED(127, "生成充值地址失败"),
 
 
     /*** －－－－－－业务错误码-账号相关－－－－－－*/

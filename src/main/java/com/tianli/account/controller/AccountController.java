@@ -5,10 +5,11 @@ import com.google.common.base.MoreObjects;
 import com.tianli.account.query.AccountDetailsQuery;
 import com.tianli.account.query.IdsQuery;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
-import com.tianli.address.AddressService;
+import com.tianli.address.Service.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.vo.AddressVO;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.CoinService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.service.ChargeService;
@@ -111,6 +112,16 @@ public class AccountController {
             ErrorCodeEnum.ACCOUNT_NOT_ACTIVE.throwException();
         }
         return Result.success(AddressVO.trans(address));
+    }
+
+    /**
+     * 根据链获取钱包地址 非eth bsc tron等常用链 采用懒加载模式生成对应链的地址
+     * @param chainType 所属链
+     */
+    @GetMapping("/address")
+    public Result address(ChainType chainType) {
+        Long uid = requestInitService.uid();
+        return Result.success(addressService.get(uid, chainType));
     }
 
     /**

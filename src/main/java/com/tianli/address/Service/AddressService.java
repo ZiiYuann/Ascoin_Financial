@@ -1,4 +1,4 @@
-package com.tianli.address;
+package com.tianli.address.Service;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -58,6 +58,8 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
     private ChainService chainService;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private OccasionalAddressService occasionalAddressService;
 
     /**
      * 激活钱包，并且会推送数据到数据中心
@@ -123,6 +125,13 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
      */
     public Address get(long uid) {
         return super.getOne(new LambdaQueryWrapper<Address>().eq(Address::getUid, uid));
+    }
+
+    /**
+     * 获取非常用链的充值地址
+     */
+    public String get(long uid, ChainType chain) {
+        return occasionalAddressService.get(uid, chain);
     }
 
     /**

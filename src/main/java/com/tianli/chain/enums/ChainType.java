@@ -9,6 +9,7 @@ import lombok.Getter;
  */
 @Getter
 public enum ChainType {
+    BTC("btc"),
     BSC("bnb"),
     ETH("eth"),
     TRON("trx");
