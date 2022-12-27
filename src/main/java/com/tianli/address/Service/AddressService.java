@@ -102,14 +102,14 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
         redisLock.lock("AddressService.get_" + uid + "_", 1L, TimeUnit.MINUTES);
         Address address = this.get(uid);
         if (address != null) return address;
-        long generalId = CommonFunction.generalId();
-        String bsc = baseContractService.getOne(NetworkType.bep20).computeAddress(generalId);
-        String tron = baseContractService.getOne(NetworkType.trc20).computeAddress(generalId);
-        String eth = baseContractService.getOne(NetworkType.erc20).computeAddress(generalId);
+        long addressId = CommonFunction.generalId();
+        String bsc = baseContractService.getOne(NetworkType.bep20).computeAddress(addressId);
+        String tron = baseContractService.getOne(NetworkType.trc20).computeAddress(addressId);
+        String eth = baseContractService.getOne(NetworkType.erc20).computeAddress(addressId);
         if (StringUtils.isEmpty(bsc) || StringUtils.isEmpty(tron) || StringUtils.isEmpty(eth))
             ErrorCodeEnum.NETWORK_ERROR.throwException();
         address = Address.builder()
-                .id(generalId)
+                .id(addressId)
                 .uid(uid)
                 .createTime(LocalDateTime.now())
                 .tron(tron)
@@ -131,7 +131,20 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
      * 获取非常用链的充值地址
      */
     public String get(long uid, ChainType chain) {
-        return occasionalAddressService.get(uid, chain);
+        Address address = get(uid);
+        if(address == null) {
+            throw ErrorCodeEnum.ACCOUNT_NOT_ACTIVE.generalException();
+        }
+        if(ChainType.ETH.equals(chain)) {
+            return address.getEth();
+        }
+        if(ChainType.BSC.equals(chain)) {
+            return address.getBsc();
+        }
+        if(ChainType.TRON.equals(chain)) {
+            return address.getTron();
+        }
+        return occasionalAddressService.get(address.getId(), chain);
     }
 
     /**

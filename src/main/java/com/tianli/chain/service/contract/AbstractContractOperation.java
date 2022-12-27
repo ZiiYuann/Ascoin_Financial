@@ -64,17 +64,17 @@ public abstract class AbstractContractOperation implements ContractOperation {
     }
 
     @Override
-    public String computeAddress(long uid) throws IOException {
+    public String computeAddress(long addressId) throws IOException {
         throw ErrorCodeEnum.NOT_OPEN.generalException();
     }
 
     @Override
-    public String computeAddress(BigInteger uid) throws IOException {
+    public String computeAddress(BigInteger addressId) throws IOException {
         throw ErrorCodeEnum.NOT_OPEN.generalException();
     }
 
     @Override
-    public String computeAddress(String walletAddress, BigInteger uid) throws IOException {
+    public String computeAddress(String walletAddress, BigInteger addressId) throws IOException {
         throw ErrorCodeEnum.NOT_OPEN.generalException();
     }
 

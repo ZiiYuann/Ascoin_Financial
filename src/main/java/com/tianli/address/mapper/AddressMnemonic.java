@@ -15,9 +15,9 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChargeAddressMnemonic {
+public class AddressMnemonic {
     private Long id;
-    private Long uid;
+    private Long addressId;
     private String mnemonic;
     private LocalDateTime createTime;
 }

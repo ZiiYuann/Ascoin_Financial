@@ -8,6 +8,7 @@ import com.tianli.chain.entity.WalletImputationLog;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.WalletImputationLogService;
 import com.tianli.chain.service.contract.ContractAdapter;
+import com.tianli.chain.service.contract.ContractOperation;
 import com.tianli.chain.service.contract.Web3jContractOperation;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderChargeInfo;
@@ -95,7 +96,7 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
 
 
             BigDecimal serviceAmount = txids.stream().map(txid -> {
-                Web3jContractOperation web3j = contractAdapter.getWeb3j(serviceFeeDTO.getNetworkType());
+                ContractOperation web3j = contractAdapter.getOne(serviceFeeDTO.getNetworkType());
                 BigDecimal amount = BigDecimal.ZERO;
                 try {
                     amount = web3j.getConsumeFee(txid);

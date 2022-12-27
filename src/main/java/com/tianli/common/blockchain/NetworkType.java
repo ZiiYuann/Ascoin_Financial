@@ -11,7 +11,10 @@ public enum NetworkType {
     // 波场公链代币标准
     trc20(ChainType.TRON),
     // 币安链代币标准
-    bep20(ChainType.BSC);
+    bep20(ChainType.BSC),
+
+    // todo
+    btc(ChainType.BTC);
 
     NetworkType(ChainType chainType){
         this.chainType = chainType;

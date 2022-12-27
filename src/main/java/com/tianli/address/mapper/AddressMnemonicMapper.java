@@ -8,5 +8,5 @@ import org.apache.ibatis.annotations.Mapper;
  * @Date 2022-12-26 11:01
  */
 @Mapper
-public interface ChargeAddressMnemonicMapper extends BaseMapper<ChargeAddressMnemonic> {
+public interface AddressMnemonicMapper extends BaseMapper<AddressMnemonic> {
 }

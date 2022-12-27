@@ -3,8 +3,10 @@ package com.tianli.chain.service.contract;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.tianli.chain.dto.EthGasAPIResponse;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.HttpUtils;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.judge.JsonObjectTool;
 import lombok.extern.slf4j.Slf4j;
@@ -35,18 +37,23 @@ public class EthTriggerContract extends Web3jContractOperation {
     private JsonRpc2_0Web3j ethWeb3j;
 
     @Override
-    public String computeAddress(long uid) throws IOException {
-        return computeAddress(new BigInteger("" + uid));
+    public String computeAddress(long addressId) throws IOException {
+        return computeAddress(new BigInteger("" + addressId));
     }
 
-    public String computeAddress(BigInteger uid) throws IOException {
+    public String computeAddress(BigInteger addressId) throws IOException {
         String address = configService.get(ConfigConstants.ETH_MAIN_WALLET_ADDRESS);
-        return computeAddress(address, uid);
+        return computeAddress(address, addressId);
     }
 
-    public String computeAddress(String walletAddress, BigInteger uid) throws IOException {
+    public String computeAddress(String walletAddress, BigInteger addressId) throws IOException {
         String contractAddress = configService.get(ConfigConstants.ETH_TRIGGER_ADDRESS);
-        return super.computeAddress(walletAddress, uid, contractAddress);
+        return super.computeAddress(walletAddress, addressId, contractAddress);
+    }
+
+    @Override
+    public boolean matchByChain(NetworkType chain) {
+        return NetworkType.erc20.equals(chain);
     }
 
     @Override

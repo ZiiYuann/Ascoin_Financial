@@ -86,10 +86,10 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
         }
     }
 
-    protected String computeAddress(String walletAddress, BigInteger uid, String contractAddress) throws IOException {
+    protected String computeAddress(String walletAddress, BigInteger addressId, String contractAddress) throws IOException {
         EthCall send = this.getWeb3j().ethCall(Transaction.createEthCallTransaction(null, contractAddress,
                 new DefaultFunctionEncoder().encodeFunction(
-                        new Function("computeAddress", List.of(new Address(walletAddress), new Uint(uid)),
+                        new Function("computeAddress", List.of(new Address(walletAddress), new Uint(addressId)),
                                 List.of())
                 )), DefaultBlockParameterName.LATEST).send();
         Address address = new Address(send.getValue());

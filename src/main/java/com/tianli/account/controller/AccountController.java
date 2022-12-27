@@ -116,12 +116,12 @@ public class AccountController {
 
     /**
      * 根据链获取钱包地址 非eth bsc tron等常用链 采用懒加载模式生成对应链的地址
-     * @param chainType 所属链
+     * @param chain 所属链
      */
-    @GetMapping("/address")
-    public Result address(ChainType chainType) {
+    @GetMapping("/address/{chain}")
+    public Result address(@PathVariable("chain") ChainType chain) {
         Long uid = requestInitService.uid();
-        return Result.success(addressService.get(uid, chainType));
+        return Result.success(addressService.get(uid, chain));
     }
 
     /**

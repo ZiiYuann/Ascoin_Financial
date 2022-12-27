@@ -1,6 +1,8 @@
 package com.tianli.chain.service.contract;
 
+import com.tianli.chain.enums.ChainType;
 import com.tianli.common.ConfigConstants;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.mconfig.ConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -20,18 +22,18 @@ public class BscTriggerContract extends Web3jContractOperation {
     private JsonRpc2_0Web3j bscWeb3j;
 
     @Override
-    public String computeAddress(long uid) throws IOException {
-        return computeAddress(new BigInteger("" + uid));
+    public String computeAddress(long addressId) throws IOException {
+        return computeAddress(new BigInteger("" + addressId));
     }
 
-    public String computeAddress(BigInteger uid) throws IOException {
+    public String computeAddress(BigInteger addressId) throws IOException {
         String address = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
-        return computeAddress(address, uid);
+        return computeAddress(address, addressId);
     }
 
-    public String computeAddress(String walletAddress, BigInteger uid) throws IOException {
+    public String computeAddress(String walletAddress, BigInteger addressId) throws IOException {
         String contractAddress = configService.get(ConfigConstants.BSC_TRIGGER_ADDRESS);
-        return super.computeAddress(walletAddress,uid,contractAddress);
+        return super.computeAddress(walletAddress, addressId, contractAddress);
     }
 
     @Override
@@ -72,5 +74,10 @@ public class BscTriggerContract extends Web3jContractOperation {
     @Override
     protected String getRecycleTriggerAddress() {
         return configService.get(ConfigConstants.BSC_TRIGGER_ADDRESS);
+    }
+
+    @Override
+    public boolean matchByChain(NetworkType chain) {
+        return NetworkType.bep20.equals(chain);
     }
 }

@@ -2,8 +2,8 @@ package com.tianli.address.Service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.address.mapper.ChargeAddressMnemonic;
-import com.tianli.address.mapper.ChargeAddressMnemonicMapper;
+import com.tianli.address.mapper.AddressMnemonic;
+import com.tianli.address.mapper.AddressMnemonicMapper;
 import com.tianli.common.CommonFunction;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.tool.DataSecurityTool;
@@ -24,28 +24,28 @@ import java.util.List;
  */
 @Slf4j
 @Service
-public class ChargeAddressMnemonicService extends ServiceImpl<ChargeAddressMnemonicMapper, ChargeAddressMnemonic> {
+public class AddressMnemonicService extends ServiceImpl<AddressMnemonicMapper, AddressMnemonic> {
     private static final String ADDRESS_MNEMONIC_LOCK = "address:mnemonic:lock:";
     @Resource
     private RedissonClient redisson;
     @Resource
     private DataSecurityTool dataSecurityTool;
 
-    public String getMnemonic(long uid) {
-        ChargeAddressMnemonic addressMnemonic = this.getOne(Wrappers.lambdaQuery(ChargeAddressMnemonic.class).eq(ChargeAddressMnemonic::getUid, uid));
+    public String getMnemonic(long addressId) {
+        AddressMnemonic addressMnemonic = this.getOne(Wrappers.lambdaQuery(AddressMnemonic.class).eq(AddressMnemonic::getAddressId, addressId));
         if(addressMnemonic == null) {
-            RLock lock = redisson.getLock(ADDRESS_MNEMONIC_LOCK + uid);
+            RLock lock = redisson.getLock(ADDRESS_MNEMONIC_LOCK + addressId);
             try {
                 lock.lock();
-                addressMnemonic = this.getOne(Wrappers.lambdaQuery(ChargeAddressMnemonic.class).eq(ChargeAddressMnemonic::getUid, uid));
+                addressMnemonic = this.getOne(Wrappers.lambdaQuery(AddressMnemonic.class).eq(AddressMnemonic::getAddressId, addressId));
                 if(addressMnemonic == null) {
                     List<String> keys = Bip44Utils.generateMnemonicWords();
                     String mnemonic = StringUtils.collectionToDelimitedString(keys, " ");
-                    addressMnemonic = ChargeAddressMnemonic.builder().id(CommonFunction.generalId()).uid(uid).mnemonic(dataSecurityTool.encryptWithPublicKey(mnemonic)).createTime(LocalDateTime.now()).build();
+                    addressMnemonic = AddressMnemonic.builder().id(CommonFunction.generalId()).addressId(addressId).mnemonic(dataSecurityTool.encryptWithPublicKey(mnemonic)).createTime(LocalDateTime.now()).build();
                     this.save(addressMnemonic);
                 }
             } catch (Exception e) {
-                log.error("uid: {} save charge address mnemonic failed", uid, e);
+                log.error("addressId: {} save charge address mnemonic failed", addressId, e);
                 throw ErrorCodeEnum.GENERATE_MNEMONIC_FAILED.generalException();
             } finally {
                 if(lock.isLocked() && lock.isHeldByCurrentThread()) {

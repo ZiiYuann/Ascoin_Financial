@@ -5,8 +5,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.mapper.OccasionalAddress;
 import com.tianli.address.mapper.OccasionalAddressMapper;
 import com.tianli.chain.enums.ChainType;
-import com.tianli.chain.service.contract.ComputeAddress;
+import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.common.CommonFunction;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.exception.ErrorCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -30,33 +31,34 @@ import java.util.List;
  */
 @Slf4j
 @Service
-public class OccasionalAddressService extends ServiceImpl<OccasionalAddressMapper, OccasionalAddress> implements BeanFactoryAware {
+public class OccasionalAddressService extends ServiceImpl<OccasionalAddressMapper, OccasionalAddress> {
     private final static String OCCASIONAL_ADDRESS_LOCK = "occasional:address:lock:";
-    private List<ComputeAddress> computeAddressList;
-    private DefaultListableBeanFactory beanFactory;
 
     @Resource
     private RedissonClient redisson;
+    @Resource
+    private ContractAdapter contractAdapter;
 
-    public String get(long uid, ChainType chain) {
-        OccasionalAddress address = this.getOne(Wrappers.lambdaQuery(OccasionalAddress.class).eq(OccasionalAddress::getUid, uid).eq(OccasionalAddress::getChain, chain));
+    public String get(long addressId, ChainType chain) {
+        OccasionalAddress address = this.getOne(Wrappers.lambdaQuery(OccasionalAddress.class).eq(OccasionalAddress::getAddressId, addressId).eq(OccasionalAddress::getChain, chain));
         if(address == null) {
-            RLock lock = redisson.getLock(OCCASIONAL_ADDRESS_LOCK + uid + ":" + chain);
+            RLock lock = redisson.getLock(OCCASIONAL_ADDRESS_LOCK + addressId + ":" + chain);
             try {
                 lock.lock();
-                address = this.getOne(Wrappers.lambdaQuery(OccasionalAddress.class).eq(OccasionalAddress::getUid, uid).eq(OccasionalAddress::getChain, chain));
+                address = this.getOne(Wrappers.lambdaQuery(OccasionalAddress.class).eq(OccasionalAddress::getAddressId, addressId).eq(OccasionalAddress::getChain, chain));
                 if(address == null) {
-                    String addressStr = computeAddress(uid, chain);
+                    // todo chain字段
+                    String addressStr = contractAdapter.getOne(NetworkType.getInstance(chain)).computeAddress(addressId);
                     address = OccasionalAddress.builder()
                             .id(CommonFunction.generalId())
                             .address(addressStr)
-                            .uid(uid)
+                            .addressId(addressId)
                             .chain(chain)
                             .createTime(LocalDateTime.now()).build();
                     this.save(address);
                 }
             } catch (IOException e) {
-                log.error("compute address failed uid:{} chain:{}", uid, chain, e);
+                log.error("compute address failed addressId:{} chain:{}", addressId, chain, e);
                 throw ErrorCodeEnum.GENERATE_CHARGE_ADDRESS_FAILED.generalException();
             } finally {
                 if(lock.isLocked() && lock.isHeldByCurrentThread()) {
@@ -67,19 +69,4 @@ public class OccasionalAddressService extends ServiceImpl<OccasionalAddressMappe
         return address.getAddress();
     }
 
-    private String computeAddress(long uid, ChainType chain) throws IOException {
-        for (ComputeAddress computeAddress : computeAddressList) {
-            if(computeAddress.match(chain)) {
-                return computeAddress.computeAddress(uid);
-            }
-        }
-        log.error("{} chain will be used to compute address not found", chain);
-        throw ErrorCodeEnum.GENERATE_CHARGE_ADDRESS_FAILED.generalException();
-    }
-
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        this.beanFactory = (DefaultListableBeanFactory) beanFactory;
-        computeAddressList = new ArrayList<>(this.beanFactory.getBeansOfType(ComputeAddress.class).values());
-    }
 }
