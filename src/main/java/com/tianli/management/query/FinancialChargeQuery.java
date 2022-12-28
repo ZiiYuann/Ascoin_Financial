@@ -36,5 +36,7 @@ public class FinancialChargeQuery {
 
     private boolean noReview;
 
+    private Byte reviewType;
+
 
 }

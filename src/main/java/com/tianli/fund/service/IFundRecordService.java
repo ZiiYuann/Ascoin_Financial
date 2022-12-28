@@ -38,7 +38,7 @@ public interface IFundRecordService extends IService<FundRecord> {
 
     FundTransactionRecordVO purchase(FundPurchaseBO bo);
 
-    FundRecordVO detail(Long id);
+    FundRecordVO detail(Long uid,Long id);
 
     IPage<FundIncomeRecordVO> incomeRecord(PageQuery<FundIncomeRecord> page, FundIncomeQuery query);
 
@@ -82,4 +82,5 @@ public interface IFundRecordService extends IService<FundRecord> {
 
     List<FundRecord> listByUidAndProductId(Long uid, Long productId);
 
+    BigDecimal incomeRate(Long uid, Long productId, Long recordId);
 }

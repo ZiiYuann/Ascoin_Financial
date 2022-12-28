@@ -66,7 +66,6 @@ public class FinancialBoardTask {
         LocalDateTime yesterdayBegin = todayBegin.plusDays(-1);
         log.info("========执行计算管理端数据展板定时任务{}========", todayBegin);
 
-
         FinancialBoardProduct today = financialBoardProductService.getByDate(yesterdayBegin.toLocalDate());
         financialBoardProductService.getFinancialBoardProduct(yesterdayBegin, todayBegin, today);
         financialBoardProductService.updateById(today);
@@ -78,7 +77,7 @@ public class FinancialBoardTask {
 
 
         // 提现数据展板
-        serviceFeeService.init(todayBegin.toLocalDate());
+        serviceFeeService.init(todayBegin.toLocalDate(),null);
     }
 
 

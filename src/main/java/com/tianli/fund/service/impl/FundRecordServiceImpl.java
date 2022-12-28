@@ -54,7 +54,6 @@ import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.management.vo.FundUserRecordVO;
 import com.tianli.management.vo.HoldUserAmount;
 import com.tianli.sso.init.RequestInitService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,7 +62,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -300,7 +298,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     }
 
     @Override
-    public FundRecordVO detail(Long id) {
+    public FundRecordVO detail(Long uid, Long id) {
         FundRecord fundRecord = this.getById(id);
         FundRecordVO fundRecordVO = fundRecordConvert.toFundVO(fundRecord);
         long until = fundRecord.getCreateTime().until(LocalDateTime.now(), ChronoUnit.DAYS);
@@ -315,6 +313,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
 
         // 设置基金昨日收益
         fundRecordVO.setYesterdayIncomeAmount(fundIncomeRecordService.yesterdayIncomeAmount(id));
+        fundRecordVO.setEarningRate(this.incomeRate(uid, fundRecord.getProductId(), id));
         return fundRecordVO;
     }
 
@@ -527,6 +526,26 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
                 .eq(false, FundRecord::getHoldAmount, BigDecimal.ZERO);
 
         return Optional.ofNullable(fundRecordMapper.selectList(eq)).orElse(new ArrayList<>());
+    }
+
+    @Override
+    public BigDecimal incomeRate(Long uid, Long productId, Long fundId) {
+        // 获取赎回金额
+        FundRecord fundRecord = this.getById(fundId);
+        List<FundTransactionRecord> redemptionRecords = fundTransactionRecordService.list(new LambdaQueryWrapper<FundTransactionRecord>()
+                .eq(FundTransactionRecord::getUid, uid)
+                .eq(FundTransactionRecord::getFundId, fundId)
+                .eq(FundTransactionRecord::getStatus, FundTransactionStatus.success)
+                .eq(FundTransactionRecord::getProductId, productId)
+                .eq(FundTransactionRecord::getType, FundTransactionType.redemption));
+
+        BigDecimal calIncomeAmount = fundRecord.getCumulativeIncomeAmount();
+
+        BigDecimal allHoldAmount = fundRecord.getHoldAmount()
+                .add(redemptionRecords.stream().map(FundTransactionRecord::getTransactionAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add));
+
+        return calIncomeAmount.divide(allHoldAmount, 4, RoundingMode.HALF_UP);
     }
 
     @Override

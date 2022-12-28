@@ -162,6 +162,7 @@ public class FinancialServiceImpl implements FinancialService {
         incomeByRecordIdVO.setMinRate(product.getMinRate());
         incomeByRecordIdVO.setRateType(product.getRateType());
         incomeByRecordIdVO.setRate(product.getRate());
+        incomeByRecordIdVO.setEarningRate(financialProductService.incomeRate(uid,record.getProductId(),recordId));
         if (Objects.nonNull(product.getTotalQuota())) {
             incomeByRecordIdVO.setSellOut(MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO)
                     .compareTo(product.getTotalQuota()) >= 0);

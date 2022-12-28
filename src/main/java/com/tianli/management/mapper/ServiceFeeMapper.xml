@@ -9,5 +9,6 @@
             AND `create_time` BETWEEN #{query.startTime} AND #{query.endTime}
         </if>
         GROUP BY `coin`,`network`
+        ORDER BY `coin`
     </select>
 </mapper>

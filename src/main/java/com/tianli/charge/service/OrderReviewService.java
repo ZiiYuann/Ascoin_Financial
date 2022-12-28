@@ -72,7 +72,8 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         // 订单详情
         OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
         // 获取审核策略
-        OrderReviewStrategy strategy = withdrawReviewStrategy.getStrategy(order, orderChargeInfo);
+        OrderReviewStrategy strategy = query.isAutoPass() ? OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER :
+                withdrawReviewStrategy.getStrategy(order, orderChargeInfo);
         // 人工审核人工打币判断
         if (OrderReviewStrategy.MANUAL_REVIEW_MANUAL_TRANSFER.equals(strategy)
                 && StringUtils.isBlank(query.getHash()) && query.isPass()) {
@@ -93,7 +94,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         order.setReviewerId(orderReview.getId());
 
         // 审核通过需要上链 如果传入的hash值为空说明是自动转账
-        if (OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy) &&
+        if (( OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy) ||  OrderReviewStrategy.MANUAL_REVIEW_AUTO_TRANSFER.equals(strategy)) &&
                 query.isPass() && StringUtils.isBlank(query.getHash())) {
             chargeService.withdrawChain(order);
             order.setStatus(ChargeStatus.chaining);
@@ -103,7 +104,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         }
 
         // 手动打币
-        if (OrderReviewStrategy.MANUAL_REVIEW_AUTO_TRANSFER.equals(strategy) &&
+        if (OrderReviewStrategy.MANUAL_REVIEW_MANUAL_TRANSFER.equals(strategy) &&
                 query.isPass() && StringUtils.isNotBlank(query.getHash())) {
             // 更新order相关链信息
             orderChargeInfo.setTxid(query.getHash());
