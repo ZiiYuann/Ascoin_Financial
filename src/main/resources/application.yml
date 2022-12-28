@@ -8,7 +8,7 @@ spring:
     username: financial
     password: "@tianli123456TL"
   redis:
-    host: r-6wes3xh85wv4t8xp2jpd.redis.japan.rds.aliyuncs.com
+    host: r-6we6w3li1ttjk18832pd.redis.japan.rds.aliyuncs.com
     database: 56
     password: "@tianli123456TL"
   jackson:
