@@ -7,6 +7,7 @@ import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
+import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.enums.RedEnvelopeType;
 import com.tianli.accountred.mapper.RedEnvelopeSpiltMapper;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
@@ -46,21 +47,10 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     @Resource
     private AccountBalanceServiceImpl accountBalanceServiceImpl;
 
-    private static final HashMap<RedEnvelopeType, RedEnvelopeGiveStrategy> GIVE_STRATEGY = new HashMap<>(4);
-
-    static {
-        NormalGiveStrategy normalGiveStrategy = new NormalGiveStrategy();
-        RandomGiveStrategy randomGiveStrategy = new RandomGiveStrategy();
-        GIVE_STRATEGY.put(RedEnvelopeType.NORMAL, normalGiveStrategy);
-        GIVE_STRATEGY.put(RedEnvelopeType.PRIVATE, normalGiveStrategy);
-        GIVE_STRATEGY.put(RedEnvelopeType.RANDOM, randomGiveStrategy);
-    }
-
     @Override
     @Transactional
     public void spiltRedEnvelope(RedEnvelope redEnvelope) {
-        List<RedEnvelopeSpilt> spiltRedEnvelopes = GIVE_STRATEGY.get(redEnvelope.getType())
-                .spiltRedEnvelope(redEnvelope.getId(), redEnvelope.getNum(), redEnvelope.getAmount(), redEnvelope.getTotalAmount());
+        List<RedEnvelopeSpilt> spiltRedEnvelopes = GiveStrategyAdapter.split(redEnvelope);
 
         String key = RedisConstants.SPILT_RED_ENVELOPE + redEnvelope.getId();
         this.saveBatch(spiltRedEnvelopes);

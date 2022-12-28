@@ -4,6 +4,7 @@ import com.tianli.currency.service.CurrencyService;
 import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.dto.AmountDto;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ import java.util.Optional;
  * @apiNote
  * @since 2022-07-11
  **/
+@Slf4j
 @Service
 public class CurrencyServiceImpl implements CurrencyService {
 
@@ -59,6 +61,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             }
             return BigDecimal.valueOf(digitalCurrencyExchange.coinUsdtPrice(coinName));
         } catch (Exception e) {
+            log.error(coinName + "汇率不存在");
             throw ErrorCodeEnum.COIN_RATE_ERROR.generalException();
         }
     }

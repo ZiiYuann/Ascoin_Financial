@@ -4,13 +4,17 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.base.MoreObjects;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.accountred.RedEnvelopeVerifier;
 import com.tianli.accountred.convert.RedEnvelopeConvert;
 import com.tianli.accountred.entity.RedEnvelope;
+import com.tianli.accountred.entity.RedEnvelopeConfig;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
+import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.enums.RedEnvelopeStatus;
 import com.tianli.accountred.enums.RedEnvelopeType;
 import com.tianli.accountred.enums.RedEnvelopeWay;
@@ -18,6 +22,7 @@ import com.tianli.accountred.mapper.RedEnvelopeMapper;
 import com.tianli.accountred.query.RedEnvelopeChainQuery;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.query.RedEnvelopeIoUQuery;
+import com.tianli.accountred.service.RedEnvelopeConfigService;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
 import com.tianli.accountred.service.RedEnvelopeSpiltService;
@@ -55,6 +60,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -98,6 +104,10 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     private RedEnvelopeMapper redEnvelopeMapper;
     @Resource
     private CoinBaseService coinBaseService;
+    @Resource
+    private RedEnvelopeConfigService redEnvelopeConfigService;
+
+    private final List<RedEnvelopeVerifier> verifiers = new ArrayList<>();
 
     @PostConstruct
     public void initBloomFilter() {
@@ -112,8 +122,14 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         bloomFilter.tryInit(10000000L, 0.001f);
         final List<Long> ids = redEnvelopeMapper.listIds();
         ids.forEach(bloomFilter::add);
-
     }
+
+    @PostConstruct
+    public void initRedEnvelopeVerifier() {
+        verifiers.add(new ChatVerifier());
+        verifiers.add(new InviteVerifier());
+    }
+
 
     @Override
     @Transactional
@@ -147,7 +163,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
      */
     private void spiltRedEnvelope(Long uid, RedEnvelope redEnvelope) {
 
-        validGiveRedEnvelope(uid, redEnvelope.getTotalAmount(), redEnvelope.getCoin());
+        validGiveRedEnvelope(uid, redEnvelope);
 
         // 拆分红包
         redEnvelopeSpiltService.spiltRedEnvelope(redEnvelope);
@@ -498,18 +514,85 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     /**
      * 校验发红包
      */
-    private void validGiveRedEnvelope(Long uid, BigDecimal totalAmount, String coin) {
-
-        BigDecimal uAmount = currencyService.getDollarRate(coin).multiply(totalAmount);
-        if (uAmount.compareTo(BigDecimal.valueOf(100L)) > 0) {
-            ErrorCodeEnum.RED_AMOUNT_EXCEED_LIMIT_100.throwException();
-        }
-
-        AccountBalance accountBalance = accountBalanceServiceImpl.getAndInit(uid, coin);
-        if (totalAmount.compareTo(accountBalance.getRemain()) > 0) {
-            ErrorCodeEnum.INSUFFICIENT_BALANCE.throwException();
-        }
-
+    private void validGiveRedEnvelope(Long uid, RedEnvelope redEnvelope) {
+        // 责任链模式校验
+        verifiers.forEach(verifier -> verifier.verifier(uid, redEnvelope));
     }
+
+
+    /**
+     * 聊天校验器
+     */
+    private class ChatVerifier implements RedEnvelopeVerifier {
+        @Override
+        public void verifier(Long uid, RedEnvelope redEnvelope) {
+            RedEnvelopeChannel channel = redEnvelope.getChannel();
+            // todo 考虑有缓存的情况下 redEnvelope 的channel会为null,上线24h后可以修改
+            if (Objects.nonNull(channel) && !RedEnvelopeChannel.CHAT.equals(channel)) {
+                return;
+            }
+
+            BigDecimal totalAmount = redEnvelope.getTotalAmount();
+            String coin = redEnvelope.getCoin();
+            BigDecimal uAmount = currencyService.getDollarRate(coin).multiply(totalAmount);
+            if (uAmount.compareTo(BigDecimal.valueOf(100L)) > 0) {
+                ErrorCodeEnum.RED_AMOUNT_EXCEED_LIMIT_100.throwException();
+            }
+
+            AccountBalance accountBalance = accountBalanceServiceImpl.getAndInit(uid, coin);
+            if (totalAmount.compareTo(accountBalance.getRemain()) > 0) {
+                ErrorCodeEnum.INSUFFICIENT_BALANCE.throwException();
+            }
+        }
+    }
+
+    /**
+     * 邀请红包校验器
+     */
+    private class InviteVerifier implements RedEnvelopeVerifier {
+        @Override
+        public void verifier(Long uid, RedEnvelope redEnvelope) {
+            if (!RedEnvelopeChannel.INVITE.equals(redEnvelope.getChannel())) {
+                return;
+            }
+            RedEnvelopeConfig redEnvelopeConfig = redEnvelopeConfigService.getOne(redEnvelope.getCoin(), redEnvelope.getChannel());
+            redEnvelopeConfig = MoreObjects.firstNonNull(redEnvelopeConfig, RedEnvelopeConfig.defaultConfig());
+
+            BigDecimal totalAmount = redEnvelope.getTotalAmount();
+            int num = redEnvelope.getNum();
+
+            // 数量为0 或者 大于配置金额
+            if (num == 0 || num > redEnvelopeConfig.getNum()) {
+                ErrorCodeEnum.RED_NUM_ERROR.throwException();
+            }
+
+            // 金额为0或者大于配置金额
+            var totalMinAmount =
+                    redEnvelopeConfig.getMinAmount().multiply(BigDecimal.valueOf(redEnvelopeConfig.getNum().longValue()));
+            if (totalAmount.compareTo(redEnvelopeConfig.getLimitAmount()) > 0
+                    || totalAmount.compareTo(BigDecimal.ZERO) == 0
+                    || totalAmount.compareTo(totalMinAmount) < 0) {
+                ErrorCodeEnum.RED_AMOUNT_ERROR.throwException();
+            }
+
+            // 获取配置项目小数点位数
+            int scale = redEnvelopeConfig.getScale();
+
+            var averageValueSeventyPercent =
+                    RedEnvelopeGiveStrategy.getAverageValue70Percent(redEnvelope.getTotalAmount(), redEnvelope.getNum(), scale);
+            if (averageValueSeventyPercent.compareTo(redEnvelopeConfig.getMinAmount()) < 0) {
+                ErrorCodeEnum.throwException("当前红包平均值70近似值%小于最小金额，近似平均值："
+                        + averageValueSeventyPercent.toPlainString() + "   设定最小值："
+                        + redEnvelopeConfig.getMinAmount().toPlainString());
+            }
+
+            if (averageValueSeventyPercent.multiply(new BigDecimal(redEnvelope.getNum() + "")).compareTo(redEnvelope.getTotalAmount()) > 0) {
+                ErrorCodeEnum.throwException("当前红包平均值70近似值乘红包数量大于红包总价，近似平均值："
+                        + averageValueSeventyPercent.toPlainString() + "   红包总金额："
+                        + redEnvelope.getTotalAmount().toPlainString());
+            }
+        }
+    }
+
 
 }
