@@ -2,11 +2,14 @@ package com.tianli.address.Service;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.query.IdsQuery;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.mapper.AddressMapper;
+import com.tianli.address.mapper.OccasionalAddress;
+import com.tianli.address.pojo.MainWalletAddress;
 import com.tianli.chain.dto.CallbackPathDTO;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.ChainService;
@@ -150,12 +153,14 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
     /**
      * 获取系统钱包地址
      */
-    public Address getConfigAddress() {
+    public MainWalletAddress getConfigAddress() {
         String bscWalletAddress = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
         String ethWalletAddress = configService.get(ConfigConstants.ETH_MAIN_WALLET_ADDRESS);
         String tronWalletAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
+        String btcWalletAddress = configService.get(ConfigConstants.BTC_MAIN_WALLET_ADDRESS);
 
-        return Address.builder()
+        return MainWalletAddress.builder()
+                .btc(btcWalletAddress)
                 .bsc(bscWalletAddress)
                 .eth(ethWalletAddress)
                 .tron(tronWalletAddress)
@@ -182,8 +187,10 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
                 return getByEth(toAddress);
             case BSC:
                 return getByBsc(toAddress);
+            default:
+                OccasionalAddress occasionalAddress = occasionalAddressService.get(toAddress, chainType);
+                return this.getById(occasionalAddress.getAddressId());
         }
-        throw ErrorCodeEnum.NOT_OPEN.generalException();
     }
 
     public BigInteger activeCount(LocalDateTime startTime, LocalDateTime endTime) {

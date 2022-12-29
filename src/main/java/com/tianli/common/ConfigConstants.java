@@ -68,5 +68,7 @@ public class ConfigConstants {
 
     public static final String SYS_DEV = "dev";
 
+    // btc uutoken
+    public static final String UUTOKEN_HOST = "uutoken_host";
 
 }

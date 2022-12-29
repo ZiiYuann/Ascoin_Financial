@@ -28,6 +28,7 @@ public enum TokenAdapter {
     usdt_trc20("usdt", NetworkType.trc20, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
 
     // 主币
+    btc("btc", NetworkType.btc, "0x000000"),
     bnb("bnb", NetworkType.bep20, "0x000000"),
     eth("eth", NetworkType.erc20, "0x000000"),
     trx(null, NetworkType.trc20, "0x000000");
@@ -58,6 +59,8 @@ public enum TokenAdapter {
     public BigDecimal alignment(BigDecimal amount) {
         if (amount == null) return BigDecimal.ZERO;
         switch (this) {
+            case btc:
+                return amount.divide(new BigDecimal("100000000"), 8, RoundingMode.DOWN);
             case usdt_erc20:
             case usdt_trc20:
             case usdc_erc20:

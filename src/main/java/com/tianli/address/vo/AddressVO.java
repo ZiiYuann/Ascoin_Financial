@@ -2,6 +2,7 @@ package com.tianli.address.vo;
 
 import com.tianli.address.mapper.Address;
 import com.tianli.account.enums.AccountChangeType;
+import com.tianli.address.pojo.MainWalletAddress;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -49,6 +50,14 @@ public class AddressVO {
     private String bsc;
 
     public static AddressVO trans(Address address){
+        return AddressVO.builder()
+                .btc(address.getBtc())
+                .eth(address.getEth())
+                .bsc(address.getBsc())
+                .tron(address.getTron()).build();
+    }
+
+    public static AddressVO trans(MainWalletAddress address){
         return AddressVO.builder()
                 .btc(address.getBtc())
                 .eth(address.getEth())

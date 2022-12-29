@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.Service.AddressService;
 import com.tianli.address.mapper.Address;
+import com.tianli.address.pojo.MainWalletAddress;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.service.contract.ContractOperation;
 import com.tianli.common.CommonFunction;
@@ -111,9 +112,10 @@ public class HotWalletDetailedService extends ServiceImpl<HotWalletDetailedMappe
 
 
     public HotWalletBalanceVO balance() {
-        Address configAddress = addressService.getConfigAddress();
+        MainWalletAddress configAddress = addressService.getConfigAddress();
         HotWalletBalanceVO vo = new HotWalletBalanceVO();
 
+        String btc = configAddress.getBtc();
         String bsc = configAddress.getBsc();
         String eth = configAddress.getEth();
         String tron = configAddress.getTron();
@@ -121,6 +123,7 @@ public class HotWalletDetailedService extends ServiceImpl<HotWalletDetailedMappe
         ContractOperation ethContract = contractAdapter.getOne(NetworkType.erc20);
         ContractOperation bscContract = contractAdapter.getOne(NetworkType.bep20);
         ContractOperation tronContract = contractAdapter.getOne(NetworkType.trc20);
+        ContractOperation btcContract = contractAdapter.getOne(NetworkType.btc);
 
         vo.setBnb(TokenAdapter.bnb.alignment(bscContract.mainBalance(bsc)));
         vo.setUsdcBep20(TokenAdapter.usdc_bep20.alignment(bscContract.tokenBalance(bsc, TokenAdapter.usdc_bep20)));
@@ -134,6 +137,7 @@ public class HotWalletDetailedService extends ServiceImpl<HotWalletDetailedMappe
         vo.setUsdcTRC20(TokenAdapter.usdc_trc20.alignment(tronContract.tokenBalance(tron, TokenAdapter.usdc_trc20)));
         vo.setUsdtTRC20(TokenAdapter.usdt_trc20.alignment(tronContract.tokenBalance(tron, TokenAdapter.usdt_trc20)));
 
+        vo.setBtc(TokenAdapter.btc.alignment(btcContract.mainBalance(btc)));
         return vo;
     }
 }

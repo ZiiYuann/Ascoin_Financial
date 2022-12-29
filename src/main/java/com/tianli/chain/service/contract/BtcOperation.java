@@ -1,13 +1,15 @@
 package com.tianli.chain.service.contract;
 
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.tianli.address.PushHttpClient;
 import com.tianli.address.Service.AddressMnemonicService;
+import com.tianli.chain.dto.RawTransaction;
 import com.tianli.chain.entity.Coin;
-import com.tianli.chain.enums.ChainType;
+import com.tianli.chain.service.UutokenHttpService;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.TokenAdapter;
@@ -15,6 +17,7 @@ import com.tianli.exception.ErrCodeException;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
+import com.tianli.tool.judge.JsonObjectTool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
@@ -27,6 +30,8 @@ import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bouncycastle.util.encoders.Hex;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.codec.Utf8;
 import org.springframework.stereotype.Component;
 import party.loveit.bip44forjava.core.ECKey;
 import party.loveit.bip44forjava.utils.Bip44Utils;
@@ -37,6 +42,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -50,11 +56,18 @@ import java.util.concurrent.ThreadLocalRandom;
 @Component
 public class BtcOperation extends AbstractContractOperation {
 
+    @Value("${rpc.btc.url}")
     private String url;
+    @Value("${rpc.btc.username}")
+    private String username;
+    @Value("${rpc.btc.password}")
+    private String password;
     @Resource
     private ConfigService configService;
     @Resource
     private AddressMnemonicService addressMnemonicService;
+    @Resource
+    private UutokenHttpService uutokenHttpService;
 
     @Override
     Result tokenTransfer(String to, BigInteger val, Coin coin) {
@@ -89,7 +102,7 @@ public class BtcOperation extends AbstractContractOperation {
 
     @Override
     public BigDecimal mainBalance(String address) {
-        return null;
+        return new BigDecimal(uutokenHttpService.btcBalance(address));
     }
 
     @Override
@@ -102,9 +115,28 @@ public class BtcOperation extends AbstractContractOperation {
         throw ErrorCodeEnum.NOT_OPEN.generalException();
     }
 
+    public static void main(String[] args) throws IOException {
+        BtcOperation btcOperation = new BtcOperation();
+        btcOperation.url = "http://35.77.16.20:8332";
+        btcOperation.username = "user";
+        btcOperation.password = "hxTyOjmTh9bfjiivdzBlNH9HSWDZzf7UBM5PhbOMxHR";
+        BigDecimal consumeFee = btcOperation.getConsumeFee("9aadded09a0cf478593037bf6f815e251c900796129c4c9821b0302e74b9bb2a");
+    }
+
     @Override
     public BigDecimal getConsumeFee(String hash) throws IOException {
-        return null;
+        RawTransaction rawTransaction = getrawtransaction(hash);
+        BigDecimal btcFee = BigDecimal.ZERO;
+        for (RawTransaction.Vin vin : rawTransaction.getVin()) {
+            if(StringUtils.isNotBlank(vin.getTxid()) && vin.getVout() != null) {
+                RawTransaction.Vout vout = getrawtransaction(vin.getTxid()).getVout().get(vin.getVout());
+                btcFee = btcFee.add(new BigDecimal(vout.getValue()).movePointRight(8));
+            }
+        }
+        for (RawTransaction.Vout vout : rawTransaction.getVout()) {
+            btcFee = btcFee.subtract(new BigDecimal(vout.getValue()).movePointRight(8));
+        }
+        return btcFee;
     }
 
     @Override
@@ -176,25 +208,30 @@ public class BtcOperation extends AbstractContractOperation {
         return null;
     }
 
+    public RawTransaction getrawtransaction(String txid) {
+        JSONObject jsonObject = httpJson("getrawtransaction", txid, 1);
+        return jsonObject.get("result", RawTransaction.class);
+    }
+
     public String sendrawtransaction(String hexstring) {
-        JsonObject jsonObject = httpJson("sendrawtransaction", hexstring);
+        JSONObject jsonObject = httpJson("sendrawtransaction", hexstring);
         String result;
         try {
-            result = jsonObject.get("result").getAsString();
+            result = jsonObject.get("result", String.class);
         } catch (Exception e) {
             result = "";
         }
         if (StringUtils.isBlank(result)) {
-            JsonObject error = jsonObject.get("error").getAsJsonObject();
-            int code = error.get("code").getAsInt();
+            JSONObject error = jsonObject.getJSONObject("error");
+            int code = error.get("code", Integer.class);
             if (code == -26) throw new  ErrCodeException("发送失败,请等待上一笔交易完成");
             throw new ErrCodeException("发送交易失败");
         }
         return result;
     }
 
-    private JsonObject httpJson(String method, Object... params) {
-        return new Gson().fromJson(http(method, params), JsonObject.class);
+    private JSONObject httpJson(String method, Object... params) {
+        return JSONUtil.parseObj(http(method, params));
     }
 
     private String http(String method, Object... params) {
@@ -207,6 +244,7 @@ public class BtcOperation extends AbstractContractOperation {
             map.put("params", params);
             HttpPost httpPost = new HttpPost(url);
             httpPost.setHeader("Content-Type", "application/json");
+            httpPost.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString(Utf8.encode(username + ":" + password)));
             var jsonStr = JSONUtil.parse(map);
             byte[] bytes = jsonStr.toString().getBytes(StandardCharsets.UTF_8);
             httpPost.setEntity(new InputStreamEntity(new ByteArrayInputStream(bytes), bytes.length));

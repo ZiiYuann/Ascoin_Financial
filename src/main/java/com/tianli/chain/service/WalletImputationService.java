@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.Service.AddressService;
 import com.tianli.address.mapper.Address;
+import com.tianli.address.pojo.MainWalletAddress;
 import com.tianli.chain.converter.ChainConverter;
 import com.tianli.chain.dto.TRONTokenReq;
 import com.tianli.chain.entity.Coin;
@@ -308,9 +309,12 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
             return;
         }
 
-        Address configAddress = addressService.getConfigAddress();
+        MainWalletAddress configAddress = addressService.getConfigAddress();
         String toAddress = null;
         switch (network) {
+            case btc:
+                toAddress = configAddress.getBtc();
+                break;
             case bep20:
                 toAddress = configAddress.getBsc();
                 break;

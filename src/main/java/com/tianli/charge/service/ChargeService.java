@@ -3,6 +3,7 @@ package com.tianli.charge.service;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
@@ -11,7 +12,9 @@ import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.TransactionGroupTypeVO;
 import com.tianli.account.vo.TransactionTypeVO;
 import com.tianli.address.Service.AddressService;
+import com.tianli.address.Service.OccasionalAddressService;
 import com.tianli.address.mapper.Address;
+import com.tianli.address.mapper.OccasionalAddress;
 import com.tianli.chain.dto.CallbackPathDTO;
 import com.tianli.chain.dto.TRONTokenReq;
 import com.tianli.chain.entity.Coin;
@@ -238,6 +241,11 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         if ((NetworkType.bep20.equals(query.getNetwork()) || NetworkType.erc20.equals(query.getNetwork()))
                 && address.getEth().equals(query.getTo())) {
+            ErrorCodeEnum.FINANCIAL_TO_ERROR.throwException();
+        }
+        // todo network->chain
+        OccasionalAddress occasionalAddress = occasionalAddressService.get(query.getTo(), query.getNetwork().getChainType());
+        if(occasionalAddress != null) {
             ErrorCodeEnum.FINANCIAL_TO_ERROR.throwException();
         }
 
@@ -553,6 +561,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 address = addressService.getByTron(addressStr);
                 break;
             default:
+                // todo network -> chain
+                OccasionalAddress occasionalAddress = occasionalAddressService.get(addressStr, network.getChainType());
+                address = addressService.getById(occasionalAddress.getAddressId());
                 break;
         }
         if (address == null) {
@@ -684,6 +695,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             case bep20:
                 fromAddress = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
                 break;
+            case btc:
+                fromAddress = configService.get(ConfigConstants.BTC_MAIN_WALLET_ADDRESS);
+                break;
             default:
                 break;
         }
@@ -736,4 +750,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     private CoinService coinService;
     @Resource
     private WithdrawReviewStrategy withdrawReviewStrategy;
+    @Resource
+    private OccasionalAddressService occasionalAddressService;
 }

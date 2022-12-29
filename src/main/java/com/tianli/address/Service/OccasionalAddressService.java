@@ -39,6 +39,10 @@ public class OccasionalAddressService extends ServiceImpl<OccasionalAddressMappe
     @Resource
     private ContractAdapter contractAdapter;
 
+    public OccasionalAddress get(String address, ChainType chain) {
+        return this.getOne(Wrappers.lambdaQuery(OccasionalAddress.class).eq(OccasionalAddress::getAddress, address).eq(OccasionalAddress::getChain, chain));
+    }
+
     public String get(long addressId, ChainType chain) {
         OccasionalAddress address = this.getOne(Wrappers.lambdaQuery(OccasionalAddress.class).eq(OccasionalAddress::getAddressId, addressId).eq(OccasionalAddress::getChain, chain));
         if(address == null) {

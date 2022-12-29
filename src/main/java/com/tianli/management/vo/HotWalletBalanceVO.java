@@ -27,4 +27,6 @@ public class HotWalletBalanceVO {
     private BigDecimal usdtTRC20;
     private BigDecimal usdcTRC20;
     private BigDecimal trx;
+
+    private BigDecimal btc;
 }
