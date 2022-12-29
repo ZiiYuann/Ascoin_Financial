@@ -11,6 +11,11 @@ public class RedisConstants {
     public static String SPILT_RED_ENVELOPE = "red:spilt:";
 
     /**
+     * 拆分红包（站外使用）
+     */
+    public static String SPILT_RED_ENVELOPE_OFF_SITE = "red:spiltExtern:";
+
+    /**
      * 拆分红包领取
      */
     public static String SPILT_RED_ENVELOPE_GET = "red:spilt:get:";

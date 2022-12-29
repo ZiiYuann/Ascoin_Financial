@@ -10,6 +10,8 @@ import com.tianli.other.query.RedEnvelopeConfigIoUQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 /**
  * @author chenb
  * @apiNote
@@ -27,8 +29,9 @@ public class RedEnvelopeConfigServiceImpl extends ServiceImpl<RedEnvelopeConfigM
 
     @Override
     public RedEnvelopeConfig getOne(String coin, RedEnvelopeChannel channel) {
-        return this.getOne(new LambdaQueryWrapper<RedEnvelopeConfig>()
+        return Optional.ofNullable(this.getOne(new LambdaQueryWrapper<RedEnvelopeConfig>()
                 .eq(RedEnvelopeConfig::getCoin, coin)
-                .eq(RedEnvelopeConfig::getChannel, channel));
+                .eq(RedEnvelopeConfig::getChannel, channel)))
+                .orElse(RedEnvelopeConfig.defaultConfig());
     }
 }

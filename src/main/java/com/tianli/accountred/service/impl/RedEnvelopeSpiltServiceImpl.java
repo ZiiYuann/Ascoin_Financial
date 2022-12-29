@@ -8,7 +8,6 @@ import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
-import com.tianli.accountred.enums.RedEnvelopeType;
 import com.tianli.accountred.mapper.RedEnvelopeSpiltMapper;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
@@ -20,14 +19,17 @@ import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisConstants;
 import com.tianli.exception.ErrorCodeEnum;
+import org.springframework.data.redis.core.DefaultTypedTuple;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -37,6 +39,8 @@ import java.util.concurrent.TimeUnit;
  **/
 @Service
 public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMapper, RedEnvelopeSpilt> implements RedEnvelopeSpiltService {
+
+    // 1670774400000
 
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
@@ -55,8 +59,18 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         String key = RedisConstants.SPILT_RED_ENVELOPE + redEnvelope.getId();
         this.saveBatch(spiltRedEnvelopes);
         redisTemplate.opsForSet().add(key, spiltRedEnvelopes.stream().map(RedEnvelopeSpilt::getId).toArray());
-        redisTemplate.expire(key, 24, TimeUnit.HOURS);
+        redisTemplate.expire(key, redEnvelope.getChannel().getExpireDays(), TimeUnit.DAYS);
 
+        // 如果是站外红包，额外设置 zset 缓存 （score 从0 开始）
+        if (RedEnvelopeChannel.EXTERN.equals(redEnvelope.getChannel())) {
+            String keyOffSite = RedisConstants.SPILT_RED_ENVELOPE_OFF_SITE + redEnvelope.getId();
+            Set<ZSetOperations.TypedTuple<Object>> typedTuples = new HashSet<>(spiltRedEnvelopes.size());
+            for (int i = 0; i < spiltRedEnvelopes.size(); i++) {
+                typedTuples.add(new DefaultTypedTuple<>(spiltRedEnvelopes.get(i).getId(), (double) i));
+            }
+            redisTemplate.opsForZSet().add(keyOffSite, typedTuples);
+            redisTemplate.expire(keyOffSite, redEnvelope.getChannel().getExpireDays(), TimeUnit.DAYS);
+        }
     }
 
     @Override

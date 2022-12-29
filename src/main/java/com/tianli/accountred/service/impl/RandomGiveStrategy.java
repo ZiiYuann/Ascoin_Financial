@@ -36,7 +36,7 @@ public class RandomGiveStrategy extends RedEnvelopeGiveStrategy {
         List<RedEnvelopeSpilt> redEnvelopes = new ArrayList<>();
         // 最小金额
         limitAmount = MoreObjects.firstNonNull(limitAmount, LIMIT_AMOUNT);
-        BigDecimal remain = amount.subtract(limitAmount);
+        BigDecimal remain = amount.subtract(limitAmount.multiply(num));
         final Random random = new Random();
         final BigDecimal hundred = new BigDecimal("100");
         final BigDecimal two = new BigDecimal("2");
@@ -59,7 +59,7 @@ public class RandomGiveStrategy extends RedEnvelopeGiveStrategy {
                 remain = BigDecimal.ZERO;
             }
 
-            redEnvelopeSpilt.setAmount(LIMIT_AMOUNT.add(singleAmount));
+            redEnvelopeSpilt.setAmount(limitAmount.add(singleAmount));
             redEnvelopes.add(redEnvelopeSpilt);
 
         }

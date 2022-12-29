@@ -20,9 +20,9 @@ public class GiveStrategyAdapter {
     static {
         NormalGiveStrategy normalGiveStrategy = new NormalGiveStrategy();
         RandomGiveStrategy randomGiveStrategy = new RandomGiveStrategy();
-        GIVE_STRATEGY.put(RedEnvelopeChannel.CHAT.name() + RedEnvelopeType.NORMAL.name(), normalGiveStrategy);
-        GIVE_STRATEGY.put(RedEnvelopeChannel.CHAT.name() + RedEnvelopeType.PRIVATE.name(), normalGiveStrategy);
-        GIVE_STRATEGY.put(RedEnvelopeChannel.CHAT.name() + RedEnvelopeType.RANDOM.name(), randomGiveStrategy);
+        GIVE_STRATEGY.put(RedEnvelopeChannel.CHAT.name() + "-" + RedEnvelopeType.NORMAL.name(), normalGiveStrategy);
+        GIVE_STRATEGY.put(RedEnvelopeChannel.CHAT.name() + "-" + RedEnvelopeType.PRIVATE.name(), normalGiveStrategy);
+        GIVE_STRATEGY.put(RedEnvelopeChannel.CHAT.name() + "-" + RedEnvelopeType.RANDOM.name(), randomGiveStrategy);
     }
 
     /**
@@ -33,7 +33,7 @@ public class GiveStrategyAdapter {
      * @param strategy        策略本身
      */
     public static void addStrategy(RedEnvelopeChannel channel, RedEnvelopeType redEnvelopeType, RedEnvelopeGiveStrategy strategy) {
-        GIVE_STRATEGY.put(channel.name() + redEnvelopeType.name(), strategy);
+        GIVE_STRATEGY.put(channel.name() + "-" + redEnvelopeType.name(), strategy);
     }
 
     /**
@@ -43,7 +43,7 @@ public class GiveStrategyAdapter {
      * @return 拆分红包
      */
     public static List<RedEnvelopeSpilt> split(RedEnvelope redEnvelope) {
-        return GIVE_STRATEGY.get(redEnvelope.getChannel().name() + redEnvelope.getType().name())
+        return GIVE_STRATEGY.get(redEnvelope.getChannel().name() + "-" + redEnvelope.getType().name())
                 .spiltRedEnvelope(redEnvelope);
     }
 }

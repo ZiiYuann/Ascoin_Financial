@@ -6,6 +6,7 @@ import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.query.RedEnvelopeChainQuery;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.query.RedEnvelopeIoUQuery;
+import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO;
 import com.tianli.accountred.vo.RedEnvelopeGetDetailsVO;
 import com.tianli.accountred.vo.RedEnvelopeGetVO;
 import com.tianli.accountred.vo.RedEnvelopeGiveRecordVO;
@@ -36,9 +37,14 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
     Result give(Long uid, Long shortUid, RedEnvelopeChainQuery query);
 
     /**
-     * 抢红包
+     * 抢红包（聊天）
      */
-    RedEnvelopeGetVO get(Long uid, Long shortUid, RedEnvelopeGetQuery query);
+    RedEnvelopeGetVO getByChat(Long uid, Long shortUid, RedEnvelopeGetQuery query);
+
+    /**
+     * 抢红包（站外）
+     */
+    RedEnvelopeExchangeCodeVO getByExtern(Long rid);
 
     /**
      * 抢红包详情

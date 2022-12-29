@@ -60,10 +60,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -150,9 +147,9 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             spiltRedEnvelope(uid, redEnvelope);
         }
 
-        setRedisCache(redEnvelope);
         setBloomCache(redEnvelope.getId());
-        return Result.success(new RedEnvelopeGiveVO(redEnvelope.getId()));
+        setRedisCache(redEnvelope);
+        return Result.success(new RedEnvelopeGiveVO(redEnvelope.getId(), redEnvelope.getChannel()));
     }
 
     /**
@@ -223,15 +220,21 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         this.process(redEnvelope.getId(), query.getTxid());
 
         setRedisCache(redEnvelope);
-        return Result.success(new RedEnvelopeGiveVO(redEnvelope.getId()));
+        return Result.success(new RedEnvelopeGiveVO(redEnvelope.getId(), redEnvelope.getChannel()));
     }
 
     @Override
     @SneakyThrows
-    public RedEnvelopeGetVO get(Long uid, Long shortUid, RedEnvelopeGetQuery query) {
+    public RedEnvelopeGetVO getByChat(Long uid, Long shortUid, RedEnvelopeGetQuery query) {
         // 判断红包缓存是否存在
-        RedEnvelope redEnvelope = this.getWithCache(query.getRid());
-        Optional.ofNullable(redEnvelope).orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
+        RedEnvelope redEnvelope = Optional.ofNullable(this.getWithCache(query.getRid()))
+                .orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
+
+        // 站外红包不支持此领取方式
+        if (RedEnvelopeChannel.EXTERN.equals(redEnvelope.getChannel())) {
+            ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
+        }
+
         if (!redEnvelope.getFlag().equals(query.getFlag())) {
             webHookService.dingTalkSend("FLAG不一致！领取FLAG：" + query.getFlag() + "  红包FLAG：" + redEnvelope.getFlag());
             ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
@@ -258,12 +261,33 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         query.setRedEnvelope(redEnvelope);
 
         // 单独的事务，此事务已经提交
-        RedEnvelopeGetVO operation = service.getOperation(uid, shortUid, query, redEnvelope);
+        RedEnvelopeGetVO operation = service.getByChatOperation(uid, shortUid, query, redEnvelope);
 
         // 缓存双删
         Thread.sleep(100);
         this.deleteRedisCache(query.getRid());
         return operation;
+    }
+
+    @Override
+    public RedEnvelopeExchangeCodeVO getByExtern(Long rid) {
+        RedEnvelope redEnvelope = Optional.ofNullable(this.getWithCache(rid))
+                .orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
+
+        // 只支持站外红包
+        if (!RedEnvelopeChannel.EXTERN.equals(redEnvelope.getChannel())) {
+            ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
+        }
+
+        // 等待、失败、过期、结束
+        if (RedEnvelopeStatus.WAIT.equals(redEnvelope.getStatus())
+                || RedEnvelopeStatus.FAIL.equals(redEnvelope.getStatus())
+                || RedEnvelopeStatus.OVERDUE.equals(redEnvelope.getStatus())
+                || RedEnvelopeStatus.FINISH.equals(redEnvelope.getStatus())) {
+            return new RedEnvelopeExchangeCodeVO(redEnvelope.getStatus());
+        }
+
+        return this.getByExternOperation(redEnvelope.getId());
     }
 
     @Override
@@ -285,7 +309,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     }
 
     @Transactional
-    public RedEnvelopeGetVO getOperation(Long uid, Long shortUid, RedEnvelopeGetQuery query, RedEnvelope redEnvelope) {
+    public RedEnvelopeGetVO getByChatOperation(Long uid, Long shortUid, RedEnvelopeGetQuery query, RedEnvelope redEnvelope) {
 
         String receivedKey = RedisConstants.SPILT_RED_ENVELOPE_GET + query.getRid() + ":" + uid;
         String spiltRedKey = RedisConstants.SPILT_RED_ENVELOPE + query.getRid();
@@ -343,6 +367,47 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         this.deleteRedisCache(query.getRid());
         redisTemplate.delete(RedisConstants.RED_ENVELOPE_GET_RECORD + query.getRid());
         return redEnvelopeGetVO;
+    }
+
+    public RedEnvelopeExchangeCodeVO getByExternOperation(Long rid) {
+        String keyOffSite = RedisConstants.SPILT_RED_ENVELOPE_OFF_SITE + rid;
+        String mapKey = RedisConstants.SPILT_RED_ENVELOPE_OFF_SITE;
+        UUID uuid = UUID.randomUUID();
+        // 取出小于当前时间的红包，并且设置一个新的过期时间（当前时间 + 2小时）
+        String script = "" +
+                "local key = KEYS[1]\n" +
+                "local key2 = KEYS[2]\n" +
+                "local currentMs = tonumber(ARGV[1]) \n" +
+                "local uuid = ARGV[2] \n" +
+                "local termOfValidity =  2 * 60 * 60 \n" +
+                "\n" +
+                "if  redis.call('EXISTS', key) == 0 then\n" +
+                "    return 'NOT_EXIST'\n" +
+                "end\n" +
+                "local ids = redis.call('ZRANGEBYSCORE',key,0,currentMs,'LIMIT',0,1)\n" +
+                "if ids[1] == nil then\n" +
+                "    return 'FINISH'\n" +
+                "end\n" +
+                "local score = currentMs + termOfValidity * 1000 \n" +
+                "redis.call('ZADD',key,score,ids[1])\n" +
+                "redis.call('HSET',key2,uuid,ids[1])\n" +
+                "redis.call('EXPIRE',key2,termOfValidity)\n" +
+                "return ids[1]";
+        DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
+        redisScript.setResultType(String.class);
+        redisScript.setScriptText(script);
+        Object[] objects = new Object[]{String.valueOf(System.currentTimeMillis()), uuid.toString()};
+        String result = stringRedisTemplate.opsForValue().getOperations().execute(redisScript, List.of(keyOffSite, mapKey), objects);
+
+        if ("NOT_EXIST".equals(result)) {
+            log.error("站外红包ZSET不存在:" + rid);
+            ErrorCodeEnum.throwException("站外红包ZSET不存在");
+        }
+        if ("FINISH".equals(result)) {
+            return new RedEnvelopeExchangeCodeVO(RedEnvelopeStatus.FINISH);
+        }
+
+        return RedEnvelopeExchangeCodeVO.builder().exchangeCode(uuid.toString()).build();
     }
 
     @Override
@@ -422,7 +487,6 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                 , order.getOrderNo(), "红包到期回退");
 
         this.overdue(redEnvelope.getId());
-
     }
 
 
@@ -552,7 +616,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     private class InviteVerifier implements RedEnvelopeVerifier {
         @Override
         public void verifier(Long uid, RedEnvelope redEnvelope) {
-            if (!RedEnvelopeChannel.INVITE.equals(redEnvelope.getChannel())) {
+            if (!RedEnvelopeChannel.EXTERN.equals(redEnvelope.getChannel())) {
                 return;
             }
             RedEnvelopeConfig redEnvelopeConfig = redEnvelopeConfigService.getOne(redEnvelope.getCoin(), redEnvelope.getChannel());
@@ -568,7 +632,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
             // 金额为0或者大于配置金额
             var totalMinAmount =
-                    redEnvelopeConfig.getMinAmount().multiply(BigDecimal.valueOf(redEnvelopeConfig.getNum().longValue()));
+                    redEnvelopeConfig.getMinAmount().multiply(BigDecimal.valueOf(redEnvelope.getNum()));
             if (totalAmount.compareTo(redEnvelopeConfig.getLimitAmount()) > 0
                     || totalAmount.compareTo(BigDecimal.ZERO) == 0
                     || totalAmount.compareTo(totalMinAmount) < 0) {

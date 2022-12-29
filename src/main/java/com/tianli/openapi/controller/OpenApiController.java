@@ -2,13 +2,16 @@ package com.tianli.openapi.controller;
 
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.charge.service.ChargeService;
+import com.tianli.common.Constants;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.management.query.UidsQuery;
 import com.tianli.openapi.query.OpenapiOperationQuery;
 import com.tianli.openapi.service.OpenApiService;
 import com.tianli.tool.crypto.Crypto;
+import com.tianli.tool.crypto.PBE;
 import org.bouncycastle.crypto.util.DigestFactory;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +36,8 @@ public class OpenApiController {
     private ChargeService chargeService;
     @Resource
     private AccountBalanceService accountBalanceService;
+    @Resource
+    private RedEnvelopeService redEnvelopeService;
 
     /**
      * 奖励接口
@@ -153,4 +158,14 @@ public class OpenApiController {
         }
         return Result.success().setData(accountBalanceService.getUserAssetsVOMap(query.getUids()));
     }
+
+    /**
+     * 领取站外红包
+     */
+    @GetMapping("/red/extern/get")
+    public Result externRedGet(String content) {
+        String id = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, content);
+        return Result.success().setData(redEnvelopeService.getByExtern(Long.parseLong(id)));
+    }
+
 }

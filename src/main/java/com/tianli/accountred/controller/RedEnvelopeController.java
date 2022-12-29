@@ -100,7 +100,7 @@ public class RedEnvelopeController {
         if (Objects.isNull(shortUid)) {
             ErrorCodeEnum.ACCOUNT_ERROR.throwException();
         }
-        return Result.success().setData(redEnvelopeService.get(uid, shortUid, query));
+        return Result.success().setData(redEnvelopeService.getByChat(uid, shortUid, query));
     }
 
     /**

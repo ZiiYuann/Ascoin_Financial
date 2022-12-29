@@ -36,6 +36,6 @@ public class InviteRandomGiveStrategy extends RandomGiveStrategy implements Init
 
     @Override
     public void afterPropertiesSet() {
-        GiveStrategyAdapter.addStrategy(RedEnvelopeChannel.INVITE, RedEnvelopeType.RANDOM, this);
+        GiveStrategyAdapter.addStrategy(RedEnvelopeChannel.EXTERN, RedEnvelopeType.RANDOM, this);
     }
 }
