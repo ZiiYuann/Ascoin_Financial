@@ -2,8 +2,7 @@ spring:
   application:
     name: financial
   datasource:
-
-    url: jdbc:mysql://rm-6we8u0l05o7z6tf76jo.mysql.japan.rds.aliyuncs.com:3306/financial?characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true
+    url: jdbc:mysql://assure-dev.cbkhmniyrtji.ap-northeast-1.rds.amazonaws.com:3306/financial?characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: financial
     password: "@tianli123456TL"
