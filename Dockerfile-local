@@ -1,4 +1,4 @@
-FROM openjdk:11-jre
+FROM eclipse-temurin:11-jdk
 ENV TZ Asia/Shanghai
 WORKDIR /data
 COPY target/ROOT.jar .

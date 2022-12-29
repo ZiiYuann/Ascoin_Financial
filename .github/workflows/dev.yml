@@ -1,41 +1,37 @@
+# This is a basic workflow to help you get started with Actions
+
 name: financial
 
+# Controls when the action will run.
 on:
+  # Triggers the workflow on push or pull request events but only for the master branch
   push:
     branches: [ dev ]
   pull_request:
     branches: [ dev ]
 
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
-
     runs-on: self-hosted
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK 11
-      uses: actions/setup-java@v2
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: maven
-    - name: Build with Maven
-      run: mvn -B package -DskipTests --file pom.xml
-    - name: Login to ACR
-      uses: aliyun/acr-login@v1
-      with:
-        login-server: https://registry.ap-northeast-1.aliyuncs.com
-        username: "acr@1614211869785239"
-        password: "7db9bf9b9b41e87164"
-    - uses: satackey/action-docker-layer-caching@v0.0.11
-      continue-on-error: true
-    - name: Build and push image
-      env:
-        IMAGE_TAG: "dev"
-      run: |
-        docker build -t registry.ap-northeast-1.aliyuncs.com/fengkong/financial:dev -f Dockerfile-local .
-        docker push registry.ap-northeast-1.aliyuncs.com/fengkong/financial:dev
-        docker rmi registry.ap-northeast-1.aliyuncs.com/fengkong/financial:dev
-    - name: redeploy
-      run: curl https://cs.console.aliyun.com/hook/trigger?token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbHVzdGVySWQiOiJjNzg3MTNiYTcwYTVlNGRmNGE4ZWM3MjE1ZDRiYmJmZDciLCJpZCI6IjIwODYwNiJ9.tsbaKDApEB5-aDHCGrLPNR48o-BDor5KtCvdN3crSOqMuoG3pI0UwChgVjqUt2L7qT-m3MnimwEftSDz8qDT1G1YZhs2wyPkjJCNt7iytg3PzFnAXXjqVQGKUEzQzU90l8QwpxDY35MorHbc_Vm-94aqHdsXthVKS8s-1y62v2Y
-
+      - uses: actions/checkout@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+      - name: Build with Maven
+        run: mvn -B package -DskipTests --file pom.xml
+      - uses: kciter/aws-ecr-action@master
+        with:
+          access_key_id: AKIARJZQDAVKKTS7CEXL
+          secret_access_key: "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"
+          account_id: "089758303572"
+          repo: financial
+          region: ap-northeast-1
+          tags: latest
+          create_repo: true
+          dockerfile: Dockerfile-local
+      - name: redeploy
+        run: curl http://a77e44e0c66a143bda782dc0cdaea30b-69016204.ap-northeast-1.elb.amazonaws.com/6FGS959U9epLIJ6crvu4l2TsdpD4Ozyz2M7JEravear/default/financial
