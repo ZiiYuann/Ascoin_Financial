@@ -5,6 +5,7 @@ import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO;
+import com.tianli.accountred.vo.RedEnvelopeExternGetDetailsVO;
 
 import java.util.List;
 
@@ -47,6 +48,14 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
      *
      * @param redEnvelope 红包参数
      */
-    RedEnvelopeExchangeCodeVO getByExternOperation(RedEnvelope redEnvelope);
+    RedEnvelopeExchangeCodeVO getExternOperationRedis(RedEnvelope redEnvelope);
+
+    /**
+     * 获取红包领取记录VO（站外实未领取，暂时只显示前50）
+     *
+     * @param redEnvelope 红包参数
+     * @return 红包领取记录
+     */
+    RedEnvelopeExternGetDetailsVO getExternDetailsRedis(RedEnvelope redEnvelope);
 
 }

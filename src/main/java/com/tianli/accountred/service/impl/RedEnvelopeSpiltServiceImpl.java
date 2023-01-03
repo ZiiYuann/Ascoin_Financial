@@ -1,7 +1,9 @@
 package com.tianli.accountred.service.impl;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.base.MoreObjects;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.accountred.entity.RedEnvelope;
@@ -14,18 +16,25 @@ import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
 import com.tianli.accountred.service.RedEnvelopeSpiltService;
 import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO;
+import com.tianli.accountred.vo.RedEnvelopeExternGetDetailsVO;
+import com.tianli.accountred.vo.RedEnvelopeExternGetRecordVO;
+import com.tianli.chain.entity.CoinBase;
+import com.tianli.chain.service.CoinBaseService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisConstants;
+import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.ErrorCodeEnum;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.DefaultTypedTuple;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -34,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -50,6 +60,8 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
     @Resource
+    private StringRedisTemplate stringRedisTemplate;
+    @Resource
     private RedEnvelopeSpiltGetRecordService redEnvelopeSpiltGetRecordService;
     @Resource
     private OrderService orderService;
@@ -59,6 +71,10 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     private CurrencyService currencyService;
     @Resource
     private DigitalCurrencyExchange digitalCurrencyExchange;
+    @Resource
+    private CoinBaseService coinBaseService;
+    @Resource
+    private WebHookService webHookService;
 
     @Override
     @Transactional
@@ -72,18 +88,14 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
 
         // 如果是站外红包，额外设置 zset 缓存 （score 从0 开始）
         if (RedEnvelopeChannel.EXTERN.equals(redEnvelope.getChannel())) {
-            String keyOffSite = RedisConstants.SPILT_RED_ENVELOPE_OFF_SITE + redEnvelope.getId();
-            Set<ZSetOperations.TypedTuple<Object>> typedTuples = new HashSet<>(spiltRedEnvelopes.size());
+            String keyOffSite = RedisConstants.SPILT_RED_ENVELOPE_CODE + redEnvelope.getId();
+            Set<ZSetOperations.TypedTuple<String>> typedTuples = new HashSet<>(spiltRedEnvelopes.size());
             for (int i = 0; i < spiltRedEnvelopes.size(); i++) {
                 RedEnvelopeSpilt redEnvelopeSpilt = spiltRedEnvelopes.get(i);
-                // 这里参数的顺序会影响 getByExternOperation 方法中脚本
-                List<String> params = new ArrayList<>();
-                params.add(redEnvelopeSpilt.getId());
-                params.add(redEnvelopeSpilt.getAmount().toPlainString());
-                typedTuples.add(new DefaultTypedTuple<>(StringUtils.join(params, ","), (double) i));
+                typedTuples.add(new DefaultTypedTuple<>(JSONUtil.toJsonStr(redEnvelopeSpilt), (double) i));
             }
 
-            redisTemplate.opsForZSet().add(keyOffSite, typedTuples);
+            stringRedisTemplate.opsForZSet().add(keyOffSite, typedTuples);
             redisTemplate.expire(keyOffSite, redEnvelope.getChannel().getExpireDays(), TimeUnit.DAYS);
         }
     }
@@ -91,12 +103,12 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     @Override
     @Transactional
     public RedEnvelopeSpilt getRedEnvelopeSpilt(Long uid, Long shortUid, String uuid, RedEnvelopeGetQuery redEnvelopeGetQuery) {
-        // 如果qps高可以异步转账
         LocalDateTime receiveTime = LocalDateTime.now();
         uuid = uuid.replace("\"", "");
         // 修改拆分（子）红包的状态
         int i = this.getBaseMapper().receive(redEnvelopeGetQuery.getRid(), uuid, receiveTime);
         if (i == 0) {
+            webHookService.dingTalkSend("红包领取状态异常，请排查【2】");
             ErrorCodeEnum.RED_STATUS_ERROR.throwException();
         }
 
@@ -134,37 +146,35 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     }
 
     @Override
-    public RedEnvelopeExchangeCodeVO getByExternOperation(RedEnvelope redEnvelope) {
+    public RedEnvelopeExchangeCodeVO getExternOperationRedis(RedEnvelope redEnvelope) {
         var rid = redEnvelope.getId();
         UUID uuid = UUID.randomUUID();
-        String keyOffSite = RedisConstants.SPILT_RED_ENVELOPE_OFF_SITE + rid;
-        String mapKey = RedisConstants.SPILT_RED_ENVELOPE_OFF_SITE + uuid;
+        String keyOffSite = RedisConstants.SPILT_RED_ENVELOPE_CODE + rid;
+        String mapKey = RedisConstants.SPILT_RED_ENVELOPE_CODE + uuid;
         long now = System.currentTimeMillis();
         // 取出小于当前时间的红包，并且设置一个新的过期时间（当前时间 + 2小时）
-        String script = "" +
-                "local key = KEYS[1]\n" +
+        String script = "local key = KEYS[1]\n" +
                 "local key2 = KEYS[2]\n" +
                 "local currentMs = tonumber(ARGV[1]) \n" +
                 "local uuid = ARGV[2] \n" +
                 "local termOfValidity =  2 * 60 * 60 \n" +
-                "\n" +
                 "if  redis.call('EXISTS', key) == 0 then\n" +
                 "    return 'NOT_EXIST'\n" +
                 "end\n" +
-                "local ids = redis.call('ZRANGEBYSCORE',key,0,currentMs,'LIMIT',0,1)\n" +
-                "if ids[1] == nil then\n" +
+                "local spiltReds = redis.call('ZRANGEBYSCORE',key,0,currentMs,'LIMIT',0,1)\n" +
+                "if spiltReds[1] == nil then\n" +
                 "    return 'FINISH'\n" +
                 "end\n" +
                 "local score = currentMs + termOfValidity * 1000 \n" +
-                "redis.call('ZADD',key,score,ids[1])\n" +
-                "redis.call('SET',key2,ids[1])\n" +
+                "redis.call('ZADD',key,score,spiltReds[1])\n" +
+                "redis.call('SET',key2,spiltReds[1])\n" +
                 "redis.call('EXPIRE',key2,termOfValidity)\n" +
-                "return ids[1]";
+                "return spiltReds[1]";
         DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
         redisScript.setResultType(String.class);
         redisScript.setScriptText(script);
-        Object[] objects = new Object[]{String.valueOf(now), uuid.toString()};
-        String result = redisTemplate.opsForValue().getOperations().execute(redisScript, List.of(keyOffSite, mapKey), objects);
+        String result = stringRedisTemplate.opsForValue().getOperations().execute(redisScript, List.of(keyOffSite, mapKey)
+                , String.valueOf(now), uuid.toString());
         if (StringUtils.isBlank(result)) {
             ErrorCodeEnum.SYSTEM_ERROR.throwException();
         }
@@ -175,21 +185,66 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         if ("FINISH".equals(result)) {
             return new RedEnvelopeExchangeCodeVO(RedEnvelopeStatus.FINISH);
         }
-        result = result.replace("\"", "");
-
-        String[] params = result.split(",");
-
-        Set<ZSetOperations.TypedTuple<Object>> typedTuples = redisTemplate.opsForZSet().rangeByScoreWithScores(keyOffSite
-                , 1670774400000f, Double.MAX_VALUE, 0, 20);
-
-        RedEnvelopeSpilt redEnvelopeSpilt = this.getById(params[1]);
+        RedEnvelopeSpilt redEnvelopeSpilt = JSONUtil.toBean(result, RedEnvelopeSpilt.class);
         return RedEnvelopeExchangeCodeVO.builder()
-                .receiveAmount(new BigDecimal(params[2]))
+                .receiveAmount(redEnvelopeSpilt.getAmount())
                 .exchangeCode(uuid.toString())
                 .coin(redEnvelope.getCoin())
                 .usdtRate(currencyService.huobiUsdtRate(redEnvelope.getCoin()))
                 .usdtCnyRate(BigDecimal.valueOf(digitalCurrencyExchange.usdtCnyPrice()))
                 .totalAmount(redEnvelope.getTotalAmount())
                 .build();
+
+
     }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public RedEnvelopeExternGetDetailsVO getExternDetailsRedis(RedEnvelope redEnvelope) {
+        String coin = redEnvelope.getCoin();
+        CoinBase coinBase = coinBaseService.getByName(coin);
+
+        long now = System.currentTimeMillis();
+        String key = RedisConstants.SPILT_RED_ENVELOPE_CODE + redEnvelope.getId();
+
+//        Set<ZSetOperations.TypedTuple<String>> redisRecords =
+//                Optional.ofNullable(stringRedisTemplate.opsForZSet().rangeByScoreWithScores(key
+//                                , 1670774400000f,now, 0, 50))
+//                        .orElse(SetUtils.EMPTY_SORTED_SET);
+//        redisRecords.stream().map(typedTuple -> {
+//            RedEnvelopeSpilt redEnvelopeSpilt = JSONUtil.toBean(typedTuple.getValue(), RedEnvelopeSpilt.class);
+//
+//            Double score =
+//                    Optional.ofNullable(typedTuple.getScore()).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
+//            LocalDateTime receiveTime =
+//                    LocalDateTime.ofEpochSecond(score.longValue() / 1000, 0, ZoneOffset.ofHours(8));
+//
+//            return RedEnvelopeExternGetRecordVO.builder()
+//                    .receiveTime(receiveTime)
+//                    .amount(redEnvelopeSpilt.getAmount())
+//                    // TODO 设置昵称头像
+//                    .headLogo("")
+//                    .nickName("").build();
+//        })
+
+
+        Long noReceiveNum = MoreObjects.firstNonNull(
+                stringRedisTemplate.opsForZSet().count(key, 1670774400000f, Double.MAX_VALUE),
+                0L);
+
+        RedEnvelopeExternGetDetailsVO.builder()
+                .coin(coin)
+                .coinUrl(coinBase.getLogo())
+                .num(redEnvelope.getNum())
+                .receiveNum(redEnvelope.getNum() - noReceiveNum.intValue())
+                .shortUid(redEnvelope.getShortUid())
+                .uid(redEnvelope.getUid())
+                .totalAmount(redEnvelope.getTotalAmount())
+                .remarks(redEnvelope.getRemarks())
+                .status(redEnvelope.getStatus())
+                .usdtRate(currencyService.getDollarRate(coin))
+                .build();
+        return null;
+    }
+
 }

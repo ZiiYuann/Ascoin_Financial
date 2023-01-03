@@ -8,5 +8,7 @@ package com.tianli.sqs;
 public enum SqsTypeEnum {
 
     // 添加新币别推送
-    ADD_COIN_PUSH
+    ADD_COIN_PUSH,
+    // 红包转账
+    RED_ENVELOP
 }

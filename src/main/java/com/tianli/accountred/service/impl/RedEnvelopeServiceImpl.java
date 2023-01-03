@@ -39,9 +39,12 @@ import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisService;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
-import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.sqs.SqsContext;
+import com.tianli.sqs.SqsService;
+import com.tianli.sqs.SqsTypeEnum;
+import com.tianli.sqs.context.RedEnvelopeContext;
 import com.tianli.tool.ApplicationContextTool;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -49,10 +52,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
-import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -63,7 +64,10 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -107,7 +111,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     @Resource
     private RedEnvelopeConfigService redEnvelopeConfigService;
     @Resource
-    private DigitalCurrencyExchange digitalCurrencyExchange;
+    private SqsService sqsService;
 
     private final List<RedEnvelopeVerifier> verifiers = new ArrayList<>();
 
@@ -268,7 +272,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         // 单独的事务，此事务已经提交
         RedEnvelopeGetVO operation = service.getByChatOperation(uid, shortUid, query, redEnvelope);
 
-        // 缓存双删
+        // 缓存延时双删
         Thread.sleep(100);
         this.deleteRedisCache(query.getRid());
         return operation;
@@ -292,7 +296,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             return new RedEnvelopeExchangeCodeVO(redEnvelope.getStatus());
         }
 
-        return redEnvelopeSpiltService.getByExternOperation(redEnvelope);
+        return redEnvelopeSpiltService.getExternOperationRedis(redEnvelope);
     }
 
     @Override
@@ -349,28 +353,22 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             return new RedEnvelopeGetVO(RedEnvelopeStatus.RECEIVED, coinBase);
         }
 
-        // 领取子红包（创建订单，余额操作）
-        RedEnvelopeSpilt redEnvelopeSpilt = redEnvelopeSpiltService.getRedEnvelopeSpilt(uid, shortUid, result, query);
-        // 增加已经领取红包个数
-        int i = this.getBaseMapper().increaseReceiveNum(query.getRid());
-        if (i == 0) {
-            ErrorCodeEnum.RED_STATUS_ERROR.throwException();
-        }
+        // 异步转账
+        RedEnvelopeContext redEnvelopeContext = RedEnvelopeContext.builder()
+                .rid(query.getRid())
+                .uuid(result)
+                .uid(uid)
+                .shortUid(shortUid)
+                .deviceNumber(query.getDeviceNumber())
+                .build();
+        sqsService.send(new SqsContext<>(SqsTypeEnum.RED_ENVELOP, redEnvelopeContext));
 
-        redEnvelope = this.getById(query.getRid());
-        if (redEnvelope.getNum() == redEnvelope.getReceiveNum()) {
-            this.finish(query.getRid());
-        }
-
+        var redEnvelopeSpilt = redEnvelopeSpiltService.getById(result);
         RedEnvelopeGetVO redEnvelopeGetVO = new RedEnvelopeGetVO(RedEnvelopeStatus.SUCCESS, coinBase);
         redEnvelopeGetVO.setReceiveAmount(redEnvelopeSpilt.getAmount());
         redEnvelopeGetVO.setUReceiveAmount(currencyService.getDollarRate(redEnvelope.getCoin()).multiply(redEnvelopeSpilt.getAmount()));
         redEnvelopeGetVO.setUid(redEnvelope.getUid());
         redEnvelopeGetVO.setShortUid(redEnvelope.getShortUid());
-
-        // 删除红包以及领取记录以及当前红包领取记录的缓存
-        this.deleteRedisCache(query.getRid());
-        redisTemplate.delete(RedisConstants.RED_ENVELOPE_GET_RECORD + query.getRid());
         return redEnvelopeGetVO;
     }
 
@@ -417,6 +415,41 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         redEnvelopeGetVO.setStatus(redEnvelope.getStatus());
         redEnvelopeGetVO.setCoin(redEnvelope.getCoin());
         return redEnvelopeGetVO;
+    }
+
+    @Override
+    @Transactional
+    public void asynGet(RedEnvelopeContext sqsContext) {
+        Long rid = sqsContext.getRid();
+        String uuid = sqsContext.getUuid();
+        Long uid = sqsContext.getUid();
+        Long shortUid = sqsContext.getShortUid();
+        String deviceNumber = sqsContext.getDeviceNumber();
+
+        RedEnvelope redEnvelope = this.getWithCache(rid);
+
+        RedEnvelopeGetQuery query = RedEnvelopeGetQuery.builder().deviceNumber(deviceNumber)
+                .redEnvelope(redEnvelope)
+                .build();
+
+
+        // 领取子红包（创建订单，余额操作）
+        redEnvelopeSpiltService.getRedEnvelopeSpilt(uid, shortUid, uuid, query);
+        // 增加已经领取红包个数
+        int i = this.getBaseMapper().increaseReceiveNum(query.getRid());
+        if (i == 0) {
+            webHookService.dingTalkSend("红包领取状态异常，请排查【2】");
+            ErrorCodeEnum.RED_STATUS_ERROR.throwException();
+        }
+        // 如果红包领取完毕则修改红包状态
+        redEnvelope = this.getById(query.getRid());
+        if (redEnvelope.getNum() == redEnvelope.getReceiveNum()) {
+            this.finish(query.getRid());
+        }
+
+        // 删除红包以及领取记录以及当前红包领取记录的缓存
+//        this.deleteRedisCache(query.getRid());
+//        redisTemplate.delete(RedisConstants.RED_ENVELOPE_GET_RECORD + query.getRid());
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

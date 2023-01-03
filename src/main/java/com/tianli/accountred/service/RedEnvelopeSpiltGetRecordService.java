@@ -1,7 +1,6 @@
 package com.tianli.accountred.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
@@ -42,7 +41,6 @@ public interface RedEnvelopeSpiltGetRecordService {
      */
     List<RedEnvelopeSpiltGetRecordVO> getRecordVos(Long rid);
 
-
     /**
      * 生成子红包领取流水
      *
@@ -60,6 +58,5 @@ public interface RedEnvelopeSpiltGetRecordService {
      * 领取红包记录
      */
     IPage<RedEnvelopeSpiltGetRecordVO> getRecord(Long uid, PageQuery<RedEnvelopeSpiltGetRecord> pageQuery);
-
 
 }

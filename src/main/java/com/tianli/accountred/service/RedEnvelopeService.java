@@ -12,6 +12,7 @@ import com.tianli.accountred.vo.RedEnvelopeGetVO;
 import com.tianli.accountred.vo.RedEnvelopeGiveRecordVO;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
+import com.tianli.sqs.context.RedEnvelopeContext;
 
 import java.time.LocalDateTime;
 
@@ -65,5 +66,12 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
      * 获取红包信息
      */
     RedEnvelopeGetVO getInfoById(Long id);
+
+    /**
+     * 异步领取红包
+     *
+     * @param sqsContext sqs信息
+     */
+    void asynGet(RedEnvelopeContext sqsContext);
 }
 
