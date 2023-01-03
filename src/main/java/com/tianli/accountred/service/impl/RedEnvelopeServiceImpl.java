@@ -39,6 +39,7 @@ import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisService;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
+import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.tool.ApplicationContextTool;
@@ -48,8 +49,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -103,6 +106,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     private CoinBaseService coinBaseService;
     @Resource
     private RedEnvelopeConfigService redEnvelopeConfigService;
+    @Resource
+    private DigitalCurrencyExchange digitalCurrencyExchange;
 
     private final List<RedEnvelopeVerifier> verifiers = new ArrayList<>();
 
@@ -287,7 +292,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             return new RedEnvelopeExchangeCodeVO(redEnvelope.getStatus());
         }
 
-        return this.getByExternOperation(redEnvelope.getId());
+        return redEnvelopeSpiltService.getByExternOperation(redEnvelope);
     }
 
     @Override
@@ -367,47 +372,6 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         this.deleteRedisCache(query.getRid());
         redisTemplate.delete(RedisConstants.RED_ENVELOPE_GET_RECORD + query.getRid());
         return redEnvelopeGetVO;
-    }
-
-    public RedEnvelopeExchangeCodeVO getByExternOperation(Long rid) {
-        String keyOffSite = RedisConstants.SPILT_RED_ENVELOPE_OFF_SITE + rid;
-        String mapKey = RedisConstants.SPILT_RED_ENVELOPE_OFF_SITE;
-        UUID uuid = UUID.randomUUID();
-        // 取出小于当前时间的红包，并且设置一个新的过期时间（当前时间 + 2小时）
-        String script = "" +
-                "local key = KEYS[1]\n" +
-                "local key2 = KEYS[2]\n" +
-                "local currentMs = tonumber(ARGV[1]) \n" +
-                "local uuid = ARGV[2] \n" +
-                "local termOfValidity =  2 * 60 * 60 \n" +
-                "\n" +
-                "if  redis.call('EXISTS', key) == 0 then\n" +
-                "    return 'NOT_EXIST'\n" +
-                "end\n" +
-                "local ids = redis.call('ZRANGEBYSCORE',key,0,currentMs,'LIMIT',0,1)\n" +
-                "if ids[1] == nil then\n" +
-                "    return 'FINISH'\n" +
-                "end\n" +
-                "local score = currentMs + termOfValidity * 1000 \n" +
-                "redis.call('ZADD',key,score,ids[1])\n" +
-                "redis.call('HSET',key2,uuid,ids[1])\n" +
-                "redis.call('EXPIRE',key2,termOfValidity)\n" +
-                "return ids[1]";
-        DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
-        redisScript.setResultType(String.class);
-        redisScript.setScriptText(script);
-        Object[] objects = new Object[]{String.valueOf(System.currentTimeMillis()), uuid.toString()};
-        String result = stringRedisTemplate.opsForValue().getOperations().execute(redisScript, List.of(keyOffSite, mapKey), objects);
-
-        if ("NOT_EXIST".equals(result)) {
-            log.error("站外红包ZSET不存在:" + rid);
-            ErrorCodeEnum.throwException("站外红包ZSET不存在");
-        }
-        if ("FINISH".equals(result)) {
-            return new RedEnvelopeExchangeCodeVO(RedEnvelopeStatus.FINISH);
-        }
-
-        return RedEnvelopeExchangeCodeVO.builder().exchangeCode(uuid.toString()).build();
     }
 
     @Override

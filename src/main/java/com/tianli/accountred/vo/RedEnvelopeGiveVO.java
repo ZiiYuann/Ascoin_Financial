@@ -53,7 +53,7 @@ public class RedEnvelopeGiveVO {
         Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
         return bean
                 .getOrDefault(WALLET_NEWS_SERVER_URL, "https://wallet-news.giantdt.com")
-                + "/openapi/red/extern/get?content="
+                + "/api/openapi/red/extern/get?content="
                 + PBE.encryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, id + "").replace("+","%2B");
     }
 

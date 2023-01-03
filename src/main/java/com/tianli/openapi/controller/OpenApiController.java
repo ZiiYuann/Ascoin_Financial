@@ -10,12 +10,14 @@ import com.tianli.exception.Result;
 import com.tianli.management.query.UidsQuery;
 import com.tianli.openapi.query.OpenapiOperationQuery;
 import com.tianli.openapi.service.OpenApiService;
+import com.tianli.tool.IPUtils;
 import com.tianli.tool.crypto.Crypto;
 import com.tianli.tool.crypto.PBE;
 import org.bouncycastle.crypto.util.DigestFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Objects;
 
@@ -163,7 +165,10 @@ public class OpenApiController {
      * 领取站外红包
      */
     @GetMapping("/red/extern/get")
-    public Result externRedGet(String content) {
+    public Result externRedGet(HttpServletRequest request, String content) {
+        String ip = IPUtils.getIpAddress(request);
+        // todo 指纹
+        String fingerprint;
         String id = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, content);
         return Result.success().setData(redEnvelopeService.getByExtern(Long.parseLong(id)));
     }

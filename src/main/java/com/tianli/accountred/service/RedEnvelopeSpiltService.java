@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
+import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO;
 
 import java.util.List;
 
@@ -40,4 +41,12 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
      * @return 红包列表
      */
     List<RedEnvelopeSpilt> getRedEnvelopeSpilt(Long rid, boolean receive);
+
+    /**
+     * 领取站外子红包(未实领)
+     *
+     * @param redEnvelope 红包参数
+     */
+    RedEnvelopeExchangeCodeVO getByExternOperation(RedEnvelope redEnvelope);
+
 }
