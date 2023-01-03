@@ -82,5 +82,14 @@ public interface CoinService extends IService<Coin> {
      */
     void withdrawConfig(String nickname, CoinWithdrawQuery query);
 
+    /**
+     * 删除缓存
+     */
+    void deletePushListCache();
+
+    /**
+     * 删除币别（慎重使用）
+     */
+    void delete(Long id);
 
 }

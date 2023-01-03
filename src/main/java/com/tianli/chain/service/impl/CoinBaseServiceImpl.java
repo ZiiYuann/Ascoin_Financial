@@ -91,8 +91,7 @@ public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> i
     @Override
     public List<CoinBase> flushPushListCache() {
         // 删除缓存
-        redisTemplate.delete(RedisConstants.COIN_BASE_LIST);
-        deletePushListCache();
+        this.deletePushListCache();
 
         // 只缓存上架的数据
         List<CoinBase> coins = this.list(new LambdaQueryWrapper<CoinBase>()
@@ -123,7 +122,7 @@ public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> i
 
     @Override
     public void deletePushListCache() {
-        redisTemplate.delete(RedisConstants.COIN_PUSH_LIST);
+        redisTemplate.delete(RedisConstants.COIN_BASE_LIST);
     }
 
 }

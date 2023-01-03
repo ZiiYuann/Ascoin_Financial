@@ -37,6 +37,19 @@ public class ManageCoinController {
     /**
      * 新增或者更新币别信息
      */
+    @AdminPrivilege(api = "/management/coin/id")
+    @DeleteMapping("/{id}")
+    public Result delete(@PathVariable Long id) throws InterruptedException {
+        coinService.delete(id);
+        Thread.sleep(1000);
+        coinBaseService.flushPushListCache();
+        coinService.deletePushListCache();
+        return Result.success();
+    }
+
+    /**
+     * 新增或者更新币别信息
+     */
     @PostMapping("/save")
     @AdminPrivilege
     public Result saveOrUpdate(@RequestBody @Valid CoinIoUQuery query) {
@@ -75,7 +88,7 @@ public class ManageCoinController {
     public Result saveOrUpdate(@RequestBody @Valid CoinWithdrawQuery query) {
         String nickname = AdminContent.get().getNickname();
         coinService.withdrawConfig(nickname, query);
-        coinBaseService.deletePushListCache();
+        coinService.deletePushListCache();
         return Result.success();
     }
 

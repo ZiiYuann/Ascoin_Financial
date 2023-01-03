@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.entity.Coin;
-import com.tianli.chain.entity.CoinBase;
 import com.tianli.chain.mapper.CoinMapper;
 import com.tianli.chain.service.CoinBaseService;
 import com.tianli.chain.service.CoinService;
@@ -150,6 +149,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
                 if (sqsService.receiveAndDelete(null, 5) == 0) {
                     successStatus(coin.getId());
                     coinBaseService.flushPushListCache();
+                    this.deletePushListCache();
                     webHookService.dingTalkSend("新币种注册消费结束");
                     return;
                 }
@@ -193,6 +193,17 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         coin.setWithdrawMin(query.getWithdrawMin());
         coin.setWithdrawFixedAmount(query.getWithdrawFixedAmount());
         this.updateById(coin);
+    }
+
+    @Override
+    public void deletePushListCache() {
+        redisTemplate.delete(RedisConstants.COIN_PUSH_LIST);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        coinMapper.deleteById(id);
     }
 
     private void pushSqs(Coin coin) {

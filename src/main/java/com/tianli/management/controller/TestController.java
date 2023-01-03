@@ -149,6 +149,12 @@ public class TestController {
         return Result.success(o);
     }
 
+    @DeleteMapping("/rds")
+    public Result rdsDelete(String key) {
+        stringRedisTemplate.delete(key);
+        return Result.success();
+    }
+
     @PostMapping("/rds")
     public Result rdsSaveOrUpdate(@RequestBody String str) {
         JSONObject jsonObject = JSONUtil.parseObj(str);
