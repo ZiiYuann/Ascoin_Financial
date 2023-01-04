@@ -243,7 +243,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 && address.getEth().equals(query.getTo())) {
             ErrorCodeEnum.FINANCIAL_TO_ERROR.throwException();
         }
-        // todo network->chain
         OccasionalAddress occasionalAddress = occasionalAddressService.get(query.getTo(), query.getNetwork().getChainType());
         if(occasionalAddress != null) {
             ErrorCodeEnum.FINANCIAL_TO_ERROR.throwException();
@@ -561,7 +560,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 address = addressService.getByTron(addressStr);
                 break;
             default:
-                // todo network -> chain
                 OccasionalAddress occasionalAddress = occasionalAddressService.get(addressStr, network.getChainType());
                 address = addressService.getById(occasionalAddress.getAddressId());
                 break;

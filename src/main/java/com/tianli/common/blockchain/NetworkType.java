@@ -13,7 +13,6 @@ public enum NetworkType {
     // 币安链代币标准
     bep20(ChainType.BSC),
 
-    // todo
     btc(ChainType.BTC);
 
     NetworkType(ChainType chainType){

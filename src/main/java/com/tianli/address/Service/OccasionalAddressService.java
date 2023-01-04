@@ -51,7 +51,6 @@ public class OccasionalAddressService extends ServiceImpl<OccasionalAddressMappe
                 lock.lock();
                 address = this.getOne(Wrappers.lambdaQuery(OccasionalAddress.class).eq(OccasionalAddress::getAddressId, addressId).eq(OccasionalAddress::getChain, chain));
                 if(address == null) {
-                    // todo chain字段
                     String addressStr = contractAdapter.getOne(NetworkType.getInstance(chain)).computeAddress(addressId);
                     address = OccasionalAddress.builder()
                             .id(CommonFunction.generalId())
