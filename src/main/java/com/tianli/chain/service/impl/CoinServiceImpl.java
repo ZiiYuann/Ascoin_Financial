@@ -73,7 +73,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         Object o = redisTemplate.opsForValue().get(RedisConstants.COIN_PUSH_LIST);
         if (Objects.isNull(o)) {
             List<Coin> coins = this.list(new LambdaQueryWrapper<Coin>()
-                    .ge(Coin::getStatus, (byte) 0));
+                    .gt(Coin::getStatus, (byte) 0));
             redisTemplate.opsForValue().set(RedisConstants.COIN_PUSH_LIST, coins);
             return coins;
         }
