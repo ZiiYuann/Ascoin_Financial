@@ -2,9 +2,9 @@ package com.tianli.sqs;
 
 import cn.hutool.json.JSONUtil;
 import com.tianli.common.webhook.WebHookService;
+import com.tianli.mconfig.ConfigService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
@@ -23,25 +23,27 @@ public class SqsService {
 
     @Resource
     private SqsClientConfig sqsClientConfig;
-    @Value("${sqs.url}")
-    private String sqsUrl;
     @Resource
     private List<SqsReceiveHandler> sqsReceiveHandlers;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private ConfigService configService;
 
 
     public void send(SqsContext<?> sqsContext) {
         if (Objects.isNull(sqsContext.getSqsType())) {
             throw new NullPointerException();
         }
+
         sqsClientConfig.getSqsClient().sendMessage(builder -> {
-            builder.queueUrl(sqsUrl)
+            builder.queueUrl(configService.getOrDefault("sqs.url","https://sqs.ap-northeast-1.amazonaws.com/228032912223/financial-sqs"))
                     .messageBody(JSONUtil.toJsonStr(sqsContext));
         });
     }
 
     public int receiveAndDelete(String url, int maxNumberOfMessages) {
+        var sqsUrl = configService.getOrDefault("sqs.url","https://sqs.ap-northeast-1.amazonaws.com/228032912223/financial-sqs");
         url = StringUtils.isBlank(url) ? sqsUrl : url;
         final String finalUrl = url;
         ReceiveMessageResponse receiveMessageResponse = sqsClientConfig.getSqsClient().receiveMessage(builder -> {
