@@ -1,6 +1,5 @@
 package com.tianli.chain.service.contract;
 
-import com.tianli.chain.enums.ChainType;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.mconfig.ConfigService;

@@ -65,6 +65,8 @@ AWS_SECRET_ACCESS_KEY: +fGQAkj1kQnGlJLO1tJULfTtBlZXahU1I9lgWF4D
 
 rpc:
   btc:
-    url: "http://35.77.16.20:8332"
+    url: http://35.77.16.20:8332
     username: user
     password: hxTyOjmTh9bfjiivdzBlNH9HSWDZzf7UBM5PhbOMxHR
+  polygon:
+    url: https://rpc.ankr.com/polygon

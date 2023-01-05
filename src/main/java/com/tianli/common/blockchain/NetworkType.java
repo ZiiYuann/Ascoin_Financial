@@ -4,6 +4,8 @@ import com.tianli.chain.enums.ChainType;
 import com.tianli.exception.ErrorCodeEnum;
 import lombok.Getter;
 
+import java.util.List;
+
 public enum NetworkType {
     // erc20 以太坊公链代币标准 trc20 波场公链代币标准 bep20 币安链代币标准
     // 以太坊公链代币标准
@@ -13,6 +15,9 @@ public enum NetworkType {
     // 币安链代币标准
     bep20(ChainType.BSC),
 
+    erc20_polygon(ChainType.POLYGON),
+    erc20_op(ChainType.OPTIMISTIC),
+    erc20_arbitrum(ChainType.ARBITRUM),
     btc(ChainType.BTC);
 
     NetworkType(ChainType chainType){

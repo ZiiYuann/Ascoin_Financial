@@ -12,6 +12,9 @@ public enum ChainType {
     BTC("btc"),
     BSC("bnb"),
     ETH("eth"),
+    POLYGON("matic"),
+    OPTIMISTIC("eth"),
+    ARBITRUM("eth"),
     TRON("trx");
 
     ChainType(String mainToken) {

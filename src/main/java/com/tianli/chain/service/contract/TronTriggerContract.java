@@ -3,7 +3,6 @@ package com.tianli.chain.service.contract;
 import cn.hutool.json.JSONUtil;
 import com.google.protobuf.ByteString;
 import com.tianli.chain.entity.Coin;
-import com.tianli.chain.enums.ChainType;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.blockchain.SignTransactionResult;

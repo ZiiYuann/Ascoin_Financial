@@ -86,4 +86,9 @@ public class ChainController {
 
         return Result.success().setData(result);
     }
+
+    @GetMapping("/network/type")
+    public Result networkType() {
+        return Result.success(List.of(NetworkType.values()));
+    }
 }
