@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.tianli.common.RedisConstants.USER_WITHDRAW_LIMIT;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = FinancialApplication.class)

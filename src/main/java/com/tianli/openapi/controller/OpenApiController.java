@@ -170,7 +170,7 @@ public class OpenApiController {
         // todo 指纹
         String fingerprint;
         String id = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, content);
-        return Result.success().setData(redEnvelopeService.getByExtern(Long.parseLong(id)));
+        return Result.success().setData(redEnvelopeService.getExternCode(Long.parseLong(id)));
     }
 
 }

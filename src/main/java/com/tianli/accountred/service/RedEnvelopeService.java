@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.query.RedEnvelopeChainQuery;
+import com.tianli.accountred.query.RedEnvelopeExchangeCodeQuery;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.query.RedEnvelopeIoUQuery;
 import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO;
@@ -40,12 +41,17 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
     /**
      * 抢红包（聊天）
      */
-    RedEnvelopeGetVO getByChat(Long uid, Long shortUid, RedEnvelopeGetQuery query);
+    RedEnvelopeGetVO get(Long uid, Long shortUid, RedEnvelopeGetQuery query);
 
     /**
-     * 抢红包（站外）
+     * 兑换红包
      */
-    RedEnvelopeExchangeCodeVO getByExtern(Long rid);
+    RedEnvelopeGetVO get(Long uid, Long shortUid, RedEnvelopeExchangeCodeQuery query);
+
+    /**
+     * 抢红包Code（站外）
+     */
+    RedEnvelopeExchangeCodeVO getExternCode(Long rid);
 
     /**
      * 抢红包详情

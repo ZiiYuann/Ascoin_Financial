@@ -3,6 +3,7 @@ package com.tianli.accountred.controller;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.query.RedEnvelopeChainQuery;
+import com.tianli.accountred.query.RedEnvelopeExchangeCodeQuery;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.query.RedEnvelopeIoUQuery;
 import com.tianli.accountred.service.RedEnvelopeService;
@@ -100,7 +101,20 @@ public class RedEnvelopeController {
         if (Objects.isNull(shortUid)) {
             ErrorCodeEnum.ACCOUNT_ERROR.throwException();
         }
-        return Result.success().setData(redEnvelopeService.getByChat(uid, shortUid, query));
+        return Result.success().setData(redEnvelopeService.get(uid, shortUid, query));
+    }
+
+    /**
+     * 抢红包
+     */
+    @PostMapping("/exchange")
+    public Result exchange(@RequestBody @Valid RedEnvelopeExchangeCodeQuery query) {
+        Long uid = requestInitService.uid();
+        Long shortUid = requestInitService.get().getUserInfo().getChatId();
+        if (Objects.isNull(shortUid)) {
+            ErrorCodeEnum.ACCOUNT_ERROR.throwException();
+        }
+        return Result.success().setData(redEnvelopeService.get(uid, shortUid, query));
     }
 
     /**
@@ -118,7 +132,7 @@ public class RedEnvelopeController {
     @GetMapping("/get/record")
     public Result getRecord(PageQuery<RedEnvelopeSpiltGetRecord> pageQuery) {
         Long uid = requestInitService.uid();
-        return Result.success().setData(redEnvelopeSpiltGetRecordService.getRecord(uid, pageQuery));
+        return Result.success().setData(redEnvelopeSpiltGetRecordService.getRecords(uid, pageQuery));
     }
 
 }

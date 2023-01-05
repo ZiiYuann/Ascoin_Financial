@@ -1,11 +1,14 @@
 package com.tianli.accountred.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tianli.accountred.dto.RedEnvelopeSpiltDTO;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
+import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO;
 import com.tianli.accountred.vo.RedEnvelopeExternGetDetailsVO;
+import com.tianli.common.PageQuery;
 
 import java.util.List;
 
@@ -17,13 +20,6 @@ import java.util.List;
 public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
 
     /**
-     * 拆分红包,并且会把拆分id缓存到redis中
-     *
-     * @param redEnvelope 红包信息
-     */
-    void spiltRedEnvelope(RedEnvelope redEnvelope);
-
-    /**
      * 领取拆分红包
      *
      * @param uid                 用户id
@@ -33,6 +29,13 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
      * @return 领取信息
      */
     RedEnvelopeSpilt getRedEnvelopeSpilt(Long uid, Long shortUid, String uuid, RedEnvelopeGetQuery redEnvelopeGetQuery);
+
+    /**
+     * 拆分红包,并且会把拆分id缓存到redis中
+     *
+     * @param redEnvelope 红包信息
+     */
+    void spiltRedEnvelope(RedEnvelope redEnvelope);
 
     /**
      * 获取子红包
@@ -51,11 +54,20 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
     RedEnvelopeExchangeCodeVO getExternOperationRedis(RedEnvelope redEnvelope);
 
     /**
-     * 获取红包领取记录VO（站外实未领取，暂时只显示前50）
+     * 获取红包领取记录VO（站外实未领取，分页50条一页）
      *
      * @param redEnvelope 红包参数
+     * @param pageQuery   分页参数
      * @return 红包领取记录
      */
-    RedEnvelopeExternGetDetailsVO getExternDetailsRedis(RedEnvelope redEnvelope);
+    RedEnvelopeExternGetDetailsVO getExternDetailsRedis(RedEnvelope redEnvelope, PageQuery<RedEnvelopeSpiltGetRecord> pageQuery);
+
+    /**
+     * 根据兑换码获取拆分红包信息
+     *
+     * @param exchangeCode 兑换码
+     * @return 拆分红包信息
+     */
+    RedEnvelopeSpiltDTO getRedEnvelopeSpiltDTOCache(String exchangeCode);
 
 }

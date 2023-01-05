@@ -10,6 +10,7 @@ import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.accountred.RedEnvelopeVerifier;
 import com.tianli.accountred.convert.RedEnvelopeConvert;
+import com.tianli.accountred.dto.RedEnvelopeSpiltDTO;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeConfig;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
@@ -20,6 +21,7 @@ import com.tianli.accountred.enums.RedEnvelopeType;
 import com.tianli.accountred.enums.RedEnvelopeWay;
 import com.tianli.accountred.mapper.RedEnvelopeMapper;
 import com.tianli.accountred.query.RedEnvelopeChainQuery;
+import com.tianli.accountred.query.RedEnvelopeExchangeCodeQuery;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.query.RedEnvelopeIoUQuery;
 import com.tianli.accountred.service.RedEnvelopeConfigService;
@@ -234,7 +236,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
     @Override
     @SneakyThrows
-    public RedEnvelopeGetVO getByChat(Long uid, Long shortUid, RedEnvelopeGetQuery query) {
+    public RedEnvelopeGetVO get(Long uid, Long shortUid, RedEnvelopeGetQuery query) {
         // 判断红包缓存是否存在
         RedEnvelope redEnvelope = Optional.ofNullable(this.getWithCache(query.getRid()))
                 .orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
@@ -264,13 +266,9 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             return new RedEnvelopeGetVO(redEnvelope.getStatus(), coinBase);
         }
 
-        RedEnvelopeServiceImpl service = ApplicationContextTool.getBean(RedEnvelopeServiceImpl.class);
-        Optional.ofNullable(service).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
-
         query.setRedEnvelope(redEnvelope);
 
-        // 单独的事务，此事务已经提交
-        RedEnvelopeGetVO operation = service.getByChatOperation(uid, shortUid, query, redEnvelope);
+        RedEnvelopeGetVO operation = this.getByChatOperation(uid, shortUid, query, redEnvelope);
 
         // 缓存延时双删
         Thread.sleep(100);
@@ -279,7 +277,50 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     }
 
     @Override
-    public RedEnvelopeExchangeCodeVO getByExtern(Long rid) {
+    public RedEnvelopeGetVO get(Long uid, Long shortUid, RedEnvelopeExchangeCodeQuery query) {
+        RedEnvelopeSpiltDTO redEnvelopeSpiltDTO =
+                redEnvelopeSpiltService.getRedEnvelopeSpiltDTOCache(query.getExchangeCode());
+
+        if (redEnvelopeSpiltDTO.isReceive()) {
+            ErrorCodeEnum.RED_HAVE_RECEIVED.throwException();
+        }
+
+        RedEnvelope redEnvelope = this.getWithCache(redEnvelopeSpiltDTO.getRid());
+
+        // 不是站外红包不支持此领取方式
+        if (!RedEnvelopeChannel.EXTERN.equals(redEnvelope.getChannel())) {
+            ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
+        }
+
+        CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
+        // 等待、失败、过期、结束
+        if (RedEnvelopeStatus.WAIT.equals(redEnvelope.getStatus())
+                || RedEnvelopeStatus.FAIL.equals(redEnvelope.getStatus())
+                || RedEnvelopeStatus.OVERDUE.equals(redEnvelope.getStatus())
+                || RedEnvelopeStatus.FINISH.equals(redEnvelope.getStatus())) {
+            return new RedEnvelopeGetVO(redEnvelope.getStatus(), coinBase);
+        }
+
+        // 异步转账
+        RedEnvelopeContext redEnvelopeContext = RedEnvelopeContext.builder()
+                .rid(redEnvelope.getId())
+                .uuid(query.getExchangeCode())
+                .uid(uid)
+                .shortUid(shortUid)
+                .deviceNumber(query.getDeviceNumber())
+                .build();
+        sqsService.send(new SqsContext<>(SqsTypeEnum.RED_ENVELOP, redEnvelopeContext));
+
+        RedEnvelopeGetVO redEnvelopeGetVO = new RedEnvelopeGetVO(RedEnvelopeStatus.SUCCESS, coinBase);
+        redEnvelopeGetVO.setReceiveAmount(redEnvelopeSpiltDTO.getAmount());
+        redEnvelopeGetVO.setUReceiveAmount(currencyService.getDollarRate(redEnvelope.getCoin()).multiply(redEnvelopeSpiltDTO.getAmount()));
+        redEnvelopeGetVO.setUid(redEnvelope.getUid());
+        redEnvelopeGetVO.setShortUid(redEnvelope.getShortUid());
+        return redEnvelopeGetVO;
+    }
+
+    @Override
+    public RedEnvelopeExchangeCodeVO getExternCode(Long rid) {
         RedEnvelope redEnvelope = Optional.ofNullable(this.getWithCache(rid))
                 .orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
 
@@ -302,12 +343,12 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     @Override
     public RedEnvelopeGetDetailsVO getDetails(Long uid, Long rid) {
         RedEnvelope redEnvelope = getWithCache(rid);
-        List<RedEnvelopeSpiltGetRecordVO> recordVo = redEnvelopeSpiltGetRecordService.getRecordVos(rid);
+        List<RedEnvelopeSpiltGetRecordVO> recordVo = redEnvelopeSpiltGetRecordService.getRecordVos(redEnvelope);
 
         RedEnvelopeGetDetailsVO redEnvelopeGetDetailsVO = redEnvelopeConvert.toRedEnvelopeGetDetailsVO(redEnvelope);
         redEnvelopeGetDetailsVO.setRecords(recordVo);
 
-        RedEnvelopeSpiltGetRecord record = redEnvelopeSpiltGetRecordService.getRecord(rid, uid);
+        RedEnvelopeSpiltGetRecord record = redEnvelopeSpiltGetRecordService.getRecords(rid, uid);
         redEnvelopeGetDetailsVO.setReceiveAmount(Objects.isNull(record) ? null : record.getAmount());
         redEnvelopeGetDetailsVO.setUReceiveAmount(Objects.isNull(record) ? null
                 : record.getAmount().multiply(currencyService.getDollarRate(redEnvelope.getCoin())));
@@ -317,8 +358,17 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         return redEnvelopeGetDetailsVO;
     }
 
-    @Transactional
-    public RedEnvelopeGetVO getByChatOperation(Long uid, Long shortUid, RedEnvelopeGetQuery query, RedEnvelope redEnvelope) {
+
+    /**
+     * 聊天抢红包（纯redis和MySQL查询操作，不需要事务）
+     *
+     * @param uid         抢红包uid
+     * @param shortUid    抢红包用户短码
+     * @param query       请求参数
+     * @param redEnvelope 红包信息
+     * @return 返回信息
+     */
+    private RedEnvelopeGetVO getByChatOperation(Long uid, Long shortUid, RedEnvelopeGetQuery query, RedEnvelope redEnvelope) {
 
         String receivedKey = RedisConstants.SPILT_RED_ENVELOPE_GET + query.getRid() + ":" + uid;
         String spiltRedKey = RedisConstants.SPILT_RED_ENVELOPE + query.getRid();

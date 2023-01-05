@@ -45,9 +45,6 @@ public class RedEnvelopeExchangeCodeVO {
      */
     private BigDecimal usdtCnyRate;
 
-
-
-
     public RedEnvelopeExchangeCodeVO(RedEnvelopeStatus status) {
         this.status = status;
     }

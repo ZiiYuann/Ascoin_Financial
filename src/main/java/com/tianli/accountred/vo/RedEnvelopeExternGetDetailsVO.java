@@ -1,5 +1,6 @@
 package com.tianli.accountred.vo;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.accountred.enums.RedEnvelopeStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.time.LocalDateTime;
 
 /**
  * @author chenb
@@ -58,7 +59,9 @@ public class RedEnvelopeExternGetDetailsVO {
 
     private BigDecimal usdtRate;
 
+    private LocalDateTime expireTime;
+
     // 这里的record是基于缓存的记录，并不是真正的领取记录
-    private List<RedEnvelopeExternGetRecordVO> records;
+    private IPage<RedEnvelopeExternGetRecordVO> recordPage;
 
 }

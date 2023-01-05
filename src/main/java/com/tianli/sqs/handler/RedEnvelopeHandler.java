@@ -2,8 +2,10 @@ package com.tianli.sqs.handler;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.service.ChainService;
+import com.tianli.common.webhook.WebHookService;
 import com.tianli.sqs.SqsContext;
 import com.tianli.sqs.SqsReceiveHandler;
 import com.tianli.sqs.SqsTypeEnum;
@@ -27,7 +29,9 @@ import java.util.List;
 public class RedEnvelopeHandler implements SqsReceiveHandler {
 
     @Resource
-    private ChainService chainService;
+    private RedEnvelopeService redEnvelopeService;
+    @Resource
+    private WebHookService webHookService;
 
     @Override
     @Transactional
@@ -35,9 +39,12 @@ public class RedEnvelopeHandler implements SqsReceiveHandler {
     public void handler(Message message) {
         SqsContext<JSONObject> sqsContext = JSONUtil.toBean(message.body(), SqsContext.class);
         var redEnvelopeContext = JSONUtil.toBean(sqsContext.getContext(), RedEnvelopeContext.class);
-        var rid = redEnvelopeContext.getRid();
-        var uuid = redEnvelopeContext.getUuid();
-        var uid = redEnvelopeContext.getUid();
+        try {
+            redEnvelopeService.asynGet(redEnvelopeContext);
+        } catch (Exception e) {
+            webHookService.dingTalkSend("领取红包异常", e);
+            throw e;
+        }
     }
 
     @Override

@@ -4,7 +4,11 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.base.MoreObjects;
+import com.tianli.accountred.query.RedEnvelopeGetQuery;
+import com.tianli.accountred.service.RedEnvelopeService;
+import com.tianli.common.Constants;
 import com.tianli.common.RedisService;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.service.FinancialRecordService;
@@ -17,6 +21,7 @@ import com.tianli.management.query.FundIncomeTestQuery;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.task.FinancialIncomeTask;
 import com.tianli.task.FundIncomeTask;
+import com.tianli.tool.crypto.PBE;
 import com.tianli.tool.time.TimeTool;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -24,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -55,7 +61,8 @@ public class TestController {
     private RedisService redisService;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
-
+    @Resource
+    private RedEnvelopeService redEnvelopeService;
 
     /**
      * 基金补偿
@@ -156,5 +163,28 @@ public class TestController {
         String value = jsonObject.getStr("value");
         stringRedisTemplate.opsForValue().set(key, value, 100, TimeUnit.SECONDS);
         return Result.success();
+    }
+
+    @PostMapping("/r/get")
+    public Result redGet(@RequestBody RedEnvelopeGetQuery query
+            , @RequestHeader("Sign") String sign
+            , Long uid, Long shortUid) {
+        String timestamp = PBE.decryptBase64(Constants.RED_SALT, "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALTtpUwJh5H8FELbMZvvhPnkPfyqsTWC", sign);
+        long time1 = Long.valueOf(timestamp).longValue() / 1000;
+        long time2 = LocalDateTime.now().toInstant(ZoneOffset.ofHours(8)).toEpochMilli() / 1000;
+
+        if (time2 >= time1 && (time2 - time1) <= 86400) {
+            redEnvelopeService.get(uid, shortUid, query);
+            return Result.success();
+        }
+        ErrorCodeEnum.throwException("过期");
+        return null;
+    }
+
+    @GetMapping("/sign")
+    public Result sign(String password) {
+        long timestamp = LocalDateTime.now().toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+        String sigh = PBE.encryptBase64(Constants.RED_SALT, password, timestamp + "");
+        return Result.success(sigh);
     }
 }

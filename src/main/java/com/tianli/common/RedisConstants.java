@@ -13,7 +13,11 @@ public class RedisConstants {
     /**
      * 拆分红包code获取（站外使用）
      */
-    public static String SPILT_RED_ENVELOPE_CODE = "red:extern:code";
+    public static String RED_EXTERN_CODE = "red:extern:code:";
+
+    public static String RED_EXTERN = "red:extern:";
+
+    public static String RED_EXTERN_RECORD = "red:extern:record:";
 
     /**
      * 拆分红包领取
@@ -29,6 +33,8 @@ public class RedisConstants {
      * 红包领取记录
      */
     public static String RED_ENVELOPE_GET_RECORD = "red:get:record:";
+
+    public static String RED_ENVELOPE_RECORD = "red:record:";
 
     public static String RECOMMEND_PRODUCT = "product:recommend";
 

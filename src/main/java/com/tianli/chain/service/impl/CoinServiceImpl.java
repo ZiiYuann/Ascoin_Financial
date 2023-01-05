@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.entity.Coin;
-import com.tianli.chain.entity.CoinBase;
 import com.tianli.chain.mapper.CoinMapper;
 import com.tianli.chain.service.CoinBaseService;
 import com.tianli.chain.service.CoinService;
@@ -74,7 +73,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         Object o = redisTemplate.opsForValue().get(RedisConstants.COIN_PUSH_LIST);
         if (Objects.isNull(o)) {
             List<Coin> coins = this.list(new LambdaQueryWrapper<Coin>()
-                    .ge(Coin::getStatus, (byte) 0));
+                    .gt(Coin::getStatus, (byte) 0));
             redisTemplate.opsForValue().set(RedisConstants.COIN_PUSH_LIST, coins);
             return coins;
         }
@@ -126,6 +125,11 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         asyncService.async(() -> this.asyncPush(coin));
     }
 
+    @Override
+    public void push(Coin coin) {
+        asyncService.async(() -> this.asyncPush(coin));
+    }
+
     /**
      * 异步push
      *
@@ -150,6 +154,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
                 if (sqsService.receiveAndDelete(null, 5) == 0) {
                     successStatus(coin.getId());
                     coinBaseService.flushPushListCache();
+                    this.deletePushListCache();
                     webHookService.dingTalkSend("新币种注册消费结束");
                     return;
                 }
@@ -193,6 +198,17 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         coin.setWithdrawMin(query.getWithdrawMin());
         coin.setWithdrawFixedAmount(query.getWithdrawFixedAmount());
         this.updateById(coin);
+    }
+
+    @Override
+    public void deletePushListCache() {
+        redisTemplate.delete(RedisConstants.COIN_PUSH_LIST);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        coinMapper.deleteById(id);
     }
 
     private void pushSqs(Coin coin) {

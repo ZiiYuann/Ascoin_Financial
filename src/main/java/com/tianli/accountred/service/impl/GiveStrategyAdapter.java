@@ -4,9 +4,11 @@ import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.enums.RedEnvelopeType;
+import com.tianli.exception.ErrorCodeEnum;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author chenb
@@ -43,7 +45,8 @@ public class GiveStrategyAdapter {
      * @return 拆分红包
      */
     public static List<RedEnvelopeSpilt> split(RedEnvelope redEnvelope) {
-        return GIVE_STRATEGY.get(redEnvelope.getChannel().name() + "-" + redEnvelope.getType().name())
+        return Optional.ofNullable(GIVE_STRATEGY.get(redEnvelope.getChannel().name() + "-" + redEnvelope.getType().name()))
+                .orElseThrow(ErrorCodeEnum.RED_STRATEGY_ERROR :: generalException)
                 .spiltRedEnvelope(redEnvelope);
     }
 }
