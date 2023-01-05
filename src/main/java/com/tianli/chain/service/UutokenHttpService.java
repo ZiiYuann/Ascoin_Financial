@@ -69,7 +69,7 @@ public class UutokenHttpService {
     private JSONObject post(String path, Map<String, String> body, boolean signed) {
         String host = configService.getOrDefault(ConfigConstants.UUTOKEN_HOST, "https://uutoken.giantdt.com");
         try {
-            HttpResponse response = HttpUtils.doPost(host, path, null, getHeader(signed), Map.of(), body);
+            HttpResponse response = HttpUtils.doPost(host, path, null, getHeader(signed), Map.of(), JSONUtil.toJsonStr(body));
             return JSONUtil.parseObj(EntityUtils.toString(response.getEntity()));
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,7 +94,7 @@ public class UutokenHttpService {
         if(signed) {
             long currentTimeMillis = System.currentTimeMillis();
             header.put("timestamp", String.valueOf(currentTimeMillis));
-            header.put("sign", Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp", String.valueOf(currentTimeMillis)));
+            header.put("Sign", Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKUp", String.valueOf(currentTimeMillis)));
         }
         return header;
     }
