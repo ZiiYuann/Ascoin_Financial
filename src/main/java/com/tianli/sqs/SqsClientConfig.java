@@ -19,7 +19,6 @@ import javax.annotation.PreDestroy;
 public class SqsClientConfig {
 
     private SqsClient sqsClient;
-    @Value("${WS_ACCESS_KEY_ID}")
 
     @PostConstruct
     public void init() {
