@@ -125,6 +125,11 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         asyncService.async(() -> this.asyncPush(coin));
     }
 
+    @Override
+    public void push(Coin coin) {
+        asyncService.async(() -> this.asyncPush(coin));
+    }
+
     /**
      * 异步push
      *

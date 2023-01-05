@@ -49,6 +49,8 @@ public interface CoinService extends IService<Coin> {
      */
     void push(String nickname, CoinStatusQuery query);
 
+    void push(Coin coin);
+
     /**
      * 根据币别名称和网络获取币别
      *

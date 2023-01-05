@@ -4,6 +4,8 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.base.MoreObjects;
+import com.tianli.chain.entity.Coin;
+import com.tianli.chain.service.CoinService;
 import com.tianli.common.RedisService;
 import com.tianli.exception.Result;
 import com.tianli.financial.entity.FinancialRecord;
@@ -55,7 +57,8 @@ public class TestController {
     private RedisService redisService;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
-
+    @Resource
+    private CoinService coinService;
 
     /**
      * 基金补偿
@@ -161,6 +164,13 @@ public class TestController {
         String key = jsonObject.getStr("key");
         String value = jsonObject.getStr("value");
         stringRedisTemplate.opsForValue().set(key, value, 100, TimeUnit.SECONDS);
+        return Result.success();
+    }
+
+    @GetMapping("/coin/push")
+    public Result coinPush(String contract) {
+        Coin coin = coinService.getByContract(contract);
+        coinService.push(coin);
         return Result.success();
     }
 }
