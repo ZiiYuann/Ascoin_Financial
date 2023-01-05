@@ -2,6 +2,7 @@ package com.tianli.chain.service;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.tianli.chain.dto.BtcBalance;
 import com.tianli.chain.dto.DesignBtcTx;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.common.ConfigConstants;
@@ -29,31 +30,40 @@ public class UutokenHttpService {
     @Resource
     private ConfigService configService;
 
-    public void registerBtcAddress(String address) {
+    public void registerAddress(ChainType chain, String address) {
         Map<String, String> body = Map.of(
                 "address", address,
-                "chain", ChainType.BTC.name());
+                "chain", chain.name());
         JSONObject response = post("/api/address/watch/financial", body, true);
         String code = response.get("code", String.class);
         if(!"0".equals(code)) {
-            log.error("注册btc地址失败 {}", address);
-            throw new ErrCodeException("注册btc地址失败 " + address);
+            log.error("注册{}地址失败 {}", chain, address);
+            throw new ErrCodeException("注册" + chain.name() + "地址失败 " + address);
         }
     }
 
-    public DesignBtcTx designSimpleBitcoin(String from, String to, Long value) {
+    public DesignBtcTx designSimpleBitcoin(String from, String to, Long value, Long fee) {
         Map<String, String> body = Map.of(
                 "from_address", from,
                 "to_address", to,
-                "value", value.toString()
+                "value", value.toString(),
+                "fee", fee.toString()
         );
         JSONObject response = post("/api/tx/design/simple/bitcoin", body, false);
         return response.get("data", DesignBtcTx.class);
     }
 
-    public String btcBalance(String address) {
+    public BtcBalance btcBalance(String address) {
         JSONObject response = get("/api/address/balance/detail?address=" + address);
-        return response.getJSONObject("data").get("sumTxBalance", String.class);
+        JSONObject data = response.getJSONObject("data");
+        String balance = data.get("sumTxBalance", String.class);
+        Integer countUnspent = data.get("countUnspent", Integer.class);
+        return new BtcBalance(balance, countUnspent);
+    }
+
+    public Long btcFee() {
+        JSONObject response = get("/api/tx/fees/estimates");
+        return response.getJSONObject("data").getJSONObject("FeesRecommended").get("fastest", Long.class);
     }
 
     private JSONObject post(String path, Map<String, String> body, boolean signed) {

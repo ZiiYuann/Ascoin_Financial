@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.mapper.OccasionalAddress;
 import com.tianli.address.mapper.OccasionalAddressMapper;
 import com.tianli.chain.enums.ChainType;
+import com.tianli.chain.service.UutokenHttpService;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.blockchain.NetworkType;
@@ -12,17 +13,11 @@ import com.tianli.exception.ErrorCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -38,6 +33,8 @@ public class OccasionalAddressService extends ServiceImpl<OccasionalAddressMappe
     private RedissonClient redisson;
     @Resource
     private ContractAdapter contractAdapter;
+    @Resource
+    private UutokenHttpService uutokenHttpService;
 
     public OccasionalAddress get(String address, ChainType chain) {
         return this.getOne(Wrappers.lambdaQuery(OccasionalAddress.class).eq(OccasionalAddress::getAddress, address).eq(OccasionalAddress::getChain, chain));
@@ -59,6 +56,7 @@ public class OccasionalAddressService extends ServiceImpl<OccasionalAddressMappe
                             .chain(chain)
                             .createTime(LocalDateTime.now()).build();
                     this.save(address);
+                    uutokenHttpService.registerAddress(chain, addressStr);
                 }
             } catch (IOException e) {
                 log.error("compute address failed addressId:{} chain:{}", addressId, chain, e);

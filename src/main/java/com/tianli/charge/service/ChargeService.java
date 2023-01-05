@@ -166,6 +166,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         for (TRONTokenReq req : tronTokenReqs) {
             Coin coin = mainToken ? coinService.mainToken(chainType.getMainToken())
                     : coinService.getByContract(req.getContractAddress());
+            if(coin == null) {
+                ErrorCodeEnum.CURRENCY_NOT_SUPPORT.throwException();
+            }
             Address address = getAddress(coin.getNetwork(), req.getTo());
             Long uid = address.getUid();
             BigDecimal finalAmount = TokenAdapter.alignment(req.getValue(), coin.getDecimals());

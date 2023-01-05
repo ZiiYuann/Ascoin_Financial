@@ -172,6 +172,10 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         var coinName = walletImputations.stream().map(WalletImputation::getCoin).findAny().orElseThrow();
         var network = walletImputations.stream().map(WalletImputation::getNetwork).findAny().orElseThrow();
 
+        if(network == NetworkType.btc && walletImputations.size() > 1) {
+            ErrorCodeEnum.throwException("btc不允许一个归集多个地址");
+        }
+
         Coin coin = coinService.getByNameAndNetwork(coinName, network);
 
         List<Long> addressIds = walletImputations.stream().map(WalletImputation::getAddressId).collect(Collectors.toList());

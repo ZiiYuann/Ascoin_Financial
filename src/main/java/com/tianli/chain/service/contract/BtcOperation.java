@@ -2,13 +2,14 @@ package com.tianli.chain.service.contract;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.tianli.address.PushHttpClient;
 import com.tianli.address.Service.AddressMnemonicService;
+import com.tianli.address.Service.OccasionalAddressService;
+import com.tianli.chain.dto.BtcBalance;
+import com.tianli.chain.dto.DesignBtcTx;
 import com.tianli.chain.dto.RawTransaction;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.UutokenHttpService;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.NetworkType;
@@ -17,7 +18,6 @@ import com.tianli.exception.ErrCodeException;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
-import com.tianli.tool.judge.JsonObjectTool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
@@ -68,6 +68,8 @@ public class BtcOperation extends AbstractContractOperation {
     private AddressMnemonicService addressMnemonicService;
     @Resource
     private UutokenHttpService uutokenHttpService;
+    @Resource
+    private OccasionalAddressService occasionalAddressService;
 
     @Override
     Result tokenTransfer(String to, BigInteger val, Coin coin) {
@@ -77,6 +79,10 @@ public class BtcOperation extends AbstractContractOperation {
     @Override
     public String computeAddress(long addressId) throws IOException {
         String mnemonic = addressMnemonicService.getMnemonic(addressId);
+        return generateAddress(mnemonic);
+    }
+
+    public String generateAddress(String mnemonic) {
         BigInteger prvBtc = Bip44Utils.getDefaultPathPrivateKey(Collections.singletonList(mnemonic), 0);
         ECKey ecKey = ECKey.fromPrivate(prvBtc);
         byte[] pubKeyHash = ecKey.getPubKeyHash();
@@ -85,24 +91,31 @@ public class BtcOperation extends AbstractContractOperation {
 
     @Override
     public String recycle(String toAddress, List<Long> addressIds, List<String> tokenContractAddresses) {
-        return null;
+        Long addressId = addressIds.get(0);
+        String mnemonic = addressMnemonicService.getMnemonic(addressId);
+        String from = occasionalAddressService.get(addressId, ChainType.BTC);
+        BtcBalance btcBalance = uutokenHttpService.btcBalance(from);
+        long fee = uutokenHttpService.btcFee() * calcByte(btcBalance.getCountUnspent(), 1);
+        return sendMnemonic(mnemonic, from, toAddress, Long.parseLong(btcBalance.getBalance()) - fee);
     }
 
     @Override
     Result mainTokenTransfer(String to, BigInteger val, Coin coin) {
         String fromAddress = configService.get(ConfigConstants.BTC_MAIN_WALLET_ADDRESS);
-        String prvKey = configService.get(ConfigConstants.BTC_PRIVATE_KEY);
-        return Result.success();
+        String mnemonic = configService.get(ConfigConstants.MAIN_WALLET_PASSWORD);
+        String hash = sendMnemonic(mnemonic, fromAddress, to, val.longValue());
+        return Result.success(hash);
     }
 
     @Override
     public boolean successByHash(String hash) {
-        return false;
+        RawTransaction rawtransaction = getrawtransaction(hash);
+        return rawtransaction != null;
     }
 
     @Override
     public BigDecimal mainBalance(String address) {
-        return new BigDecimal(uutokenHttpService.btcBalance(address));
+        return new BigDecimal(uutokenHttpService.btcBalance(address).getBalance());
     }
 
     @Override
@@ -113,14 +126,6 @@ public class BtcOperation extends AbstractContractOperation {
     @Override
     public Integer decimals(String contractAddress) {
         throw ErrorCodeEnum.NOT_OPEN.generalException();
-    }
-
-    public static void main(String[] args) throws IOException {
-        BtcOperation btcOperation = new BtcOperation();
-        btcOperation.url = "http://35.77.16.20:8332";
-        btcOperation.username = "user";
-        btcOperation.password = "hxTyOjmTh9bfjiivdzBlNH9HSWDZzf7UBM5PhbOMxHR";
-        BigDecimal consumeFee = btcOperation.getConsumeFee("9aadded09a0cf478593037bf6f815e251c900796129c4c9821b0302e74b9bb2a");
     }
 
     @Override
@@ -144,43 +149,62 @@ public class BtcOperation extends AbstractContractOperation {
         return NetworkType.btc.equals(chain);
     }
 
-    public String sendPrivateKey(String privateKeys, JsonArray array, JsonArray out, long fee,
-                                 String firstAddress, String lastAddress,
-                                 long vinValue, long voutValue1, long voutValue2) {
-        if (!validAddress(firstAddress) || !validAddress(lastAddress) || firstAddress.equals(lastAddress) ||
-                voutValue1 < 546L || voutValue2 < 0L) {
-            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
-        }
-        MainNetParams params = MainNetParams.get();
-        long out_amount = voutValue1 + voutValue2;
-        if (out_amount + fee > vinValue) throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
+    private String sendMnemonic(String mnemonic, String from, String to, Long val) {
+        String prvKey = generalDefaultPrivateKey(mnemonic);
+        return sendPrivateKey(prvKey, from, to, val);
+    }
 
-        DumpedPrivateKey dumpedPrivateKey = DumpedPrivateKey.fromBase58(params, privateKeys);
+    private String generalDefaultPrivateKey(String mnemonic) {
+        BigInteger prvBtc = Bip44Utils.getDefaultPathPrivateKey(Collections.singletonList(mnemonic), 0);
+        ECKey ecKey = ECKey.fromPrivate(prvBtc);
+        byte[] privKeyBytes = ecKey.getPrivKeyBytes();
+        byte[] privKeyBytesEncode = new byte[privKeyBytes.length + 1];
+        System.arraycopy(privKeyBytes, 0, privKeyBytesEncode, 0, privKeyBytes.length);
+        privKeyBytesEncode[privKeyBytesEncode.length - 1] = 0x01;
+        return Base58.encodeChecked(128, privKeyBytesEncode);
+    }
+
+    private String sendPrivateKey(String privateKey, String from, String to, Long val) {
+        Long fee = uutokenHttpService.btcFee();
+        DesignBtcTx designBtcTx = uutokenHttpService.designSimpleBitcoin(from, to, val, fee);
+        if(designBtcTx == null || designBtcTx.getVin().size() == 0 || designBtcTx.getVout().size() == 0) {
+            ErrorCodeEnum.throwException("比特币交易设计失败");
+        }
+        long vinValue = 0;
+        for (DesignBtcTx.Vin vin : designBtcTx.getVin()) {
+            vinValue += vin.getValue();
+        }
+        long voutVal1 = designBtcTx.getVout().get(0).getValue();
+        long voutVal2 = designBtcTx.getVout().size() > 1 ? designBtcTx.getVout().get(1).getValue() : 0L;
+        if(voutVal1 < 546L || voutVal2 < 0L || voutVal1 + voutVal2 + designBtcTx.getFee() > vinValue) {
+            log.error("比特币转账参数错误 vin:{} vout1:{} vout2:{} fee:{}", vinValue, voutVal1, voutVal2, designBtcTx.getFee());
+            ErrorCodeEnum.throwException("比特币转账参数错误");
+        }
+
+        MainNetParams params = MainNetParams.get();
+        DumpedPrivateKey dumpedPrivateKey = DumpedPrivateKey.fromBase58(params, privateKey);
         org.bitcoinj.core.ECKey ecKey = dumpedPrivateKey.getKey();
         Transaction transaction = new Transaction(params);
 
-        for (int i = 0; i < out.size(); i++) {
-            JsonObject asJsonObject = out.get(i).getAsJsonObject();
-            long value = asJsonObject.get("value").getAsLong();
-            String address = asJsonObject.get("address").getAsString();
+        for (DesignBtcTx.Vout vout : designBtcTx.getVout()) {
+            Long value = vout.getValue();
+            String address = vout.getAddress();
             transaction.addOutput(org.bitcoinj.core.Coin.valueOf(value), Address.fromString(params, address));
         }
-        for (int i = 0; i < array.size(); i++) {
-            JsonObject asJsonObject = array.get(i).getAsJsonObject();
-            long vout = asJsonObject.get("vout").getAsLong();
-            long value = asJsonObject.get("value").getAsLong();
-            String hash = asJsonObject.get("txid").getAsString();
+        for (DesignBtcTx.Vin vin : designBtcTx.getVin()) {
+            Integer vout = vin.getVout();
+            Long value = vin.getValue();
+            String hash = vin.getTxid();
             Sha256Hash sha256Hash = Sha256Hash.wrap(hash);
             TransactionInput input = new TransactionInput(params, transaction, ScriptBuilder.createEmpty().getProgram(), new TransactionOutPoint(params, vout, sha256Hash), org.bitcoinj.core.Coin.valueOf(value));
             input.setSequenceNumber(TransactionInput.NO_SEQUENCE - 2);
             transaction.addInput(input);
         }
-
-        for (int i = 0; i < array.size(); i++) {
+        for (int i = 0; i < designBtcTx.getVin().size(); i++) {
             TransactionInput input = transaction.getInput(i);
-            JsonObject asJsonObject = array.get(i).getAsJsonObject();
-            String address = asJsonObject.get("address").getAsString();
-            long value = asJsonObject.get("value").getAsLong();
+            DesignBtcTx.Vin vin = designBtcTx.getVin().get(i);
+            String address = vin.getAddress();
+            long value = vin.getValue();
             if (address.startsWith("1")) {
                 Address fromString = Address.fromString(params, address);
                 Script scriptPubKey = ScriptBuilder.createOutputScript(fromString);
@@ -208,12 +232,16 @@ public class BtcOperation extends AbstractContractOperation {
         return null;
     }
 
-    public RawTransaction getrawtransaction(String txid) {
+    private int calcByte(int input, int output) {
+        return 10 + 148 * input + 34 * output;
+    }
+
+    private RawTransaction getrawtransaction(String txid) {
         JSONObject jsonObject = httpJson("getrawtransaction", txid, 1);
         return jsonObject.get("result", RawTransaction.class);
     }
 
-    public String sendrawtransaction(String hexstring) {
+    private String sendrawtransaction(String hexstring) {
         JSONObject jsonObject = httpJson("sendrawtransaction", hexstring);
         String result;
         try {

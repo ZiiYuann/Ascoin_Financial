@@ -45,7 +45,6 @@ public class ConfigConstants {
      * btc链钱包地址
      */
     public static final String BTC_MAIN_WALLET_ADDRESS = "btc_main_wallet_address";
-    public static final String BTC_PRIVATE_KEY = "btc_private_key";
 
     /**
      * 系统用户最小申购金额
