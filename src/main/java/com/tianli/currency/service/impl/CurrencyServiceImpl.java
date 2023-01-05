@@ -4,6 +4,7 @@ import com.tianli.currency.service.CurrencyService;
 import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.dto.AmountDto;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ import java.util.Optional;
  * @apiNote
  * @since 2022-07-11
  **/
+@Slf4j
 @Service
 public class CurrencyServiceImpl implements CurrencyService {
 
@@ -28,7 +30,7 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public BigDecimal getDollarRate(String coinName) {
-       return huobiUsdtRate(coinName);
+        return huobiUsdtRate(coinName);
     }
 
     @Override
@@ -50,16 +52,31 @@ public class CurrencyServiceImpl implements CurrencyService {
         Optional.ofNullable(coinName).orElseThrow(NullPointerException::new);
 
         coinName = coinName.toLowerCase(Locale.ROOT);
-        try {
-            if ("usdt".equalsIgnoreCase(coinName)) {
-                return BigDecimal.ONE;
-            }
-            if ("usdc".equalsIgnoreCase(coinName)) {
-                return BigDecimal.ONE;
-            }
-            return BigDecimal.valueOf(digitalCurrencyExchange.coinUsdtPrice(coinName));
-        } catch (Exception e) {
-            throw ErrorCodeEnum.COIN_RATE_ERROR.generalException();
+        if ("usdt".equalsIgnoreCase(coinName)) {
+            return BigDecimal.ONE;
         }
+        if ("usdc".equalsIgnoreCase(coinName)) {
+            return BigDecimal.ONE;
+        }
+
+        try {
+            return BigDecimal.valueOf(digitalCurrencyExchange.coinUsdtPriceHuobi(coinName));
+        } catch (Exception e) {
+            log.error("huobi没有对应货币价格：" + coinName);
+        }
+
+        try {
+            return BigDecimal.valueOf(digitalCurrencyExchange.coinUsdtPriceBnb(coinName));
+        } catch (Exception e) {
+            log.error("币安没有对应货币价格：" + coinName);
+        }
+
+        try {
+            return BigDecimal.valueOf(digitalCurrencyExchange.coinUsdtPriceOkx(coinName));
+        } catch (Exception e) {
+            log.error("欧易没有对应货币价格：" + coinName);
+        }
+
+        throw ErrorCodeEnum.COIN_RATE_ERROR.generalException();
     }
 }
