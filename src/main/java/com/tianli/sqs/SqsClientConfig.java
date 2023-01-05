@@ -20,25 +20,12 @@ public class SqsClientConfig {
 
     private SqsClient sqsClient;
     @Value("${WS_ACCESS_KEY_ID}")
-    private String WS_ACCESS_KEY_ID;
-    @Value("${AWS_SECRET_ACCESS_KEY}")
-    private String AWS_SECRET_ACCESS_KEY;
 
     @PostConstruct
     public void init() {
         sqsClient = SqsClient.builder().credentialsProvider(EnvironmentVariableCredentialsProvider.create())
                 .region(Region.AP_NORTHEAST_1)
-                .credentialsProvider(() -> new AwsCredentials() {
-                    @Override
-                    public String accessKeyId() {
-                        return WS_ACCESS_KEY_ID;
-                    }
-
-                    @Override
-                    public String secretAccessKey() {
-                        return AWS_SECRET_ACCESS_KEY;
-                    }
-                })
+                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
                 .build();
     }
 
