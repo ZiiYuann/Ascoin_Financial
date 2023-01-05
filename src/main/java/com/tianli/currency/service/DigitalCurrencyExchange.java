@@ -100,7 +100,7 @@ public class DigitalCurrencyExchange {
         BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(key);
         Object o = ops.get();
         if (o != null) return Double.parseDouble(o.toString());
-        String stringResult = HttpHandler.execute(new HttpRequest().setUrl("https://api.binance.com/api/v3/ticker/price?symbol" + coinName.toUpperCase(Locale.ROOT) + "USDT")).getStringResult();
+        String stringResult = HttpHandler.execute(new HttpRequest().setUrl("https://api.binance.com/api/v3/ticker/price?symbol=" + coinName.toUpperCase(Locale.ROOT) + "USDT")).getStringResult();
         JsonObject jsonObject = new Gson().fromJson(stringResult, JsonObject.class);
         Double aDouble = JsonObjectTool.getAsDouble(jsonObject, "price");
         if (aDouble == null) ErrorCodeEnum.NETWORK_ERROR.throwException();
