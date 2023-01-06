@@ -73,4 +73,4 @@ rpc:
   op:
     url: https://rpc.ankr.com/optimism/2ec11df9ec7a8583b9ed886316650c1394cfcfb29448ec6c6a77e1bb582132ab
   arbitrum:
-    url: https://rpc.ankr.com/arbitrum/2ec11df9ec7a8583b9ed886316650c1394cfcfb29448ec6c6a77e1bb582132ab
+    url: http://13.112.104.121:8547
