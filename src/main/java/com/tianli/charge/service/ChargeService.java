@@ -368,8 +368,10 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         /* 注册监听回调接口
          * {@link com.tianli.charge.controller.ChargeController#withdrawCallback(ChainType, String, String, String)}
          */
-        chainService.pushWithdrawCondition(orderChargeInfo.getNetwork(), orderChargeInfo.getCoin()
-                , new CallbackPathDTO("/api/charge/withdraw"), orderChargeInfo.getToAddress());
+        if (orderChargeInfo.getNetwork().equals(NetworkType.erc20) || orderChargeInfo.getNetwork().equals(NetworkType.bep20) || orderChargeInfo.getNetwork().equals(NetworkType.trc20)) {
+            chainService.pushWithdrawCondition(orderChargeInfo.getNetwork(), orderChargeInfo.getCoin()
+                    , new CallbackPathDTO("/api/charge/withdraw"), orderChargeInfo.getToAddress());
+        }
 
         try {
             result = contractService.transfer(orderChargeInfo.getToAddress(), amount, coin);
