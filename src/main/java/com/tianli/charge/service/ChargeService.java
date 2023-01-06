@@ -701,6 +701,15 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             case btc:
                 fromAddress = configService.get(ConfigConstants.BTC_MAIN_WALLET_ADDRESS);
                 break;
+            case erc20_arbi:
+                fromAddress = configService.get(ConfigConstants.ARBITRUM_MAIN_WALLET_ADDRESS);
+                break;
+            case erc20_op:
+                fromAddress = configService.get(ConfigConstants.OP_MAIN_WALLET_ADDRESS);
+                break;
+            case erc20_polygon:
+                fromAddress = configService.get(ConfigConstants.POLYGON_MAIN_WALLET_ADDRESS);
+                break;
             default:
                 break;
         }
