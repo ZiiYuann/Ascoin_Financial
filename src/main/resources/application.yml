@@ -70,3 +70,7 @@ rpc:
     password: hxTyOjmTh9bfjiivdzBlNH9HSWDZzf7UBM5PhbOMxHR
   polygon:
     url: https://rpc.ankr.com/polygon
+  op:
+    url: https://rpc.ankr.com/optimism
+  arbitrum:
+    url: https://rpc.ankr.com/arbitrum
