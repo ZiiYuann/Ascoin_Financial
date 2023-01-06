@@ -58,7 +58,7 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
         // finish operation
         financialProductService.increaseUseQuota(product.getId(), purchaseQuery.getAmount(), product.getUseQuota());
 
-        finishPurchase(uid,product, purchaseQuery);
+        finishPurchase(uid, product, purchaseQuery);
 
         if (!o.getClass().equals(rClass)) {
             throw new UnsupportedOperationException();
@@ -90,7 +90,7 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
     public void baseValidProduct(Long uid, FinancialProduct financialProduct, PurchaseQuery purchaseQuery) {
         BigDecimal purchaseAmount = purchaseQuery.getAmount();
         if (Objects.isNull(financialProduct)) {
-            ErrorCodeEnum.PRODUCT_CAN_NOT_BUY.throwException();
+            throw ErrorCodeEnum.PRODUCT_CAN_NOT_BUY.generalException();
         }
 
         Long productId = financialProduct.getId();
@@ -155,7 +155,7 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
         throw new UnsupportedOperationException();
     }
 
-    public void finishPurchase(Long uid,FinancialProduct product, PurchaseQuery purchaseQuery) {
+    public void finishPurchase(Long uid, FinancialProduct product, PurchaseQuery purchaseQuery) {
 
     }
 }

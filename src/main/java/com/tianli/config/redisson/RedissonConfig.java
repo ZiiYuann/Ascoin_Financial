@@ -16,20 +16,20 @@ public class RedissonConfig {
     private RedissonProperties RedissonProperties;
 
     @Bean
-    public RedissonClient redissonClient(){
+    public RedissonClient redissonClient() {
         // 默认连接地址 127.0.0.1:6379
         Config config = new Config();
         SingleServerConfig singleServerConfig = config.useSingleServer();
         singleServerConfig
-                .setAddress("redis://"+RedissonProperties.getHost()+":"+RedissonProperties.getPort())
+                .setAddress("redis://" + RedissonProperties.getHost() + ":" + RedissonProperties.getPort())
                 .setDatabase(RedissonProperties.getDatabase())
-                .setConnectionMinimumIdleSize(20)
+                .setConnectionMinimumIdleSize(1)
                 .setConnectionPoolSize(64)
                 .setConnectTimeout(100000)
                 .setTimeout(30000)
                 .setRetryAttempts(30)
                 .setRetryInterval(15000);
-        if(StringUtils.isNotEmpty(RedissonProperties.getPassword())){
+        if (StringUtils.isNotEmpty(RedissonProperties.getPassword())) {
             singleServerConfig.setPassword(RedissonProperties.getPassword());
         }
         return Redisson.create(config);

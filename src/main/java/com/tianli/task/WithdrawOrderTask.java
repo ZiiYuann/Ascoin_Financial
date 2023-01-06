@@ -64,7 +64,7 @@ public class WithdrawOrderTask {
         }
         String txid = orderChargeInfo.getTxid();
         boolean success = contractAdapter.getOne(orderChargeInfo.getNetwork()).successByHash(txid);
-        if (success) {
+        if (success) {h
             webHookService.dingTalkSend("异常提现订单:" + order.getOrderNo() + " 此订单交易成功，但是订单状态未修改，请及时排除问题");
             return;
         }
