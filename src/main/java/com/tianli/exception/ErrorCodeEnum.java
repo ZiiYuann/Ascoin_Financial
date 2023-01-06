@@ -142,7 +142,7 @@ public enum ErrorCodeEnum {
     RED_SET_BLOOM_FAIl(3708, "红包发送失败(bloom)"),
     RED_NUM_ERROR(3709, "红包数量异常"),
     RED_AMOUNT_ERROR(3710, "红包金额异常"),
-    RED_EXCHANGE_ERROR(3711, "红包兑换码不存在或者过期"),
+    RED_EXCHANGE_ERROR(3711, "红包兑换码无效"),
     RED_HAVE_RECEIVED(3712,"红包已领取"),
     RED_STRATEGY_ERROR(3711, "红包策略暂不支持"),
 

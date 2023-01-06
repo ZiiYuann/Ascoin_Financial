@@ -10,5 +10,7 @@ public enum SqsTypeEnum {
     // 添加新币别推送
     ADD_COIN_PUSH,
     // 红包转账
-    RED_ENVELOP
+    RED_ENVELOP,
+    // 缓存删除
+    RDS_DELETE
 }

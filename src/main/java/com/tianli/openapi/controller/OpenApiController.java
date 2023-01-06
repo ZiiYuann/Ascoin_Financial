@@ -2,9 +2,14 @@ package com.tianli.openapi.controller;
 
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.accountred.entity.RedEnvelope;
+import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.service.RedEnvelopeService;
+import com.tianli.accountred.service.RedEnvelopeSpiltService;
+import com.tianli.accountred.vo.RedEnvelopeExternGetDetailsVO;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.common.Constants;
+import com.tianli.common.PageQuery;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.management.query.UidsQuery;
@@ -40,6 +45,8 @@ public class OpenApiController {
     private AccountBalanceService accountBalanceService;
     @Resource
     private RedEnvelopeService redEnvelopeService;
+    @Resource
+    private RedEnvelopeSpiltService redEnvelopeSpiltService;
 
     /**
      * 奖励接口
@@ -171,6 +178,20 @@ public class OpenApiController {
         String fingerprint;
         String id = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, content);
         return Result.success().setData(redEnvelopeService.getExternCode(Long.parseLong(id)));
+    }
+
+    /**
+     * 领取站外红包
+     */
+    @GetMapping("/red/extern/record")
+    public Result externRedRecord(String content, PageQuery<RedEnvelopeSpiltGetRecord> pageQuery) {
+
+        String rid = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, content);
+        RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.parseLong(rid));
+
+        RedEnvelopeExternGetDetailsVO redEnvelopeExternGetDetailsVO =
+                redEnvelopeSpiltService.getExternDetailsRedis(redEnvelope, pageQuery);
+        return Result.success().setData(redEnvelopeExternGetDetailsVO);
     }
 
 }

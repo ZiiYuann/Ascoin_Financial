@@ -79,5 +79,15 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
      * @param sqsContext sqs信息
      */
     void asynGet(RedEnvelopeContext sqsContext);
+
+    /**
+     * 获取红包信息
+     */
+    RedEnvelope getWithCache(Long id);
+
+    /**
+     * 删除红包缓存
+     */
+    void deleteRedisCache(Long id);
 }
 

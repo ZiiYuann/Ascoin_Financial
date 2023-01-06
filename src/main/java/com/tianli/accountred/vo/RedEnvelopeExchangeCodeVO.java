@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * @author chenb
@@ -45,7 +46,14 @@ public class RedEnvelopeExchangeCodeVO {
      */
     private BigDecimal usdtCnyRate;
 
+    private LocalDateTime latestExpireTime;
+
     public RedEnvelopeExchangeCodeVO(RedEnvelopeStatus status) {
         this.status = status;
+    }
+
+    public RedEnvelopeExchangeCodeVO(RedEnvelopeStatus status,LocalDateTime latestExpireTime) {
+        this.status = status;
+        this.latestExpireTime = latestExpireTime;
     }
 }

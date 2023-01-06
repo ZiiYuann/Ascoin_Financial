@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.base.MoreObjects;
 import com.tianli.accountred.convert.RedEnvelopeConvert;
+import com.tianli.accountred.dto.RedEnvelopeGetDTO;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
@@ -90,7 +91,7 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
         long now = System.currentTimeMillis();
         Set<String> recordsCache = stringRedisTemplate.opsForZSet().rangeByScore(getRecordsKey
                 , 0,now
-                , pageQuery.getPage(),pageQuery.getPageSize());
+                , pageQuery.getOffset(),pageQuery.getPageSize());
 
         Long count = stringRedisTemplate.opsForZSet().count(getRecordsKey, 0,now);
 
@@ -119,25 +120,26 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
     @Override
     @Transactional
     public RedEnvelopeSpiltGetRecord redEnvelopeSpiltGetRecordFlow(Long uid, Long shortUid, String uuid
-            , RedEnvelopeGetQuery redEnvelopeGetQuery, RedEnvelopeSpilt redEnvelopeSpilt) {
-
+            , RedEnvelopeGetDTO redEnvelopeGetDTO, RedEnvelopeSpilt redEnvelopeSpilt) {
+        RedEnvelope redEnvelope = redEnvelopeGetDTO.getRedEnvelope();
         RedEnvelopeSpiltGetRecord redEnvelopeSpiltGetRecord = RedEnvelopeSpiltGetRecord.builder()
                 .amount(redEnvelopeSpilt.getAmount())
                 .id(CommonFunction.generalId())
                 .uid(uid)
                 .shortUid(shortUid)
-                .redShortUid(redEnvelopeGetQuery.getRedEnvelope().getShortUid())
-                .coin(redEnvelopeGetQuery.getRedEnvelope().getCoin())
+                .redShortUid(redEnvelope.getShortUid())
+                .coin(redEnvelope.getCoin())
                 .sRid(uuid)
-                .rid(redEnvelopeGetQuery.getRid())
-                .type(redEnvelopeGetQuery.getRedEnvelope().getType())
+                .rid(redEnvelope.getId())
+                .type(redEnvelope.getType())
                 .receiveTime(redEnvelopeSpilt.getReceiveTime())
-                .deviceNumber(redEnvelopeGetQuery.getDeviceNumber())
+                .deviceNumber(redEnvelopeGetDTO.getDeviceNumber())
+                .exchangeCode(redEnvelopeGetDTO.getExchangeCode())
                 .build();
 
         this.save(redEnvelopeSpiltGetRecord);
         long score = redEnvelopeSpiltGetRecord.getReceiveTime().toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
-        String getRecordsKey = RedisConstants.RED_ENVELOPE_RECORD + redEnvelopeGetQuery.getRedEnvelope().getId();
+        String getRecordsKey = RedisConstants.RED_ENVELOPE_RECORD + redEnvelope.getId();
         stringRedisTemplate.opsForZSet().add(getRecordsKey,JSONUtil.toJsonStr(redEnvelopeSpiltGetRecord),score);
 
         return redEnvelopeSpiltGetRecord;

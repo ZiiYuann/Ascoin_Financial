@@ -1,10 +1,10 @@
 package com.tianli.accountred.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.accountred.dto.RedEnvelopeGetDTO;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
-import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.vo.RedEnvelopeSpiltGetRecordVO;
 import com.tianli.common.PageQuery;
 
@@ -62,15 +62,15 @@ public interface RedEnvelopeSpiltGetRecordService {
     /**
      * 生成子红包领取流水
      *
-     * @param uid                 用户id
-     * @param shortUid            用户id短码
-     * @param uuid                拆分红包id
-     * @param redEnvelopeGetQuery 请求参数
-     * @param redEnvelopeSpilt    子红包
+     * @param uid               用户id
+     * @param shortUid          用户id短码
+     * @param uuid              拆分红包id
+     * @param redEnvelopeGetDTO 请求参数
+     * @param redEnvelopeSpilt  子红包
      * @return 拆分红包领取记录（流水）
      */
     RedEnvelopeSpiltGetRecord redEnvelopeSpiltGetRecordFlow(Long uid, Long shortUid, String uuid
-            , RedEnvelopeGetQuery redEnvelopeGetQuery, RedEnvelopeSpilt redEnvelopeSpilt);
+            , RedEnvelopeGetDTO redEnvelopeGetDTO, RedEnvelopeSpilt redEnvelopeSpilt);
 
     /**
      * 领取红包记录

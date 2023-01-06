@@ -26,4 +26,6 @@ public class RedEnvelopeContext {
 
     private String deviceNumber;
 
+    private String exchangeCode;
+
 }

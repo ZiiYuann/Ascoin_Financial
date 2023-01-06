@@ -69,6 +69,7 @@ public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> i
 
     @Override
     public CoinBase getByName(String name) {
+        name = name.toLowerCase(Locale.ROOT);
         Object o = redisTemplate.opsForValue().get(RedisConstants.COIN_BASE + name);
         if (Objects.nonNull(o)) {
             return (CoinBase) o;

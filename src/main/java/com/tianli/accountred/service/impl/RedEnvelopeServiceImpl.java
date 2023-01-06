@@ -10,6 +10,7 @@ import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.accountred.RedEnvelopeVerifier;
 import com.tianli.accountred.convert.RedEnvelopeConvert;
+import com.tianli.accountred.dto.RedEnvelopeGetDTO;
 import com.tianli.accountred.dto.RedEnvelopeSpiltDTO;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeConfig;
@@ -171,7 +172,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
      */
     private void spiltRedEnvelope(Long uid, RedEnvelope redEnvelope) {
 
-        validGiveRedEnvelope(uid, redEnvelope);
+        // 责任链模式校验
+        verifiers.forEach(verifier -> verifier.verifier(uid, redEnvelope));
 
         // 拆分红包
         redEnvelopeSpiltService.spiltRedEnvelope(redEnvelope);
@@ -304,10 +306,11 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         // 异步转账
         RedEnvelopeContext redEnvelopeContext = RedEnvelopeContext.builder()
                 .rid(redEnvelope.getId())
-                .uuid(query.getExchangeCode())
+                .uuid(redEnvelopeSpiltDTO.getId())
                 .uid(uid)
                 .shortUid(shortUid)
                 .deviceNumber(query.getDeviceNumber())
+                .exchangeCode(query.getExchangeCode())
                 .build();
         sqsService.send(new SqsContext<>(SqsTypeEnum.RED_ENVELOP, redEnvelopeContext));
 
@@ -330,10 +333,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         }
 
         // 等待、失败、过期、结束
-        if (RedEnvelopeStatus.WAIT.equals(redEnvelope.getStatus())
-                || RedEnvelopeStatus.FAIL.equals(redEnvelope.getStatus())
-                || RedEnvelopeStatus.OVERDUE.equals(redEnvelope.getStatus())
-                || RedEnvelopeStatus.FINISH.equals(redEnvelope.getStatus())) {
+        if (!RedEnvelopeStatus.valid(redEnvelope.getStatus())) {
             return new RedEnvelopeExchangeCodeVO(redEnvelope.getStatus());
         }
 
@@ -436,12 +436,24 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     public void redEnvelopeExpiration(LocalDateTime now) {
         // 2022-10-10 13:00:00 创建 如果当前时间是 2022-10-11 14:00:00（-1  2022-10-10 14:00:00）
         // plusMinutes(1) 等待缓存过期，确保过期操作内不会有人拿红包
-        LocalDateTime dateTime = now.plusDays(-1).plusMinutes(1);
-        LambdaQueryWrapper<RedEnvelope> queryWrapper = new LambdaQueryWrapper<RedEnvelope>()
+        LocalDateTime chatExpireDate = now.plusDays(-RedEnvelopeChannel.CHAT.getExpireDays()).plusMinutes(1);
+        LambdaQueryWrapper<RedEnvelope> queryWrapper1 = new LambdaQueryWrapper<RedEnvelope>()
                 .eq(RedEnvelope::getStatus, RedEnvelopeStatus.PROCESS)
-                .lt(RedEnvelope::getCreateTime, dateTime);
+                .eq(RedEnvelope::getChannel, RedEnvelopeChannel.CHAT)
+                .lt(RedEnvelope::getCreateTime, chatExpireDate);
+        List<RedEnvelope> chatRedEnvelopes = this.list(queryWrapper1);
 
-        List<RedEnvelope> redEnvelopes = this.list(queryWrapper);
+        LocalDateTime externExpireDate = now.plusDays(-30).plusMinutes(1);
+        LambdaQueryWrapper<RedEnvelope> queryWrapper2 = new LambdaQueryWrapper<RedEnvelope>()
+                .eq(RedEnvelope::getStatus, RedEnvelopeStatus.PROCESS)
+                .eq(RedEnvelope::getChannel, RedEnvelopeChannel.EXTERN)
+                .lt(RedEnvelope::getCreateTime, externExpireDate);
+        List<RedEnvelope> externRedEnvelopes = this.list(queryWrapper2);
+
+        ArrayList<RedEnvelope> redEnvelopes = new ArrayList<>();
+        redEnvelopes.addAll(chatRedEnvelopes);
+        redEnvelopes.addAll(externRedEnvelopes);
+
         if (CollectionUtils.isNotEmpty(redEnvelopes)) {
             redEnvelopes.forEach(redEnvelope -> {
                 try {
@@ -471,24 +483,25 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     @Transactional
     public void asynGet(RedEnvelopeContext sqsContext) {
         Long rid = sqsContext.getRid();
-        String uuid = sqsContext.getUuid();
+        String spiltId = sqsContext.getUuid();
         Long uid = sqsContext.getUid();
         Long shortUid = sqsContext.getShortUid();
         String deviceNumber = sqsContext.getDeviceNumber();
 
         RedEnvelope redEnvelope = this.getWithCache(rid);
 
-        RedEnvelopeGetQuery query = RedEnvelopeGetQuery.builder().deviceNumber(deviceNumber)
+        RedEnvelopeGetDTO query = RedEnvelopeGetDTO.builder().deviceNumber(deviceNumber)
                 .redEnvelope(redEnvelope)
+                .rid(rid)
+                .exchangeCode(sqsContext.getExchangeCode())
                 .build();
 
 
         // 领取子红包（创建订单，余额操作）
-        redEnvelopeSpiltService.getRedEnvelopeSpilt(uid, shortUid, uuid, query);
+        redEnvelopeSpiltService.getRedEnvelopeSpilt(uid, shortUid, spiltId, query);
         // 增加已经领取红包个数
         int i = this.getBaseMapper().increaseReceiveNum(query.getRid());
         if (i == 0) {
-            webHookService.dingTalkSend("红包领取状态异常，请排查【2】");
             ErrorCodeEnum.RED_STATUS_ERROR.throwException();
         }
         // 如果红包领取完毕则修改红包状态
@@ -496,10 +509,6 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         if (redEnvelope.getNum() == redEnvelope.getReceiveNum()) {
             this.finish(query.getRid());
         }
-
-        // 删除红包以及领取记录以及当前红包领取记录的缓存
-//        this.deleteRedisCache(query.getRid());
-//        redisTemplate.delete(RedisConstants.RED_ENVELOPE_GET_RECORD + query.getRid());
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -544,14 +553,15 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
      * 3、红包详情
      * 4、单独调用查询红包状态
      */
-    private RedEnvelope getWithCache(Long id) {
+    @Override
+    public RedEnvelope getWithCache(Long id) {
         // 布隆过滤器，防止缓存击穿
         final RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConstants.RED_ENVELOPE + "bloom");
         if (!bloomFilter.contains(id)) {
             ErrorCodeEnum.RED_NOT_EXIST_BLOOM.throwException();
         }
 
-        Object cache = redisService.get(RedisConstants.RED_ENVELOPE + id);
+        Object cache = redisService.get(RedisConstants.RED_ENVELOPE + id); // 获取缓存
         if (Objects.isNull(cache)) {
             RedEnvelope redEnvelope = this.getById(id);
             if (Objects.isNull(redEnvelope)) {
@@ -597,8 +607,9 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     /**
      * 删除红包缓存
      */
-    private void deleteRedisCache(Long id) {
-        redisTemplate.delete(RedisConstants.RED_ENVELOPE + id);
+    @Override
+    public void deleteRedisCache(Long id) {
+        redisTemplate.delete(RedisConstants.RED_ENVELOPE + id); // 删除缓存
     }
 
     /**
@@ -608,7 +619,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
      * 3、getWithCache
      */
     private void setRedisCache(RedEnvelope redEnvelope) {
-        redisService.set(RedisConstants.RED_ENVELOPE + redEnvelope.getId(), redEnvelope, 1L, TimeUnit.DAYS);
+        String key = RedisConstants.RED_ENVELOPE + redEnvelope.getId(); // 设置缓存
+        redisService.set(key, redEnvelope, 1L, TimeUnit.DAYS);
     }
 
     /**
@@ -621,15 +633,6 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             ErrorCodeEnum.RED_SET_BLOOM_FAIl.throwException();
         }
     }
-
-    /**
-     * 校验发红包
-     */
-    private void validGiveRedEnvelope(Long uid, RedEnvelope redEnvelope) {
-        // 责任链模式校验
-        verifiers.forEach(verifier -> verifier.verifier(uid, redEnvelope));
-    }
-
 
     /**
      * 聊天校验器

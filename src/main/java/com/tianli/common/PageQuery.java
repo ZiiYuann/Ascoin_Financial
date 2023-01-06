@@ -19,6 +19,10 @@ public class PageQuery<T> {
 
     private int pageSize = 10;
 
+    public int getOffset(){
+        return (page - 1) * pageSize;
+    }
+
     public Page<T> page(){
         return new Page<T>(getPage(),getPageSize());
     }

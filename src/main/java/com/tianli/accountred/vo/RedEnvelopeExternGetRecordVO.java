@@ -28,4 +28,6 @@ public class RedEnvelopeExternGetRecordVO {
 
     private String nickName;
 
+    private boolean receive;
+
 }

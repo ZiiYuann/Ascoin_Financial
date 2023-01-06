@@ -1,6 +1,7 @@
 package com.tianli.accountred.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tianli.accountred.dto.RedEnvelopeGetDTO;
 import com.tianli.accountred.dto.RedEnvelopeSpiltDTO;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
@@ -22,13 +23,12 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
     /**
      * 领取拆分红包
      *
-     * @param uid                 用户id
-     * @param shortUid            用户id短码
-     * @param uuid                拆分红包id
-     * @param redEnvelopeGetQuery 领取红包参数
-     * @return 领取信息
+     * @param uid               用户id
+     * @param shortUid          用户id短码
+     * @param uuid              拆分红包id
+     * @param redEnvelopeGetDTO 领取红包参数
      */
-    RedEnvelopeSpilt getRedEnvelopeSpilt(Long uid, Long shortUid, String uuid, RedEnvelopeGetQuery redEnvelopeGetQuery);
+    void getRedEnvelopeSpilt(Long uid, Long shortUid, String uuid, RedEnvelopeGetDTO redEnvelopeGetDTO);
 
     /**
      * 拆分红包,并且会把拆分id缓存到redis中
