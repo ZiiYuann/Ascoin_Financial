@@ -18,6 +18,7 @@ import com.tianli.exception.ErrCodeException;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
+import com.tianli.tool.Bech32;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
@@ -80,6 +81,16 @@ public class BtcOperation extends AbstractContractOperation {
     public String computeAddress(long addressId) throws IOException {
         String mnemonic = addressMnemonicService.getMnemonic(addressId);
         return generateAddress(mnemonic);
+    }
+
+    @Override
+    public boolean isValidAddress(String address) {
+        if (StringUtils.isEmpty(address)) return false;
+        if (address.startsWith("1") || address.startsWith("3")) {
+            return com.tianli.tool.Base58.decodeChecked(address) != null;
+        } else if (address.startsWith("bc")) {
+            return Bech32.SegwitAddrDecode(address) != null;
+        } else return false;
     }
 
     public String generateAddress(String mnemonic) {
