@@ -52,6 +52,7 @@ import com.tianli.tool.ApplicationContextTool;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.session.SqlSession;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
@@ -461,7 +462,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                     if (Objects.isNull(bean)) {
                         ErrorCodeEnum.SYSTEM_ERROR.throwException();
                     }
-                    bean.redEnvelopeRollback(redEnvelope);
+                    bean.redEnvelopeRollback(redEnvelope, RedEnvelopeStatus.OVERDUE);
                 } catch (Exception e) {
                     webHookService.dingTalkSend("红包到期回滚异常：" + redEnvelope.getId(), e);
                 }
@@ -507,21 +508,27 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         // 如果红包领取完毕则修改红包状态
         redEnvelope = this.getById(query.getRid());
         if (redEnvelope.getNum() == redEnvelope.getReceiveNum()) {
-            this.finish(query.getRid());
+            this.finish(query.getRid(), LocalDateTime.now());
         }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void redEnvelopeRollback(RedEnvelope redEnvelope) {
+    public void redEnvelopeRollback(RedEnvelope redEnvelope, RedEnvelopeStatus status) {
         List<RedEnvelopeSpilt> spiltRedEnvelopes =
                 redEnvelopeSpiltService.getRedEnvelopeSpilt(redEnvelope.getId(), false);
 
         // 进入这个方法的红包应该存在红包未领取
-        if (CollectionUtils.isEmpty(spiltRedEnvelopes)) {
+        if (RedEnvelopeStatus.OVERDUE.equals(status) || CollectionUtils.isEmpty(spiltRedEnvelopes)) {
             webHookService.dingTalkSend("红包状态不为领取完，但是拆分红包不存在，请排查异常：" + redEnvelope.getId());
             return;
         }
+        int noReceiveNum = redEnvelope.getNum() - redEnvelope.getReceiveNum();
+        if (spiltRedEnvelopes.size() != noReceiveNum) {
+            webHookService.dingTalkSend("未领取红包数量与回滚数量不一致：" + redEnvelope.getId());
+            return;
+        }
 
+        LocalDateTime now = LocalDateTime.now();
         BigDecimal rollbackAmount = spiltRedEnvelopes.stream().map(RedEnvelopeSpilt::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -532,17 +539,18 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                 .orderNo(AccountChangeType.red_back.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
                 .amount(rollbackAmount)
                 .type(ChargeType.red_back)
-                .completeTime(LocalDateTime.now())
-                .createTime(LocalDateTime.now())
+                .completeTime(now)
+                .createTime(now)
                 .status(ChargeStatus.chain_success)
                 .relatedId(redEnvelope.getId())
                 .build();
         orderService.save(order);
 
         accountBalanceServiceImpl.increase(redEnvelope.getUid(), ChargeType.red_back, redEnvelope.getCoin(), rollbackAmount
-                , order.getOrderNo(), "红包到期回退");
+                , order.getOrderNo(), "红包回退");
 
-        this.overdue(redEnvelope.getId());
+
+        this.statusProcess(status, redEnvelope.getReceiveNum(), now);
     }
 
 
@@ -573,22 +581,44 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         return (RedEnvelope) cache;
     }
 
+    @Override
+    public RedEnvelope getWithCache(Long uid, Long id) {
+        RedEnvelope redEnvelope = getWithCache(id);
+        if (!redEnvelope.getUid().equals(uid)) {
+            ErrorCodeEnum.RED_NOT_EXIST.throwException();
+        }
+
+        return redEnvelope;
+    }
+
     /**
      * 把红包状态设置过期
      */
-    private void overdue(Long id) {
-        int i = this.getBaseMapper().overdue(id);
+    private void overdue(Long id, LocalDateTime finishTime) {
+        int i = this.getBaseMapper().overdue(id, finishTime);
         if (i == 0) {
             ErrorCodeEnum.RED_STATUS_ERROR.throwException();
         }
     }
 
+    /**
+     * 将进行中状态进行修改
+     *
+     * @param status     状态
+     * @param receiveNum 已经领取数量
+     */
+    private void statusProcess(RedEnvelopeStatus status, int receiveNum, LocalDateTime now) {
+        int i = this.getBaseMapper().statusProcess(status, receiveNum, now);
+        if (i == 0) {
+            ErrorCodeEnum.RED_STATUS_ERROR.throwException();
+        }
+    }
 
     /**
      * 把红包状态设置为结束
      */
-    private void finish(Long id) {
-        int i = this.getBaseMapper().finish(id);
+    private void finish(Long id, LocalDateTime finishTime) {
+        int i = this.getBaseMapper().finish(id, finishTime);
         if (i == 0) {
             ErrorCodeEnum.RED_STATUS_ERROR.throwException();
         }
@@ -610,6 +640,21 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     @Override
     public void deleteRedisCache(Long id) {
         redisTemplate.delete(RedisConstants.RED_ENVELOPE + id); // 删除缓存
+    }
+
+    @Override
+    public void back(Long uid, Long rid) {
+        RedEnvelope redEnvelope = getWithCache(uid, rid);
+        // 只支持站外红包
+        if (!RedEnvelopeChannel.EXTERN.equals(redEnvelope.getChannel())) {
+            ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
+        }
+
+        RedEnvelopeServiceImpl bean = ApplicationContextTool.getBean(RedEnvelopeServiceImpl.class);
+        if (Objects.isNull(bean)) {
+            ErrorCodeEnum.SYSTEM_ERROR.throwException();
+        }
+        bean.redEnvelopeRollback(redEnvelope, RedEnvelopeStatus.BACK);
     }
 
     /**

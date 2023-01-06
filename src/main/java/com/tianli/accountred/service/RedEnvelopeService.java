@@ -85,9 +85,17 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
      */
     RedEnvelope getWithCache(Long id);
 
+    RedEnvelope getWithCache(Long uid, Long id);
+
     /**
      * 删除红包缓存
      */
     void deleteRedisCache(Long id);
+
+    /**
+     * 站外红包手动回退
+     */
+    void back(Long uid, Long rid);
 }
+
 

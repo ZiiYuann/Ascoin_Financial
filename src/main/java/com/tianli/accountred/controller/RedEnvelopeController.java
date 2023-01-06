@@ -1,5 +1,6 @@
 package com.tianli.accountred.controller;
 
+import com.tianli.account.query.IdsQuery;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.query.RedEnvelopeChainQuery;
@@ -133,6 +134,17 @@ public class RedEnvelopeController {
     public Result getRecord(PageQuery<RedEnvelopeSpiltGetRecord> pageQuery) {
         Long uid = requestInitService.uid();
         return Result.success().setData(redEnvelopeSpiltGetRecordService.getRecords(uid, pageQuery));
+    }
+
+    /**
+     * 领取红包记录
+     */
+    @PostMapping("/back")
+    public Result back(@RequestBody IdsQuery idsQuery) {
+        Long rid = idsQuery.getId();
+        Long uid = requestInitService.uid();
+        redEnvelopeService.back(uid, rid);
+        return Result.success();
     }
 
 }

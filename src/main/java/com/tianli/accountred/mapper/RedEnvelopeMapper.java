@@ -2,11 +2,13 @@ package com.tianli.accountred.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tianli.accountred.entity.RedEnvelope;
+import com.tianli.accountred.enums.RedEnvelopeStatus;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Mapper
@@ -16,10 +18,16 @@ public interface RedEnvelopeMapper extends BaseMapper<RedEnvelope> {
     int increaseReceiveNum(@Param("id") Long id);
 
     @Update("UPDATE  red_envelope SET `status` = 'FINISH'  WHERE `id` = #{id} AND  `status` = 'PROCESS' ")
-    int finish(@Param("id") Long id);
+    int finish(@Param("id") Long id, @Param("finishTime") LocalDateTime finishTime);
 
     @Update("UPDATE  red_envelope SET `status` = 'OVERDUE'  WHERE `id` = #{id} AND  `status` = 'PROCESS' ")
-    int overdue(@Param("id") Long id);
+    int overdue(@Param("id") Long id, @Param("finishTime") LocalDateTime finishTime);
+
+    @Update("UPDATE  red_envelope SET `status` = #{status}  WHERE `id` = #{id} AND  `status` = 'PROCESS' " +
+            "AND `receive_num` = #{receiveNum}  AND finish_time = #{finishTime}")
+    int statusProcess(@Param("status") RedEnvelopeStatus status
+            , @Param("receiveNum") int receiveNum
+            , @Param("finishTime") LocalDateTime finishTime);
 
     @Update("UPDATE  red_envelope SET `status` = 'PROCESS',txid = #{txid}  WHERE `id` = #{id} AND  `status` = 'WAIT' AND txid IS NULL  ")
     int process(@Param("id") Long id, @Param("txid") String txid);
