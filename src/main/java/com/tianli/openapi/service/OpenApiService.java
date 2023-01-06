@@ -304,4 +304,25 @@ public class OpenApiService {
     }
 
 
+    public void returnGas(OpenapiOperationQuery query) {
+        query.setType(ChargeType.return_gas);
+        LocalDateTime now = LocalDateTime.now();
+        long id = CommonFunction.generalId();
+        Order newOrder = Order.builder()
+                .id(id)
+                .uid(query.getUid())
+                .coin(query.getCoin())
+                .orderNo(query.getType().getAccountChangeType().getPrefix() + id)
+                .amount(query.getAmount())
+                .type(query.getType())
+                .status(ChargeStatus.chain_success)
+                .relatedId(query.getId())
+                .createTime(now)
+                .completeTime(now)
+                .build();
+        orderService.save(newOrder);
+
+        accountBalanceServiceImpl.increase(query.getUid(), query.getType(), query.getCoin()
+                , query.getAmount(), newOrder.getOrderNo(), query.getType().getNameZn());
+    }
 }

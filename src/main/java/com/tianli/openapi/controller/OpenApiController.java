@@ -153,4 +153,19 @@ public class OpenApiController {
         }
         return Result.success().setData(accountBalanceService.getUserAssetsVOMap(query.getUids()));
     }
+
+    /**
+     * nft返还gas
+     */
+    @PostMapping("/return/gas")
+    public Result returnGas(@RequestBody @Valid OpenapiOperationQuery query,
+                         @RequestHeader("sign") String sign,
+                         @RequestHeader("timestamp") String timestamp) {
+
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
+        }
+        openApiService.returnGas(query);
+        return Result.success();
+    }
 }

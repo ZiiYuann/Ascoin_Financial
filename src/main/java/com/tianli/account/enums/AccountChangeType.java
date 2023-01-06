@@ -51,6 +51,8 @@ public enum AccountChangeType {
     transaction_reward("TR"),
     transfer_increase("TSI"),
     transfer_reduce("TSR"),
+    //免Gas费
+    return_gas("RG"),
     ;
 
 
