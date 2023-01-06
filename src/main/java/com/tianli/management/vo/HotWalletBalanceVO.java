@@ -29,4 +29,17 @@ public class HotWalletBalanceVO {
     private BigDecimal trx;
 
     private BigDecimal btc;
+
+    private BigDecimal usdtERC20Op;
+    private BigDecimal usdcERC20Op;
+    private BigDecimal ethOp;
+
+    private BigDecimal usdtERC20Arbi;
+    private BigDecimal usdcERC20Arbi;
+    private BigDecimal ethArbi;
+
+    private BigDecimal usdtERC20Polygon;
+    private BigDecimal usdcERC20Polygon;
+    private BigDecimal matic;
+
 }

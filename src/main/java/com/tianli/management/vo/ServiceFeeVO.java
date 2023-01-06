@@ -50,8 +50,8 @@ public class ServiceFeeVO {
             ServiceFeeVO aDefault = getDefault(null);
             aDefault.setCoin(chainType.getMainToken());
             aDefault.setRate(BigDecimal.ONE);
+            aDefault.setChainType(chainType);
             result.put(chainType, aDefault);
-
         }
         return result;
     }

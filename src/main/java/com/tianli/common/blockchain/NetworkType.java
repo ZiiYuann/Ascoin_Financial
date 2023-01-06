@@ -17,7 +17,7 @@ public enum NetworkType {
 
     erc20_polygon(ChainType.POLYGON),
     erc20_op(ChainType.OPTIMISTIC),
-    erc20_arbitrum(ChainType.ARBITRUM),
+    erc20_arbi(ChainType.ARBITRUM),
     btc(ChainType.BTC);
 
     NetworkType(ChainType chainType){

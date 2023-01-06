@@ -138,6 +138,19 @@ public class HotWalletDetailedService extends ServiceImpl<HotWalletDetailedMappe
         vo.setUsdtTRC20(TokenAdapter.usdt_trc20.alignment(tronContract.tokenBalance(tron, TokenAdapter.usdt_trc20)));
 
         vo.setBtc(TokenAdapter.btc.alignment(btcContract.mainBalance(btc)));
+
+        vo.setEthOp(TokenAdapter.eth_op.alignment(ethContract.mainBalance(eth)));
+        vo.setUsdcERC20Op(TokenAdapter.usdc_erc20_op.alignment(ethContract.tokenBalance(eth, TokenAdapter.usdc_erc20_op)));
+        vo.setUsdtERC20Op(TokenAdapter.usdt_erc20_op.alignment(ethContract.tokenBalance(eth, TokenAdapter.usdt_erc20_op)));
+
+        vo.setEthArbi(TokenAdapter.eth_arbi.alignment(ethContract.mainBalance(eth)));
+        vo.setUsdcERC20Arbi(TokenAdapter.usdc_erc20_arbi.alignment(ethContract.tokenBalance(eth, TokenAdapter.usdc_erc20_arbi)));
+        vo.setUsdtERC20Arbi(TokenAdapter.usdt_erc20_arbi.alignment(ethContract.tokenBalance(eth, TokenAdapter.usdt_erc20_arbi)));
+
+        vo.setMatic(TokenAdapter.matic.alignment(ethContract.mainBalance(eth)));
+        vo.setUsdcERC20Polygon(TokenAdapter.usdc_erc20_polygon.alignment(ethContract.tokenBalance(eth, TokenAdapter.usdc_erc20_polygon)));
+        vo.setUsdtERC20Polygon(TokenAdapter.usdt_erc20_polygon.alignment(ethContract.tokenBalance(eth, TokenAdapter.usdt_erc20_polygon)));
+
         return vo;
     }
 }
