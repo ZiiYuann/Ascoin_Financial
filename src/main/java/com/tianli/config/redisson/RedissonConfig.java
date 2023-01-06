@@ -23,8 +23,8 @@ public class RedissonConfig {
         singleServerConfig
                 .setAddress("redis://"+RedissonProperties.getHost()+":"+RedissonProperties.getPort())
                 .setDatabase(RedissonProperties.getDatabase())
-                .setConnectionMinimumIdleSize(1)
-                .setConnectionPoolSize(1)
+                .setConnectionMinimumIdleSize(20)
+                .setConnectionPoolSize(64)
                 .setConnectTimeout(100000)
                 .setTimeout(30000)
                 .setRetryAttempts(30)
