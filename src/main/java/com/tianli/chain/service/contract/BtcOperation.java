@@ -54,7 +54,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * @Date 2022-12-26 10:19
  */
 @Slf4j
-@Component
+//@Component
 public class BtcOperation extends AbstractContractOperation {
 
     @Value("${rpc.btc.url}")
@@ -104,7 +104,8 @@ public class BtcOperation extends AbstractContractOperation {
     public String recycle(String toAddress, List<Long> addressIds, List<String> tokenContractAddresses) {
         Long addressId = addressIds.get(0);
         String mnemonic = addressMnemonicService.getMnemonic(addressId);
-        String from = occasionalAddressService.get(addressId, ChainType.BTC);
+//        String from = occasionalAddressService.get(addressId, ChainType.BTC);
+        String from = "";
         BtcBalance btcBalance = uutokenHttpService.btcBalance(from);
         long fee = uutokenHttpService.btcFee() * calcByte(btcBalance.getCountUnspent(), 1);
         return sendMnemonic(mnemonic, from, toAddress, Long.parseLong(btcBalance.getBalance()) - fee);
@@ -157,7 +158,8 @@ public class BtcOperation extends AbstractContractOperation {
 
     @Override
     public boolean matchByChain(NetworkType chain) {
-        return NetworkType.btc.equals(chain);
+//        return NetworkType.btc.equals(chain);
+        return false;
     }
 
     private String sendMnemonic(String mnemonic, String from, String to, Long val) {

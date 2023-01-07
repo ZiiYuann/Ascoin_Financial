@@ -35,7 +35,7 @@ public enum TokenAdapter {
 
 
     // 主币
-    btc("btc", NetworkType.btc, "0x000000"),
+//    btc("btc", NetworkType.btc, "0x000000"),
     bnb("bnb", NetworkType.bep20, "0x000000"),
     eth("eth", NetworkType.erc20, "0x000000"),
     eth_op("eth", NetworkType.erc20_op, "0x000000"),

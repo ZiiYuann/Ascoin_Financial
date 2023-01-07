@@ -159,12 +159,18 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
         String ethWalletAddress = configService.get(ConfigConstants.ETH_MAIN_WALLET_ADDRESS);
         String tronWalletAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
         String btcWalletAddress = configService.get(ConfigConstants.BTC_MAIN_WALLET_ADDRESS);
+        String opWalletAddress = configService.get(ConfigConstants.OP_MAIN_WALLET_ADDRESS);
+        String arbiWalletAddress = configService.get(ConfigConstants.ARBITRUM_MAIN_WALLET_ADDRESS);
+        String polygonWalletAddress = configService.get(ConfigConstants.POLYGON_MAIN_WALLET_ADDRESS);
 
         return MainWalletAddress.builder()
                 .btc(btcWalletAddress)
                 .bsc(bscWalletAddress)
                 .eth(ethWalletAddress)
                 .tron(tronWalletAddress)
+                .op(opWalletAddress)
+                .arbi(arbiWalletAddress)
+                .polygon(polygonWalletAddress)
                 .build();
     }
 

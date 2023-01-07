@@ -172,9 +172,9 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         var coinName = walletImputations.stream().map(WalletImputation::getCoin).findAny().orElseThrow();
         var network = walletImputations.stream().map(WalletImputation::getNetwork).findAny().orElseThrow();
 
-        if(network == NetworkType.btc && walletImputations.size() > 1) {
-            ErrorCodeEnum.throwException("btc不允许一个归集多个地址");
-        }
+//        if(network == NetworkType.btc && walletImputations.size() > 1) {
+//            ErrorCodeEnum.throwException("btc不允许一个归集多个地址");
+//        }
 
         Coin coin = coinService.getByNameAndNetwork(coinName, network);
 
@@ -316,9 +316,9 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         MainWalletAddress configAddress = addressService.getConfigAddress();
         String toAddress = null;
         switch (network) {
-            case btc:
-                toAddress = configAddress.getBtc();
-                break;
+//            case btc:
+//                toAddress = configAddress.getBtc();
+//                break;
             case bep20:
                 toAddress = configAddress.getBsc();
                 break;
@@ -327,6 +327,15 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                 break;
             case trc20:
                 toAddress = configAddress.getTron();
+                break;
+            case erc20_op:
+                toAddress = configAddress.getOp();
+                break;
+            case erc20_arbi:
+                toAddress = configAddress.getArbi();
+                break;
+            case erc20_polygon:
+                toAddress = configAddress.getPolygon();
                 break;
             default:
                 break;

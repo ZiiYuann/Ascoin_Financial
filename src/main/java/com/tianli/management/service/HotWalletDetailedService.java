@@ -115,7 +115,7 @@ public class HotWalletDetailedService extends ServiceImpl<HotWalletDetailedMappe
         MainWalletAddress configAddress = addressService.getConfigAddress();
         HotWalletBalanceVO vo = new HotWalletBalanceVO();
 
-        String btc = configAddress.getBtc();
+//        String btc = configAddress.getBtc();
         String bsc = configAddress.getBsc();
         String eth = configAddress.getEth();
         String tron = configAddress.getTron();
@@ -123,7 +123,7 @@ public class HotWalletDetailedService extends ServiceImpl<HotWalletDetailedMappe
         ContractOperation ethContract = contractAdapter.getOne(NetworkType.erc20);
         ContractOperation bscContract = contractAdapter.getOne(NetworkType.bep20);
         ContractOperation tronContract = contractAdapter.getOne(NetworkType.trc20);
-        ContractOperation btcContract = contractAdapter.getOne(NetworkType.btc);
+//        ContractOperation btcContract = contractAdapter.getOne(NetworkType.btc);
 
         vo.setBnb(TokenAdapter.bnb.alignment(bscContract.mainBalance(bsc)));
         vo.setUsdcBep20(TokenAdapter.usdc_bep20.alignment(bscContract.tokenBalance(bsc, TokenAdapter.usdc_bep20)));
@@ -137,7 +137,7 @@ public class HotWalletDetailedService extends ServiceImpl<HotWalletDetailedMappe
         vo.setUsdcTRC20(TokenAdapter.usdc_trc20.alignment(tronContract.tokenBalance(tron, TokenAdapter.usdc_trc20)));
         vo.setUsdtTRC20(TokenAdapter.usdt_trc20.alignment(tronContract.tokenBalance(tron, TokenAdapter.usdt_trc20)));
 
-        vo.setBtc(TokenAdapter.btc.alignment(btcContract.mainBalance(btc)));
+//        vo.setBtc(TokenAdapter.btc.alignment(btcContract.mainBalance(btc)));
 
         vo.setEthOp(TokenAdapter.eth_op.alignment(ethContract.mainBalance(eth)));
         vo.setUsdcERC20Op(TokenAdapter.usdc_erc20_op.alignment(ethContract.tokenBalance(eth, TokenAdapter.usdc_erc20_op)));

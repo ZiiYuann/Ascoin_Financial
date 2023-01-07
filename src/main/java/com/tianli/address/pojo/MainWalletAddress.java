@@ -21,4 +21,10 @@ public class MainWalletAddress {
     private String tron;
 
     private String bsc;
+
+    private String op;
+
+    private String arbi;
+
+    private String polygon;
 }
