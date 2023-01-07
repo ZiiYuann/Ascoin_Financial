@@ -69,8 +69,8 @@ public enum TokenAdapter {
     public BigDecimal alignment(BigDecimal amount) {
         if (amount == null) return BigDecimal.ZERO;
         switch (this) {
-            case btc:
-                return amount.divide(new BigDecimal("100000000"), 8, RoundingMode.DOWN);
+//            case btc:
+//                return amount.divide(new BigDecimal("100000000"), 8, RoundingMode.DOWN);
             case usdt_erc20:
             case usdt_trc20:
             case usdt_erc20_op:
