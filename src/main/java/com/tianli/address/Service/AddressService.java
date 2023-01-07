@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.tianli.sso.service.SSOService.WALLET_NEWS_SERVER_URL;
@@ -189,7 +190,7 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
                 return getByBsc(toAddress);
             default:
                 OccasionalAddress occasionalAddress = occasionalAddressService.get(toAddress, chainType);
-                return this.getById(occasionalAddress.getAddressId());
+                return occasionalAddress == null ? null : this.getById(occasionalAddress.getAddressId());
         }
     }
 
