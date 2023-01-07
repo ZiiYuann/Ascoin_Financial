@@ -15,7 +15,7 @@ import javax.annotation.Resource;
  * @Author cs
  * @Date 2023-01-05 11:03
  */
-@Component
+//@Component
 public class BtcMainAddressGenerateRunnerTmp implements ApplicationRunner {
     public static final String BTC_MAIN_ADDRESS_GENERATE_LOCK = "btc:main:address:generate:lock";
     @Resource
