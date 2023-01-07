@@ -27,7 +27,6 @@ public enum ChainType {
     private final String display;
     private final int sequence;
 
-
     public static TokenAdapter getTokenAdapter(ChainType chainType) {
         if (ChainType.BSC.equals(chainType)) return TokenAdapter.bnb;
         if (ChainType.ETH.equals(chainType)) return TokenAdapter.eth;
