@@ -170,7 +170,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             }
             Address address = getAddress(coin.getNetwork(), req.getTo());
             Long uid = address.getUid();
-            BigDecimal finalAmount = TokenAdapter.alignment(req.getValue(), coin.getDecimals());
+            BigDecimal finalAmount = TokenAdapter.alignment(coin, req.getValue());
 
             if (orderChargeInfoService.getOrderChargeByTxid(uid, req.getHash()) != null) {
                 log.error("txid {} 已经存在充值订单", req.getHash());

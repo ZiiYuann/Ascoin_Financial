@@ -108,7 +108,7 @@ public class TronTriggerContract extends AbstractContractOperation {
     @Override
     public Result tokenTransfer(String to, BigInteger val, Coin coin) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
-        String contractAddress = coin.getContract();
+        String contractAddress = coin.isMainToken() ? "" : coin.getContract();
         String data = org.tron.tronj.abi.FunctionEncoder.encode(
                 new org.tron.tronj.abi.datatypes.Function("transfer",
                         List.of(new org.tron.tronj.abi.datatypes.Address(to), new org.tron.tronj.abi.datatypes.generated.Uint256(val)),
@@ -118,7 +118,7 @@ public class TronTriggerContract extends AbstractContractOperation {
 
     @Override
     Result mainTokenTransfer(String to, BigInteger val, Coin coin) {
-        throw ErrorCodeEnum.NOT_OPEN.generalException();
+        return tokenTransfer(to, val, coin);
     }
 
     public String triggerSmartContract(String ownerAddress, String contractAddress, String data, long feeLimit) {
