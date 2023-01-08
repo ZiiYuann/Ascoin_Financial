@@ -1,5 +1,8 @@
 package com.tianli.chain.service.contract;
 
+import com.tianli.chain.web3j.ArbitrumEthGetTransactionReceipt;
+import com.tianli.chain.web3j.ArbitrumTransactionReceipt;
+import com.tianli.chain.web3j.ArbitrumWeb3j;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.mconfig.ConfigService;
@@ -26,7 +29,7 @@ public class ArbitrumTriggerContract extends Web3jContractOperation {
     @Autowired
     public ArbitrumTriggerContract(ConfigService configService, @Value("${rpc.arbitrum.url}")String url) {
         this.configService = configService;
-        this.web3j = new JsonRpc2_0Web3j(new HttpService(url));
+        this.web3j = new ArbitrumWeb3j(new HttpService(url));
     }
 
     @Override
@@ -94,5 +97,14 @@ public class ArbitrumTriggerContract extends Web3jContractOperation {
     @Override
     public boolean matchByChain(NetworkType chain) {
         return NetworkType.erc20_arbi.equals(chain);
+    }
+
+    @Override
+    public BigDecimal getConsumeFee(String hash) throws IOException {
+        ArbitrumWeb3j arbitrumWeb3j = (ArbitrumWeb3j) this.web3j;
+        ArbitrumEthGetTransactionReceipt response = arbitrumWeb3j.arbitrumEthGetTransactionReceipt(hash).send();
+        ArbitrumTransactionReceipt arbitrumReceipt = response.getResult();
+        BigInteger transactionFee = arbitrumReceipt.getEffectiveGasPrice().multiply(arbitrumReceipt.getGasUsed());
+        return new BigDecimal(transactionFee).movePointLeft(18);
     }
 }

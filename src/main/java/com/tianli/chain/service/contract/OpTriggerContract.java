@@ -1,5 +1,8 @@
 package com.tianli.chain.service.contract;
 
+import com.tianli.chain.web3j.OpEthGetTransactionReceipt;
+import com.tianli.chain.web3j.OpTransactionReceipt;
+import com.tianli.chain.web3j.OpWeb3j;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.mconfig.ConfigService;
@@ -7,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.web3j.protocol.core.JsonRpc2_0Web3j;
+import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.http.HttpService;
 
 import java.io.IOException;
@@ -26,7 +30,7 @@ public class OpTriggerContract extends Web3jContractOperation {
     @Autowired
     public OpTriggerContract(ConfigService configService, @Value("${rpc.op.url}")String url) {
         this.configService = configService;
-        this.web3j = new JsonRpc2_0Web3j(new HttpService(url));
+        this.web3j = new OpWeb3j(new HttpService(url));
     }
 
     @Override
@@ -94,5 +98,17 @@ public class OpTriggerContract extends Web3jContractOperation {
     @Override
     public boolean matchByChain(NetworkType chain) {
         return NetworkType.erc20_op.equals(chain);
+    }
+
+    @Override
+    public BigDecimal getConsumeFee(String hash) throws IOException {
+        OpWeb3j opWeb3j = (OpWeb3j) this.web3j;
+        OpEthGetTransactionReceipt response = opWeb3j.opEthGetTransactionReceipt(hash).send();
+        OpTransactionReceipt transactionReceipt = response.getResult();
+        Transaction transaction = opWeb3j.ethGetTransactionByHash(hash).send().getResult();
+        BigInteger gasUsed = transactionReceipt.getGasUsed();
+        BigInteger gasPrice = transaction.getGasPrice();
+        BigInteger fee = gasPrice.multiply(gasUsed).add(transactionReceipt.getL1Fee());
+        return new BigDecimal(fee).movePointLeft(18);
     }
 }
