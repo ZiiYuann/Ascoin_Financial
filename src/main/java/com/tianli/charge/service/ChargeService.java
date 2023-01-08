@@ -163,9 +163,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         }
 
         for (TRONTokenReq req : tronTokenReqs) {
-            Coin coin = mainToken ? coinService.mainToken(chainType.getMainToken())
+            Coin coin = mainToken ? coinService.mainToken(chainType, chainType.getMainToken())
                     : coinService.getByContract(req.getContractAddress());
-            if(coin == null) {
+            if (coin == null) {
                 ErrorCodeEnum.CURRENCY_NOT_SUPPORT.throwException();
             }
             Address address = getAddress(coin.getNetwork(), req.getTo());
@@ -246,7 +246,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             ErrorCodeEnum.FINANCIAL_TO_ERROR.throwException();
         }
         OccasionalAddress occasionalAddress = occasionalAddressService.get(query.getTo(), query.getNetwork().getChainType());
-        if(occasionalAddress != null) {
+        if (occasionalAddress != null) {
             ErrorCodeEnum.FINANCIAL_TO_ERROR.throwException();
         }
 

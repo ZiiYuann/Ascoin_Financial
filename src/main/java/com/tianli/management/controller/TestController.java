@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.base.MoreObjects;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.CoinService;
 import com.tianli.common.RedisService;
 import com.tianli.exception.Result;
@@ -170,6 +171,14 @@ public class TestController {
     @GetMapping("/coin/push")
     public Result coinPush(String contract) {
         Coin coin = coinService.getByContract(contract);
+        coinService.push(coin);
+        return Result.success();
+    }
+
+    @GetMapping("/coin/push/main/{chain}")
+    public Result coinPushMain(@PathVariable ChainType chain) {
+        // 这个接口只适用于BSC、TRON、ETH链 其他推送无效
+        Coin coin = coinService.mainToken(chain, chain.getMainToken());
         coinService.push(coin);
         return Result.success();
     }

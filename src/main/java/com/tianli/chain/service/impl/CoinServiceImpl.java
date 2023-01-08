@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.Service.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.mapper.CoinMapper;
 import com.tianli.chain.service.CoinBaseService;
 import com.tianli.chain.service.CoinService;
@@ -183,8 +184,9 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     }
 
     @Override
-    public Coin mainToken(String name) {
+    public Coin mainToken(ChainType chain, String name) {
         return this.getOne(new LambdaQueryWrapper<Coin>()
+                .eq(Coin::getChain, chain)
                 .eq(Coin::getName, name)
                 .eq(Coin::isMainToken, true));
     }

@@ -2,14 +2,13 @@ package com.tianli.chain.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.chain.entity.Coin;
-import com.tianli.chain.entity.CoinBase;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.management.query.CoinIoUQuery;
 import com.tianli.management.query.CoinStatusQuery;
 import com.tianli.management.query.CoinWithdrawQuery;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author chenb
@@ -71,10 +70,11 @@ public interface CoinService extends IService<Coin> {
     /**
      * 根据合约币别
      *
-     * @param name 币名
+     * @param name  币名
+     * @param chain
      * @return 币信息
      */
-    Coin mainToken(String name);
+    Coin mainToken(ChainType chain, String name);
 
     /**
      * 提现配置

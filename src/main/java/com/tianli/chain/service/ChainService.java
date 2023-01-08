@@ -155,7 +155,7 @@ public class ChainService {
         List<TxConditionReq> txConditionReqs = new ArrayList<>();
         addresses.forEach(address -> {
             TxConditionReq req = TxConditionReq.builder()
-                    .contractAddress(coin.getContract())
+                    .contractAddress(coin.isMainToken() ? "0x000000" : coin.getContract())
                     .to(address)
                     .chain(coin.getChain()).build();
             txConditionReqs.add(req);
@@ -169,14 +169,14 @@ public class ChainService {
         List<TxConditionReq> txConditionReqs = new ArrayList<>();
         String urlPrefix = configService.get(ConfigConstants.SYSTEM_URL_PATH_PREFIX);
         String url = urlPrefix + urlPath.getPath();
-        HashMap<ChainType,String> addressMap = new HashMap<>();
-        addressMap.put(ChainType.TRON,tron);
-        addressMap.put(ChainType.BSC,bsc);
-        addressMap.put(ChainType.ETH,eth);
+        HashMap<ChainType, String> addressMap = new HashMap<>();
+        addressMap.put(ChainType.TRON, tron);
+        addressMap.put(ChainType.BSC, bsc);
+        addressMap.put(ChainType.ETH, eth);
 
         List<Coin> coins = coinService.pushCoinsWithCache();
         coins.forEach(coin -> {
-            TxConditionReq req =  TxConditionReq.builder().contractAddress(coin.isMainToken() ? "0x000000" : coin.getContract())
+            TxConditionReq req = TxConditionReq.builder().contractAddress(coin.isMainToken() ? "0x000000" : coin.getContract())
                     .to(addressMap.get(coin.getChain()))
                     .chain(coin.getChain()).build();
             txConditionReqs.add(req);
