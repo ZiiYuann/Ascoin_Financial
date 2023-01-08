@@ -30,16 +30,13 @@ public class UutokenHttpService {
     @Resource
     private ConfigService configService;
 
-    public void registerAddress(ChainType chain, String address) {
+    public boolean registerAddress(ChainType chain, String address) {
         Map<String, String> body = Map.of(
                 "address", address,
                 "chain", chain.name());
         JSONObject response = post("/api/address/watch/financial", body, true);
         String code = response.get("code", String.class);
-        if(!"0".equals(code)) {
-            log.error("注册{}地址失败 {}", chain, address);
-            throw new ErrCodeException("注册" + chain.name() + "地址失败 " + address);
-        }
+        return "0".equals(code);
     }
 
     public DesignBtcTx designSimpleBitcoin(String from, String to, Long value, Long fee) {

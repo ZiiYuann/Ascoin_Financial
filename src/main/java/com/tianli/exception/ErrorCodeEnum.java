@@ -58,6 +58,7 @@ public enum ErrorCodeEnum {
     ACCOUNT_NOT_ACTIVE(2016, "云钱包未激活"),
     CURRENCY_NOT_SUPPORT(2017, "币别尚未支持"),
     ACCOUNT_ACTIVATE_UID_NULL(2018,"激活uid参数为null"),
+    CHARGE_ADDRESS_NOT_FOUND(2019, "充值地址获取失败"),
 
     /*** －－－－－－业务错误码-余额相关－－－－－－*/
     CREDIT_LACK(2100, "额度不足"),

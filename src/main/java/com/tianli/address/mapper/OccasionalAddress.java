@@ -24,4 +24,7 @@ public class OccasionalAddress {
     private ChainType chain;
     private String address;
     private LocalDateTime createTime;
+    private LocalDateTime updateTime;
+    private Boolean registered;
+    private Integer retryCount;
 }
