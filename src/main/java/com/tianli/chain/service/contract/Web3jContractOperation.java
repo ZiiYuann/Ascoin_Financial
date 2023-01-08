@@ -207,12 +207,12 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public BigDecimal tokenBalance(String address, TokenAdapter tokenAdapter) {
+    public BigDecimal tokenBalance(String address, Coin coin) {
         String balanceOf;
         try {
             var transaction = Transaction.createEthCallTransaction(
                     null
-                    , tokenAdapter.getContractAddress()
+                    , coin.getContract()
                     , new DefaultFunctionEncoder().encodeFunction(
                             new Function("balanceOf", List.of(new Address(address)),
                                     List.of(TypeReference.create(Uint.class)))

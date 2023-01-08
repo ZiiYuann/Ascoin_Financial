@@ -6,7 +6,6 @@ import com.tianli.chain.entity.Coin;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.blockchain.SignTransactionResult;
-import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
@@ -230,7 +229,7 @@ public class TronTriggerContract extends AbstractContractOperation {
     }
 
     @Override
-    public BigDecimal tokenBalance(String address, TokenAdapter tokenAdapter) {
+    public BigDecimal tokenBalance(String address, Coin coin) {
         byte[] ownerAddresses;
         ownerAddresses = Base58Utils.decodeFromBase58Check(address);
         if (ownerAddresses == null) ErrorCodeEnum.ADDRESS_ERROR.throwException();
@@ -239,7 +238,7 @@ public class TronTriggerContract extends AbstractContractOperation {
         String argsStr = "\"" + address + "\"";
         boolean isHex = false;
         byte[] input = Hex.decode(Base58Utils.parseMethod(methodStr, argsStr, isHex));
-        byte[] contractAddress = Base58Utils.decodeFromBase58Check(tokenAdapter.getContractAddress());
+        byte[] contractAddress = Base58Utils.decodeFromBase58Check(coin.getContract());
         if (contractAddress == null) ErrorCodeEnum.throwException("合约地址错误");
 
         SmartContractOuterClass.TriggerSmartContract.Builder builder = SmartContractOuterClass.TriggerSmartContract.newBuilder();
@@ -253,7 +252,7 @@ public class TronTriggerContract extends AbstractContractOperation {
         transactionExtention = blockingStub.triggerConstantContract(triggerContract);
 
         if (transactionExtention == null || !transactionExtention.getResult().getResult()) {
-            ErrorCodeEnum.throwException(String.format("[%s]获取%s代币余额失败", "tron", tokenAdapter.getCurrencyCoin()));
+            ErrorCodeEnum.throwException(String.format("[%s]获取%s代币余额失败", "tron", coin.getName()));
         }
         Protocol.Transaction transaction = transactionExtention.getTransaction();
         if (transaction.getRetCount() != 0) {

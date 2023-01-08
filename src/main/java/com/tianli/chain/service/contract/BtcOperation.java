@@ -131,7 +131,7 @@ public class BtcOperation extends AbstractContractOperation {
     }
 
     @Override
-    public BigDecimal tokenBalance(String address, TokenAdapter tokenAdapter) {
+    public BigDecimal tokenBalance(String address, Coin coin) {
         throw ErrorCodeEnum.NOT_OPEN.generalException();
     }
 

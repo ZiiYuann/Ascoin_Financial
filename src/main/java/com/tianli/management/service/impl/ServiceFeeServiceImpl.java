@@ -247,6 +247,7 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
                 ServiceFeeVO insideVo = managementConverter.toServiceFeeVO(fee);
                 BigDecimal dollarRate = currencyService.getDollarRate(fee.getCoin());
                 insideVo.setRate(dollarRate);
+                insideVo.setChainType(fee.getNetwork().getChainType());
                 BigDecimal amount = dollarRate.multiply(fee.getAmount());
                 totalAmount = totalAmount.add(amount);
                 insideFeeVOs.add(insideVo);

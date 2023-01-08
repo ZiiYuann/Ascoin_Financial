@@ -136,16 +136,16 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
      */
     public String get(long uid, ChainType chain) {
         Address address = get(uid);
-        if(address == null) {
+        if (address == null) {
             throw ErrorCodeEnum.ACCOUNT_NOT_ACTIVE.generalException();
         }
-        if(ChainType.ETH.equals(chain)) {
+        if (ChainType.ETH.equals(chain)) {
             return address.getEth();
         }
-        if(ChainType.BSC.equals(chain)) {
+        if (ChainType.BSC.equals(chain)) {
             return address.getBsc();
         }
-        if(ChainType.TRON.equals(chain)) {
+        if (ChainType.TRON.equals(chain)) {
             return address.getTron();
         }
         return occasionalAddressService.get(address.getId(), chain);
@@ -172,6 +172,26 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
                 .arbi(arbiWalletAddress)
                 .polygon(polygonWalletAddress)
                 .build();
+    }
+
+    public String getAddress(ChainType chain) {
+        switch (chain) {
+            case ETH:
+                return configService.get(ConfigConstants.ETH_MAIN_WALLET_ADDRESS);
+            case BSC:
+                return configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
+            case TRON:
+                return configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
+            case OPTIMISTIC:
+                return configService.get(ConfigConstants.OP_MAIN_WALLET_ADDRESS);
+            case ARBITRUM:
+                return configService.get(ConfigConstants.ARBITRUM_MAIN_WALLET_ADDRESS);
+            case POLYGON:
+                return configService.get(ConfigConstants.POLYGON_MAIN_WALLET_ADDRESS);
+            default:
+                break;
+        }
+        throw ErrorCodeEnum.CURRENCY_NOT_SUPPORT.generalException();
     }
 
     public Address getByEth(String toAddress) {

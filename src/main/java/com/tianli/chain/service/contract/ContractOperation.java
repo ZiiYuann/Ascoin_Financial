@@ -76,7 +76,7 @@ public interface ContractOperation {
      * @param tokenAdapter 代币合约
      * @return 余额
      */
-    BigDecimal tokenBalance(String address, TokenAdapter tokenAdapter);
+    BigDecimal tokenBalance(String address, Coin coin);
 
     /**
      * 获取合约的小数点位数

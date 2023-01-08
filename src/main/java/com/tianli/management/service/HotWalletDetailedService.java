@@ -4,12 +4,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.Service.AddressService;
-import com.tianli.address.mapper.Address;
-import com.tianli.address.pojo.MainWalletAddress;
+import com.tianli.chain.entity.Coin;
+import com.tianli.chain.service.CoinService;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.service.contract.ContractOperation;
 import com.tianli.common.CommonFunction;
-import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
@@ -28,7 +27,11 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -46,6 +49,8 @@ public class HotWalletDetailedService extends ServiceImpl<HotWalletDetailedMappe
     private ContractAdapter contractAdapter;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private CoinService coinService;
 
     /**
      * 【热钱包管理】添加明细 或 修改明细
@@ -111,46 +116,45 @@ public class HotWalletDetailedService extends ServiceImpl<HotWalletDetailedMappe
     }
 
 
-    public HotWalletBalanceVO balance() {
-        MainWalletAddress configAddress = addressService.getConfigAddress();
-        HotWalletBalanceVO vo = new HotWalletBalanceVO();
+    public List<HotWalletBalanceVO> balance() {
+        List<Coin> coins = coinService.pushCoinsWithCache();
 
-//        String btc = configAddress.getBtc();
-        String bsc = configAddress.getBsc();
-        String eth = configAddress.getEth();
-        String tron = configAddress.getTron();
+        var coinMap = coins.stream().collect(Collectors.groupingBy(Coin::getChain));
 
-        ContractOperation ethContract = contractAdapter.getOne(NetworkType.erc20);
-        ContractOperation bscContract = contractAdapter.getOne(NetworkType.bep20);
-        ContractOperation tronContract = contractAdapter.getOne(NetworkType.trc20);
-//        ContractOperation btcContract = contractAdapter.getOne(NetworkType.btc);
+        List<HotWalletBalanceVO> hotWalletBalanceVOS = new ArrayList<>();
+        for (var entry : coinMap.entrySet()) {
+            var coinList = entry.getValue();
+            coinList.sort(Comparator.comparing(Coin::getName));
+            var chainType = entry.getKey();
+            // 设置主币信息
+            Coin mainCoin = coinService.mainToken(chainType, chainType.getMainToken());
+            ContractOperation contract = contractAdapter.getOne(mainCoin.getNetwork());
+            String address = addressService.getAddress(chainType);
+            BigDecimal amount = TokenAdapter.alignment(mainCoin, contract.mainBalance(address));
 
-        vo.setBnb(TokenAdapter.bnb.alignment(bscContract.mainBalance(bsc)));
-        vo.setUsdcBep20(TokenAdapter.usdc_bep20.alignment(bscContract.tokenBalance(bsc, TokenAdapter.usdc_bep20)));
-        vo.setUsdtBep20(TokenAdapter.usdt_bep20.alignment(bscContract.tokenBalance(bsc, TokenAdapter.usdt_bep20)));
+            HotWalletBalanceVO hotWalletBalanceVO = new HotWalletBalanceVO();
+            hotWalletBalanceVO.setAmount(amount);
+            hotWalletBalanceVO.setCoinName(mainCoin.getName());
+            hotWalletBalanceVO.setChain(chainType);
 
-        vo.setEth(TokenAdapter.eth.alignment(ethContract.mainBalance(eth)));
-        vo.setUsdcERC20(TokenAdapter.usdc_erc20.alignment(ethContract.tokenBalance(eth, TokenAdapter.usdc_erc20)));
-        vo.setUsdtERC20(TokenAdapter.usdt_erc20.alignment(ethContract.tokenBalance(eth, TokenAdapter.usdt_erc20)));
+            List<HotWalletBalanceVO> tokensBalances = new ArrayList<>();
+            for (Coin token : coinList) {
+                if (token.isMainToken()) {
+                    continue;
+                }
 
-        vo.setTrx(TokenAdapter.trx.alignment(tronContract.mainBalance(tron)));
-        vo.setUsdcTRC20(TokenAdapter.usdc_trc20.alignment(tronContract.tokenBalance(tron, TokenAdapter.usdc_trc20)));
-        vo.setUsdtTRC20(TokenAdapter.usdt_trc20.alignment(tronContract.tokenBalance(tron, TokenAdapter.usdt_trc20)));
+                HotWalletBalanceVO tokenVO = new HotWalletBalanceVO();
+                tokenVO.setAmount(TokenAdapter.alignment(token, contract.tokenBalance(address, token)));
+                tokenVO.setCoinName(token.getName());
+                tokenVO.setChain(chainType);
+                tokenVO.setNetwork(token.getNetwork());
+                tokensBalances.add(tokenVO);
+            }
+            tokensBalances.sort(Comparator.comparing(HotWalletBalanceVO::getChain));
+            hotWalletBalanceVO.setTokens(tokensBalances);
+            hotWalletBalanceVOS.add(hotWalletBalanceVO);
+        }
 
-//        vo.setBtc(TokenAdapter.btc.alignment(btcContract.mainBalance(btc)));
-
-        vo.setEthOp(TokenAdapter.eth_op.alignment(ethContract.mainBalance(eth)));
-        vo.setUsdcERC20Op(TokenAdapter.usdc_erc20_op.alignment(ethContract.tokenBalance(eth, TokenAdapter.usdc_erc20_op)));
-        vo.setUsdtERC20Op(TokenAdapter.usdt_erc20_op.alignment(ethContract.tokenBalance(eth, TokenAdapter.usdt_erc20_op)));
-
-        vo.setEthArbi(TokenAdapter.eth_arbi.alignment(ethContract.mainBalance(eth)));
-        vo.setUsdcERC20Arbi(TokenAdapter.usdc_erc20_arbi.alignment(ethContract.tokenBalance(eth, TokenAdapter.usdc_erc20_arbi)));
-        vo.setUsdtERC20Arbi(TokenAdapter.usdt_erc20_arbi.alignment(ethContract.tokenBalance(eth, TokenAdapter.usdt_erc20_arbi)));
-
-        vo.setMatic(TokenAdapter.matic.alignment(ethContract.mainBalance(eth)));
-        vo.setUsdcERC20Polygon(TokenAdapter.usdc_erc20_polygon.alignment(ethContract.tokenBalance(eth, TokenAdapter.usdc_erc20_polygon)));
-        vo.setUsdtERC20Polygon(TokenAdapter.usdt_erc20_polygon.alignment(ethContract.tokenBalance(eth, TokenAdapter.usdt_erc20_polygon)));
-
-        return vo;
+        return hotWalletBalanceVOS;
     }
 }

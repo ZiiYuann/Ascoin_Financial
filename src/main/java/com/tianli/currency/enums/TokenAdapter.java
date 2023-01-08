@@ -1,5 +1,6 @@
 package com.tianli.currency.enums;
 
+import com.tianli.chain.entity.Coin;
 import com.tianli.common.blockchain.NetworkType;
 import lombok.Getter;
 
@@ -66,33 +67,9 @@ public enum TokenAdapter {
         return money.movePointRight(decimals).toBigInteger();
     }
 
-    public BigDecimal alignment(BigDecimal amount) {
+    public static BigDecimal alignment(Coin coin, BigDecimal amount) {
         if (amount == null) return BigDecimal.ZERO;
-        switch (this) {
-//            case btc:
-//                return amount.divide(new BigDecimal("100000000"), 8, RoundingMode.DOWN);
-            case usdt_erc20:
-            case usdt_trc20:
-            case usdt_erc20_op:
-            case usdt_erc20_arbi:
-            case usdt_erc20_polygon:
-            case usdc_erc20:
-            case usdc_trc20:
-            case usdc_erc20_op:
-            case usdc_erc20_arbi:
-            case usdc_erc20_polygon:
-            case trx:
-                return amount.divide(new BigDecimal("1000000"), 8, RoundingMode.DOWN);
-            case usdt_bep20:
-            case usdc_bep20:
-            case bnb:
-            case eth:
-            case matic:
-            case eth_op:
-            case eth_arbi:
-                return amount.divide(new BigDecimal("1000000000000000000"), 8, RoundingMode.DOWN);
-        }
-        return BigDecimal.ZERO;
+        return amount.movePointLeft(coin.getDecimals()).setScale(8, RoundingMode.DOWN);
     }
 
 
