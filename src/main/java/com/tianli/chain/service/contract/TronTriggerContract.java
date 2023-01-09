@@ -22,6 +22,7 @@ import org.bouncycastle.util.encoders.Hex;
 import org.springframework.stereotype.Component;
 import org.tron.api.GrpcAPI;
 import org.tron.api.WalletGrpc;
+import org.tron.common.crypto.Sha256Sm3Hash;
 import org.tron.common.utils.Base58Utils;
 import org.tron.common.utils.ByteArray;
 import org.tron.protos.Protocol;
@@ -118,7 +119,14 @@ public class TronTriggerContract extends AbstractContractOperation {
 
     @Override
     Result mainTokenTransfer(String to, BigInteger val, Coin coin) {
-        return tokenTransfer(to, val, coin);
+        String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
+        var transferContract = BalanceContract.TransferContract.newBuilder()
+                .setToAddress(address2ByteString(to))
+                .setOwnerAddress(address2ByteString(ownerAddress))
+                .setAmount(val.longValue())
+                .build();
+        GrpcAPI.TransactionExtention extention = blockingStub.createTransaction2(transferContract);
+        return Result.success(processTransactionExtention(extention));
     }
 
     public String triggerSmartContract(String ownerAddress, String contractAddress, String data, long feeLimit) {
@@ -299,6 +307,35 @@ public class TronTriggerContract extends AbstractContractOperation {
 
         return energyFee.add(netFee).multiply(BigDecimal.valueOf(0.000001));
 
+    }
+
+    private String processTransactionExtention(GrpcAPI.TransactionExtention transactionExtention) {
+        if (transactionExtention == null) {
+            return null;
+        }
+        GrpcAPI.Return ret = transactionExtention.getResult();
+        if (!ret.getResult()) {
+            System.out.println("Code = " + ret.getCode());
+            System.out.println("Message = " + ret.getMessage().toStringUtf8());
+            return null;
+        }
+        Protocol.Transaction transaction = transactionExtention.getTransaction();
+        if (transaction.getRawData().getContractCount() == 0) {
+            System.out.println("Transaction is empty");
+            return null;
+        }
+
+        if (transaction.getRawData().getContract(0).getType()
+                == Protocol.Transaction.Contract.ContractType.ShieldedTransferContract) {
+            return null;
+        }
+        System.out.println("before sign transaction hex string is " +
+                ByteArray.toHexString(transaction.toByteArray()));
+        transaction = signTransaction(transactionExtention, getKeyPair());
+//        showTransactionAfterSign(transaction);
+        GrpcAPI.Return ret2 = blockingStub.broadcastTransaction(transaction);
+        if (!ret2.getResult()) return null;
+        return ByteArray.toHexString(Sha256Sm3Hash.hash(transaction.getRawData().toByteArray()));
     }
 
 
