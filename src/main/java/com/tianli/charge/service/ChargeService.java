@@ -214,9 +214,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         for (TRONTokenReq req : tronTokenReqs) {
             String to = req.getTo();
             Address address = addressService.getByChain(chainType, to);
-            if (Objects.isNull(address)) {
-                continue;
-            }
             // 存在提现的地址是云钱包的情况
             OrderChargeInfo orderChargeInfo = Objects.isNull(address) ? orderChargeInfoService.getByTxid(req.getHash())
                     : orderChargeInfoService.getByTxidExcludeUid(address.getUid(), req.getHash());
