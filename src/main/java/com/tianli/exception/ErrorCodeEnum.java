@@ -35,6 +35,10 @@ public enum ErrorCodeEnum {
     ACCOUNT_ERROR(125, "账户异常"),
     GENERATE_MNEMONIC_FAILED(126, "生成助记词失败"),
     GENERATE_CHARGE_ADDRESS_FAILED(127, "生成充值地址失败"),
+    AGENT_TOKEN_NOT_NULL(128, "agent token不能为空"),
+    AGENT_TOKEN_NOT_EXIST(129, "agent token不能存在"),
+    SESSION_TMP_R_NOT_EXIST(130, "admin _r 请求头不存在"),
+
 
 
     /*** －－－－－－业务错误码-账号相关－－－－－－*/

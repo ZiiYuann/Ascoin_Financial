@@ -41,7 +41,6 @@ public class RequestInitService {
      */
     public Long uid() {
         Long uid = _uid();
-        //if(Objects.isNull(uid)) uid = 0L;
         if (Objects.isNull(uid)) ErrorCodeEnum.UNLOIGN.throwException();
         return uid;
     }
