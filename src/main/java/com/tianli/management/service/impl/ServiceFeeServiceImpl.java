@@ -120,13 +120,13 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
                     .network(newServiceFeeDTO.networkType)
                     .build();
 
-            this.getBaseMapper().delete(new LambdaQueryWrapper<ServiceFee>()
+            LambdaQueryWrapper<ServiceFee> queryWrapper = new LambdaQueryWrapper<ServiceFee>()
                     .eq(ServiceFee::getCreateTime, serviceFee.getCreateTime())
                     .eq(ServiceFee::getCoin, serviceFee.getCoin())
                     .eq(ServiceFee::getNetwork, serviceFee.getNetwork())
-                    .eq(ServiceFee::getType, serviceFee.getType()));
+                    .eq(ServiceFee::getType, serviceFee.getType());
 
-            this.getBaseMapper().insert(serviceFee);
+            this.saveOrUpdate(serviceFee, queryWrapper);
         });
     }
 
