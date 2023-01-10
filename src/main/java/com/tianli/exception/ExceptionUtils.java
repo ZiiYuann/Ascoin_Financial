@@ -29,11 +29,18 @@ public class ExceptionUtils {
     public static void printStackTrace_(String errMsg, Throwable e, String reqId) {
         StringBuilder errorMsg = new StringBuilder();
 
-        if (StringUtils.isNotBlank(errMsg)){
+        if (StringUtils.isNotBlank(errMsg)) {
             errorMsg.append("System msg: ").append(errMsg).append("\t");
         }
 
         errorMsg.append("RequestId: ").append(reqId).append("\t");
+        if (e instanceof ErrCodeException) {
+            ErrCodeException errCodeException = (ErrCodeException) e;
+            if (ErrorCodeEnum.UNLOIGN.getErrorNo() == Integer.parseInt(errCodeException.errcode)) {
+                log.info(errMsg.toString() + "请登录");
+                return;
+            }
+        }
         // Print cause, if any
         Throwable ourCause = e.getCause();
         if (ourCause != null)
