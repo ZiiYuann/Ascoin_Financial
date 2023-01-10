@@ -80,7 +80,7 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
 
         // 根据时间 + 币别 + type进行分类
         Map<String, List<ServiceFeeDTO>> feeByTime =
-                serviceFeeDTOs.stream().collect(Collectors.groupingBy(serviceFeeDTO -> serviceFeeDTO.getTime() + serviceFeeDTO.getCoin() + serviceFeeDTO.getType()));
+                serviceFeeDTOs.stream().collect(Collectors.groupingBy(serviceFeeDTO -> serviceFeeDTO.getTime() + serviceFeeDTO.getCoin() + serviceFeeDTO.getNetworkType() + serviceFeeDTO.getType()));
 
 
         var newServiceFeeDTOs = feeByTime.values().stream().map(value -> {
@@ -123,6 +123,7 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
             this.getBaseMapper().delete(new LambdaQueryWrapper<ServiceFee>()
                     .eq(ServiceFee::getCreateTime, serviceFee.getCreateTime())
                     .eq(ServiceFee::getCoin, serviceFee.getCoin())
+                    .eq(ServiceFee::getNetwork, serviceFee.getNetwork())
                     .eq(ServiceFee::getType, serviceFee.getType()));
 
             this.getBaseMapper().insert(serviceFee);
