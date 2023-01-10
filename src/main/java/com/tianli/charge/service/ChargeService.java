@@ -3,7 +3,6 @@ package com.tianli.charge.service;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
@@ -701,10 +700,10 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 //            case btc:
 //                fromAddress = configService.get(ConfigConstants.BTC_MAIN_WALLET_ADDRESS);
 //                break;
-            case erc20_arbi:
+            case erc20_arbitrum:
                 fromAddress = configService.get(ConfigConstants.ARBITRUM_MAIN_WALLET_ADDRESS);
                 break;
-            case erc20_op:
+            case erc20_optimism:
                 fromAddress = configService.get(ConfigConstants.OP_MAIN_WALLET_ADDRESS);
                 break;
             case erc20_polygon:

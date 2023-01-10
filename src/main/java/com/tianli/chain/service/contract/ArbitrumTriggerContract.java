@@ -96,7 +96,7 @@ public class ArbitrumTriggerContract extends Web3jContractOperation {
 
     @Override
     public boolean matchByChain(NetworkType chain) {
-        return NetworkType.erc20_arbi.equals(chain);
+        return NetworkType.erc20_arbitrum.equals(chain);
     }
 
     @Override
