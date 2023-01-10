@@ -14,10 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -62,6 +59,7 @@ public class ChainController {
         coinsMap.forEach((key, value) -> {
             CoinMapVO coinMapVO = new CoinMapVO();
             coinMapVO.setName(key);
+            value.sort(Comparator.comparing(coin -> coin.getChain().getSequence()));
             coinMapVO.setCoins(value);
             coinMapVO.setWithdrawDecimals(value.get(0).getWithdrawDecimals());
             result.add(coinMapVO);
