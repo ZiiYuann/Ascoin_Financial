@@ -16,7 +16,7 @@ public enum NetworkType {
     bep20(ChainType.BSC),
 
     erc20_polygon(ChainType.POLYGON),
-    erc20_optimism(ChainType.OPTIMISTIC),
+    erc20_optimistic(ChainType.OPTIMISTIC),
     erc20_arbitrum(ChainType.ARBITRUM);
 //    btc(ChainType.BTC);
 

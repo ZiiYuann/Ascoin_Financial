@@ -703,7 +703,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             case erc20_arbitrum:
                 fromAddress = configService.get(ConfigConstants.ARBITRUM_MAIN_WALLET_ADDRESS);
                 break;
-            case erc20_optimism:
+            case erc20_optimistic:
                 fromAddress = configService.get(ConfigConstants.OP_MAIN_WALLET_ADDRESS);
                 break;
             case erc20_polygon:

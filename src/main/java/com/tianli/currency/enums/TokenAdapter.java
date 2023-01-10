@@ -24,8 +24,8 @@ public enum TokenAdapter {
     usdc_trc20("usdc", NetworkType.trc20, "TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"),
     usdt_trc20("usdt", NetworkType.trc20, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
     // 6位
-    usdc_erc20_op("usdc", NetworkType.erc20_optimism, "0x7F5c764cBc14f9669B88837ca1490cCa17c31607"),
-    usdt_erc20_op("usdt", NetworkType.erc20_optimism, "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58"),
+    usdc_erc20_op("usdc", NetworkType.erc20_optimistic, "0x7F5c764cBc14f9669B88837ca1490cCa17c31607"),
+    usdt_erc20_op("usdt", NetworkType.erc20_optimistic, "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58"),
     // 6位
     usdc_erc20_arbi("usdc", NetworkType.erc20_arbitrum, "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"),
     usdt_erc20_arbi("usdt", NetworkType.erc20_arbitrum, "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9"),
@@ -38,7 +38,7 @@ public enum TokenAdapter {
 //    btc("btc", NetworkType.btc, "0x000000"),
     bnb("bnb", NetworkType.bep20, "0x000000"),
     eth("eth", NetworkType.erc20, "0x000000"),
-    eth_op("eth", NetworkType.erc20_optimism, "0x000000"),
+    eth_op("eth", NetworkType.erc20_optimistic, "0x000000"),
     eth_arbi("eth", NetworkType.erc20_arbitrum, "0x000000"),
     matic("matic", NetworkType.erc20_polygon, "0x000000"),
     trx(null, NetworkType.trc20, "0x000000");

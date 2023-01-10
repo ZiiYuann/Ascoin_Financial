@@ -328,7 +328,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
             case trc20:
                 toAddress = configAddress.getTron();
                 break;
-            case erc20_optimism:
+            case erc20_optimistic:
                 toAddress = configAddress.getOp();
                 break;
             case erc20_arbitrum:
