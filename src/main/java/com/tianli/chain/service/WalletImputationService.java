@@ -178,7 +178,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         Coin coin = coinService.getByNameAndNetwork(coinName, network);
 
-        List<Long> addressIds = walletImputations.stream().map(WalletImputation::getAddressId).collect(Collectors.toList());
+        List<Long> addressIds = walletImputations.stream().map(WalletImputation::getAddressId).distinct().collect(Collectors.toList());
         String hash = baseContractService.getOne(network).recycle(null, addressIds, coin.isMainToken()
                 ? Collections.emptyList() : List.of(coin.getContract()));
         // 事务问题如何解决，如果中间出现异常，整个事务回滚，归集状态为wait，重新归集只收取手续费
