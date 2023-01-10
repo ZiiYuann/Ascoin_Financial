@@ -32,10 +32,7 @@ import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author wangqiyun
@@ -173,9 +170,13 @@ public class ChainService {
         addressMap.put(ChainType.TRON, tron);
         addressMap.put(ChainType.BSC, bsc);
         addressMap.put(ChainType.ETH, eth);
+        Set<ChainType> chainTypes = addressMap.keySet();
 
         List<Coin> coins = coinService.pushCoinsWithCache();
         coins.forEach(coin -> {
+            if (!chainTypes.contains(coin.getChain())) {
+                return;
+            }
             TxConditionReq req = TxConditionReq.builder().contractAddress(coin.isMainToken() ? "0x000000" : coin.getContract())
                     .to(addressMap.get(coin.getChain()))
                     .chain(coin.getChain()).build();
