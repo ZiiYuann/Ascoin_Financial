@@ -47,7 +47,13 @@ public class HandleExceptionController {
             result.setEnMsg("System exception");
         }
         ExceptionUtils.printStackTrace(e);
-        e.printStackTrace();
+        if (e instanceof ErrCodeException) {
+            ErrCodeException errCodeException = (ErrCodeException) e;
+            if (ErrorCodeEnum.UNLOIGN.getErrorNo() != Integer.parseInt(errCodeException.errcode)) {
+                e.printStackTrace();
+            }
+        }
+
         result.setTime(System.currentTimeMillis());
         AsyncService asyncService = ApplicationContextTool.getBean(AsyncService.class);
         if (asyncService != null)

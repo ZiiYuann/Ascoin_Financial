@@ -37,7 +37,7 @@ public class ExceptionUtils {
         if (e instanceof ErrCodeException) {
             ErrCodeException errCodeException = (ErrCodeException) e;
             if (ErrorCodeEnum.UNLOIGN.getErrorNo() == Integer.parseInt(errCodeException.errcode)) {
-                log.info(errMsg.toString() + "请登录");
+                log.info(errorMsg.toString() + "请登录");
                 return;
             }
         }
