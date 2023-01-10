@@ -59,6 +59,12 @@ mybatis:
 
 rpc:
   btc:
-    url: "http://35.77.16.20:8332"
+    url: http://35.77.16.20:8332
     username: user
     password: hxTyOjmTh9bfjiivdzBlNH9HSWDZzf7UBM5PhbOMxHR
+  polygon:
+    url: https://rpc.ankr.com/polygon/2ec11df9ec7a8583b9ed886316650c1394cfcfb29448ec6c6a77e1bb582132ab
+  op:
+    url: https://rpc.ankr.com/optimism/2ec11df9ec7a8583b9ed886316650c1394cfcfb29448ec6c6a77e1bb582132ab
+  arbitrum:
+    url: https://rpc.ankr.com/arbitrum/2ec11df9ec7a8583b9ed886316650c1394cfcfb29448ec6c6a77e1bb582132ab
