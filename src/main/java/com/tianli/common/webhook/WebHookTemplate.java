@@ -26,7 +26,7 @@ public class WebHookTemplate {
 
     public static String withdrawApply(double amount, String coin) {
         String msg = "监测到用户提现申请,请管理员尽快处理，金额：" +
-                amount +
+                new BigDecimal(amount).toPlainString() +
                 " " + COIN_ALIAS.getOrDefault(coin, coin) +
                 "，时间：" +
                 LocalDateTime.now();
