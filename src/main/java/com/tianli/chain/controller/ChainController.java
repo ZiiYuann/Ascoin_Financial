@@ -60,6 +60,7 @@ public class ChainController {
             CoinMapVO coinMapVO = new CoinMapVO();
             coinMapVO.setName(key);
             value.sort(Comparator.comparing(coin -> coin.getChain().getSequence()));
+            value.forEach(e -> e.setChainName(e.getChain().getDisplay()));
             coinMapVO.setCoins(value);
             coinMapVO.setWithdrawDecimals(value.get(0).getWithdrawDecimals());
             result.add(coinMapVO);
