@@ -8,7 +8,6 @@ import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.vo.CoinMapVO;
 import com.tianli.chain.vo.CoinVO;
 import com.tianli.chain.vo.NetworkTypeVO;
-import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.exception.Result;
 import org.apache.commons.collections4.CollectionUtils;
@@ -57,7 +56,8 @@ public class ChainController {
      * 获取上线的币别信息
      */
     @GetMapping("/coin/infos")
-    public Result coinInfos(int version) {
+    public Result coinInfos(Integer version) {
+        final var versionFinal = Optional.ofNullable(version).orElse(0);
         List<Coin> coins = coinService.pushCoinsWithCache();
 
         Map<String, List<CoinVO>> coinsMap = coins.stream()
@@ -66,11 +66,11 @@ public class ChainController {
 
         List<CoinMapVO> result = new ArrayList<>();
         coinsMap.forEach((key, value) -> {
-            List<ChainType> chainTypes = CHAIN_TYPE_VERSION.get(version);
+            List<ChainType> chainTypes = CHAIN_TYPE_VERSION.get(versionFinal);
             if (CollectionUtils.isNotEmpty(chainTypes)) {
                 value = value.stream().filter(coin -> chainTypes.contains(coin.getChain())).collect(Collectors.toList());
             }
-            if (CollectionUtils.isEmpty(value)){
+            if (CollectionUtils.isEmpty(value)) {
                 return;
             }
             CoinMapVO coinMapVO = new CoinMapVO();
