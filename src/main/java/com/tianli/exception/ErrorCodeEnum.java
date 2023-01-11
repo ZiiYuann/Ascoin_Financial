@@ -38,7 +38,7 @@ public enum ErrorCodeEnum {
     AGENT_TOKEN_NOT_NULL(128, "agent token不能为空"),
     AGENT_TOKEN_NOT_EXIST(129, "agent token不能存在"),
     SESSION_TMP_R_NOT_EXIST(130, "admin _r 请求头不存在"),
-
+    SSO_SERVICE_ERROR(131, "SSO外部服务异常"),
 
 
     /*** －－－－－－业务错误码-账号相关－－－－－－*/
@@ -61,7 +61,7 @@ public enum ErrorCodeEnum {
     NO_CREDIT_SCORE(2015, "账户信用评分不足"),
     ACCOUNT_NOT_ACTIVE(2016, "云钱包未激活"),
     CURRENCY_NOT_SUPPORT(2017, "币别尚未支持"),
-    ACCOUNT_ACTIVATE_UID_NULL(2018,"激活uid参数为null"),
+    ACCOUNT_ACTIVATE_UID_NULL(2018, "激活uid参数为null"),
     CHARGE_ADDRESS_NOT_FOUND(2019, "充值地址获取失败"),
 
     /*** －－－－－－业务错误码-余额相关－－－－－－*/
@@ -149,14 +149,13 @@ public enum ErrorCodeEnum {
     RED_SET_BLOOM_FAIl(3708, "红包发送失败(bloom)"),
 
 
-
     /*** －－－－－－业务错误码-理财相关－－－－－－*/
-    FINANCIAL_INCOME_REPEAT(3801,"理财利息当日利息已经计算"),
-    FINANCIAL_TO_ERROR(3802,"提现地址不允许是当前云钱包地址"),
-    COIN_RATE_ERROR(3803,"币别汇率获取异常"),
-    COIN_NOT_ALLOW_OPERATION(3804,"币种不允许操作"),
-    COIN_NOT_CONFIG_NOT_EXIST(3805,"币种上线前请先配置最小提币和手续费"),
-    MANUAL_TRANSFER_HASH_NULL(3806,"人工审核转账HASH为空"),
+    FINANCIAL_INCOME_REPEAT(3801, "理财利息当日利息已经计算"),
+    FINANCIAL_TO_ERROR(3802, "提现地址不允许是当前云钱包地址"),
+    COIN_RATE_ERROR(3803, "币别汇率获取异常"),
+    COIN_NOT_ALLOW_OPERATION(3804, "币种不允许操作"),
+    COIN_NOT_CONFIG_NOT_EXIST(3805, "币种上线前请先配置最小提币和手续费"),
+    MANUAL_TRANSFER_HASH_NULL(3806, "人工审核转账HASH为空"),
 
     ;
     private int errorNo;

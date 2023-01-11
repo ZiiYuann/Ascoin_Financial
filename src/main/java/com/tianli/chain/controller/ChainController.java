@@ -2,13 +2,16 @@ package com.tianli.chain.controller;
 
 import com.tianli.chain.converter.ChainConverter;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.CoinService;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.vo.CoinMapVO;
 import com.tianli.chain.vo.CoinVO;
 import com.tianli.chain.vo.NetworkTypeVO;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.exception.Result;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +28,12 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/chain")
 public class ChainController {
+
+    private static final HashMap<Integer, List<ChainType>> CHAIN_TYPE_VERSION = new HashMap<>();
+
+    static {
+        CHAIN_TYPE_VERSION.put(0, List.of(ChainType.BSC, ChainType.ETH, ChainType.TRON));
+    }
 
     @Resource
     private ContractAdapter contractAdapter;
@@ -48,7 +57,7 @@ public class ChainController {
      * 获取上线的币别信息
      */
     @GetMapping("/coin/infos")
-    public Result coinInfos() {
+    public Result coinInfos(int version) {
         List<Coin> coins = coinService.pushCoinsWithCache();
 
         Map<String, List<CoinVO>> coinsMap = coins.stream()
@@ -57,6 +66,13 @@ public class ChainController {
 
         List<CoinMapVO> result = new ArrayList<>();
         coinsMap.forEach((key, value) -> {
+            List<ChainType> chainTypes = CHAIN_TYPE_VERSION.get(version);
+            if (CollectionUtils.isNotEmpty(chainTypes)) {
+                value = value.stream().filter(coin -> chainTypes.contains(coin.getChain())).collect(Collectors.toList());
+            }
+            if (CollectionUtils.isEmpty(value)){
+                return;
+            }
             CoinMapVO coinMapVO = new CoinMapVO();
             coinMapVO.setName(key);
             value.sort(Comparator.comparing(coin -> coin.getChain().getSequence()));
