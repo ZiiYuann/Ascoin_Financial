@@ -6,6 +6,7 @@ import com.google.common.base.MoreObjects;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.fund.contant.FundCycle;
 import com.tianli.fund.contant.FundIncomeStatus;
 import com.tianli.fund.entity.FundIncomeRecord;
@@ -14,9 +15,9 @@ import com.tianli.fund.enums.FundRecordStatus;
 import com.tianli.fund.service.IFundIncomeRecordService;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.management.query.FundIncomeCompensateQuery;
+import com.tianli.tool.ApplicationContextTool;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RAtomicLong;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -29,9 +30,9 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @EnableScheduling
@@ -58,11 +59,15 @@ public class FundIncomeTask {
         List<FundRecord> records = fundRecordService.page(new Page<>(page, 100)
                         , new QueryWrapper<FundRecord>().lambda().eq(FundRecord::getStatus, FundRecordStatus.PROCESS))
                 .getRecords();
+
+        var bean = ApplicationContextTool.getBean(FundIncomeTask.class);
+        var fundIncomeTask = Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
+
         records.forEach(fundRecord -> {
             RLock lock = redissonClient.getLock(RedisLockConstants.FUND_UPDATE_LOCK + fundRecord.getId());
             try {
                 lock.lock();
-                calculateIncome(fundRecord, now);
+                fundIncomeTask.calculateIncome(fundRecord, now);
             } finally {
                 lock.unlock();
             }
@@ -76,7 +81,7 @@ public class FundIncomeTask {
         LocalDateTime createTime = fundRecord.getCreateTime();
         // t + 4 是开始记录利息的时间  1号12点申购 5号开始计算利息 6号开始发5号利息
         LocalDateTime startIncomeTime = TimeTool.minDay(createTime).plusDays(4);
-        long cha = 0L;
+        long cha;
         // 四天后开始计息 createTime 25号 createTime.toLocalDate().plusDays(1) 26号 26 27 28 等待 29开始 30发放
         //
         if (createTime.plusDays(1).toLocalDate().until(now, ChronoUnit.DAYS) >= FundCycle.interestCalculationCycle) {
@@ -107,23 +112,23 @@ public class FundIncomeTask {
 
         }
 
-        if (startIncomeTime.compareTo(todayZero) < 0 && (cha = startIncomeTime.until(todayZero, ChronoUnit.DAYS)) >= 7) {
-            if (cha % 7 == 0) {
-                // 查询已经计算的收益信息
-                List<FundIncomeRecord> fundIncomeRecords = fundIncomeRecordService.list(new QueryWrapper<FundIncomeRecord>().lambda()
-                        .eq(FundIncomeRecord::getFundId, fundRecord.getId())
-                        .eq(FundIncomeRecord::getStatus, FundIncomeStatus.calculated)
-                        .between(FundIncomeRecord::getCreateTime, todayZero.plusDays(-7), todayZero.plusDays(-1)));
-                fundIncomeRecords.forEach(fundIncomeRecord -> {
-                    fundIncomeRecord.setStatus(FundIncomeStatus.wait_audit);
-                    fundIncomeRecordService.updateById(fundIncomeRecord);
-                });
+        if (startIncomeTime.compareTo(todayZero) < 0
+                && (cha = startIncomeTime.until(todayZero, ChronoUnit.DAYS)) >= 7
+                && cha % 7 == 0) {
+            // 查询已经计算的收益信息
+            List<FundIncomeRecord> fundIncomeRecords = fundIncomeRecordService.list(new QueryWrapper<FundIncomeRecord>().lambda()
+                    .eq(FundIncomeRecord::getFundId, fundRecord.getId())
+                    .eq(FundIncomeRecord::getStatus, FundIncomeStatus.calculated)
+                    .between(FundIncomeRecord::getCreateTime, todayZero.plusDays(-7), todayZero.plusDays(-1)));
+            fundIncomeRecords.forEach(fundIncomeRecord -> {
+                fundIncomeRecord.setStatus(FundIncomeStatus.wait_audit);
+                fundIncomeRecordService.updateById(fundIncomeRecord);
+            });
 
-                // 发送消息
-                String msg = WebHookTemplate.fundIncome(fundRecord.getUid(), fundRecord.getHoldAmount()
-                        , fundRecord.getWaitIncomeAmount(), fundRecord.getCoin());
-                webHookService.fundSend(msg);
-            }
+            // 发送消息
+            String msg = WebHookTemplate.fundIncome(fundRecord.getUid(), fundRecord.getHoldAmount()
+                    , fundRecord.getWaitIncomeAmount(), fundRecord.getCoin());
+            webHookService.fundSend(msg);
         }
 
         fundRecordService.updateById(fundRecord);

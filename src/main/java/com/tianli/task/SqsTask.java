@@ -1,7 +1,6 @@
 package com.tianli.task;
 
 import com.tianli.sqs.SqsService;
-import com.tianli.sqs.handler.PushAddressHandler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 

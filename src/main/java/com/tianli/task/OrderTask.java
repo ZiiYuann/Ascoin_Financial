@@ -66,8 +66,9 @@ public class OrderTask {
                         .likeRight(Order::getOrderNo, AccountChangeType.advance_purchase.getPrefix()))).orElse(new ArrayList<>());
                 advanceOrders.forEach(this::scanChainOperation);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (InterruptedException e) {
+            // Restore interrupted state...
+            Thread.currentThread().interrupt();
         } finally {
             lock.unlock();
         }

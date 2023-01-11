@@ -56,7 +56,7 @@ public class WithdrawOrderTask {
         Long relatedId = order.getRelatedId();
         OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(relatedId);
         if (Objects.isNull(orderChargeInfo) || StringUtils.isBlank(orderChargeInfo.getTxid())) {
-            webHookService.dingTalkSend("异常提现订单:" + order.getOrderNo() + "不存在链信息，或者不存在txid");
+            webHookService.dingTalkSend(order.getOrderNo() + "提现异常，不存在链信息，或者不存在txid");
             return;
         }
         if (orderChargeInfo.getCreateTime().until(LocalDateTime.now(), ChronoUnit.MINUTES) < 15) {
@@ -65,7 +65,7 @@ public class WithdrawOrderTask {
         String txid = orderChargeInfo.getTxid();
         boolean success = contractAdapter.getOne(orderChargeInfo.getNetwork()).successByHash(txid);
         if (success) {
-            webHookService.dingTalkSend("异常提现订单:" + order.getOrderNo() + " 此订单交易成功，但是订单状态未修改，请及时排除问题");
+            webHookService.dingTalkSend(order.getOrderNo() + " 提现异常，此订单交易成功，但是订单状态未修改，请及时排除问题");
             return;
         }
 
@@ -76,7 +76,7 @@ public class WithdrawOrderTask {
         accountBalanceServiceImpl.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), order.getOrderNo()
                 , "提现上链失败");
 
-        webHookService.dingTalkSend("异常提现订单:" + order.getOrderNo() + " 修改订单状态为：fail");
+        webHookService.dingTalkSend(order.getOrderNo() + "提现异常，修改订单状态为：fail");
     }
 
 
