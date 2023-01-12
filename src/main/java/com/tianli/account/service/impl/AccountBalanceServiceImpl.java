@@ -214,10 +214,11 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
     /**
      * 获取余额主页面信息
      *
-     * @param uid 用户id
+     * @param uid     用户id
+     * @param version 版本
      * @return 账户余额主页面VO
      */
-    public AccountBalanceMainPageVO accountSummary(Long uid, boolean fixedCoin) {
+    public AccountBalanceMainPageVO accountSummary(Long uid, boolean fixedCoin, int version) {
 
 
         DollarIncomeVO income = financialService.income(uid);
@@ -237,7 +238,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         var existCoinNames =
                 accountBalanceVOS.stream().map(AccountBalanceVO::getCoin).collect(Collectors.toList());
         // 需要显示的币别
-        Set<String> coinNames = fixedCoin ? new HashSet<>(FIXED_COINS) : coinBaseService.pushCoinNames();
+        Set<String> coinNames = fixedCoin ? new HashSet<>(FIXED_COINS) : coinBaseService.pushCoinNames(version);
         // 过滤掉不显示掉币别账户
         accountBalanceVOS = accountBalanceVOS.stream()
                 .filter(accountBalanceVO -> coinNames.contains(accountBalanceVO.getCoin())).collect(Collectors.toList());
@@ -279,8 +280,8 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
     }
 
     @Override
-    public AccountBalanceMainPageVO accountSummary(Long uid) {
-        return accountSummary(uid, false);
+    public AccountBalanceMainPageVO accountSummary(Long uid, int version) {
+        return accountSummary(uid, false, version);
     }
 
     public BigDecimal dollarBalance(Long uid) {
@@ -332,7 +333,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
 
         BigDecimal assets = dollarBalance.add(financialHoldAmount).add(fundHoldAmount);
 
-        BigDecimal purchaseAmount = orderService.uAmount(uid,ChargeType.purchase);
+        BigDecimal purchaseAmount = orderService.uAmount(uid, ChargeType.purchase);
 
         return UserAssetsVO.builder().uid(uid)
                 .assets(assets)

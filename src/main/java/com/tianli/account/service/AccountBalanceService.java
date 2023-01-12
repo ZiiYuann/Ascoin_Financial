@@ -17,19 +17,21 @@ public interface AccountBalanceService {
     /**
      * 获取用户云钱包汇总信息（总资产 + 各个币种资产）
      *
-     * @param uid 用户id
+     * @param uid     用户id
+     * @param version 版本
      * @return 汇总信息
      */
-    AccountBalanceMainPageVO accountSummary(Long uid);
+    AccountBalanceMainPageVO accountSummary(Long uid, int version);
 
     /**
      * 获取用户云钱包汇总信息（总资产 + 各个币种资产）
      *
      * @param uid       用户id
      * @param fixedCoin 固定币别
+     * @param version   版本
      * @return 汇总信息
      */
-    AccountBalanceMainPageVO accountSummary(Long uid, boolean fixedCoin);
+    AccountBalanceMainPageVO accountSummary(Long uid, boolean fixedCoin, int version);
 
     /**
      * 获取用户所有币别列表

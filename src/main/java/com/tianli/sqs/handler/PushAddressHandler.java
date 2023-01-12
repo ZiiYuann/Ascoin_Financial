@@ -2,7 +2,6 @@ package com.tianli.sqs.handler;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.tianli.address.mapper.Address;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.service.ChainService;
 import com.tianli.sqs.SqsContext;
@@ -16,7 +15,6 @@ import software.amazon.awssdk.services.sqs.model.Message;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author chenb

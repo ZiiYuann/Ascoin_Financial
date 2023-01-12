@@ -6,12 +6,16 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.entity.CoinBase;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.mapper.CoinBaseMapper;
 import com.tianli.chain.service.CoinBaseService;
+import com.tianli.chain.service.CoinService;
+import com.tianli.common.Constants;
 import com.tianli.common.RedisConstants;
 import com.tianli.management.query.CoinIoUQuery;
 import com.tianli.management.query.CoinsQuery;
 import com.tianli.management.vo.MCoinListVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +36,8 @@ import java.util.stream.Collectors;
 @Service
 public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> implements CoinBaseService {
 
+    @Resource
+    private CoinService coinService;
     @Resource
     private CoinBaseMapper coinBaseMapper;
     @Resource
@@ -118,6 +124,19 @@ public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> i
         return coins.stream()
                 .map(coin -> coin.getName().toLowerCase(Locale.ROOT))
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<String> pushCoinNames(int version) {
+        Set<String> pushCoinNames = pushCoinNames();
+        List<Coin> coins = coinService.pushCoinsWithCache();
+        List<ChainType> chainTypes = Constants.CHAIN_TYPE_VERSION.get(version);
+        if (CollectionUtils.isNotEmpty(chainTypes)) {
+            List<String> coinNames = coins.stream().filter(coin -> chainTypes.contains(coin.getChain())).map(Coin::getName)
+                    .distinct().collect(Collectors.toList());
+            pushCoinNames = pushCoinNames.stream().filter(coinNames::contains).collect(Collectors.toSet());
+        }
+        return pushCoinNames;
     }
 
     @Override

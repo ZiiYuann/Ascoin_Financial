@@ -19,6 +19,8 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.tianli.common.Constants.CHAIN_TYPE_VERSION;
+
 /**
  * @author chenb
  * @apiNote
@@ -27,12 +29,6 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/chain")
 public class ChainController {
-
-    private static final HashMap<Integer, List<ChainType>> CHAIN_TYPE_VERSION = new HashMap<>();
-
-    static {
-        CHAIN_TYPE_VERSION.put(0, List.of(ChainType.BSC, ChainType.ETH, ChainType.TRON));
-    }
 
     @Resource
     private ContractAdapter contractAdapter;

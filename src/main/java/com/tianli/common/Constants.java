@@ -1,8 +1,11 @@
 package com.tianli.common;
 
 import com.google.gson.Gson;
+import com.tianli.chain.enums.ChainType;
 
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -46,4 +49,10 @@ public class Constants {
             return new Thread(runnable, "COMPLETABLE_FUTURE_EXECUTOR_" + id.getAndIncrement());
         }
     });
+
+    public static final HashMap<Integer, List<ChainType>> CHAIN_TYPE_VERSION = new HashMap<>();
+
+    static {
+        CHAIN_TYPE_VERSION.put(0, List.of(ChainType.BSC, ChainType.ETH, ChainType.TRON));
+    }
 }

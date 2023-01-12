@@ -78,4 +78,7 @@ public interface CoinBaseService extends IService<CoinBase> {
      * @return 有效的币种名称
      */
     Set<String> pushCoinNames();
+
+    Set<String> pushCoinNames(int version);
+
 }

@@ -116,6 +116,7 @@ public class AccountController {
 
     /**
      * 根据链获取钱包地址 非eth bsc tron等常用链 采用懒加载模式生成对应链的地址
+     *
      * @param chain 所属链
      */
     @GetMapping("/address/{chain}")
@@ -168,16 +169,17 @@ public class AccountController {
     @GetMapping("/balance/summary")
     public Result accountBalance() {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(accountBalanceServiceImpl.accountSummary(uid, true));
+        return Result.instance().setData(accountBalanceServiceImpl.accountSummary(uid, true, 0));
     }
 
     /**
      * 【云钱包】总资产 + 账户列表
      */
     @GetMapping("/balance/summary/dynamic")
-    public Result accountBalanceDynamic() {
+    public Result accountBalanceDynamic(Integer version) {
+        version = MoreObjects.firstNonNull(version, 0);
         Long uid = requestInitService.uid();
-        return Result.instance().setData(accountBalanceServiceImpl.accountSummary(uid));
+        return Result.instance().setData(accountBalanceServiceImpl.accountSummary(uid, version));
     }
 
     /**
