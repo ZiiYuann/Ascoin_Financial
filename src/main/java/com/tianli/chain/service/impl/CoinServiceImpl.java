@@ -123,7 +123,16 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     public void push(String nickname, CoinStatusQuery query) {
         Long id = query.getId();
         var coin = processStatus(nickname, id);
-        asyncService.async(() -> this.asyncPush(coin));
+        // 执行ETH、BSC、TRON 推送数据
+        if (ChainType.BSC.equals(coin.getChain()) ||
+                ChainType.TRON.equals(coin.getChain()) ||
+                ChainType.ETH.equals(coin.getChain())) {
+            asyncService.async(() -> this.asyncPush(coin));
+        } else {
+            successStatus(coin.getId());
+            coinBaseService.flushPushListCache();
+            this.deletePushListCache();
+        }
     }
 
     @Override
