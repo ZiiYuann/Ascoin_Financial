@@ -34,6 +34,12 @@ public class IncomeVO {
     private BigDecimal yesterdayIncomeFee;
 
     /**
+     * 累计收益当前币
+     */
+    private BigDecimal accrueIncomeAmount;
+
+
+    /**
      * 昨日收益
      */
     private BigDecimal yesterdayIncomeAmount;

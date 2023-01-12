@@ -162,7 +162,7 @@ public class FinancialServiceImpl implements FinancialService {
         incomeByRecordIdVO.setMinRate(product.getMinRate());
         incomeByRecordIdVO.setRateType(product.getRateType());
         incomeByRecordIdVO.setRate(product.getRate());
-        incomeByRecordIdVO.setEarningRate(financialProductService.incomeRate(uid,record.getProductId(),recordId));
+        incomeByRecordIdVO.setEarningRate(financialProductService.incomeRate(uid, record.getProductId(), recordId));
         if (Objects.nonNull(product.getTotalQuota())) {
             incomeByRecordIdVO.setSellOut(MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO)
                     .compareTo(product.getTotalQuota()) >= 0);
@@ -188,10 +188,13 @@ public class FinancialServiceImpl implements FinancialService {
      */
     private HoldProductVo addHoldIncomeInfo(Long uid, HoldProductVo holdProductVo) {
         IncomeVO incomeVO = new IncomeVO();
+        var accrueIncomeAmount = Objects.isNull(holdProductVo.getAccrueIncomeAmount())
+                ? BigDecimal.ZERO : holdProductVo.getAccrueIncomeAmount();
         BigDecimal dollarRate = currencyService.getDollarRate(holdProductVo.getCoin());
         incomeVO.setHoldFee(dollarRate.multiply(holdProductVo.getHoldAmount()));
-        incomeVO.setAccrueIncomeFee(dollarRate.multiply(Objects.isNull(holdProductVo.getAccrueIncomeAmount())
-                ? BigDecimal.ZERO : holdProductVo.getAccrueIncomeAmount()));
+        incomeVO.setAccrueIncomeAmount(accrueIncomeAmount);
+        incomeVO.setAccrueIncomeFee(dollarRate.multiply(accrueIncomeAmount));
+
         if (ProductType.fund.equals(holdProductVo.getProductType())) {
             FundIncomeQuery query = new FundIncomeQuery();
             query.setUid(uid);
