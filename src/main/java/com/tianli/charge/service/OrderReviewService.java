@@ -75,7 +75,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
 
         // 判断热钱包余额是充足(如果不足则改成人工审核)
         BigDecimal balance = contractAdapter.getBalance(network, coin);
-        if (balance.compareTo(orderChargeInfo.getFee()) < 0) {
+        if (query.isPass() && balance.compareTo(orderChargeInfo.getFee()) < 0) {
             webHookService.dingTalkSend("热钱包余额不足：" + network.name() + ":" + coin.getName() + "钱包余额：" + balance.stripTrailingZeros().toPlainString() +
                     " 提币金额：" + orderChargeInfo.getFee().stripTrailingZeros().toPlainString());
             if (query.isAutoPass()) {
