@@ -21,7 +21,6 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.lock.RedisLock;
-import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.dto.AmountDto;
@@ -180,7 +179,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         walletImputations.forEach(walletImputation -> {
             String address = walletImputation.getAddress();
             BigDecimal balance = baseContractService.getBalance(network, address, coin);
-            walletImputation.setAmount(TokenAdapter.alignment(coin, balance).setScale(8, RoundingMode.DOWN));
+            walletImputation.setAmount(balance.setScale(8, RoundingMode.DOWN));
         });
 
         List<Long> addressIds = walletImputations.stream().map(WalletImputation::getAddressId).distinct().collect(Collectors.toList());
