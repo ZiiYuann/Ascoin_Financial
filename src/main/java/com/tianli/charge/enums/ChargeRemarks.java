@@ -47,7 +47,7 @@ public enum ChargeRemarks {
     transfer_increase_success("划转增加", "Transfer Increase", ChargeType.transfer_increase, ChargeStatus.chain_success),
     transfer_reduce_success("划转减少", "Transfer Reduce", ChargeType.transfer_reduce, ChargeStatus.chain_success),
 
-    return_gas("免Gas费", "Return Gas", ChargeType.return_gas, ChargeStatus.chain_success),
+    return_gas("Gas费已到账", "Gas Fee Received", ChargeType.return_gas, ChargeStatus.chain_success),
     ;
 
     ChargeRemarks(String remarks, String remarksEn, ChargeType type, ChargeStatus status) {
