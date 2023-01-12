@@ -318,7 +318,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 , withdrawAmount, order.getOrderNo(), CurrencyLogDes.提现.name());
 
         OrderReviewStrategy strategy = withdrawReviewStrategy.getStrategy(order, orderChargeInfo, true);
-        log.info("当前提现策略是 ： " + strategy.name());
         if (!OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy)) {
             String msg = WebHookTemplate.withdrawApply(query.getAmount(), query.getCoin());
             webHookService.dingTalkSend(msg, WebHookToken.FINANCIAL_PRODUCT);
@@ -333,6 +332,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                     .reviewBy("系统自动")
                     .autoPass(true)
                     .pass(true).build();
+
             orderReviewService.review(reviewQuery);
         }
 

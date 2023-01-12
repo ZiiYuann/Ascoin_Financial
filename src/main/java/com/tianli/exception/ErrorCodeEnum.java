@@ -90,6 +90,7 @@ public enum ErrorCodeEnum {
     PRODUCT_CAN_NOT_EDIT(3109, "产品暂时不可修改"),
     AUTO_PASS_ERROR(3110, "自动审核提现超过5000$上限"),
     WEB3J_DECIMALS(3111, "获取合约小数点位数失败"),
+    IMPUTATION_NOT_NEED(3112, "本次不需要归集"),
 
 
     /*** －－－－－－业务错误码-现货交易－－－－－－*/

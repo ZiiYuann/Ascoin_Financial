@@ -1,9 +1,7 @@
 package com.tianli.chain.service.contract;
 
 import com.tianli.chain.entity.Coin;
-import com.tianli.chain.enums.ChainType;
 import com.tianli.common.blockchain.NetworkType;
-import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.Result;
 
 import java.io.IOException;
@@ -72,8 +70,8 @@ public interface ContractOperation {
     /**
      * 代币余额
      *
-     * @param address      钱包地址
-     * @param tokenAdapter 代币合约
+     * @param address 钱包地址
+     * @param coin    代币信息
      * @return 余额
      */
     BigDecimal tokenBalance(String address, Coin coin);
@@ -90,7 +88,7 @@ public interface ContractOperation {
 
     /**
      * @param chain todo 类型需要修改
-     * @return
+     * @return boolean
      */
     boolean matchByChain(NetworkType chain);
 }

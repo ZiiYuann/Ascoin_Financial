@@ -2,6 +2,9 @@ package com.tianli.charge.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.chain.entity.Coin;
+import com.tianli.chain.service.CoinService;
+import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.charge.converter.ChargeConverter;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderChargeInfo;
@@ -13,15 +16,19 @@ import com.tianli.charge.mapper.OrderReviewMapper;
 import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.vo.OrderReviewVO;
 import com.tianli.common.CommonFunction;
+import com.tianli.common.blockchain.NetworkType;
+import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.entity.HotWalletDetailed;
 import com.tianli.management.enums.HotWalletOperationType;
 import com.tianli.management.service.HotWalletDetailedService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,6 +38,7 @@ import java.util.Optional;
  * @apiNote
  * @since 2022-07-28
  **/
+@Slf4j
 @Service
 public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderReview> {
 
@@ -55,25 +63,33 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
 
     @Transactional
     public void review(OrderReviewQuery query) {
-        String orderNo = query.getOrderNo();
-        Order order = Optional.ofNullable(orderService.getByOrderNo(orderNo))
-                .orElseThrow(() -> ErrorCodeEnum.ARGUEMENT_ERROR.generalException("未找到对应的订单：" + orderNo));
+        var orderNo = query.getOrderNo();
+        Order order = orderService.getByOrderNo(query.getOrderNo());
 
-        if (!ChargeType.withdraw.equals(order.getType())) {
-            ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "仅限制提现订单能通过审核");
-        }
-        if (!ChargeStatus.created.equals(order.getStatus())) {
-            ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "仅未审核订单可以通过审核");
-        }
-        if (Objects.nonNull(order.getReviewerId()) || !ChargeStatus.created.equals(order.getStatus())) {
-            ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "已存在审核记录，reviewId: " + order.getReviewerId());
-        }
+        validReviewOrder(orderNo, order);
 
         // 订单详情
         OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
+        Coin coin = coinService.getByNameAndNetwork(orderChargeInfo.getCoin(), orderChargeInfo.getNetwork());
+        NetworkType network = orderChargeInfo.getNetwork();
+
+        // 判断热钱包余额是充足(如果不足则改成人工审核)
+        BigDecimal balance = contractAdapter.getBalance(network, coin);
+        if (balance.compareTo(orderChargeInfo.getFee()) < 0) {
+            webHookService.dingTalkSend("热钱包余额不足：" + network.name() + ":" + coin.getName() + "钱包余额：" + balance.stripTrailingZeros().toPlainString() +
+                    " 提币金额：" + orderChargeInfo.getFee().stripTrailingZeros().toPlainString());
+            if (query.isAutoPass()) {
+                return;
+            } else {
+                throw ErrorCodeEnum.INSUFFICIENT_BALANCE.generalException();
+            }
+        }
+
+
         // 获取审核策略
         OrderReviewStrategy strategy = query.isAutoPass() ? OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER :
                 withdrawReviewStrategy.getStrategy(order, orderChargeInfo);
+        log.info("当前提现策略是 ： " + strategy.name());
         // 人工审核人工打币判断
         if (OrderReviewStrategy.MANUAL_REVIEW_MANUAL_TRANSFER.equals(strategy)
                 && StringUtils.isBlank(query.getHash()) && query.isPass()) {
@@ -94,7 +110,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         order.setReviewerId(orderReview.getId());
 
         // 审核通过需要上链 如果传入的hash值为空说明是自动转账
-        if (( OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy) ||  OrderReviewStrategy.MANUAL_REVIEW_AUTO_TRANSFER.equals(strategy)) &&
+        if ((OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy) || OrderReviewStrategy.MANUAL_REVIEW_AUTO_TRANSFER.equals(strategy)) &&
                 query.isPass() && StringUtils.isBlank(query.getHash())) {
             chargeService.withdrawChain(order);
             order.setStatus(ChargeStatus.chaining);
@@ -121,6 +137,25 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
             orderService.saveOrUpdate(order);
         }
 
+    }
+
+    /**
+     * 提现审核做校验
+     */
+    private void validReviewOrder(String orderNo, Order order) {
+        if (Objects.isNull(order)) {
+            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException("未找到对应的订单：" + orderNo);
+        }
+
+        if (!ChargeType.withdraw.equals(order.getType())) {
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "仅限制提现订单能通过审核");
+        }
+        if (!ChargeStatus.created.equals(order.getStatus())) {
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "仅未审核订单可以通过审核");
+        }
+        if (Objects.nonNull(order.getReviewerId()) || !ChargeStatus.created.equals(order.getStatus())) {
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "已存在审核记录，reviewId: " + order.getReviewerId());
+        }
     }
 
     @Transactional
@@ -164,5 +199,11 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
     private ChargeService chargeService;
     @Resource
     private WithdrawReviewStrategy withdrawReviewStrategy;
+    @Resource
+    private ContractAdapter contractAdapter;
+    @Resource
+    private CoinService coinService;
+    @Resource
+    private WebHookService webHookService;
 
 }

@@ -21,6 +21,7 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.lock.RedisLock;
+import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.dto.AmountDto;
@@ -40,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -94,7 +96,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                 .eq(WalletImputation::getNetwork, coin.getNetwork())
                 .eq(WalletImputation::getCoin, coin.getName())
                 .eq(WalletImputation::getStatus, ImputationStatus.wait)
-                .orderByDesc(WalletImputation :: getCreateTime);
+                .orderByDesc(WalletImputation::getCreateTime);
 
         // 操作归集信息的时候不允许管理端进行归集操作
         List<WalletImputation> walletImputations = walletImputationMapper.selectList(query);
@@ -172,11 +174,14 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         var coinName = walletImputations.stream().map(WalletImputation::getCoin).findAny().orElseThrow();
         var network = walletImputations.stream().map(WalletImputation::getNetwork).findAny().orElseThrow();
 
-//        if(network == NetworkType.btc && walletImputations.size() > 1) {
-//            ErrorCodeEnum.throwException("btc不允许一个归集多个地址");
-//        }
-
         Coin coin = coinService.getByNameAndNetwork(coinName, network);
+
+        // 优化：取实际金额,避免账户没钱被归,减少莫名奇妙的手续费
+        walletImputations.forEach(walletImputation -> {
+            String address = walletImputation.getAddress();
+            BigDecimal balance = baseContractService.getBalance(network, address, coin);
+            walletImputation.setAmount(TokenAdapter.alignment(coin, balance).setScale(8, RoundingMode.DOWN));
+        });
 
         List<Long> addressIds = walletImputations.stream().map(WalletImputation::getAddressId).distinct().collect(Collectors.toList());
         String hash = baseContractService.getOne(network).recycle(null, addressIds, coin.isMainToken()
@@ -199,22 +204,23 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                 .createTime(LocalDateTime.now()).build();
         walletImputationLogService.save(walletImputationLog);
 
-        List<WalletImputationLogAppendix> logAppendices = walletImputations.stream().map(walletImputation -> {
-            WalletImputationLogAppendix appendix = new WalletImputationLogAppendix();
-            appendix.setAmount(walletImputation.getAmount());
-            appendix.setNetwork(walletImputation.getNetwork());
-            appendix.setFromAddress(walletImputation.getAddress());
-            appendix.setTxid(hash);
-            return appendix;
-        }).collect(Collectors.toList());
+        List<WalletImputationLogAppendix> logAppendices = walletImputations.stream()
+                .filter(walletImputation -> walletImputation.getAmount().compareTo(BigDecimal.ZERO) > 0)
+                .map(walletImputation -> {
+                    WalletImputationLogAppendix appendix = new WalletImputationLogAppendix();
+                    appendix.setAmount(walletImputation.getAmount());
+                    appendix.setNetwork(walletImputation.getNetwork());
+                    appendix.setFromAddress(walletImputation.getAddress());
+                    appendix.setTxid(hash);
+                    return appendix;
+                }).collect(Collectors.toList());
         walletImputationLogAppendixService.saveBatch(logAppendices);
 
-        var walletImputationsUpdate = walletImputations.stream().map(walletImputation -> {
+        walletImputations.forEach(walletImputation -> {
             walletImputation.setStatus(ImputationStatus.processing);
             walletImputation.setLogId(logId);
-            return walletImputation;
-        }).collect(Collectors.toList());
-        this.updateBatchById(walletImputationsUpdate);
+        });
+        this.updateBatchById(walletImputations);
 
         // 异步检测数据
         asynCheckImputationStatus();
@@ -230,7 +236,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         if (Objects.isNull(walletImputation) || !ImputationStatus.processing.equals(walletImputation.getStatus())
                 || Objects.isNull(walletImputation.getLogId())) {
-            ErrorCodeEnum.throwException("本次归集不需要补偿");
+            throw ErrorCodeEnum.IMPUTATION_NOT_NEED.generalException();
         }
 
         Long logId = walletImputation.getLogId();
@@ -258,7 +264,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         WalletImputation walletImputation = walletImputationMapper.selectById(imputationId);
         if (Objects.isNull(walletImputation) || !ImputationStatus.processing.equals(walletImputation.getStatus())
                 || Objects.isNull(walletImputation.getLogId())) {
-            ErrorCodeEnum.throwException("本次归集不需要补偿");
+            throw ErrorCodeEnum.IMPUTATION_NOT_NEED.generalException();
         }
         WalletImputationLog walletImputationLog = walletImputationLogService.getById(walletImputation.getLogId());
         List<WalletImputation> walletImputations = walletImputationMapper.selectList(new LambdaQueryWrapper<WalletImputation>()
@@ -276,7 +282,6 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                 new LambdaQueryWrapper<WalletImputation>().eq(WalletImputation::getStatus, ImputationStatus.processing);
         List<WalletImputation> walletImputations = walletImputationMapper.selectList(query);
         walletImputations.stream().collect(Collectors.groupingBy(WalletImputation::getLogId)).entrySet()
-                .stream()
                 .forEach(entry -> RetryScheduledExecutor.DEFAULT_EXECUTOR.schedule(() -> checkImputationStatus(entry.getKey(), entry.getValue()),
                         10, TimeUnit.MINUTES
                         , new RetryTaskInfo<>("asynCheckImputationStatus", "异步定时扫链检测归集状态", entry)));
@@ -316,9 +321,6 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         MainWalletAddress configAddress = addressService.getConfigAddress();
         String toAddress = null;
         switch (network) {
-//            case btc:
-//                toAddress = configAddress.getBtc();
-//                break;
             case bep20:
                 toAddress = configAddress.getBsc();
                 break;
