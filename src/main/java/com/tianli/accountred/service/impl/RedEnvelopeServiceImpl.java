@@ -331,10 +331,16 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
     @Override
     public IPage<RedEnvelopeGiveRecordVO> giveRecord(Long uid, PageQuery<RedEnvelope> pageQuery) {
-        Page<RedEnvelope> page = this.page(pageQuery.page()
-                , new LambdaQueryWrapper<RedEnvelope>().eq(RedEnvelope::getUid, uid)
-                        .ne(RedEnvelope::getStatus, RedEnvelopeStatus.WAIT)
-                        .last(" order by create_time desc "));
+        LambdaQueryWrapper<RedEnvelope> queryWrapper = new LambdaQueryWrapper<RedEnvelope>()
+                .ne(RedEnvelope::getStatus, RedEnvelopeStatus.WAIT);
+
+        if (Objects.nonNull(uid)) {
+            queryWrapper = queryWrapper.eq(RedEnvelope::getUid, uid);
+        }
+
+        queryWrapper = queryWrapper.last(" order by create_time desc ");
+
+        Page<RedEnvelope> page = this.page(pageQuery.page(), queryWrapper);
         return page.convert(redEnvelopeConvert::toRedEnvelopeGiveRecordVO);
     }
 
