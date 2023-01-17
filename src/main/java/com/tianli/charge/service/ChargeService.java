@@ -716,6 +716,13 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         return fromAddress;
     }
 
+    /**
+     * 提现黑名单
+     */
+    public void withdrawBlack(Long uid){
+
+    }
+
 
     @Resource
     private ConfigService configService;

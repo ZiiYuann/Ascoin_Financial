@@ -18,4 +18,6 @@ public class IdsQuery {
 
     private List<Long> ids;
 
+    private Long id;
+
 }

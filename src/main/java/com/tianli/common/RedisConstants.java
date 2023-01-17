@@ -36,4 +36,6 @@ public class RedisConstants {
     public static String COIN_PUSH_LIST = "coin:push:list";
 
     public static final String USER_WITHDRAW_LIMIT = "user:withdraw:limit:";
+
+    public static final String WITHDRAW_BLACK = "withdraw:black";
 }

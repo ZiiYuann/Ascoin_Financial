@@ -1,17 +1,20 @@
 package com.tianli.other.controller;
 
+import com.tianli.account.query.IdsQuery;
+import com.tianli.common.RedisConstants;
 import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.Result;
 import com.tianli.other.service.BannerService;
 import com.tianli.other.vo.IpInfoVO;
 import com.tianli.tool.IPUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -27,6 +30,8 @@ public class OtherController {
     private BannerService bannerService;
     @Resource
     private DigitalCurrencyExchange digitalCurrencyExchange;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     @GetMapping("/banner/list")
     public Result bannerList() {
@@ -40,7 +45,7 @@ public class OtherController {
     public Result ip(HttpServletRequest request) {
         try {
             var mapOptional = Optional.of(IPUtils.ipAnalysis(IPUtils.getIpAddress(request)));
-            var result = mapOptional.orElse(new IpInfoVO() );
+            var result = mapOptional.orElse(new IpInfoVO());
             return Result.success(result);
 
         } catch (Exception e) {
@@ -57,6 +62,15 @@ public class OtherController {
         HashMap<String, Double> result = new HashMap<>();
         result.put("rate", digitalCurrencyExchange.usdtCnyPrice());
         return Result.success(result);
+    }
+
+    /**
+     * 提现黑名单
+     */
+    @PostMapping("/withdraw/black")
+    public Result withdraw(@RequestBody @Valid IdsQuery query) {
+        stringRedisTemplate.opsForSet().add(RedisConstants.WITHDRAW_BLACK, query.getId() + ""); // 添加黑名单用户
+        return Result.success();
     }
 
 }
