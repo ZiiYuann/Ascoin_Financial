@@ -5,9 +5,11 @@ import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderChargeInfo;
+import com.tianli.charge.entity.OrderReview;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderChargeInfoService;
+import com.tianli.charge.service.OrderReviewService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.webhook.WebHookService;
 import org.apache.commons.lang3.StringUtils;
@@ -39,6 +41,8 @@ public class WithdrawOrderTask {
     private ContractAdapter contractAdapter;
     @Resource
     private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    @Resource
+    private OrderReviewService orderReviewService;
 
     @Scheduled(cron = "0 0/15 * * * ?")
     public void withdrawTask() {
@@ -56,12 +60,22 @@ public class WithdrawOrderTask {
         Long relatedId = order.getRelatedId();
         OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(relatedId);
         if (Objects.isNull(orderChargeInfo) || StringUtils.isBlank(orderChargeInfo.getTxid())) {
-            webHookService.dingTalkSend(order.getOrderNo() + "提现异常，不存在链信息，或者不存在txid");
+            webHookService.dingTalkSend(order.getOrderNo() + "提现异常，不存在链信息，或者不存在txid" + order.getOrderNo());
             return;
         }
-        if (orderChargeInfo.getCreateTime().until(LocalDateTime.now(), ChronoUnit.MINUTES) < 15) {
+
+        Long reviewerId = order.getReviewerId();
+        OrderReview orderReview = orderReviewService.getById(reviewerId);
+        if (Objects.isNull(orderReview)) {
+            webHookService.dingTalkSend(order.getOrderNo() + "提现异常，未找到审核记录:" + order.getOrderNo());
             return;
         }
+
+        // 防止整点审核导致异常
+        if (orderReview.getCreateTime().until(LocalDateTime.now(), ChronoUnit.MINUTES) < 15) {
+            return;
+        }
+
         String txid = orderChargeInfo.getTxid();
         boolean success = contractAdapter.getOne(orderChargeInfo.getNetwork()).successByHash(txid);
         if (success) {
@@ -76,7 +90,8 @@ public class WithdrawOrderTask {
         accountBalanceServiceImpl.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), order.getOrderNo()
                 , "提现上链失败");
 
-        webHookService.dingTalkSend(order.getOrderNo() + "提现异常，修改订单状态为：fail");
+        webHookService.dingTalkSend(order.getOrderNo() + "提现异常，修改订单状态为：fail,"
+                + orderChargeInfo.getNetwork().name() + txid);
     }
 
 
