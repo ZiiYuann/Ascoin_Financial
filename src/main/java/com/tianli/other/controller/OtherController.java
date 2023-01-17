@@ -16,6 +16,7 @@ import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author chenb
@@ -80,6 +81,15 @@ public class OtherController {
     public Result withdrawRemove(@RequestBody @Valid IdsQuery query) {
         stringRedisTemplate.opsForSet().remove(RedisConstants.WITHDRAW_BLACK, query.getId() + ""); // 添加黑名单用户
         return Result.success();
+    }
+
+    /**
+     * 提现黑名单剔除
+     */
+    @GetMapping("/withdraw/black/set")
+    public Result withdrawSet() {
+        Set<String> members = stringRedisTemplate.opsForSet().members(RedisConstants.WITHDRAW_BLACK);// 添加黑名单用户\
+        return Result.success(members);
     }
 
 }
