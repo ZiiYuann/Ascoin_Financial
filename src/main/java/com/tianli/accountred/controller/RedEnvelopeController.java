@@ -4,6 +4,7 @@ import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.query.RedEnvelopeChainQuery;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
+import com.tianli.accountred.query.RedEnvelopeGiveRecordQuery;
 import com.tianli.accountred.query.RedEnvelopeIoUQuery;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
@@ -62,8 +63,10 @@ public class RedEnvelopeController {
      */
     @GetMapping("/give/record")
     public Result giveRecord(PageQuery<RedEnvelope> pageQuery) {
-        Long uid = requestInitService.uid();
-        return Result.success().setData(redEnvelopeService.giveRecord(uid, pageQuery));
+        RedEnvelopeGiveRecordQuery query = RedEnvelopeGiveRecordQuery.builder()
+                .uid(requestInitService.uid())
+                .build();
+        return Result.success().setData(redEnvelopeService.giveRecord(query, pageQuery));
     }
 
 

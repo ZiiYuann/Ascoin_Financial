@@ -5,12 +5,15 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.base.MoreObjects;
 import com.tianli.accountred.entity.RedEnvelope;
+import com.tianli.accountred.query.RedEnvelopeGetQuery;
+import com.tianli.accountred.query.RedEnvelopeGiveRecordQuery;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.CoinService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisService;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.service.FinancialRecordService;
@@ -29,6 +32,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -189,9 +193,17 @@ public class TestController {
         return Result.success();
     }
 
-    @GetMapping("red/records")
-    public Result redRecords(PageQuery<RedEnvelope> pageQuery) {
-        return Result.success(redEnvelopeService.giveRecord(null, pageQuery));
+    @GetMapping("/red/records")
+    public Result redRecords(PageQuery<RedEnvelope> pageQuery, RedEnvelopeGiveRecordQuery query) {
+        return Result.success(redEnvelopeService.giveRecord(query, pageQuery));
+    }
+
+    @PostMapping("/red/get")
+    public Result redGet(Long uid, Long shortUid, @RequestBody @Valid RedEnvelopeGetQuery query) {
+        if (Objects.isNull(shortUid)) {
+            ErrorCodeEnum.ACCOUNT_ERROR.throwException();
+        }
+        return Result.success().setData(redEnvelopeService.get(uid, shortUid, query));
     }
 
 }

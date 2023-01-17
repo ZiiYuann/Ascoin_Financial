@@ -21,6 +21,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class RedEnvelopeGiveRecordVO {
 
+    private Long id;
+
     private String coin;
 
     private RedEnvelopeStatus status;
