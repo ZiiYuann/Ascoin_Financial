@@ -73,4 +73,13 @@ public class OtherController {
         return Result.success();
     }
 
+    /**
+     * 提现黑名单剔除
+     */
+    @PostMapping("/withdraw/black/remove")
+    public Result withdrawRemove(@RequestBody @Valid IdsQuery query) {
+        stringRedisTemplate.opsForSet().remove(RedisConstants.WITHDRAW_BLACK, query.getId() + ""); // 添加黑名单用户
+        return Result.success();
+    }
+
 }
