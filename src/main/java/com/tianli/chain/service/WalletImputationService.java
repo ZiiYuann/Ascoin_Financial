@@ -82,10 +82,9 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     public void insert(Long uid, Address address, Coin coin
             , TRONTokenReq tronTokenReq, BigDecimal finalAmount) {
 
-        StringBuilder keyBuilder = new StringBuilder()
-                .append(RedisLockConstants.RECYCLE_LOCK).append(":").append(coin.getNetwork().name())
-                .append(":").append(coin.getName()).append(":").append(tronTokenReq.getTo());
-        redisLock.lock(keyBuilder.toString(), 1L, TimeUnit.MINUTES);
+        String keyBuilder = RedisLockConstants.RECYCLE_LOCK + ":" + coin.getNetwork().name() +
+                ":" + coin.getName() + ":" + tronTokenReq.getTo();
+        redisLock.waitLock(keyBuilder, 1000L);
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -116,6 +115,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                 .createTime(now).updateTime(now)
                 .build();
         walletImputationMapper.insert(walletImputationInsert);
+        redisLock.unlock();
     }
 
     /**
@@ -159,10 +159,9 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         // 检测是否有订单操作归集信息
         walletImputations.forEach(walletImputation -> {
-            StringBuilder keyBuilder = new StringBuilder()
-                    .append(RedisLockConstants.RECYCLE_LOCK).append(":").append(walletImputation.getNetwork().name())
-                    .append(":").append(walletImputation.getCoin()).append(":").append(walletImputation.getAddress());
-            redisLock.isLock(keyBuilder.toString());
+            String keyBuilder = RedisLockConstants.RECYCLE_LOCK + ":" + walletImputation.getNetwork().name() +
+                    ":" + walletImputation.getCoin() + ":" + walletImputation.getAddress();
+            redisLock.isLock(keyBuilder);
         });
 
 
