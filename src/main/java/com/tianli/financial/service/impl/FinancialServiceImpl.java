@@ -65,6 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -178,40 +179,8 @@ public class FinancialServiceImpl implements FinancialService {
 
         IPage<HoldProductVo> holdProductVoPage = productMapper.holdProductPage(page, uid, Objects.isNull(type) ? null : type.name());
         holdProductVoPage.convert(holdProductVo -> addHoldIncomeInfo(uid, holdProductVo));
+        holdProductVoPage.convert(this::addOtherInfo);
         return holdProductVoPage;
-    }
-
-    /**
-     * 添加持有的收益信息
-     *
-     * @param uid           uid
-     * @param holdProductVo 持有基础信息
-     * @return 本身
-     */
-    private HoldProductVo addHoldIncomeInfo(Long uid, HoldProductVo holdProductVo) {
-        IncomeVO incomeVO = new IncomeVO();
-        var accrueIncomeAmount = Objects.isNull(holdProductVo.getAccrueIncomeAmount())
-                ? BigDecimal.ZERO : holdProductVo.getAccrueIncomeAmount();
-        BigDecimal dollarRate = currencyService.getDollarRate(holdProductVo.getCoin());
-        incomeVO.setHoldFee(dollarRate.multiply(holdProductVo.getHoldAmount()));
-        incomeVO.setAccrueIncomeAmount(accrueIncomeAmount);
-        incomeVO.setAccrueIncomeFee(dollarRate.multiply(accrueIncomeAmount));
-
-        if (ProductType.fund.equals(holdProductVo.getProductType())) {
-            FundIncomeQuery query = new FundIncomeQuery();
-            query.setUid(uid);
-            query.setStatus(List.of(FundIncomeStatus.calculated, FundIncomeStatus.wait_audit));
-            query.setFundId(holdProductVo.getRecordId());
-            BigDecimal waitInterestAmount = fundIncomeRecordService.getAmount(query).stream().map(FundIncomeAmountDTO::getWaitInterestAmount)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            incomeVO.setWaitAuditIncomeAmount(waitInterestAmount);
-        }
-        if (!ProductType.fund.equals(holdProductVo.getProductType())) {
-            incomeVO.setYesterdayIncomeAmount(financialIncomeDailyService.amountYesterday(holdProductVo.getRecordId()));
-        }
-
-        holdProductVo.setIncomeVO(incomeVO);
-        return holdProductVo;
     }
 
     @Override
@@ -664,6 +633,60 @@ public class FinancialServiceImpl implements FinancialService {
         // 如果个人额度和总额度都存在 比较两者
         return usePersonQuota.compareTo(personQuota) < 0 && useQuota.compareTo(totalQuota) < 0;
 
+    }
+
+    /**
+     * 添加持有的收益信息
+     *
+     * @param uid           uid
+     * @param holdProductVo 持有基础信息
+     * @return 本身
+     */
+    private HoldProductVo addHoldIncomeInfo(Long uid, HoldProductVo holdProductVo) {
+        IncomeVO incomeVO = new IncomeVO();
+        var accrueIncomeAmount = Objects.isNull(holdProductVo.getAccrueIncomeAmount())
+                ? BigDecimal.ZERO : holdProductVo.getAccrueIncomeAmount();
+        BigDecimal dollarRate = currencyService.getDollarRate(holdProductVo.getCoin());
+        incomeVO.setHoldFee(dollarRate.multiply(holdProductVo.getHoldAmount()));
+        incomeVO.setAccrueIncomeAmount(accrueIncomeAmount);
+        incomeVO.setAccrueIncomeFee(dollarRate.multiply(accrueIncomeAmount));
+
+        if (ProductType.fund.equals(holdProductVo.getProductType())) {
+            FundIncomeQuery query = new FundIncomeQuery();
+            query.setUid(uid);
+            query.setStatus(List.of(FundIncomeStatus.calculated, FundIncomeStatus.wait_audit));
+            query.setFundId(holdProductVo.getRecordId());
+            BigDecimal waitInterestAmount = fundIncomeRecordService.getAmount(query).stream().map(FundIncomeAmountDTO::getWaitInterestAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            incomeVO.setWaitAuditIncomeAmount(waitInterestAmount);
+            incomeVO.setWaitAuditIncomeFee(waitInterestAmount.multiply(dollarRate));
+        }
+        if (!ProductType.fund.equals(holdProductVo.getProductType())) {
+            incomeVO.setYesterdayIncomeAmount(financialIncomeDailyService.amountYesterday(holdProductVo.getRecordId()));
+        }
+
+        holdProductVo.setIncomeVO(incomeVO);
+        return holdProductVo;
+    }
+
+    /**
+     * 添加其他信息
+     *
+     * @param holdProductVo 持有基础信息
+     * @return 本身
+     */
+    private HoldProductVo addOtherInfo(HoldProductVo holdProductVo) {
+        ProductType productType = holdProductVo.getProductType();
+        LocalDateTime purchaseTime = holdProductVo.getPurchaseTime();
+        if (ProductType.fund.equals(productType)) {
+            holdProductVo.setIncomeTime(purchaseTime.toLocalDate().atStartOfDay().plusDays(4));
+        }
+        if (!ProductType.fund.equals(productType)) {
+            holdProductVo.setIncomeTime(purchaseTime.toLocalDate().atStartOfDay().plusDays(holdProductVo.getTerm().getDay()));
+        }
+
+        holdProductVo.setIncomeDays(Duration.between(holdProductVo.getIncomeTime(), LocalDateTime.now()).toDays());
+        return holdProductVo;
     }
 
     /**

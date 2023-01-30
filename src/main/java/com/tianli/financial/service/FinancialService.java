@@ -17,7 +17,6 @@ import com.tianli.management.vo.FinancialUserInfoVO;
 import com.tianli.management.vo.FundProductBindDropdownVO;
 import com.tianli.management.vo.UserAmountDetailsVO;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 

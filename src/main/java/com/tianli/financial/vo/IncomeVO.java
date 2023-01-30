@@ -22,22 +22,27 @@ public class IncomeVO {
     private BigDecimal holdFee;
 
     /**
-     * 累计收益
+     * 累计收益u
      */
     @BigDecimalFormat("0.00######")
     private BigDecimal accrueIncomeFee;
 
     /**
-     * 昨日收益
+     * 昨日收益u
      */
     @BigDecimalFormat("0.00######")
     private BigDecimal yesterdayIncomeFee;
 
     /**
+     * 昨日收益u
+     */
+    @BigDecimalFormat("0.00######")
+    private BigDecimal waitAuditIncomeFee;
+
+    /**
      * 累计收益当前币
      */
     private BigDecimal accrueIncomeAmount;
-
 
     /**
      * 昨日收益

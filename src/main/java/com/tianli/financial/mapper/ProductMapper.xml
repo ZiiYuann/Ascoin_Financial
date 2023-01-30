@@ -9,14 +9,15 @@
         pro.name_en,
         pro.coin,
         pro.logo,
-        pro.type as productType
+        pro.type as productType,
+        pro.term
         FROM (
 
         <if test="type != 'fixed' and type != 'current' ">
             SELECT id as record_id,
             product_id,
             hold_amount,
-            create_time AS time,
+            create_time AS purchase_time,
             cumulative_income_amount AS accrue_income_amount
             FROM fund_record
             WHERE `status` = 'PROCESS'
@@ -31,7 +32,7 @@
             SELECT r.id as record_id,
             r.product_id,
             r.hold_amount,
-            r.purchase_time AS time,
+            r.purchase_time AS purchase_time,
             i.income_amount AS accrue_income_amount
             FROM financial_record r
             LEFT JOIN financial_income_accrue i on r.uid = i.uid and r.id = i.record_id
@@ -43,7 +44,7 @@
         </if>
         ) temp
         LEFT JOIN financial_product pro ON temp.product_id = pro.id
-        ORDER BY time DESC
+        ORDER BY purchase_time DESC
     </select>
 
 

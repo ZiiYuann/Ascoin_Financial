@@ -1,9 +1,11 @@
 package com.tianli.financial.vo;
 
 import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.enums.PurchaseTerm;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 
 /**
@@ -53,6 +55,23 @@ public class HoldProductVo {
     private String coin;
 
     private BigDecimal accrueIncomeAmount;
+
+    private PurchaseTerm term;
+
+    /**
+     * 申购时间
+     */
+    private LocalDateTime purchaseTime;
+
+    /**
+     * 记息时间
+     */
+    private LocalDateTime incomeTime;
+
+    /**
+     * 生息天数
+     */
+    private long incomeDays;
 
 
 }

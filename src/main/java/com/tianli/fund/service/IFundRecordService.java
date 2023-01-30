@@ -29,7 +29,8 @@ import java.util.Map;
  * @since 2022-08-30
  */
 public interface IFundRecordService extends IService<FundRecord> {
-    FundMainPageVO mainPage();
+
+    FundMainPageVO mainPage(Long uid);
 
     IPage<FundProductVO> productPage(PageQuery<FinancialProduct> page);
 
@@ -92,4 +93,5 @@ public interface IFundRecordService extends IService<FundRecord> {
      * @return 累计收益
      */
     Map<Long, BigDecimal> accrueIncomeAmount(List<Long> uids);
+
 }

@@ -1,9 +1,14 @@
 package com.tianli.management.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.address.mapper.Address;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
+import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.service.FinancialService;
+import com.tianli.financial.vo.HoldProductVo;
+import com.tianli.management.service.ManageUserService;
+import com.tianli.management.vo.MUserListVO;
 import com.tianli.openapi.query.OpenapiAccountQuery;
 import com.tianli.openapi.service.OpenApiService;
 import com.tianli.openapi.vo.StatisticsData;
@@ -30,8 +35,17 @@ public class ManageUserController {
      */
     @GetMapping("/list")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result user(PageQuery<Address> page, String uid) {
-        return Result.success().setData(financialService.financialUserPage(uid, page.page()));
+    public Result<IPage<MUserListVO>> user(PageQuery<Address> page, String uid) {
+        return new Result<>(manageUserService.financialUserPage(uid, page.page()));
+    }
+
+    /**
+     * 理财用户管理-持仓中
+     */
+    @GetMapping("/hold")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result<IPage<HoldProductVo>> userHold(PageQuery<FinancialProduct> pageQuery, Long uid) {
+        return new Result<>(financialService.holdProductPage(pageQuery.page(), uid, null));
     }
 
     /**
@@ -74,4 +88,6 @@ public class ManageUserController {
     private FinancialService financialService;
     @Resource
     private OpenApiService openApiService;
+    @Resource
+    private ManageUserService manageUserService;
 }

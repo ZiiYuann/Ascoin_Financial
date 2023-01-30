@@ -58,7 +58,8 @@ public class FundController {
      */
     @GetMapping("/main/statistics")
     public Result mainPage() {
-        FundMainPageVO fundMainPageVO = fundRecordService.mainPage();
+        Long uid = requestInitService.uid();
+        FundMainPageVO fundMainPageVO = fundRecordService.mainPage(uid);
         return Result.success(fundMainPageVO);
     }
 
@@ -111,7 +112,7 @@ public class FundController {
     @GetMapping("/detail/{id}")
     public Result detail(@PathVariable Long id) {
         Long uid = requestInitService.uid();
-        FundRecordVO detail = fundRecordService.detail(uid,id);
+        FundRecordVO detail = fundRecordService.detail(uid, id);
         return Result.success(detail);
     }
 

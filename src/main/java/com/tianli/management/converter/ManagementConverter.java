@@ -36,4 +36,7 @@ public interface ManagementConverter {
 
     Coin toDO(CoinIoUQuery query);
 
+    @BeanMapping(builder = @Builder(disableBuilder = true))
+    MUserListVO toManagerUserListVO(FinancialUserInfoVO financialUserInfoVO);
+
 }

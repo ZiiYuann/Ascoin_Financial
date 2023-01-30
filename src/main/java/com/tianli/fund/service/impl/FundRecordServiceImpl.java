@@ -226,8 +226,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     }
 
     @Override
-    public FundMainPageVO mainPage() {
-        Long uid = requestInitService.uid();
+    public FundMainPageVO mainPage(Long uid) {
         FundIncomeQuery query = new FundIncomeQuery();
         query.setUid(uid);
         List<FundIncomeAmountDTO> fundIncomeAmountDTOS = fundIncomeRecordService.getAmount(query);
