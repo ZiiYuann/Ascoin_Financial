@@ -1,6 +1,7 @@
 package com.tianli.account.service;
 
 import com.tianli.account.vo.AccountBalanceMainPageVO;
+import com.tianli.account.vo.AccountBalanceSimpleVO;
 import com.tianli.account.vo.AccountBalanceVO;
 import com.tianli.account.vo.UserAssetsVO;
 
@@ -57,7 +58,7 @@ public interface AccountBalanceService {
      * @param uid 用户id
      * @return 资产信息
      */
-    UserAssetsVO getUserAssetsVO(Long uid);
+    UserAssetsVO getAllUserAssetsVO(Long uid);
 
     /**
      * 获取用户集合的总资产信息（总余额 + 理财持有 + 基金持有）
@@ -65,7 +66,7 @@ public interface AccountBalanceService {
      * @param uids 用户id集合
      * @return 资产信息
      */
-    UserAssetsVO getUserAssetsVO(List<Long> uids);
+    UserAssetsVO getAllUserAssetsVO(List<Long> uids);
 
     /**
      * 获取用户集合的总资产信息（总余额 + 理财持有 + 基金持有） map
@@ -82,4 +83,14 @@ public interface AccountBalanceService {
      * @return 总余额
      */
     BigDecimal dollarBalance(Long uid);
+
+    /**
+     * 获取账户余额总数据
+     *
+     * @return 总余额
+     */
+    List<AccountBalanceSimpleVO> accountBalanceSimpleVOs();
+
+
+
 }

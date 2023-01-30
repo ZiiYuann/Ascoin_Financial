@@ -1,6 +1,5 @@
 package com.tianli.account.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.convert.AccountConverter;
@@ -28,7 +27,6 @@ import com.tianli.fund.query.FundRecordQuery;
 import com.tianli.fund.service.IFundRecordService;
 import com.tianli.management.dto.AmountDto;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -224,15 +222,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         DollarIncomeVO income = financialService.income(uid);
 
         var accountBalanceVOS = accountList(uid);
-        BigDecimal totalDollarBalance = accountBalanceVOS.stream()
-                .map(AccountBalanceVO::getDollarBalance)
-                .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.DOWN);
-        BigDecimal totalDollarRemain = accountBalanceVOS.stream()
-                .map(AccountBalanceVO::getDollarRemain)
-                .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.DOWN);
-        BigDecimal totalDollarFreeze = accountBalanceVOS.stream()
-                .map(AccountBalanceVO::getDollarFreeze)
-                .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.DOWN);
+        UserAssetsVO userAssetsVO = this.getAllUserAssetsVO(uid);
 
 
         var existCoinNames =
@@ -265,14 +255,13 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         });
 
         var result = new AccountBalanceMainPageVO();
-        result.setTotalAccountBalance(totalDollarBalance);
+        result.setTotalAccountBalance(userAssetsVO.getBalanceAmount());
         result.setTotalDollarHold(income.getHoldFee());
-        result.setTotalDollarFreeze(totalDollarFreeze);
-        result.setTotalDollarRemain(totalDollarRemain);
+        result.setTotalDollarFreeze(userAssetsVO.getFreezeAmount());
+        result.setTotalDollarRemain(userAssetsVO.getRemainAmount());
         result.setYesterdayIncomeFee(income.getYesterdayIncomeFee());
         result.setAccrueIncomeFee(income.getAccrueIncomeFee());
-        // 总资产 = 可用 + 持有 + 冻结
-        result.setTotalAssets(totalDollarRemain.add(income.getHoldFee()).add(totalDollarFreeze));
+        result.setTotalAssets(userAssetsVO.getAssets());
         result.setAccountBalances(accountBalanceVOS);
 
 
@@ -323,36 +312,61 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
 
     }
 
-    public UserAssetsVO getUserAssetsVO(Long uid) {
-        // 总余额
-        BigDecimal dollarBalance = this.dollarBalance(uid);
+    // 用户资产数据，所有币别
+    public UserAssetsVO getAllUserAssetsVO(Long uid) {
 
+        // 基金持有
         BigDecimal fundHoldAmount = fundRecordService.dollarHold(FundRecordQuery.builder().uid(uid).build());
 
+        // 理财持有
         BigDecimal financialHoldAmount = financialRecordService.dollarHold(uid);
 
-        BigDecimal assets = dollarBalance.add(financialHoldAmount).add(fundHoldAmount);
-
+        // 申购金额
         BigDecimal purchaseAmount = orderService.uAmount(uid, ChargeType.purchase);
+
+        // 总资产数据
+        var accountBalanceVOS = accountList(uid);
+        BigDecimal totalBalance = accountBalanceVOS.stream()
+                .map(AccountBalanceVO::getDollarBalance)
+                .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.DOWN);
+        BigDecimal totalRemain = accountBalanceVOS.stream()
+                .map(AccountBalanceVO::getDollarRemain)
+                .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.DOWN);
+        BigDecimal totalFreeze = accountBalanceVOS.stream()
+                .map(AccountBalanceVO::getDollarFreeze)
+                .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.DOWN);
+
+        BigDecimal assets = totalBalance.add(financialHoldAmount).add(fundHoldAmount);
 
         return UserAssetsVO.builder().uid(uid)
                 .assets(assets)
                 .financialHoldAmount(financialHoldAmount)
                 .fundHoldAmount(fundHoldAmount)
                 .purchaseAmount(purchaseAmount)
+                .balanceAmount(totalBalance)
+                .remainAmount(totalRemain)
+                .freezeAmount(totalFreeze)
                 .build();
     }
 
     @Override
-    public UserAssetsVO getUserAssetsVO(List<Long> uids) {
+    public UserAssetsVO getAllUserAssetsVO(List<Long> uids) {
         BigDecimal assets = BigDecimal.ZERO;
+        BigDecimal totalBalance = BigDecimal.ZERO;
+        BigDecimal purchaseAmount = BigDecimal.ZERO;
 
-        if (CollectionUtils.isNotEmpty(uids)) {
-            assets = uids.stream().map(id -> this.getUserAssetsVO(id).getAssets())
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        for (Long uid : uids) {
+            UserAssetsVO userAssetsVO = this.getAllUserAssetsVO(uid);
+            assets = assets.add(userAssetsVO.getAssets());
+            totalBalance = totalBalance.add(userAssetsVO.getBalanceAmount());
+            purchaseAmount = purchaseAmount.add(userAssetsVO.getPurchaseAmount());
         }
 
-        return UserAssetsVO.builder().assets(assets).build();
+        return UserAssetsVO.builder()
+                .assets(assets)
+                .balanceAmount(totalBalance)
+                .purchaseAmount(purchaseAmount)
+                .build();
     }
 
     @Override
@@ -361,35 +375,10 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
             return Collections.emptyList();
         }
 
-        return uids.stream().map(this::getUserAssetsVO).collect(Collectors.toList());
+        return uids.stream().map(this::getAllUserAssetsVO).collect(Collectors.toList());
     }
 
-    /**
-     * 获取用户云钱包余额数据
-     */
-    @SuppressWarnings("unchecked")
-    public Map<Long, BigDecimal> getSummaryBalanceAmount(List<Long> uids) {
-        if (CollectionUtils.isEmpty(uids)) {
-            return MapUtils.EMPTY_SORTED_MAP;
-        }
-        LambdaQueryWrapper<AccountBalance> balanceQuery = new LambdaQueryWrapper<AccountBalance>().in(AccountBalance::getUid, uids);
-        List<AccountBalance> accountBalances = accountBalanceMapper.selectList(balanceQuery);
-
-
-        Map<Long, List<AccountBalance>> balanceMapByUid = accountBalances.stream().collect(Collectors.groupingBy(AccountBalance::getUid));
-
-        // 云钱包余额map
-        return balanceMapByUid.entrySet().stream().collect(Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> entry.getValue().stream().map(accountBalance -> {
-                    BigDecimal balance = accountBalance.getBalance();
-                    BigDecimal rate = currencyService.getDollarRate(accountBalance.getCoin());
-                    return balance.multiply(rate);
-                }).reduce(BigDecimal.ZERO, BigDecimal::add)
-        ));
-    }
-
-    public List<AccountBalanceSimpleVO> getTotalSummaryData() {
+    public List<AccountBalanceSimpleVO> accountBalanceSimpleVOs() {
         List<AccountBalanceSimpleVO> accountBalanceSimpleVOS = baseMapper.listAccountBalanceSimpleVO();
         accountBalanceSimpleVOS.forEach(accountBalanceSimpleVO -> {
             BigDecimal rate = currencyService.getDollarRate(accountBalanceSimpleVO.getCoin());

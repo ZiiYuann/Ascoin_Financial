@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.MoreObjects;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.vo.UserAssetsVO;
 import com.tianli.address.Service.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.converter.ChainConverter;
@@ -340,26 +342,36 @@ public class FinancialServiceImpl implements FinancialService {
         var addresses = addressService.page(page, queryWrapper);
         List<Long> uids = addresses.getRecords().stream().map(Address::getUid).collect(Collectors.toList());
 
-        var summaryBalanceAmount = accountBalanceServiceImpl.getSummaryBalanceAmount(uids);
         var rechargeOrderAmount = orderService.getSummaryOrderAmount(uids, ChargeType.recharge);
         var withdrawBalanceAmount = orderService.getSummaryOrderAmount(uids, ChargeType.withdraw);
         var moneyAmount = financialRecordService.getSummaryAmount(uids, null, RecordStatus.PROCESS);
         var fixedAmount = financialRecordService.getSummaryAmount(uids, ProductType.fixed, RecordStatus.PROCESS);
         var currentAmount = financialRecordService.getSummaryAmount(uids, ProductType.current, RecordStatus.PROCESS);
-        var profitAndLossAmount = financialIncomeAccrueService.getSummaryAmount(uids);
+        var financialIncomeMap = financialIncomeAccrueService.getSummaryAmount(uids);
+        Map<Long, BigDecimal> fundIncomeMap = fundRecordService.accrueIncomeAmount(uids);
+
+        Map<Long, UserAssetsVO> userAssetsVOMap =
+                accountBalanceService.getUserAssetsVOMap(uids).stream().collect(Collectors.toMap(UserAssetsVO::getUid, o -> o));
 
         return addresses.convert(address -> {
             Long uid1 = address.getUid();
+            UserAssetsVO userAssetsVO = userAssetsVOMap.getOrDefault(uid1, UserAssetsVO.defaultInstance());
             return FinancialUserInfoVO.builder()
                     .uid(uid1)
                     .fixedAmount(fixedAmount.getOrDefault(uid1, BigDecimal.ZERO))
-                    .balanceAmount(summaryBalanceAmount.getOrDefault(uid1, BigDecimal.ZERO))
                     .rechargeAmount(rechargeOrderAmount.getOrDefault(uid1, BigDecimal.ZERO))
                     .withdrawAmount(withdrawBalanceAmount.getOrDefault(uid1, BigDecimal.ZERO))
                     .moneyAmount(moneyAmount.getOrDefault(uid1, BigDecimal.ZERO))
                     .currentAmount(currentAmount.getOrDefault(uid1, BigDecimal.ZERO))
                     .fixedAmount(fixedAmount.getOrDefault(uid1, BigDecimal.ZERO))
-                    .profitAndLossAmount(profitAndLossAmount.getOrDefault(uid1, BigDecimal.ZERO))
+                    .financialIncomeAmount(financialIncomeMap.getOrDefault(uid1, BigDecimal.ZERO))
+                    .assets(userAssetsVO.getAssets())
+                    .freezeAmount(userAssetsVO.getFreezeAmount())
+                    .remainAmount(userAssetsVO.getRemainAmount())
+                    .balanceAmount(userAssetsVO.getBalanceAmount())
+                    .fundHoldAmount(userAssetsVO.getFundHoldAmount())
+                    .borrowAmount(BigDecimal.ZERO)
+                    .fundIncomeAmount(fundIncomeMap.get(uid1))
                     .build();
         });
     }
@@ -375,12 +387,11 @@ public class FinancialServiceImpl implements FinancialService {
             IPage<Address> page = new Page<>(1, 10);
             var userInfos = financialUserPage(uid, page).getRecords();
 
-
             for (FinancialUserInfoVO financialUserInfoVO : userInfos) {
                 rechargeAmount = rechargeAmount.add(financialUserInfoVO.getRechargeAmount());
                 withdrawAmount = withdrawAmount.add(financialUserInfoVO.getWithdrawAmount());
                 moneyAmount = moneyAmount.add(financialUserInfoVO.getMoneyAmount());
-                incomeAmount = incomeAmount.add(financialUserInfoVO.getProfitAndLossAmount());
+                incomeAmount = incomeAmount.add(financialUserInfoVO.getFinancialIncomeAmount());
             }
             return FinancialSummaryDataVO.builder()
                     .rechargeAmount(rechargeAmount)
@@ -483,13 +494,11 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     public UserAmountDetailsVO userAmountDetailsVO(Long uid) {
-        BigDecimal dollarBalance = accountBalanceServiceImpl.dollarBalance(uid);
+        var userAssetsVO = accountBalanceServiceImpl.getAllUserAssetsVO(uid);
         BigDecimal dollarRecharge = orderService.uAmount(uid, ChargeType.recharge);
         BigDecimal dollarWithdraw = orderService.uAmount(uid, ChargeType.withdraw);
         FundRecordQuery fundRecordQuery = new FundRecordQuery();
         fundRecordQuery.setUid(uid);
-        BigDecimal dollarFund = fundRecordService.dollarHold(fundRecordQuery);
-        BigDecimal dollarFinancial = financialRecordService.dollarHold(uid);
 
         BigDecimal dollarFinancialIncome = financialIncomeAccrueService.getAccrueDollarAmount(uid, null);
         FundIncomeQuery fundIncomeQuery = new FundIncomeQuery();
@@ -498,11 +507,11 @@ public class FinancialServiceImpl implements FinancialService {
         BigDecimal dollarFundIncome = fundIncomeRecordService.amountDollar(fundIncomeQuery);
 
         return UserAmountDetailsVO.builder()
-                .dollarBalance(dollarBalance)
+                .dollarBalance(userAssetsVO.getBalanceAmount())
                 .dollarRecharge(dollarRecharge)
                 .dollarWithdraw(dollarWithdraw)
-                .dollarFund(dollarFund)
-                .dollarFinancial(dollarFinancial)
+                .dollarFund(userAssetsVO.getFundHoldAmount())
+                .dollarFinancial(userAssetsVO.getFinancialHoldAmount())
                 .dollarFinancialIncome(dollarFinancialIncome)
                 .dollarFundIncome(dollarFundIncome)
                 .build();
@@ -733,5 +742,7 @@ public class FinancialServiceImpl implements FinancialService {
     private CoinService coinService;
     @Resource
     private ChainConverter chainConverter;
+    @Resource
+    private AccountBalanceService accountBalanceService;
 
 }

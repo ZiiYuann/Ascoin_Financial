@@ -118,7 +118,7 @@ public class OpenApiController {
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
-        return Result.success().setData(accountBalanceService.getUserAssetsVO(uid));
+        return Result.success().setData(accountBalanceService.getAllUserAssetsVO(uid));
     }
 
     /**
@@ -135,7 +135,7 @@ public class OpenApiController {
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
-        return Result.success().setData(accountBalanceService.getUserAssetsVO(query.getUids()));
+        return Result.success().setData(accountBalanceService.getAllUserAssetsVO(query.getUids()));
     }
 
     /**

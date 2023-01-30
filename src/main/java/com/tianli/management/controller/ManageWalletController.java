@@ -99,7 +99,7 @@ public class ManageWalletController {
     @GetMapping("/accounts")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result accounts() {
-        return Result.success().setData(accountBalanceServiceImpl.getTotalSummaryData());
+        return Result.success().setData(accountBalanceServiceImpl.accountBalanceSimpleVOs());
     }
 
     /**

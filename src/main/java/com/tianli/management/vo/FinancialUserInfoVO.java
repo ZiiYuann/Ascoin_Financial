@@ -1,5 +1,6 @@
 package com.tianli.management.vo;
 
+import com.tianli.common.annotation.BigDecimalFormat;
 import lombok.Builder;
 import lombok.Data;
 
@@ -47,7 +48,44 @@ public class FinancialUserInfoVO {
     private BigDecimal fixedAmount;
 
     /**
-     * 累计盈亏
+     * 总资产
      */
-    private BigDecimal profitAndLossAmount;
+    @BigDecimalFormat("0.00")
+    private BigDecimal assets;
+
+    /**
+     * 冻结余额 美元
+     */
+    @BigDecimalFormat("0.00")
+    private BigDecimal freezeAmount;
+
+    /**
+     * 剩余余额 美元
+     */
+    @BigDecimalFormat("0.00")
+    private BigDecimal remainAmount;
+
+    /**
+     * 基金持有
+     */
+    @BigDecimalFormat("0.00")
+    private BigDecimal fundHoldAmount;
+
+    /**
+     * 借币金额
+     */
+    @BigDecimalFormat("0.00")
+    private BigDecimal borrowAmount;
+
+    /**
+     * 基金累计盈亏
+     */
+    @BigDecimalFormat("0.00")
+    private BigDecimal fundIncomeAmount;
+
+    /**
+     * 理财累计盈亏
+     */
+    @BigDecimalFormat("0.00")
+    private BigDecimal financialIncomeAmount;
 }

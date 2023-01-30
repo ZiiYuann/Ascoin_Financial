@@ -236,13 +236,11 @@ public class OpenApiService {
                 .build();
 
         if (CollectionUtils.isNotEmpty(subUids)) {
-            Map<Long, BigDecimal> summaryBalanceAmount = accountBalanceServiceImpl.getSummaryBalanceAmount(subUids);
-            BigDecimal subBalance = summaryBalanceAmount.values().stream()
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            BigDecimal subPurchaseAmount = orderService.uAmount(subUids, ChargeType.purchase);
+            var allUserAssetsVO = accountBalanceServiceImpl.getAllUserAssetsVO(subUids);
+
             BigDecimal subRedeemAmount = orderService.uAmount(subUids, ChargeType.redeem);
-            data.setSubBalance(subBalance);
-            data.setSubPurchaseAmount(subPurchaseAmount);
+            data.setSubBalance(allUserAssetsVO.getBalanceAmount());
+            data.setSubPurchaseAmount(allUserAssetsVO.getPurchaseAmount());
             data.setSubRedeemAmount(subRedeemAmount);
         }
 
@@ -280,10 +278,7 @@ public class OpenApiService {
         BigDecimal redeemAmount = orderService.uAmount(subUids, ChargeType.redeem);
         BigDecimal incomeAmount = CollectionUtils.isEmpty(subUids) ? BigDecimal.ZERO :
                 financialIncomeAccrueService.summaryIncomeByQuery(FinancialProductIncomeQuery.builder().uids(subUids).build());
-        Map<Long, BigDecimal> balanceMap = accountBalanceServiceImpl.getSummaryBalanceAmount(subUids);
-        BigDecimal balance = balanceMap.values().stream()
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
+        var allUserAssetsVO = accountBalanceServiceImpl.getAllUserAssetsVO(subUids);
 
         Page<StatisticsData> result = pageQuery.page();
         StatisticsData firstRow = StatisticsData.builder()
@@ -292,7 +287,7 @@ public class OpenApiService {
                 .purchaseAmount(purchaseAmount)
                 .redeemAmount(redeemAmount)
                 .incomeAmount(incomeAmount)
-                .balance(balance).build();
+                .balance(allUserAssetsVO.getBalanceAmount()).build();
 
         resultRecords.add(firstRow);
         resultRecords.addAll(records);

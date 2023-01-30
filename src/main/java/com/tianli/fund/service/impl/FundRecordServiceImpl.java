@@ -54,6 +54,7 @@ import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.management.vo.FundUserRecordVO;
 import com.tianli.management.vo.HoldUserAmount;
 import com.tianli.sso.init.RequestInitService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,10 +64,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -546,6 +544,28 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
                         .reduce(BigDecimal.ZERO, BigDecimal::add));
 
         return calIncomeAmount.divide(allHoldAmount, 4, RoundingMode.HALF_UP);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Map<Long, BigDecimal> accrueIncomeAmount(List<Long> uids) {
+        Map<Long, BigDecimal> result = new HashMap<>();
+        List<FundRecord> allFundRecords = list(new LambdaQueryWrapper<FundRecord>()
+                .in(FundRecord::getUid, uids));
+        Map<Long, List<FundRecord>> fundRecordMap = allFundRecords.stream().collect(Collectors.groupingBy(FundRecord::getUid));
+
+        for (Long uid : uids) {
+            List<FundRecord> fundRecords = fundRecordMap.getOrDefault(uid, (List<FundRecord>) CollectionUtils.EMPTY_COLLECTION);
+            List<AmountDto> amountDtos = fundRecords.stream().map(record -> {
+                AmountDto amountDto = new AmountDto();
+                amountDto.setAmount(record.getCumulativeIncomeAmount());
+                amountDto.setCoin(record.getCoin());
+                return amountDto;
+            }).collect(Collectors.toList());
+            BigDecimal amount = currencyService.calDollarAmount(amountDtos);
+            result.put(uid, amount);
+        }
+        return result;
     }
 
     @Override

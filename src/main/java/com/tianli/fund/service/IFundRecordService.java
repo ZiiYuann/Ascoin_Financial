@@ -18,6 +18,7 @@ import com.tianli.management.vo.HoldUserAmount;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -38,7 +39,7 @@ public interface IFundRecordService extends IService<FundRecord> {
 
     FundTransactionRecordVO purchase(FundPurchaseBO bo);
 
-    FundRecordVO detail(Long uid,Long id);
+    FundRecordVO detail(Long uid, Long id);
 
     IPage<FundIncomeRecordVO> incomeRecord(PageQuery<FundIncomeRecord> page, FundIncomeQuery query);
 
@@ -83,4 +84,12 @@ public interface IFundRecordService extends IService<FundRecord> {
     List<FundRecord> listByUidAndProductId(Long uid, Long productId);
 
     BigDecimal incomeRate(Long uid, Long productId, Long recordId);
+
+    /**
+     * 获取用户累计收益
+     *
+     * @param uids 用户id列表
+     * @return 累计收益
+     */
+    Map<Long, BigDecimal> accrueIncomeAmount(List<Long> uids);
 }
