@@ -5,6 +5,7 @@ import com.tianli.address.mapper.Address;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.financial.entity.FinancialProduct;
+import com.tianli.financial.query.ProductHoldQuery;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.HoldProductVo;
 import com.tianli.management.service.ManageUserService;
@@ -44,8 +45,9 @@ public class ManageUserController {
      */
     @GetMapping("/hold")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result<IPage<HoldProductVo>> userHold(PageQuery<FinancialProduct> pageQuery, Long uid) {
-        return new Result<>(financialService.holdProductPage(pageQuery.page(), uid, null));
+    public Result<IPage<HoldProductVo>> userHold(PageQuery<FinancialProduct> pageQuery
+            , ProductHoldQuery query) {
+        return new Result<>(financialService.holdProductPage(pageQuery.page(), query));
     }
 
     /**

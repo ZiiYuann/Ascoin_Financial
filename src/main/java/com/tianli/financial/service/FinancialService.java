@@ -8,6 +8,7 @@ import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.query.ProductHoldQuery;
 import com.tianli.financial.vo.*;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
@@ -40,7 +41,7 @@ public interface FinancialService {
     /**
      * 我的持有
      */
-    IPage<HoldProductVo> holdProductPage(IPage<FinancialProduct> page, Long uid, ProductType financialProductType);
+    IPage<HoldProductVo> holdProductPage(IPage<FinancialProduct> page, ProductHoldQuery query);
 
     /**
      * 我的持有

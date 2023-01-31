@@ -6,6 +6,7 @@ import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.financial.entity.FinancialIncomeDaily;
 import com.tianli.financial.entity.FinancialProduct;
 import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.query.ProductHoldQuery;
 import com.tianli.financial.query.RecordRenewalQuery;
 import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialRecordService;
@@ -97,7 +98,11 @@ public class FinancialController {
     @GetMapping("/hold")
     public Result myHold(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(financialService.holdProductPage(pageQuery.page(), uid, productType));
+        return Result.instance().setData(financialService.holdProductPage(pageQuery.page(),
+                ProductHoldQuery.builder()
+                        .productType(productType)
+                        .uid(uid)
+                        .build()));
     }
 
     /**

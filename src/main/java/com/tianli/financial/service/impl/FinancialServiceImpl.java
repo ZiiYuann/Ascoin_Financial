@@ -33,6 +33,7 @@ import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.mapper.ProductMapper;
 import com.tianli.financial.query.FinancialRecordQuery;
+import com.tianli.financial.query.ProductHoldQuery;
 import com.tianli.financial.service.*;
 import com.tianli.financial.vo.*;
 import com.tianli.fund.contant.FundIncomeStatus;
@@ -177,10 +178,9 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IPage<HoldProductVo> holdProductPage(IPage<FinancialProduct> page, Long uid, ProductType type) {
-
-        IPage<HoldProductVo> holdProductVoPage = productMapper.holdProductPage(page, uid, Objects.isNull(type) ? null : type.name());
-        holdProductVoPage.convert(holdProductVo -> addHoldIncomeInfo(uid, holdProductVo));
+    public IPage<HoldProductVo> holdProductPage(IPage<FinancialProduct> page, ProductHoldQuery query) {
+        IPage<HoldProductVo> holdProductVoPage = productMapper.holdProductPage(page, query);
+        holdProductVoPage.convert(holdProductVo -> addHoldIncomeInfo(query.getUid(), holdProductVo));
         holdProductVoPage.convert(this::addOtherInfo);
         return holdProductVoPage;
     }

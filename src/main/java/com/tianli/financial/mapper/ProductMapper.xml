@@ -13,7 +13,7 @@
         pro.term
         FROM (
 
-        <if test="type != 'fixed' and type != 'current' ">
+        <if test="query.type != 'fixed' and query.type != 'current' ">
             SELECT id as record_id,
             product_id,
             hold_amount,
@@ -21,14 +21,19 @@
             cumulative_income_amount AS accrue_income_amount
             FROM fund_record
             WHERE `status` = 'PROCESS'
-            AND uid = #{uid}
+            <if test="query.uid != null">
+                AND uid = #{query.uid}
+            </if>
+            <if test="query.productId != null">
+                AND product_id = #{query.productId}
+            </if>
         </if>
 
-        <if test="type == null ">
+        <if test="query.type == null ">
             UNION
         </if>
 
-        <if test="type != 'fund' ">
+        <if test="query.type != 'fund' ">
             SELECT r.id as record_id,
             r.product_id,
             r.hold_amount,
@@ -37,9 +42,14 @@
             FROM financial_record r
             LEFT JOIN financial_income_accrue i on r.uid = i.uid and r.id = i.record_id
             WHERE r.`status` = 'PROCESS'
-            AND r.uid = #{uid}
-            <if test="type == 'fixed' or type == 'current' ">
-                AND r.product_type = #{type}
+            <if test="query.uid != null">
+                AND r.uid = #{query.uid}
+            </if>
+            <if test="query.type == 'fixed' or query.type == 'current' ">
+                AND r.product_type = #{query.type}
+            </if>
+            <if test="query.productId != null">
+                AND r.product_id = #{query.productId}
             </if>
         </if>
         ) temp
