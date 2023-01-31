@@ -123,4 +123,6 @@ public class FinancialProduct {
 
     private boolean recommend;
 
+    private int recommendWeight;
+
 }

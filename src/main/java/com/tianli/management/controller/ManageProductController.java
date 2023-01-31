@@ -13,6 +13,7 @@ import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.*;
+import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.FundProductBindDropdownVO;
 import com.tianli.management.vo.MFinancialProductVO;
 import com.tianli.sso.permission.AdminPrivilege;
@@ -42,9 +43,9 @@ public class ManageProductController {
      */
     @PostMapping("/product/save")
     @AdminPrivilege(and = Privilege.理财配置)
-    public Result edit(@RequestBody @Validated FinancialProductEditQuery financialProductQuery) {
+    public Result<Void> edit(@RequestBody @Validated FinancialProductEditQuery financialProductQuery) {
         financialProductService.saveOrUpdate(financialProductQuery);
-        return Result.success();
+        return new Result<>();
     }
 
     /**
@@ -52,9 +53,9 @@ public class ManageProductController {
      */
     @DeleteMapping("/product/{productId}")
     @AdminPrivilege(and = Privilege.理财配置, api = "/management/financial/product/productId")
-    public Result delete(@PathVariable Long productId) {
+    public Result<Void> delete(@PathVariable Long productId) {
         financialProductService.delete(productId);
-        return Result.success();
+        return new Result<>();
     }
 
     /**
@@ -62,9 +63,9 @@ public class ManageProductController {
      */
     @PostMapping("/product/status")
     @AdminPrivilege(and = Privilege.理财配置)
-    public Result edit(@RequestBody @Validated FinancialProductEditStatusQuery query) {
+    public Result<Void> edit(@RequestBody @Validated FinancialProductEditStatusQuery query) {
         financialProductService.editProductStatus(query);
-        return Result.success();
+        return new Result<>();
     }
 
     /**
@@ -72,9 +73,9 @@ public class ManageProductController {
      */
     @GetMapping("/products")
     @AdminPrivilege(and = Privilege.理财配置)
-    public Result products(PageQuery<FinancialProduct> page, FinancialProductsQuery query) {
+    public Result<IPage<MFinancialProductVO>> products(PageQuery<FinancialProduct> page, FinancialProductsQuery query) {
         IPage<MFinancialProductVO> financialProductVOIPage = financialProductService.mSelectListByQuery(page.page(), query);
-        return Result.success(financialProductVOIPage);
+        return new Result<>(financialProductVOIPage);
     }
 
     /**
@@ -82,10 +83,10 @@ public class ManageProductController {
      */
     @GetMapping("/orders")
     @AdminPrivilege(and = Privilege.理财配置)
-    public Result orders(PageQuery<OrderFinancialVO> page, FinancialOrdersQuery query) {
+    public Result<IPage<OrderFinancialVO>> orders(PageQuery<OrderFinancialVO> page, FinancialOrdersQuery query) {
         query.setDefaultChargeType(List.of(ChargeType.purchase, ChargeType.redeem, ChargeType.transfer, ChargeType.settle));
         IPage<OrderFinancialVO> financialOrderVOIPage = financialService.orderPage(page.page(), query);
-        return Result.success(financialOrderVOIPage);
+        return new Result<>(financialOrderVOIPage);
     }
 
 
@@ -94,8 +95,9 @@ public class ManageProductController {
      */
     @GetMapping("/record/income")
     @AdminPrivilege(and = Privilege.理财配置)
-    public Result income(PageQuery<FinancialIncomeAccrueDTO> page, FinancialProductIncomeQuery query) {
-        return Result.success(financialService.incomeRecordPage(page.page(), query));
+    public Result<IPage<FinancialIncomeAccrueDTO>> income(PageQuery<FinancialIncomeAccrueDTO> page
+            , FinancialProductIncomeQuery query) {
+        return new Result<>(financialService.incomeRecordPage(page.page(), query));
     }
 
     /**
@@ -103,29 +105,30 @@ public class ManageProductController {
      */
     @GetMapping("/record/income/data")
     @AdminPrivilege(and = Privilege.理财配置)
-    public Result incomeData(FinancialProductIncomeQuery query) {
-        return Result.success(financialService.incomeSummaryData(query));
+    public Result<FinancialSummaryDataVO> incomeData(FinancialProductIncomeQuery query) {
+        return new Result<>(financialService.incomeSummaryData(query));
     }
 
     /**
      * 产品下拉
      */
     @GetMapping("/product/dropdown")
-    public Result dropdownList(ProductType type) {
+    public Result<List<FundProductBindDropdownVO>> dropdownList(ProductType type) {
         List<FundProductBindDropdownVO> dropdownVOS = financialService.fundProductBindDropdownList(type);
-        return Result.success(dropdownVOS);
+        return new Result<>(dropdownVOS);
     }
 
     /**
      * 修改产品推荐状态
      */
     @PutMapping("/product/recommend")
-    public Result productRecommend(@RequestBody String str) {
+    public Result<Void> productRecommend(@RequestBody String str) {
         JSONObject jsonObject = JSONUtil.parseObj(str);
         Long id = jsonObject.get("id", Long.class);
+        Integer recommendWeight = jsonObject.getInt("recommendWeight");
         Boolean recommend = jsonObject.get("recommend", Boolean.class);
-        financialProductService.modifyRecommend(id, recommend);
-        return Result.success();
+        financialProductService.modifyRecommend(id, recommend, recommendWeight);
+        return new Result<>();
     }
 
 

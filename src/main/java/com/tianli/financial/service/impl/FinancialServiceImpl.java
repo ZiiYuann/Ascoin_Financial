@@ -168,7 +168,7 @@ public class FinancialServiceImpl implements FinancialService {
         incomeByRecordIdVO.setMinRate(product.getMinRate());
         incomeByRecordIdVO.setRateType(product.getRateType());
         incomeByRecordIdVO.setRate(product.getRate());
-        incomeByRecordIdVO.setEarningRate(financialProductService.incomeRate(uid, record.getProductId(), recordId));
+        incomeByRecordIdVO.setEarningRate(financialProductService.incomeRate(uid, recordId));
         if (Objects.nonNull(product.getTotalQuota())) {
             incomeByRecordIdVO.setSellOut(MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO)
                     .compareTo(product.getTotalQuota()) >= 0);
@@ -291,6 +291,7 @@ public class FinancialServiceImpl implements FinancialService {
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
                 .eq(FinancialProduct::getStatus, ProductStatus.open)
                 .eq(FinancialProduct::isRecommend, true)
+                .orderByDesc(FinancialProduct :: getRecommendWeight)
                 .orderByDesc(FinancialProduct::getRate); // 年化利率降序
 
         List<RecommendProductVO> result = financialProductService.list(query)

@@ -121,6 +121,7 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
     @Transactional
     public void saveOrUpdate(FinancialProductEditQuery financialProductQuery) {
         FinancialProduct productDO = financialConverter.toDO(financialProductQuery);
+
         if (Objects.isNull(financialProductQuery.getLimitPurchaseQuota())) {
             String sysPurchaseMinAmount = configService.get(SYSTEM_PURCHASE_MIN_AMOUNT);
             productDO.setLimitPurchaseQuota(BigDecimal.valueOf(Double.parseDouble(sysPurchaseMinAmount)));
@@ -139,16 +140,15 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
                 ErrorCodeEnum.PRODUCT_CAN_NOT_EDIT.throwException();
             }
             // 如果年化利率修改，需要更新持有记录表
-            if (!product.getRate().equals(productDO.getRate())) {
-                if (ProductType.fund.equals(product.getType())) {
-                    fundRecordService.updateRateByProductId(product.getId(), productDO.getRate());
-                } else {
-                    financialRecordService.updateRateByProductId(product.getId(), productDO.getRate());
-                }
+            boolean rateChange = !product.getRate().equals(productDO.getRate());
+            if (rateChange && ProductType.fund.equals(product.getType())) {
+                fundRecordService.updateRateByProductId(product.getId(), productDO.getRate());
+            }
+            if (rateChange && !ProductType.fund.equals(product.getType())) {
+                financialRecordService.updateRateByProductId(product.getId(), productDO.getRate());
             }
 
             productDO.setUpdateTime(LocalDateTime.now());
-
             super.updateById(productDO);
         }
 
@@ -158,25 +158,17 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
                 ErrorCodeEnum.throwException("配置为阶段利率模式，阶段利率列表不能为空");
             }
             financialProductLadderRateService.insert(productDO.getId(), ladderRates);
-            var maxOptional = ladderRates.stream().map(FinancialProductLadderRateIoUQuery::getRate).max(BigDecimal::compareTo);
-            var minOptional = ladderRates.stream().map(FinancialProductLadderRateIoUQuery::getRate).min(BigDecimal::compareTo);
+            var max = ladderRates.stream().map(FinancialProductLadderRateIoUQuery::getRate)
+                    .max(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
+            var min = ladderRates.stream().map(FinancialProductLadderRateIoUQuery::getRate)
+                    .min(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
             productDO.setRate(ladderRates.get(0).getRate());
-            BigDecimal max = BigDecimal.ZERO;
-            BigDecimal min = BigDecimal.ZERO;
-            if (maxOptional.isPresent()) {
-                max = maxOptional.get();
-            }
-            if (minOptional.isPresent()) {
-                min = minOptional.get();
-            }
+
             productDO.setMinRate(min);
             productDO.setMaxRate(max);
             super.updateById(productDO);
-
-
         }
 
-        redisTemplate.delete(RedisConstants.RECOMMEND_PRODUCT);
     }
 
     /**
@@ -190,13 +182,17 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
             product = Optional.ofNullable(product).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
 
             if (ProductStatus.close.equals(query.getStatus())) {
+                if (product.isRecommend()) {
+                    ErrorCodeEnum.throwException("下线前请先修改推荐状态为关闭");
+                }
                 redisLock.lock(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + query.getProductId(), 5L, TimeUnit.SECONDS);
             }
 
             // 如果是基金产品需要上线，需要查看产品是否与代理人绑定
-            if (ProductStatus.open.equals(query.getStatus()) && ProductType.fund.equals(product.getType())) {
-                Optional.ofNullable(walletAgentProductService.getByProductId(product.getId()))
-                        .orElseThrow(ErrorCodeEnum.FUND_PRODUCT_OPEN_NEED_AGENT::generalException);
+            if (ProductStatus.open.equals(query.getStatus())
+                    && ProductType.fund.equals(product.getType())
+                    && Objects.isNull(walletAgentProductService.getByProductId(product.getId()))) {
+                throw ErrorCodeEnum.FUND_PRODUCT_OPEN_NEED_AGENT.generalException();
             }
 
             product.setUpdateTime(LocalDateTime.now());
@@ -209,7 +205,6 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
             throw e;
         } finally {
             redisLock.unlock(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + query.getProductId());
-            redisTemplate.delete(RedisConstants.RECOMMEND_PRODUCT);
         }
 
     }
@@ -233,6 +228,11 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
         if (Objects.nonNull(query.getCoin())) {
             queryWrapper = queryWrapper.eq(FinancialProduct::getCoin, query.getCoin());
         }
+
+        if (Objects.nonNull(query.getRecommend())) {
+            queryWrapper = queryWrapper.eq(FinancialProduct::isRecommend, query.getRecommend());
+        }
+
 
         queryWrapper = queryWrapper.orderByDesc(FinancialProduct::getCreateTime);
 
@@ -298,11 +298,8 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
     @Override
     @SuppressWarnings("unchecked")
     public FinancialPurchaseResultVO purchaseOperation(Long uid, PurchaseQuery purchaseQuery, Order order) {
-        FinancialProduct product = financialProductService.getById(purchaseQuery.getProductId());
+        FinancialProduct product = this.getById(purchaseQuery.getProductId());
         BigDecimal amount = purchaseQuery.getAmount();
-
-//        validRemainAmount(uid, purchaseQuery.getCoin(), amount);
-//        validPurchaseAmount(uid, product, amount);
 
         // 如果是活期，判断是否已经存在申购记录，如果有的话，额外添加待记息金额不生成新的记录
         FinancialRecord financialRecord = FinancialRecord.builder().build();
@@ -354,8 +351,6 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
     @Resource
     private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
-    private FinancialProductService financialProductService;
-    @Resource
     private OrderService orderService;
 
 
@@ -375,16 +370,21 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
      * 修改产品推荐状态
      */
     @Transactional
-    public void modifyRecommend(Long id, Boolean recommend) {
-        financialProductMapper.modifyRecommend(id, recommend);
-        redisTemplate.delete(RedisConstants.RECOMMEND_PRODUCT);
+    public void modifyRecommend(Long id, Boolean recommend, Integer recommendWeight) {
+        if (Objects.nonNull(recommend)) {
+            financialProductMapper.modifyRecommend(id, recommend);
+        }
+        if (Objects.nonNull(recommendWeight)) {
+            financialProductMapper.modifyRecommendWeight(id, recommendWeight);
+        }
+        redisTemplate.delete(RedisConstants.RECOMMEND_PRODUCT); // 删除缓存
     }
 
     /**
      * 预计收益接口
      */
     public ExpectIncomeVO expectIncome(Long productId, BigDecimal amount) {
-        FinancialProduct product = financialProductService.getById(productId);
+        FinancialProduct product = this.getById(productId);
         ExpectIncomeVO expectIncomeVO = new ExpectIncomeVO();
 
         if (Objects.isNull(product)) {
@@ -407,7 +407,7 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
         return expectIncomeVO;
     }
 
-    public BigDecimal incomeRate(Long uid, Long productId, Long recordId) {
+    public BigDecimal incomeRate(Long uid, Long recordId) {
         FinancialIncomeAccrue financialIncomeAccrue = financialIncomeAccrueService.getByRecordId(uid, recordId);
         if (Objects.isNull(financialIncomeAccrue)) {
             return BigDecimal.ZERO;

@@ -19,4 +19,6 @@ public class FinancialProductsQuery {
     private ProductStatus status;
 
     private String coin;
+
+    private Boolean recommend;
 }

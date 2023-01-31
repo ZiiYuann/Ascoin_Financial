@@ -33,4 +33,7 @@ public interface FinancialProductMapper extends BaseMapper<FinancialProduct> {
 
     @Update("UPDATE financial_product SET recommend = #{recommend} WHERE id = #{id}")
     int modifyRecommend(@Param("id") Long id, @Param("recommend") Boolean recommend);
+
+    @Update("UPDATE financial_product SET recommend_weight = #{recommendWeight} WHERE id = #{id}")
+    int modifyRecommendWeight(@Param("id") Long id, @Param("recommendWeight") Integer recommendWeight);
 }
