@@ -20,6 +20,7 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.financial.query.FinancialRecordQuery;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.DollarIncomeVO;
@@ -295,7 +296,8 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
 
 
         BigDecimal fundHoldAmount = MoreObjects.firstNonNull(fundRecordService.holdSingleCoin(uid, coinName, null), BigDecimal.ZERO);
-        BigDecimal financialHoldAmount = MoreObjects.firstNonNull(financialRecordService.holdSingleCoin(uid, coinName), BigDecimal.ZERO);
+        BigDecimal financialHoldAmount = MoreObjects.firstNonNull(financialRecordService
+                .holdSingleCoin(FinancialRecordQuery.builder().uid(uid).coin(coinName).build()), BigDecimal.ZERO);
 
         BigDecimal assets = accountBalanceVO.getRemain().add(accountBalanceVO.getFreeze()).add(fundHoldAmount).add(financialHoldAmount);
 
@@ -319,7 +321,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         BigDecimal fundHoldAmount = fundRecordService.dollarHold(FundRecordQuery.builder().uid(uid).build());
 
         // 理财持有
-        BigDecimal financialHoldAmount = financialRecordService.dollarHold(uid);
+        BigDecimal financialHoldAmount = financialRecordService.dollarHold(FinancialRecordQuery.builder().uid(uid).build());
 
         // 申购金额
         BigDecimal purchaseAmount = orderService.uAmount(uid, ChargeType.purchase);

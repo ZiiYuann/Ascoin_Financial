@@ -28,7 +28,7 @@ public class ManageUserService {
     private IFundRecordService fundRecordService;
 
     /**
-     * 理财用户信息
+     * 理财用户信息y
      */
     public IPage<MUserListVO> financialUserPage(String queryUid, IPage<Address> page) {
         IPage<FinancialUserInfoVO> financialUserInfoVOIPage = financialService.financialUserPage(queryUid, page);

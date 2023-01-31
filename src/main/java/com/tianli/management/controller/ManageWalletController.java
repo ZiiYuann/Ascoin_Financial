@@ -1,6 +1,7 @@
 package com.tianli.management.controller;
 
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.vo.AccountBalanceSimpleVO;
 import com.tianli.chain.entity.ChainCallbackLog;
 import com.tianli.chain.entity.WalletImputation;
 import com.tianli.chain.entity.WalletImputationLog;
@@ -18,10 +19,12 @@ import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.Result;
-import com.tianli.management.service.FinancialBoardWalletService;
+import com.tianli.management.query.FinancialChargeQuery;
+import com.tianli.management.query.WalletImputationLogQuery;
+import com.tianli.management.query.WalletImputationManualQuery;
+import com.tianli.management.query.WalletImputationQuery;
 import com.tianli.management.service.ServiceFeeService;
 import com.tianli.management.vo.FinancialSummaryDataVO;
-import com.tianli.management.query.*;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import com.tianli.sso.permission.admin.AdminContent;
@@ -31,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -43,8 +47,6 @@ public class ManageWalletController {
 
     @Resource
     private ChargeService chargeService;
-    @Resource
-    private FinancialBoardWalletService financialWalletBoardService;
     @Resource
     private WalletImputationService walletImputationService;
     @Resource
@@ -61,16 +63,6 @@ public class ManageWalletController {
     private RedissonClient redissonClient;
     @Resource
     private ServiceFeeService serviceFeeService;
-
-    /**
-     * 【云钱包数据展板】
-     */
-    @GetMapping("/board")
-    @AdminPrivilege(and = Privilege.理财管理)
-    public Result board(FinancialBoardQuery query) {
-        query.calTime();
-        return Result.success().setData(financialWalletBoardService.walletBoard(query));
-    }
 
     /**
      * 【云钱包充值记录】列表
@@ -98,8 +90,8 @@ public class ManageWalletController {
      */
     @GetMapping("/accounts")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result accounts() {
-        return Result.success().setData(accountBalanceServiceImpl.accountBalanceSimpleVOs());
+    public Result<List<AccountBalanceSimpleVO>> accounts() {
+        return new Result<>(accountBalanceServiceImpl.accountBalanceSimpleVOs());
     }
 
     /**
@@ -245,14 +237,6 @@ public class ManageWalletController {
     public Result withdrawServiceFeeInit() {
         serviceFeeService.init();
         return Result.success();
-    }
-
-    /**
-     * 提现手续费展板
-     */
-    @GetMapping("/serviceFee/board")
-    public Result withdrawServiceFeeBoard(TimeQuery timeQuery, Byte type) {
-        return Result.success(serviceFeeService.board(timeQuery, type));
     }
 
 }

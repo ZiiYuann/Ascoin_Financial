@@ -14,7 +14,7 @@ import java.util.List;
  **/
 @Data
 @Builder
-public class FinancialProductBoardSummaryVO {
+public class BoardFinancialVO {
 
     // 申购
     private BigDecimal purchaseAmount;

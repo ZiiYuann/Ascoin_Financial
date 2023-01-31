@@ -8,7 +8,8 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedisLock;
-import com.tianli.management.vo.FinancialProductBoardSummaryVO;
+import com.tianli.financial.query.FinancialRecordQuery;
+import com.tianli.management.vo.BoardFinancialVO;
 import com.tianli.management.vo.FinancialProductBoardVO;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.service.FinancialIncomeAccrueService;
@@ -78,8 +79,8 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
         BigDecimal settleAmount = orderService.amountDollarSumByCompleteTime(ChargeType.settle, startTime, endTime);
         BigDecimal transferAmount = orderService.amountDollarSumByCompleteTime(ChargeType.transfer, startTime, endTime);
         BigDecimal income = Optional.ofNullable(financialIncomeAccrueService.getAmountDollarSum(endTime)).orElse(BigDecimal.ZERO);
-        BigDecimal fixedProductCount = financialRecordService.dollarHold(ProductType.fixed);
-        BigDecimal currentProductCount = financialRecordService.dollarHold(ProductType.current);
+        BigDecimal fixedProductCount = financialRecordService.dollarHold(new FinancialRecordQuery(ProductType.fixed));
+        BigDecimal currentProductCount = financialRecordService.dollarHold(new FinancialRecordQuery(ProductType.current));
         BigDecimal totalProductCount = currentProductCount.add(fixedProductCount);
         BigInteger holdUserCount = financialRecordService.countUid();
 
@@ -95,7 +96,7 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
         return today;
     }
 
-    public FinancialProductBoardSummaryVO productBoard(FinancialBoardQuery query) {
+    public BoardFinancialVO productBoard(FinancialBoardQuery query) {
         // 按用户输入时间
         FinancialBoardProduct financialBoardProduct = this.getFinancialBoardProduct(query.getStartTime(), query.getEndTime(), null);
 
@@ -127,10 +128,10 @@ public class FinancialBoardProductService extends ServiceImpl<FinancialBoardProd
             financialProductBoardVOMap.put(dateTimeStr, financialProductBoardVO);
         });
 
-        FinancialProductBoardSummaryVO financialProductBoardSummaryVO =
+        BoardFinancialVO boardFinancialVO =
                 managementConverter.toFinancialProductBoardSummaryVO(financialBoardProduct);
-        financialProductBoardSummaryVO.setData(financialProductBoardVOMap.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList()));
-        return financialProductBoardSummaryVO;
+        boardFinancialVO.setData(financialProductBoardVOMap.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList()));
+        return boardFinancialVO;
     }
 
 

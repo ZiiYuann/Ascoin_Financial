@@ -61,7 +61,7 @@
     </update>
 
     <select id="holdAmount" resultType="com.tianli.management.dto.AmountDto">
-        SELECT hold_amount as amount,
+        SELECT sum(hold_amount) as amount,
         coin
         FROM financial_record
         <where>
@@ -78,6 +78,7 @@
                 and uid = #{uid}
             </if>
             AND status = 'PROCESS'
+            GROUP BY coin
         </where>
     </select>
 

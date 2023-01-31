@@ -3,6 +3,7 @@ package com.tianli.financial.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
+import com.tianli.financial.query.FinancialRecordQuery;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.dto.ProductSummaryDataDto;
 import org.apache.ibatis.annotations.Mapper;
@@ -54,9 +55,7 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
     /**
      * 用户还持用产品的数量
      */
-    List<AmountDto> holdAmount(@Param("productType") ProductType productType,
-                               @Param("coin") String coin,
-                               @Param("uid") Long uid);
+    List<AmountDto> holdAmount(FinancialRecordQuery query);
 
     /**
      * 还持有产品的用户数量

@@ -13,6 +13,7 @@ import com.tianli.fund.query.FundRecordQuery;
 import com.tianli.fund.query.FundTransactionQuery;
 import com.tianli.fund.vo.*;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tianli.management.dto.AmountDto;
 import com.tianli.management.vo.FundUserRecordVO;
 import com.tianli.management.vo.HoldUserAmount;
 
@@ -65,10 +66,7 @@ public interface IFundRecordService extends IService<FundRecord> {
      */
     BigDecimal dollarHold(FundRecordQuery query);
 
-    /**
-     * 获取持用金额( u )
-     */
-    BigDecimal dollarHold(Long uid, String coin, Long agentId);
+    List<AmountDto> hold(FundRecordQuery query);
 
     /**
      * 获取持用单币种金额

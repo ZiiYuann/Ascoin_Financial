@@ -32,6 +32,7 @@ import com.tianli.financial.enums.ProductStatus;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.mapper.ProductMapper;
+import com.tianli.financial.query.FinancialRecordQuery;
 import com.tianli.financial.service.*;
 import com.tianli.financial.vo.*;
 import com.tianli.fund.contant.FundIncomeStatus;
@@ -111,7 +112,8 @@ public class FinancialServiceImpl implements FinancialService {
         }
 
         // 基金数据
-        BigDecimal fundHoldDollarAmount = fundRecordService.dollarHold(uid, null, null)
+        BigDecimal fundHoldDollarAmount = fundRecordService.dollarHold(
+                        FundRecordQuery.builder().uid(uid).build())
                 .setScale(2, RoundingMode.DOWN);
         BigDecimal fundTotalIncome = fundIncomeRecordService.amountDollar(uid, FundIncomeStatus.audit_success, null, null)
                 .setScale(2, RoundingMode.DOWN);
@@ -379,8 +381,8 @@ public class FinancialServiceImpl implements FinancialService {
         query.setChargeType(ChargeType.withdraw);
         withdrawAmount = orderService.orderAmountDollarSum(query);
         // 持有数量
-        BigDecimal currentAmount = financialRecordService.dollarHold(ProductType.current);
-        BigDecimal fixedAmount = financialRecordService.dollarHold(ProductType.fixed);
+        BigDecimal currentAmount = financialRecordService.dollarHold(new FinancialRecordQuery(ProductType.current));
+        BigDecimal fixedAmount = financialRecordService.dollarHold(new FinancialRecordQuery(ProductType.fixed));
         moneyAmount = moneyAmount.add(currentAmount).add(fixedAmount);
         // 累计盈亏
         incomeAmount = financialIncomeAccrueService.summaryIncomeByQuery(new FinancialProductIncomeQuery());

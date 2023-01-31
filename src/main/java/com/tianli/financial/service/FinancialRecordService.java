@@ -13,6 +13,7 @@ import com.tianli.financial.entity.FinancialRecord;
 import com.tianli.financial.enums.ProductType;
 import com.tianli.financial.enums.RecordStatus;
 import com.tianli.financial.mapper.FinancialRecordMapper;
+import com.tianli.financial.query.FinancialRecordQuery;
 import com.tianli.financial.query.RecordRenewalQuery;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.dto.ProductSummaryDataDto;
@@ -275,30 +276,18 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
     /**
      * 正持有的产品数量
      */
-    public BigDecimal dollarHold(ProductType productType) {
-        List<AmountDto> amountDtos = financialRecordMapper.holdAmount(productType, null, null);
-        return currencyService.calDollarAmount(amountDtos);
-    }
-
-    /**
-     * 正持有的产品数量
-     */
-    public BigDecimal dollarHold(Long uid) {
-        List<AmountDto> amountDtos = financialRecordMapper.holdAmount(null, null, uid);
-        return currencyService.calDollarAmount(amountDtos);
-    }
-
-    /**
-     * 正持有的产品数量
-     */
-    public BigDecimal holdSingleCoin(Long uid, String coin) {
-        List<AmountDto> amountDtos = financialRecordMapper.holdAmount(null, coin, uid);
+    public BigDecimal holdSingleCoin(FinancialRecordQuery query) {
+        List<AmountDto> amountDtos = financialRecordMapper.holdAmount(query);
         return amountDtos.stream().map(AmountDto::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public BigDecimal dollarHold() {
-        List<AmountDto> amountDtos = financialRecordMapper.holdAmount(null, null, null);
+    public BigDecimal dollarHold(FinancialRecordQuery query) {
+        List<AmountDto> amountDtos = financialRecordMapper.holdAmount(query);
         return currencyService.calDollarAmount(amountDtos);
+    }
+
+    public List<AmountDto> hold(FinancialRecordQuery query) {
+        return financialRecordMapper.holdAmount(query);
     }
 
     /**

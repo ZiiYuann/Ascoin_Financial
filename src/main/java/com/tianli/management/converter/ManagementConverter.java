@@ -21,9 +21,9 @@ public interface ManagementConverter {
 
     FinancialProductBoardVO toVO(FinancialBoardProduct FinancialProductBoard);
 
-    FinancialProductBoardSummaryVO toFinancialProductBoardSummaryVO(FinancialBoardProduct financialBoardProduct);
+    BoardFinancialVO toFinancialProductBoardSummaryVO(FinancialBoardProduct financialBoardProduct);
 
-    FinancialWalletBoardSummaryVO toFinancialWalletBoardSummaryVO(FinancialBoardWallet financialBoardWallet);
+    BoardWalletVO toFinancialWalletBoardSummaryVO(FinancialBoardWallet financialBoardWallet);
 
     MFinancialProductVO toMFinancialProductVO(FinancialProduct financialProduct);
 
@@ -32,7 +32,7 @@ public interface ManagementConverter {
 
     HotWalletDetailedVO toHotWalletDetailedVO(HotWalletDetailed hotWalletDetailed);
 
-    ServiceFeeVO toServiceFeeVO(ServiceFee serviceFee);
+    BoardServiceFeeVO toServiceFeeVO(ServiceFee serviceFee);
 
     Coin toDO(CoinIoUQuery query);
 

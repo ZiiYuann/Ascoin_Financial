@@ -186,6 +186,10 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
         return currencyService.calDollarAmount(amountDtos);
     }
 
+    public List<AmountDto> amount(OrderMQuery query) {
+        return orderMapper.amounts(query);
+    }
+
     public Order getByOrderNo(String orderNo) {
         LambdaQueryWrapper<Order> query = new LambdaQueryWrapper<Order>().eq(Order::getOrderNo, orderNo);
         return orderMapper.selectOne(query);

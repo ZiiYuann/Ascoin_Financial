@@ -13,7 +13,6 @@ import com.tianli.financial.service.FinancialProductService;
 import com.tianli.financial.service.FinancialService;
 import com.tianli.financial.vo.OrderFinancialVO;
 import com.tianli.management.query.*;
-import com.tianli.management.service.FinancialBoardProductService;
 import com.tianli.management.vo.FundProductBindDropdownVO;
 import com.tianli.management.vo.MFinancialProductVO;
 import com.tianli.sso.permission.AdminPrivilege;
@@ -36,19 +35,7 @@ public class ManageProductController {
     private FinancialProductService financialProductService;
     @Resource
     private FinancialService financialService;
-    @Resource
-    private FinancialBoardProductService financialProductBoardService;
 
-
-    /**
-     * 数据展板
-     */
-    @GetMapping("/board")
-    @AdminPrivilege(and = Privilege.理财配置)
-    public Result edit(FinancialBoardQuery query) {
-        query.calTime();
-        return Result.success().setData(financialProductBoardService.productBoard(query));
-    }
 
     /**
      * 新增或者修改产品
@@ -118,16 +105,6 @@ public class ManageProductController {
     @AdminPrivilege(and = Privilege.理财配置)
     public Result incomeData(FinancialProductIncomeQuery query) {
         return Result.success(financialService.incomeSummaryData(query));
-    }
-
-    /**
-     * 手动更新展板数据
-     */
-    @PutMapping("/board/manual")
-    @AdminPrivilege(and = Privilege.理财配置)
-    public Result boardManual(@RequestBody TimeQuery query) {
-        financialService.boardManual(query);
-        return Result.success();
     }
 
     /**

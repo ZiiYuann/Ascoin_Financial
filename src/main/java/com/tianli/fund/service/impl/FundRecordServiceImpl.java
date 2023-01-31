@@ -233,7 +233,7 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         List<AmountDto> waitPayInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncome -> new AmountDto(fundIncome.getWaitInterestAmount(), fundIncome.getCoin())).collect(Collectors.toList());
         List<AmountDto> payInterestAmount = fundIncomeAmountDTOS.stream().map(fundIncome -> new AmountDto(fundIncome.getPayInterestAmount(), fundIncome.getCoin())).collect(Collectors.toList());
         return FundMainPageVO.builder()
-                .holdAmount(this.dollarHold(uid, null, null))
+                .holdAmount(this.dollarHold(FundRecordQuery.builder().uid(uid).build()))
                 .payInterestAmount(currencyService.calDollarAmount(payInterestAmount))
                 .waitPayInterestAmount(currencyService.calDollarAmount(waitPayInterestAmount))
                 .build();
@@ -371,7 +371,11 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
         IPage<FundUserRecordVO> fundUserRecordPage = fundRecordMapper.selectDistinctUidPage(pageQuery.page(), query);
         return fundUserRecordPage.convert(fundUserRecordVO -> {
             Long uid = fundUserRecordVO.getUid();
-            fundUserRecordVO.setHoldAmount(this.dollarHold(uid, null, query.getAgentId()));
+            fundUserRecordVO.setHoldAmount(this.dollarHold(
+                    FundRecordQuery.builder()
+                            .uid(uid)
+                            .agentId(query.getAgentId())
+                            .build()));
             // 累计利息 包括 待发 + 已经发
             fundUserRecordVO.setInterestAmount(fundIncomeRecordService.amountDollar(uid, query.getAgentId(), new ArrayList<>()));
 
@@ -464,17 +468,6 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     }
 
     @Override
-    public BigDecimal dollarHold(Long uid, String coin, Long agentId) {
-        FundRecordQuery query = new FundRecordQuery();
-        query.setUid(uid);
-        query.setCoin(query.getCoin());
-        query.setAgentId(agentId);
-        query.setCoin(coin);
-        List<AmountDto> amountDtos = fundRecordMapper.selectHoldAmount(query);
-        return currencyService.calDollarAmount(amountDtos);
-    }
-
-    @Override
     public BigDecimal holdSingleCoin(Long uid, String coin, Long agentId) {
         if (Objects.isNull(coin)) {
             throw new UnsupportedOperationException();
@@ -493,6 +486,11 @@ public class FundRecordServiceImpl extends AbstractProductOperation<FundRecordMa
     public BigDecimal dollarHold(FundRecordQuery query) {
         List<AmountDto> amountDtos = fundRecordMapper.selectHoldAmount(query);
         return currencyService.calDollarAmount(amountDtos);
+    }
+
+    @Override
+    public List<AmountDto> hold(FundRecordQuery query) {
+        return fundRecordMapper.selectHoldAmount(query);
     }
 
     @Override

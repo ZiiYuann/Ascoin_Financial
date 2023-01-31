@@ -1,7 +1,6 @@
 package com.tianli.management.vo;
 
 import com.tianli.chain.enums.ChainType;
-import com.tianli.common.blockchain.NetworkType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +20,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ServiceFeeVO {
+public class BoardServiceFeeVO {
 
     private LocalDate createTime;
 
@@ -33,21 +32,21 @@ public class ServiceFeeVO {
 
     private ChainType chainType;
 
-    private List<ServiceFeeVO> fees;
+    private List<BoardServiceFeeVO> fees;
 
-    private List<ServiceFeeVO> summaryFees;
+    private List<BoardServiceFeeVO> summaryFees;
 
-    public static ServiceFeeVO getDefault(LocalDate createTime) {
-        ServiceFeeVO withdrawServiceFeeVO = new ServiceFeeVO();
-        withdrawServiceFeeVO.setCreateTime(createTime);
-        withdrawServiceFeeVO.setAmount(BigDecimal.ZERO);
-        return withdrawServiceFeeVO;
+    public static BoardServiceFeeVO getDefault(LocalDate createTime) {
+        BoardServiceFeeVO withdrawBoardServiceFeeVO = new BoardServiceFeeVO();
+        withdrawBoardServiceFeeVO.setCreateTime(createTime);
+        withdrawBoardServiceFeeVO.setAmount(BigDecimal.ZERO);
+        return withdrawBoardServiceFeeVO;
     }
 
-    public static HashMap<ChainType, ServiceFeeVO> getDefaultChainMap() {
-        HashMap<ChainType, ServiceFeeVO> result = new HashMap<>();
+    public static HashMap<ChainType, BoardServiceFeeVO> getDefaultChainMap() {
+        HashMap<ChainType, BoardServiceFeeVO> result = new HashMap<>();
         for (ChainType chainType : ChainType.values()) {
-            ServiceFeeVO aDefault = getDefault(null);
+            BoardServiceFeeVO aDefault = getDefault(null);
             aDefault.setCoin(chainType.getMainToken());
             aDefault.setRate(BigDecimal.ONE);
             aDefault.setChainType(chainType);

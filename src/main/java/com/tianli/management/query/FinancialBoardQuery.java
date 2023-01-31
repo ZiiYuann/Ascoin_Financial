@@ -1,6 +1,6 @@
 package com.tianli.management.query;
 
-import com.tianli.exception.ErrorCodeEnum;
+import com.google.common.base.MoreObjects;
 import com.tianli.tool.time.TimeTool;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -24,7 +24,7 @@ public class FinancialBoardQuery {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
 
-    public void calTime(){
+    public void calTime() {
 
         LocalDateTime todayZero = TimeTool.startOfTime(TimeTool.Util.DAY);
         Optional.ofNullable(timeUtil).ifPresent(util -> {
@@ -32,8 +32,6 @@ public class FinancialBoardQuery {
             endTime = todayZero.plusDays(1);
         });
 
-
-       Optional.ofNullable(startTime).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException) ;
-       Optional.ofNullable(endTime).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException) ;
+        endTime = MoreObjects.firstNonNull(endTime,LocalDateTime.now());
     }
 }

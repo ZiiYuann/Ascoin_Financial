@@ -37,6 +37,7 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.financial.query.FinancialRecordQuery;
 import com.tianli.financial.service.FinancialRecordService;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.time.TimeTool;
@@ -107,7 +108,7 @@ public class BorrowCoinOrderServiceImpl extends ServiceImpl<BorrowCoinOrderMappe
     public BorrowCoinMainPageVO mainPage() {
         Long uid = requestInitService.uid();
         //存款市场总额
-        BigDecimal totalHoldAmount = financialRecordService.dollarHold();
+        BigDecimal totalHoldAmount = financialRecordService.dollarHold(new FinancialRecordQuery());
         //借款市场总额
         BigDecimal totalBorrowAmount = borrowCoinOrderMapper.selectTotalBorrowAmount();
         //借出总额

@@ -14,7 +14,7 @@ import java.util.List;
  **/
 @Data
 @Builder
-public class FinancialWalletBoardSummaryVO {
+public class BoardWalletVO {
 
     /**
      * 激活钱包总人数
