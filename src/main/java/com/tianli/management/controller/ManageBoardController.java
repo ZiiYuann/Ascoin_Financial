@@ -35,7 +35,7 @@ public class ManageBoardController {
     /**
      * 提现手续费展板
      */
-    @GetMapping("/serviceFee/board")
+    @GetMapping("/serviceFee")
     public Result<BoardServiceFeeVO> serviceFee(TimeQuery timeQuery, Byte type) {
         return new Result<>(serviceFeeService.board(timeQuery, type));
     }
