@@ -1,6 +1,7 @@
 package com.tianli.product.financial.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -18,7 +19,6 @@ import com.tianli.chain.service.CoinService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.RedisConstants;
-import com.tianli.common.RedisService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.entity.FinancialBoardWallet;
@@ -62,6 +62,7 @@ import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -281,12 +282,10 @@ public class FinancialServiceImpl implements FinancialService {
 
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<RecommendProductVO> recommendProducts() {
-
-        Object o = redisService.get(RedisConstants.RECOMMEND_PRODUCT);
-        if (Objects.nonNull(o)) {
-            return (List<RecommendProductVO>) o;
+        String cache = stringRedisTemplate.opsForValue().get(RedisConstants.RECOMMEND_PRODUCT);
+        if (Objects.nonNull(cache)) {
+            return JSONUtil.toList(cache, RecommendProductVO.class);
         }
 
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
@@ -299,7 +298,8 @@ public class FinancialServiceImpl implements FinancialService {
                 .stream().map(financialConverter::toRecommendProductVO)
                 .collect(Collectors.toList());
 
-        redisService.set(RedisConstants.RECOMMEND_PRODUCT, result, 1L, TimeUnit.DAYS);
+        stringRedisTemplate.opsForValue() // 设置缓存
+                .set(RedisConstants.RECOMMEND_PRODUCT, JSONUtil.toJsonStr(result), 1, TimeUnit.DAYS);
         return result;
     }
 
@@ -770,8 +770,6 @@ public class FinancialServiceImpl implements FinancialService {
     @Resource
     private CurrencyService currencyService;
     @Resource
-    private RedisService redisService;
-    @Resource
     private CoinBaseService coinBaseService;
     @Resource
     private CoinService coinService;
@@ -779,5 +777,8 @@ public class FinancialServiceImpl implements FinancialService {
     private ChainConverter chainConverter;
     @Resource
     private AccountBalanceService accountBalanceService;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
 
 }

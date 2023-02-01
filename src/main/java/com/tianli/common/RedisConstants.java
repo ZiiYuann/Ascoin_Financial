@@ -25,7 +25,7 @@ public class RedisConstants {
      */
     public static String RED_ENVELOPE_GET_RECORD = "red:get:record:";
 
-    public static String RECOMMEND_PRODUCT = "product:recommend";
+    public static String RECOMMEND_PRODUCT = "recommend:list";
 
     public static String ACCOUNT_TRANSACTION_TYPE = "account:transaction:type";
 
