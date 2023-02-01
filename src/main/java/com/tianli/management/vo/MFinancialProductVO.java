@@ -1,6 +1,6 @@
 package com.tianli.management.vo;
 
-import com.tianli.financial.enums.*;
+import com.tianli.product.financial.enums.*;
 import lombok.Data;
 
 import java.math.BigDecimal;

@@ -1,9 +1,9 @@
 package com.tianli;
 
-import com.tianli.financial.entity.FinancialProductLadderRate;
-import com.tianli.financial.entity.FinancialRecord;
-import com.tianli.financial.enums.ProductType;
-import com.tianli.financial.enums.PurchaseTerm;
+import com.tianli.product.financial.entity.FinancialProductLadderRate;
+import com.tianli.product.financial.entity.FinancialRecord;
+import com.tianli.product.financial.enums.ProductType;
+import com.tianli.product.financial.enums.PurchaseTerm;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

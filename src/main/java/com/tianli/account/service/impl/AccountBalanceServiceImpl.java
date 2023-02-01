@@ -20,12 +20,12 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.financial.query.FinancialRecordQuery;
-import com.tianli.financial.service.FinancialRecordService;
-import com.tianli.financial.service.FinancialService;
-import com.tianli.financial.vo.DollarIncomeVO;
-import com.tianli.fund.query.FundRecordQuery;
-import com.tianli.fund.service.IFundRecordService;
+import com.tianli.product.financial.query.FinancialRecordQuery;
+import com.tianli.product.financial.service.FinancialRecordService;
+import com.tianli.product.financial.service.FinancialService;
+import com.tianli.product.financial.vo.DollarIncomeVO;
+import com.tianli.product.fund.query.FundRecordQuery;
+import com.tianli.product.fund.service.IFundRecordService;
 import com.tianli.management.dto.AmountDto;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -83,13 +83,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         reduce(uid, type, coin, null, amount, sn, des);
     }
 
-    /**
-     * 增加金额
-     *
-     * @param uid    用户id
-     * @param amount 金额
-     * @param sn     订单号
-     */
+    @Override
     @Transactional
     public void increase(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
         increase(uid, type, coin, null, amount, sn, des);
@@ -122,6 +116,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.reduce, amount, sn, des);
     }
 
+    @Override
     @Transactional
     public void decrease(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
         decrease(uid, type, coin, null, amount, sn, des);

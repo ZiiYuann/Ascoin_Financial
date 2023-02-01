@@ -7,14 +7,15 @@ import com.tianli.common.RedisLockConstants;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.fund.contant.FundCycle;
-import com.tianli.fund.contant.FundIncomeStatus;
-import com.tianli.fund.entity.FundIncomeRecord;
-import com.tianli.fund.entity.FundRecord;
-import com.tianli.fund.enums.FundRecordStatus;
-import com.tianli.fund.service.IFundIncomeRecordService;
-import com.tianli.fund.service.IFundRecordService;
+import com.tianli.product.fund.contant.FundCycle;
+import com.tianli.product.fund.contant.FundIncomeStatus;
+import com.tianli.product.fund.entity.FundIncomeRecord;
+import com.tianli.product.fund.entity.FundRecord;
+import com.tianli.product.fund.enums.FundRecordStatus;
+import com.tianli.product.fund.service.IFundIncomeRecordService;
+import com.tianli.product.fund.service.IFundRecordService;
 import com.tianli.management.query.FundIncomeCompensateQuery;
+import com.tianli.product.service.FinancialProductService;
 import com.tianli.tool.ApplicationContextTool;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.log4j.Log4j2;
@@ -42,6 +43,8 @@ public class FundIncomeTask {
 
     @Resource
     private IFundRecordService fundRecordService;
+    @Resource
+    private FinancialProductService financialProductService;
     @Resource
     private IFundIncomeRecordService fundIncomeRecordService;
     @Resource
@@ -88,7 +91,8 @@ public class FundIncomeTask {
             if (BigDecimal.ZERO.compareTo(fundRecord.getHoldAmount()) == 0) {
                 return;
             }
-            BigDecimal dailyIncome = fundRecordService.dailyIncome(fundRecord.getHoldAmount(), fundRecord.getRate());
+            BigDecimal dailyIncome = financialProductService.exceptDailyIncome(
+                    fundRecord.getHoldAmount(), fundRecord.getRate(), 365).getExpectIncome();
             //收益记录
             FundIncomeRecord incomeRecord = FundIncomeRecord.builder()
                     .uid(fundRecord.getUid())
@@ -146,7 +150,7 @@ public class FundIncomeTask {
             if (BigDecimal.ZERO.compareTo(holdAmount) == 0) {
                 return;
             }
-            BigDecimal dailyIncome = fundRecordService.dailyIncome(holdAmount, fundRecord.getRate());
+            BigDecimal dailyIncome = financialProductService.exceptDailyIncome(holdAmount, fundRecord.getRate(), 365).getExpectIncome();
             //收益记录
             FundIncomeRecord incomeRecord = FundIncomeRecord.builder()
                     .uid(fundRecord.getUid())

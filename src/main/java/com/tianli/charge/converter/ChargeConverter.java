@@ -3,7 +3,7 @@ package com.tianli.charge.converter;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderReview;
 import com.tianli.charge.vo.*;
-import com.tianli.financial.entity.FinancialRecord;
+import com.tianli.product.financial.entity.FinancialRecord;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")

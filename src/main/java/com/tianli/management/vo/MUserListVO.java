@@ -28,4 +28,13 @@ public class MUserListVO extends FinancialUserInfoVO {
      * 待发利息
      */
     private BigDecimal waitIncomeAmount = BigDecimal.ZERO;
+
+    /**
+     * 累计收益
+     */
+    private BigDecimal incomeAmount = BigDecimal.ZERO;
+
+    public BigDecimal getIncomeAmount() {
+        return super.getFinancialIncomeAmount().add(super.getFundIncomeAmount());
+    }
 }

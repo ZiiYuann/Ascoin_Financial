@@ -1,9 +1,11 @@
 package com.tianli.account.service;
 
+import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.vo.AccountBalanceMainPageVO;
 import com.tianli.account.vo.AccountBalanceSimpleVO;
 import com.tianli.account.vo.AccountBalanceVO;
 import com.tianli.account.vo.UserAssetsVO;
+import com.tianli.charge.enums.ChargeType;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -14,6 +16,21 @@ import java.util.List;
  * @since 2022-12-08
  **/
 public interface AccountBalanceService {
+
+    /**
+     * 减少余额
+     */
+    void decrease(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des);
+
+    /**
+     * 增加余额
+     */
+    void increase(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des);
+
+    /**
+     * 获取并且不存在的话会初始化
+     */
+    AccountBalance getAndInit(long uid, String coinName);
 
     /**
      * 获取用户云钱包汇总信息（总资产 + 各个币种资产）
@@ -90,7 +107,6 @@ public interface AccountBalanceService {
      * @return 总余额
      */
     List<AccountBalanceSimpleVO> accountBalanceSimpleVOs();
-
 
 
 }

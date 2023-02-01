@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianli.product.financial.mapper.FinancialRecordMapper">
+
+    <update id="reduce">
+        UPDATE financial_record
+        SET redeem_time   = now(),
+            update_time   = now(),
+            hold_amount   = hold_amount - #{amount},
+            income_amount = income_amount - #{amount}
+        WHERE id = #{recordId}
+          AND hold_amount = #{originalHoldAmount}
+          AND `status` = 'PROCESS'
+    </update>
+
+    <update id="reduce2">
+        UPDATE financial_record
+        SET redeem_time   = now(),
+            update_time   = now(),
+            hold_amount   = hold_amount - (#{incomeAmount} + #{waitAmount}),
+            income_amount = income_amount - #{incomeAmount},
+            wait_amount   = wait_amount - #{waitAmount}
+        WHERE id = #{recordId}
+          AND hold_amount = #{originalHoldAmount}
+          AND `status` = 'PROCESS'
+    </update>
+
+    <update id="increase">
+        UPDATE financial_record
+        SET hold_amount = hold_amount + #{amount},
+            update_time = #{now}
+        WHERE id = #{recordId}
+          AND hold_amount = #{originalAmount}
+          AND `status` = 'PROCESS'
+    </update>
+    <update id="increaseWaitAmount">
+        UPDATE financial_record
+        SET wait_amount = wait_amount + #{amount},
+            hold_amount = hold_amount + #{amount},
+            update_time = now()
+        WHERE id = #{recordId}
+          AND wait_amount = #{originalAmount}
+          AND `status` = 'PROCESS'
+    </update>
+    <update id="increaseIncomeAmount">
+        UPDATE financial_record
+        SET income_amount = income_amount + #{amount},
+            wait_amount   = 0,
+            update_time   = now()
+        WHERE id = #{recordId}
+          AND income_amount = #{originalAmount}
+          AND `status` = 'PROCESS'
+    </update>
+    <update id="updateRateByProductId">
+        UPDATE financial_record
+        SET rate = #{rate}
+        WHERE product_id = #{productId}
+          AND `status` = 'PROCESS'
+    </update>
+
+    <select id="holdAmount" resultType="com.tianli.management.dto.AmountDto">
+        SELECT sum(hold_amount) as amount,
+        coin
+        FROM financial_record
+        <where>
+            1 = 1
+            <if test="productType != null">
+                and product_type = #{productType}
+            </if>
+
+            <if test="coin != null">
+                and coin = #{coin}
+            </if>
+
+            <if test="uid != null">
+                and uid = #{uid}
+            </if>
+            AND status = 'PROCESS'
+            GROUP BY coin
+        </where>
+    </select>
+
+    <select id="listProductSummaryDataDto" resultType="com.tianli.management.dto.ProductSummaryDataDto">
+        SELECT
+        product_id ,
+        sum(hold_amount) as use_quota,
+        count(distinct uid) as hold_user_count
+        FROM financial_record
+        WHERE product_id in
+        <foreach collection="productIds" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        AND status = 'PROCESS'
+        GROUP BY product_id
+    </select>
+    <select id="firstProcessRecordMap" resultType="java.util.Map">
+        SELECT
+        product_id ,
+        max(id) as record_id
+        FROM financial_record
+        WHERE product_id in
+        <foreach collection="productIds" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        AND status = 'PROCESS'
+        AND uid = #{uid}
+        GROUP BY product_id
+    </select>
+</mapper>

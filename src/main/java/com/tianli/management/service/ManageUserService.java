@@ -2,9 +2,9 @@ package com.tianli.management.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.address.mapper.Address;
-import com.tianli.financial.service.FinancialService;
-import com.tianli.fund.service.IFundRecordService;
-import com.tianli.fund.vo.FundMainPageVO;
+import com.tianli.product.financial.service.FinancialService;
+import com.tianli.product.fund.service.IFundRecordService;
+import com.tianli.product.fund.vo.FundMainPageVO;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.vo.FinancialUserInfoVO;
 import com.tianli.management.vo.MUserListVO;

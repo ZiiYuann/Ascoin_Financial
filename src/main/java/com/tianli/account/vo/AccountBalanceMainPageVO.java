@@ -1,7 +1,7 @@
 package com.tianli.account.vo;
 
 import com.tianli.common.annotation.BigDecimalFormat;
-import com.tianli.financial.vo.DollarIncomeVO;
+import com.tianli.product.financial.vo.DollarIncomeVO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

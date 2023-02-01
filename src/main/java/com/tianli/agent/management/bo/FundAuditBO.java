@@ -1,6 +1,6 @@
 package com.tianli.agent.management.bo;
 
-import com.tianli.fund.enums.FundReviewStatus;
+import com.tianli.product.fund.enums.FundReviewStatus;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;

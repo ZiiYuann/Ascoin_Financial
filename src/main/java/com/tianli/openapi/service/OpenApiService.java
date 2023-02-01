@@ -13,7 +13,7 @@ import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.financial.service.FinancialIncomeAccrueService;
+import com.tianli.product.financial.service.FinancialIncomeAccrueService;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.openapi.IdVO;
 import com.tianli.openapi.entity.OrderRewardRecord;

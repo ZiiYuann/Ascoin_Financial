@@ -2,8 +2,6 @@ package com.tianli.management.controller;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.google.common.base.MoreObjects;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.query.RedEnvelopeGiveRecordQuery;
@@ -15,29 +13,18 @@ import com.tianli.common.PageQuery;
 import com.tianli.common.RedisService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
-import com.tianli.financial.entity.FinancialRecord;
-import com.tianli.financial.service.FinancialRecordService;
-import com.tianli.fund.entity.FundIncomeRecord;
-import com.tianli.fund.entity.FundRecord;
-import com.tianli.fund.service.IFundIncomeRecordService;
-import com.tianli.fund.service.IFundRecordService;
-import com.tianli.management.query.FundIncomeCompensateQuery;
-import com.tianli.management.query.FundIncomeTestQuery;
+import com.tianli.product.financial.service.FinancialRecordService;
+import com.tianli.product.fund.service.IFundIncomeRecordService;
+import com.tianli.product.fund.service.IFundRecordService;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.task.FinancialIncomeTask;
 import com.tianli.task.FundIncomeTask;
-import com.tianli.tool.time.TimeTool;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
