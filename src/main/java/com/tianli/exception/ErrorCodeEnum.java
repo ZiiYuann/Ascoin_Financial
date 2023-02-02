@@ -36,7 +36,7 @@ public enum ErrorCodeEnum {
     GENERATE_MNEMONIC_FAILED(126, "生成助记词失败"),
     GENERATE_CHARGE_ADDRESS_FAILED(127, "生成充值地址失败"),
     AGENT_TOKEN_NOT_NULL(128, "agent token不能为空"),
-    AGENT_TOKEN_NOT_EXIST(129, "agent token不能存在"),
+    AGENT_TOKEN_NOT_EXIST(129, "agent token不存在"),
     SESSION_TMP_R_NOT_EXIST(130, "admin_r 请求头不存在"),
     SSO_SERVICE_ERROR(131, "SSO外部服务异常"),
 

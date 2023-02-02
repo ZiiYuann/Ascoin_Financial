@@ -6,10 +6,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.charge.entity.Order;
+import com.tianli.charge.query.RedeemQuery;
 import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.RedisService;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.product.dto.PurchaseResultDto;
+import com.tianli.product.dto.RedeemResultDto;
+import com.tianli.product.entity.ProductHoldRecord;
 import com.tianli.product.financial.entity.FinancialProduct;
 import com.tianli.product.financial.entity.FinancialRecord;
 import com.tianli.product.financial.enums.BusinessType;
@@ -20,6 +24,7 @@ import com.tianli.product.financial.vo.ExpectIncomeVO;
 import com.tianli.product.fund.entity.FundRecord;
 import com.tianli.product.fund.service.IFundRecordService;
 import com.tianli.product.service.FinancialProductService;
+import com.tianli.product.service.ProductHoldRecordService;
 import com.tianli.product.service.ProductOperation;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +56,18 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
     private FinancialProductMapper financialProductMapper;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private ProductHoldRecordService productHoldRecordService;
+
+    /**
+     * purchase Operation
+     */
+    public abstract PurchaseResultDto purchaseOperation(Long uid, PurchaseQuery purchaseQuery, Order order);
+
+    /**
+     * redeem Operation
+     */
+    public abstract RedeemResultDto redeemOperation(Long uid, RedeemQuery redeemQuery);
 
     /**
      * 处理申购结束的hook
@@ -62,14 +79,23 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
     public void finishPurchase(Long uid, FinancialProduct product, PurchaseQuery purchaseQuery) {
     }
 
+    /**
+     * 各自产品类型校验
+     *
+     * @param financialProduct 产品信息
+     * @param purchaseQuery    申购请求
+     */
+    public void validProduct(FinancialProduct financialProduct, PurchaseQuery purchaseQuery) {
+    }
+
+
     @Override
     public ExpectIncomeVO expectIncome(Long productId, BigDecimal amount) {
         throw new UnsupportedOperationException();
     }
 
     @Transactional
-    @SuppressWarnings("unchecked")
-    public <R> R purchase(Long uid, PurchaseQuery purchaseQuery, Class<R> rClass, Order order) {
+    public PurchaseResultDto purchase(Long uid, PurchaseQuery purchaseQuery, Order order) {
         FinancialProduct product = financialProductService.getById(purchaseQuery.getProductId());
 
         // pre operation
@@ -78,24 +104,42 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
         this.baseValidPurchaseAmount(product, purchaseQuery.getAmount());
         this.validPurchaseAmount(uid, product, purchaseQuery.getAmount());
 
-        Object o = this.purchaseOperation(uid, purchaseQuery, order);
-
+        PurchaseResultDto resultDto = this.purchaseOperation(uid, purchaseQuery, order);
 
         // finish operation
+        productHoldRecordService.save(ProductHoldRecord.builder().uid(uid)
+                .productId(purchaseQuery.getProductId())
+                .recordId(resultDto.getRecordId())
+                .build());
         financialProductService.increaseUseQuota(product.getId(), purchaseQuery.getAmount(), product.getUseQuota());
+        this.finishPurchase(uid, product, purchaseQuery);
 
-        finishPurchase(uid, product, purchaseQuery);
-
-        if (!o.getClass().equals(rClass)) {
-            throw new UnsupportedOperationException();
-        }
-        return (R) o;
+        return resultDto;
     }
 
     @Transactional
-    public <R> R purchase(Long uid, PurchaseQuery purchaseQuery, Class<R> rClass) {
-        return purchase(uid, purchaseQuery, rClass, null);
+    public PurchaseResultDto purchase(Long uid, PurchaseQuery purchaseQuery) {
+        return purchase(uid, purchaseQuery, null);
     }
+
+    /**
+     * redeem product
+     *
+     * @param uid         uid
+     * @param redeemQuery query
+     * @return result dto
+     */
+    @Transactional
+    public RedeemResultDto redeem(Long uid, RedeemQuery redeemQuery) {
+
+        // pre redeem
+
+        RedeemResultDto resultDto = this.redeemOperation(uid, redeemQuery);
+
+        // after redeem
+        return resultDto;
+    }
+
 
     @Override
     public ExpectIncomeVO exceptDailyIncome(BigDecimal holdAmount, BigDecimal rate, int days) {
@@ -139,10 +183,6 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
 
     }
 
-    public void validProduct(FinancialProduct financialProduct, PurchaseQuery purchaseQuery) {
-
-    }
-
     /**
      * 校验账户额度
      *
@@ -154,6 +194,19 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
         AccountBalance accountBalanceBalance = accountBalanceServiceImpl.getAndInit(uid, currencyCoin);
         if (accountBalanceBalance.getRemain().compareTo(amount) < 0) {
             ErrorCodeEnum.INSUFFICIENT_BALANCE.throwException();
+        }
+    }
+
+    /**
+     * 校验申购金额
+     *
+     * @param product 产品信息
+     * @param amount  金额
+     */
+    public void baseValidPurchaseAmount(FinancialProduct product, BigDecimal amount) {
+        if (product.getTotalQuota() != null && product.getTotalQuota().compareTo(BigDecimal.ZERO) > 0 &&
+                amount.add(product.getUseQuota()).compareTo(product.getTotalQuota()) > 0) {
+            ErrorCodeEnum.PURCHASE_GT_TOTAL_QUOTA.throwException();
         }
     }
 
@@ -171,16 +224,4 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
         stringRedisTemplate.delete(RedisConstants.RECOMMEND_PRODUCT); // 删除缓存
     }
 
-    /**
-     * 校验申购金额
-     *
-     * @param product 产品信息
-     * @param amount  金额
-     */
-    private void baseValidPurchaseAmount(FinancialProduct product, BigDecimal amount) {
-        if (product.getTotalQuota() != null && product.getTotalQuota().compareTo(BigDecimal.ZERO) > 0 &&
-                amount.add(product.getUseQuota()).compareTo(product.getTotalQuota()) > 0) {
-            ErrorCodeEnum.PURCHASE_GT_TOTAL_QUOTA.throwException();
-        }
-    }
 }

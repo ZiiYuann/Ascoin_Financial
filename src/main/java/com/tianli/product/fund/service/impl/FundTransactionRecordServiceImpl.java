@@ -44,6 +44,7 @@ import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.management.service.IWalletAgentService;
 import com.tianli.management.vo.FundTransactionAmountVO;
 import com.tianli.management.vo.WalletAgentVO;
+import com.tianli.product.service.ProductHoldRecordService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,6 +93,8 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     private WebHookService webHookService;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private ProductHoldRecordService productHoldRecordService;
 
     @Override
     public IPage<FundTransactionRecordVO> getTransactionPage(PageQuery<FundTransactionRecord> page, FundTransactionQuery query) {
@@ -187,6 +190,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
 
         fundIncomeRecords.forEach(incomeRecord -> incomeRecord.setStatus(2));
         fundIncomeRecordService.updateBatchById(fundIncomeRecords);
+        productHoldRecordService.delete(fundRecord.getId(), fundRecord.getProductId(), fundRecord.getId());
     }
 
     /**

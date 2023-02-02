@@ -8,6 +8,7 @@ import com.tianli.account.service.AccountBalanceService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.query.RedeemQuery;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.webhook.WebHookService;
@@ -17,6 +18,8 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.service.IWalletAgentProductService;
+import com.tianli.product.dto.PurchaseResultDto;
+import com.tianli.product.dto.RedeemResultDto;
 import com.tianli.product.financial.entity.FinancialProduct;
 import com.tianli.product.financial.enums.ProductType;
 import com.tianli.product.financial.mapper.FinancialProductMapper;
@@ -78,8 +81,7 @@ public class FundProductService extends AbstractProductOperation<FinancialProduc
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public FundTransactionRecordVO purchaseOperation(Long uid, PurchaseQuery purchaseQuery, Order order) {
+    public PurchaseResultDto purchaseOperation(Long uid, PurchaseQuery purchaseQuery, Order order) {
         Long productId = purchaseQuery.getProductId();
         var financialProduct = this.baseMapper.selectById(productId);
         WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(productId);
@@ -170,8 +172,15 @@ public class FundProductService extends AbstractProductOperation<FinancialProduc
             fundTransactionRecordService.save(transactionRecord);
         }
 
+        return PurchaseResultDto.builder()
+                .recordId(transactionRecord.getFundId())
+                .fundTransactionRecordVO(fundRecordConvert.toFundTransactionVO(transactionRecord))
+                .build();
+    }
 
-        return fundRecordConvert.toFundTransactionVO(transactionRecord);
+    @Override
+    public RedeemResultDto redeemOperation(Long uid, RedeemQuery redeemQuery) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

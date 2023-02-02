@@ -8,6 +8,8 @@ import com.google.common.base.MoreObjects;
 import com.tianli.common.CommonFunction;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.management.dto.AmountDto;
+import com.tianli.management.dto.ProductSummaryDataDto;
 import com.tianli.product.financial.entity.FinancialProduct;
 import com.tianli.product.financial.entity.FinancialRecord;
 import com.tianli.product.financial.enums.ProductType;
@@ -15,8 +17,6 @@ import com.tianli.product.financial.enums.RecordStatus;
 import com.tianli.product.financial.mapper.FinancialRecordMapper;
 import com.tianli.product.financial.query.FinancialRecordQuery;
 import com.tianli.product.financial.query.RecordRenewalQuery;
-import com.tianli.management.dto.AmountDto;
-import com.tianli.management.dto.ProductSummaryDataDto;
 import com.tianli.product.service.FinancialProductService;
 import com.tianli.sso.init.RequestInitService;
 import lombok.extern.slf4j.Slf4j;
@@ -79,8 +79,6 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
             log.error("赎回异常，recordId:{},amount:{}", recordId, redeemAmount);
             ErrorCodeEnum.throwException("用户申购记录金额发生变化，请重试");
         }
-
-
     }
 
     /**

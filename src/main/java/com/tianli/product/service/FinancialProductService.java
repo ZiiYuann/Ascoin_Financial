@@ -9,12 +9,15 @@ import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.query.RedeemQuery;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.product.dto.PurchaseResultDto;
+import com.tianli.product.dto.RedeemResultDto;
 import com.tianli.product.financial.convert.FinancialConverter;
 import com.tianli.product.financial.dto.ProductRateDTO;
 import com.tianli.product.financial.entity.FinancialIncomeAccrue;
@@ -90,6 +93,8 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
     private AccountBalanceServiceImpl accountBalanceServiceImpl;
     @Resource
     private OrderService orderService;
+    @Resource
+    private ProductHoldRecordService productHoldRecordService;
 
     /**
      * 删除产品
@@ -294,8 +299,7 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public FinancialPurchaseResultVO purchaseOperation(Long uid, PurchaseQuery purchaseQuery, Order order) {
+    public PurchaseResultDto purchaseOperation(Long uid, PurchaseQuery purchaseQuery, Order order) {
         FinancialProduct product = this.getById(purchaseQuery.getProductId());
         BigDecimal amount = purchaseQuery.getAmount();
 
@@ -342,7 +346,9 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
         financialPurchaseResultVO.setName(product.getName());
         financialPurchaseResultVO.setStatusDes(order.getStatus().name());
         financialPurchaseResultVO.setOrderNo(order.getOrderNo());
-        return financialPurchaseResultVO;
+        return PurchaseResultDto.builder()
+                .recordId(financialRecord.getId())
+                .financialPurchaseResultVO(financialPurchaseResultVO).build();
     }
 
     @Override
@@ -415,6 +421,58 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
                         .reduce(BigDecimal.ZERO, BigDecimal::add));
 
         return incomeAmount.divide(allHoldAmount, 4, RoundingMode.HALF_UP);
+    }
+
+    @Override
+    @Transactional
+    public RedeemResultDto redeemOperation(Long uid, RedeemQuery query) {
+        // todo 计算利息的时候不允许进行赎回操
+        Long recordId = query.getRecordId();
+        FinancialRecord record = financialRecordService.selectById(recordId, uid);
+
+        if (RecordStatus.SUCCESS.equals(record.getStatus())) {
+            log.info("recordId:{},已经处于完成状态，请校验是否有误", recordId);
+            ErrorCodeEnum.TRADE_FAIL.throwException();
+        }
+
+        if (query.getRedeemAmount().compareTo(record.getHoldAmount()) > 0) {
+            log.info("赎回金额 {}  大于持有金额 {}", query.getRedeemAmount(), record.getHoldAmount());
+            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
+        }
+
+        //创建赎回订单  没有审核操作，在一个事物里无需操作
+        LocalDateTime now = LocalDateTime.now();
+        long id = CommonFunction.generalId();
+        Order order = new Order();
+        order.setId(id);
+        order.setUid(uid);
+        order.setAmount(query.getRedeemAmount());
+        order.setOrderNo(AccountChangeType.redeem.getPrefix() + CommonFunction.generalSn(id));
+        order.setStatus(ChargeStatus.chain_success);
+        order.setType(ChargeType.redeem);
+        order.setRelatedId(recordId);
+        order.setCoin(record.getCoin());
+        order.setCreateTime(now);
+        order.setCompleteTime(now);
+        orderService.save(order);
+
+        // 增加
+        accountBalanceServiceImpl.increase(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount(), order.getOrderNo(), CurrencyLogDes.赎回.name());
+
+        // 减少产品持有
+        financialRecordService.redeem(record.getId(), query.getRedeemAmount(), record.getHoldAmount());
+
+        // 更新记录状态
+        FinancialRecord recordLatest = financialRecordService.selectById(recordId, uid);
+        if (recordLatest.getHoldAmount().compareTo(BigDecimal.ZERO) == 0) {
+            recordLatest.setStatus(RecordStatus.SUCCESS);
+            recordLatest.setUpdateTime(LocalDateTime.now());
+
+        }
+        financialRecordService.updateById(recordLatest);
+        productHoldRecordService.delete(uid, record.getProductId(), record.getId());
+        return RedeemResultDto.builder()
+                .orderNo(order.getOrderNo()).build();
     }
 
 }

@@ -389,55 +389,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         orderChargeInfoService.updateById(orderChargeInfo);
     }
 
-    @Transactional
-    public String redeem(Long uid, RedeemQuery query) {
-        // todo 计算利息的时候不允许进行赎回操
-        Long recordId = query.getRecordId();
-        FinancialRecord record = financialRecordService.selectById(recordId, uid);
-
-        if (RecordStatus.SUCCESS.equals(record.getStatus())) {
-            log.info("recordId:{},已经处于完成状态，请校验是否有误", recordId);
-            ErrorCodeEnum.TRADE_FAIL.throwException();
-        }
-
-        if (query.getRedeemAmount().compareTo(record.getHoldAmount()) > 0) {
-            log.info("赎回金额 {}  大于持有金额 {}", query.getRedeemAmount(), record.getHoldAmount());
-            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
-        }
-
-        //创建赎回订单  没有审核操作，在一个事物里无需操作
-        LocalDateTime now = LocalDateTime.now();
-        long id = CommonFunction.generalId();
-        Order order = new Order();
-        order.setId(id);
-        order.setUid(uid);
-        order.setAmount(query.getRedeemAmount());
-        order.setOrderNo(AccountChangeType.redeem.getPrefix() + CommonFunction.generalSn(id));
-        order.setStatus(ChargeStatus.chain_success);
-        order.setType(ChargeType.redeem);
-        order.setRelatedId(recordId);
-        order.setCoin(record.getCoin());
-        order.setCreateTime(now);
-        order.setCompleteTime(now);
-        orderService.save(order);
-
-        // 增加
-        accountBalanceServiceImpl.increase(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount(), order.getOrderNo(), CurrencyLogDes.赎回.name());
-
-        // 减少产品持有
-        financialRecordService.redeem(record.getId(), query.getRedeemAmount(), record.getHoldAmount());
-
-        // 更新记录状态
-        FinancialRecord recordLatest = financialRecordService.selectById(recordId, uid);
-        if (recordLatest.getHoldAmount().compareTo(BigDecimal.ZERO) == 0) {
-            recordLatest.setStatus(RecordStatus.SUCCESS);
-            recordLatest.setUpdateTime(LocalDateTime.now());
-        }
-        financialRecordService.updateById(recordLatest);
-
-        return order.getOrderNo();
-    }
-
     /**
      * 结算列表
      */

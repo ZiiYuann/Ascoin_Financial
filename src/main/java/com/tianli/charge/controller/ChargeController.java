@@ -175,9 +175,9 @@ public class ChargeController {
         RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_REDEEM + uid + ":" + query.getRecordId());
         try {
             lock.lock();
-            String orderNo = chargeService.redeem(uid, query);
+            var redeemResultDto = financialProductService.redeem(uid, query);
             HashMap<Object, Object> result = MapUtil.newHashMap();
-            result.put("orderNo", orderNo);
+            result.put("orderNo", redeemResultDto.getOrderNo());
             return Result.instance().setData(result);
         } finally {
             lock.unlock();
@@ -188,12 +188,12 @@ public class ChargeController {
      * 申购理财产品（余额）
      */
     @PostMapping("/purchase/balance")
-    public Result balancePurchase(@RequestBody @Valid PurchaseQuery purchaseQuery) {
+    public Result<FinancialPurchaseResultVO> balancePurchase(@RequestBody @Valid PurchaseQuery purchaseQuery) {
         Long uid = requestInitService.uid();
         RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_PURCHASE + uid + ":" + purchaseQuery.getProductId());
         try {
             lock.lock();
-            return Result.instance().setData(financialProductService.purchase(uid, purchaseQuery, FinancialPurchaseResultVO.class));
+            return Result.instance().setData(financialProductService.purchase(uid, purchaseQuery).getFinancialPurchaseResultVO());
         } finally {
             lock.unlock();
         }

@@ -94,12 +94,12 @@ public class FundController {
      * 基金申购
      */
     @PostMapping("/purchase")
-    public Result purchase(@RequestBody @Valid FundPurchaseBO bo) {
+    public Result<FundTransactionRecordVO> purchase(@RequestBody @Valid FundPurchaseBO bo) {
         Long uid = requestInitService.uid();
         RLock lock = redissonClient.getLock(RedisLockConstants.FUND_CREATE_LOCK + uid);
         lock.lock();
         try {
-            FundTransactionRecordVO purchase = fundProductService.purchase(uid, bo, FundTransactionRecordVO.class);
+            FundTransactionRecordVO purchase = fundProductService.purchase(uid, bo).getFundTransactionRecordVO();
             return Result.success(purchase);
         } finally {
             lock.unlock();
