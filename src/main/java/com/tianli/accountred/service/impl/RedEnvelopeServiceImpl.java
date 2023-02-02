@@ -338,6 +338,10 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             queryWrapper = queryWrapper.eq(RedEnvelope::getUid, query.getUid());
         }
 
+        if (Objects.nonNull(query.getCreateTime())) {
+            queryWrapper = queryWrapper.eq(RedEnvelope::getCreateTime, query.getCreateTime());
+        }
+
         if (Objects.isNull(query.getStatus())) {
             queryWrapper = queryWrapper.ne(RedEnvelope::getStatus, RedEnvelopeStatus.WAIT);
         } else {

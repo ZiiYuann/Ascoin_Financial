@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 /**
  * @author chenb
  * @apiNote
@@ -20,4 +22,6 @@ public class RedEnvelopeGiveRecordQuery {
     private Long uid;
 
     private RedEnvelopeStatus status;
+
+    private LocalDateTime createTime;
 }
