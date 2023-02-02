@@ -94,6 +94,8 @@ public class MFinancialProductVO {
 
     private boolean recommend;
 
+    private boolean recommendWeight;
+
     /**
      * 阶梯利率
      */

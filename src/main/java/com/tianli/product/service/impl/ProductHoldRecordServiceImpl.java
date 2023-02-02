@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -50,5 +51,14 @@ public class ProductHoldRecordServiceImpl extends ServiceImpl<ProductHoldRecordM
             List<ProductHoldRecord> productHoldRecords = this.baseMapper.listByUid(uid);
             return UserHoldRecordDto.builder().uid(uid).records(productHoldRecords).build();
         });
+    }
+
+    @Override
+    public List<UserHoldRecordDto> userHoldRecordData(ProductHoldQuery query) {
+        List<Long> uidPage = this.baseMapper.holdUids(query);
+        return uidPage.stream().map(uid -> {
+            List<ProductHoldRecord> productHoldRecords = this.baseMapper.listByUid(uid);
+            return UserHoldRecordDto.builder().uid(uid).records(productHoldRecords).build();
+        }).collect(Collectors.toList());
     }
 }

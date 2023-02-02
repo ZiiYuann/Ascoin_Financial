@@ -4,6 +4,14 @@
 
 
     <select id="holdUidPage" resultType="java.lang.Long">
+        <include refid="holdQuery"/>
+    </select>
+    <select id="holdUids" resultType="java.lang.Long">
+        <include refid="holdQuery"/>
+    </select>
+
+
+    <sql id="holdQuery">
         SELECT DISTINCT `uid`
         FROM `product_hold_record`
         <where>
@@ -20,6 +28,5 @@
                 </foreach>
             </if>
         </where>
-
-    </select>
+    </sql>
 </mapper>

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.address.mapper.Address;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
+import com.tianli.management.vo.MUserHoldRecordVO;
 import com.tianli.product.entity.ProductHoldRecord;
 import com.tianli.product.financial.entity.FinancialProduct;
 import com.tianli.product.financial.query.ProductHoldQuery;
@@ -47,8 +48,17 @@ public class ManageUserController {
      */
     @GetMapping("/hold/record")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result<IPage<HoldProductVo>> holdRecord(ProductHoldQuery query, PageQuery<ProductHoldRecord> page) {
+    public Result<IPage<MUserHoldRecordVO>> holdRecord(ProductHoldQuery query, PageQuery<ProductHoldRecord> page) {
         return new Result<>(manageUserService.userHoldRecordPage(query, page.page()));
+    }
+
+    /**
+     * 理财用户管理-持仓用户
+     */
+    @GetMapping("/hold/record/data")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result<MUserHoldRecordVO> holdRecordData(ProductHoldQuery query) {
+        return new Result<>(manageUserService.userHoldRecordData(query));
     }
 
     /**

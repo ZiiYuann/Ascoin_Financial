@@ -26,6 +26,7 @@ import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -69,46 +70,55 @@ public class ManageUserService {
         IPage<UserHoldRecordDto> userHoldRecordDtoIPage = productHoldRecordService.userHoldRecordPage(query, page);
         return userHoldRecordDtoIPage.convert(userHoldRecordDto -> {
             Long uid = userHoldRecordDto.getUid();
-            List<ProductHoldRecord> records = userHoldRecordDto.getRecords();
-
-            BigDecimal holdFee = BigDecimal.ZERO;
-            Map<ProductType, String> holdFeeMap = new HashMap<>(records.size());
-            Map<ProductType, BigDecimal> holdFeeBigDecimalMap = new HashMap<>(records.size());
-            BigDecimal calIncomeFee = BigDecimal.ZERO;
-            BigDecimal waitIncomeFee = BigDecimal.ZERO;
-            BigDecimal accrueIncomeAmount = BigDecimal.ZERO;
-
-            for (ProductHoldRecord record : records) {
-                Long productId = record.getProductId();
-                ProductType productType = record.getProductType();
-                Long recordId = record.getRecordId();
-                IncomeDto income = productService.income(productType, uid, productId, recordId);
-                BigDecimal dollarRate = currencyService.getDollarRate(income.getCoin());
-
-                holdFee = holdFee.add(income.getHoldAmount().multiply(dollarRate));
-
-                BigDecimal holdFeeByProductType = holdFeeBigDecimalMap.getOrDefault(productType, BigDecimal.ZERO);
-                holdFeeByProductType = holdFeeByProductType.add(income.getHoldAmount().multiply(dollarRate));
-                holdFeeMap.put(productType, holdFeeByProductType.setScale(2, RoundingMode.HALF_DOWN).toPlainString());
-                holdFeeBigDecimalMap.put(productType, holdFeeByProductType);
-
-                calIncomeFee = calIncomeFee.add(income.getCalIncomeAmount().multiply(dollarRate));
-
-                waitIncomeFee = waitIncomeFee.add(income.getWaitIncomeAmount().multiply(dollarRate));
-
-                accrueIncomeAmount = accrueIncomeAmount.add(income.getAccrueIncomeAmount().multiply(dollarRate));
-            }
-
-            return MUserHoldRecordVO.builder()
-                    .uid(uid)
-                    .holdFee(holdFee)
-                    .holdFeeMap(holdFeeMap)
-                    .calIncomeFee(calIncomeFee)
-                    .waitIncomeFee(waitIncomeFee)
-                    .accrueIncomeAmount(accrueIncomeAmount)
-                    .build();
+            return mUserHoldRecordVO(userHoldRecordDto.getRecords(), uid);
         });
-
     }
+
+    public MUserHoldRecordVO userHoldRecordData(ProductHoldQuery query) {
+        var records = productHoldRecordService.userHoldRecordData(query)
+                .stream()
+                .flatMap(r -> r.getRecords().stream()).collect(Collectors.toList());
+        return mUserHoldRecordVO(records, null);
+    }
+
+    private MUserHoldRecordVO mUserHoldRecordVO(List<ProductHoldRecord> records, Long uid) {
+        BigDecimal holdFee = BigDecimal.ZERO;
+        Map<ProductType, String> holdFeeMap = new HashMap<>(records.size());
+        Map<ProductType, BigDecimal> holdFeeBigDecimalMap = new HashMap<>(records.size());
+        BigDecimal calIncomeFee = BigDecimal.ZERO;
+        BigDecimal waitIncomeFee = BigDecimal.ZERO;
+        BigDecimal accrueIncomeAmount = BigDecimal.ZERO;
+
+        for (ProductHoldRecord record : records) {
+            Long productId = record.getProductId();
+            ProductType productType = record.getProductType();
+            Long recordId = record.getRecordId();
+            IncomeDto income = productService.income(productType, record.getUid(), productId, recordId);
+            BigDecimal dollarRate = currencyService.getDollarRate(income.getCoin());
+
+            holdFee = holdFee.add(income.getHoldAmount().multiply(dollarRate));
+
+            BigDecimal holdFeeByProductType = holdFeeBigDecimalMap.getOrDefault(productType, BigDecimal.ZERO);
+            holdFeeByProductType = holdFeeByProductType.add(income.getHoldAmount().multiply(dollarRate));
+            holdFeeMap.put(productType, holdFeeByProductType.setScale(2, RoundingMode.HALF_DOWN).toPlainString());
+            holdFeeBigDecimalMap.put(productType, holdFeeByProductType);
+
+            calIncomeFee = calIncomeFee.add(income.getCalIncomeAmount().multiply(dollarRate));
+
+            waitIncomeFee = waitIncomeFee.add(income.getWaitIncomeAmount().multiply(dollarRate));
+
+            accrueIncomeAmount = accrueIncomeAmount.add(income.getAccrueIncomeAmount().multiply(dollarRate));
+        }
+
+        return MUserHoldRecordVO.builder()
+                .uid(uid)
+                .holdFee(holdFee)
+                .holdFeeMap(holdFeeMap)
+                .calIncomeFee(calIncomeFee)
+                .waitIncomeFee(waitIncomeFee)
+                .accrueIncomeAmount(accrueIncomeAmount)
+                .build();
+    }
+
 
 }

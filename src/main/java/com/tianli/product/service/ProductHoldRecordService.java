@@ -7,6 +7,8 @@ import com.tianli.product.dto.UserHoldRecordDto;
 import com.tianli.product.entity.ProductHoldRecord;
 import com.tianli.product.financial.query.ProductHoldQuery;
 
+import java.util.List;
+
 /**
  * @author chenb
  * @apiNote
@@ -23,4 +25,6 @@ public interface ProductHoldRecordService extends IService<ProductHoldRecord> {
      * 持仓用户分页
      */
     IPage<UserHoldRecordDto> userHoldRecordPage(ProductHoldQuery query, Page<ProductHoldRecord> page);
+
+    List<UserHoldRecordDto> userHoldRecordData(ProductHoldQuery query);
 }
