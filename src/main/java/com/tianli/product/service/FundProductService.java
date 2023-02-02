@@ -20,6 +20,7 @@ import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.product.dto.PurchaseResultDto;
 import com.tianli.product.dto.RedeemResultDto;
+import com.tianli.product.financial.dto.IncomeDto;
 import com.tianli.product.financial.entity.FinancialProduct;
 import com.tianli.product.financial.enums.ProductType;
 import com.tianli.product.financial.mapper.FinancialProductMapper;
@@ -36,7 +37,6 @@ import com.tianli.product.fund.enums.FundTransactionType;
 import com.tianli.product.fund.query.FundRecordQuery;
 import com.tianli.product.fund.service.IFundRecordService;
 import com.tianli.product.fund.service.IFundTransactionRecordService;
-import com.tianli.product.fund.vo.FundTransactionRecordVO;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -181,6 +181,18 @@ public class FundProductService extends AbstractProductOperation<FinancialProduc
     @Override
     public RedeemResultDto redeemOperation(Long uid, RedeemQuery redeemQuery) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public IncomeDto incomeOperation(Long uid, Long productId, Long recordId) {
+        var fundRecord = fundRecordService.getById(recordId);
+        return IncomeDto.builder()
+                .coin(fundRecord.getCoin())
+                .holdAmount(fundRecord.getHoldAmount())
+                .accrueIncomeAmount(fundRecord.getIncomeAmount())
+                .dailyIncomeAmount(this.exceptDailyIncome(uid, productId, recordId).getExpectIncome())
+                .calIncomeAmount(fundRecord.getCumulativeIncomeAmount())
+                .waitIncomeAmount(fundRecord.getWaitIncomeAmount()).build();
     }
 
     @Override

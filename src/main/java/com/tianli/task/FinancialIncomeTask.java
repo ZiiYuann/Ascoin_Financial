@@ -30,7 +30,6 @@ import com.tianli.product.financial.service.FinancialIncomeAccrueService;
 import com.tianli.product.financial.service.FinancialIncomeDailyService;
 import com.tianli.product.financial.service.FinancialProductLadderRateService;
 import com.tianli.product.financial.service.FinancialRecordService;
-import com.tianli.product.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.product.service.FinancialProductService;
 import com.tianli.tool.ApplicationContextTool;
 import lombok.extern.slf4j.Slf4j;
@@ -265,7 +264,7 @@ public class FinancialIncomeTask {
         purchaseQuery.setCoin(product.getCoin());
         purchaseQuery.setTerm(product.getTerm());
         purchaseQuery.setAutoCurrent(false);
-        financialProductService.purchase(financialRecord.getUid(), purchaseQuery, FinancialPurchaseResultVO.class, order);
+        financialProductService.purchase(financialRecord.getUid(), purchaseQuery, order);
     }
 
     /**

@@ -14,16 +14,19 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.product.dto.PurchaseResultDto;
 import com.tianli.product.dto.RedeemResultDto;
 import com.tianli.product.entity.ProductHoldRecord;
+import com.tianli.product.financial.dto.IncomeDto;
 import com.tianli.product.financial.entity.FinancialProduct;
 import com.tianli.product.financial.entity.FinancialRecord;
 import com.tianli.product.financial.enums.BusinessType;
 import com.tianli.product.financial.enums.ProductStatus;
+import com.tianli.product.financial.enums.ProductType;
 import com.tianli.product.financial.mapper.FinancialProductMapper;
 import com.tianli.product.financial.query.PurchaseQuery;
 import com.tianli.product.financial.vo.ExpectIncomeVO;
 import com.tianli.product.fund.entity.FundRecord;
 import com.tianli.product.fund.service.IFundRecordService;
 import com.tianli.product.service.FinancialProductService;
+import com.tianli.product.service.FundProductService;
 import com.tianli.product.service.ProductHoldRecordService;
 import com.tianli.product.service.ProductOperation;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -58,6 +61,9 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
     private StringRedisTemplate stringRedisTemplate;
     @Resource
     private ProductHoldRecordService productHoldRecordService;
+    @Resource
+    private FundProductService fundProductService;
+
 
     /**
      * purchase Operation
@@ -68,6 +74,11 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
      * redeem Operation
      */
     public abstract RedeemResultDto redeemOperation(Long uid, RedeemQuery redeemQuery);
+
+    /**
+     * 统计利息
+     */
+    public abstract IncomeDto incomeOperation(Long uid, Long productId, Long record);
 
     /**
      * 处理申购结束的hook
@@ -92,6 +103,14 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
     @Override
     public ExpectIncomeVO expectIncome(Long productId, BigDecimal amount) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public IncomeDto income(ProductType type, Long uid, Long productId, Long recordId) {
+        if (ProductType.fund.equals(type)) {
+            return fundProductService.incomeOperation(uid, productId, recordId);
+        }
+        return financialProductService.incomeOperation(uid, productId, recordId);
     }
 
     @Transactional

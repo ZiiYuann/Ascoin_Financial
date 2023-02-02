@@ -26,7 +26,6 @@ import com.tianli.product.financial.enums.ProductType;
 import com.tianli.product.financial.enums.RecordStatus;
 import com.tianli.product.financial.query.PurchaseQuery;
 import com.tianli.product.financial.service.FinancialRecordService;
-import com.tianli.product.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.product.fund.bo.FundPurchaseBO;
 import com.tianli.product.fund.contant.FundTransactionStatus;
 import com.tianli.product.fund.entity.FundRecord;
@@ -35,7 +34,6 @@ import com.tianli.product.fund.enums.FundRecordStatus;
 import com.tianli.product.fund.enums.FundTransactionType;
 import com.tianli.product.fund.service.IFundTransactionRecordService;
 import com.tianli.product.fund.service.impl.FundRecordServiceImpl;
-import com.tianli.product.fund.vo.FundTransactionRecordVO;
 import com.tianli.product.service.FinancialProductService;
 import com.tianli.product.service.FundProductService;
 import com.tianli.sso.init.RequestInitService;
@@ -273,7 +271,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                 fundPurchaseBO.setProductId(orderAdvance.getProductId());
                 fundPurchaseBO.setReferralCode(walletAgentProduct.getReferralCode());
                 fundPurchaseBO.setPurchaseAmount(orderAdvance.getAmount());
-                fundProductService.purchase(uid, fundPurchaseBO, FundTransactionRecordVO.class, order);
+                fundProductService.purchase(uid, fundPurchaseBO, order);
             }
 
             if (!ProductType.fund.equals(product.getType())) {
@@ -283,7 +281,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                         .amount(orderAdvance.getAmount())
                         .autoCurrent(orderAdvance.isAutoCurrent())
                         .productId(orderAdvance.getProductId()).build();
-                financialProductService.purchase(uid, purchaseQuery, FinancialPurchaseResultVO.class, order);
+                financialProductService.purchase(uid, purchaseQuery, order);
             }
 
             // 预订单状态设置为完成

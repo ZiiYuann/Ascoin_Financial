@@ -16,9 +16,19 @@ import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.management.converter.ManagementConverter;
+import com.tianli.management.dto.ProductSummaryDataDto;
+import com.tianli.management.query.FinancialProductEditQuery;
+import com.tianli.management.query.FinancialProductEditStatusQuery;
+import com.tianli.management.query.FinancialProductLadderRateIoUQuery;
+import com.tianli.management.query.FinancialProductsQuery;
+import com.tianli.management.service.IWalletAgentProductService;
+import com.tianli.management.vo.MFinancialProductVO;
+import com.tianli.mconfig.ConfigService;
 import com.tianli.product.dto.PurchaseResultDto;
 import com.tianli.product.dto.RedeemResultDto;
 import com.tianli.product.financial.convert.FinancialConverter;
+import com.tianli.product.financial.dto.IncomeDto;
 import com.tianli.product.financial.dto.ProductRateDTO;
 import com.tianli.product.financial.entity.FinancialIncomeAccrue;
 import com.tianli.product.financial.entity.FinancialProduct;
@@ -36,15 +46,6 @@ import com.tianli.product.financial.vo.ExpectIncomeVO;
 import com.tianli.product.financial.vo.FinancialPurchaseResultVO;
 import com.tianli.product.fund.query.FundRecordQuery;
 import com.tianli.product.fund.service.IFundRecordService;
-import com.tianli.management.converter.ManagementConverter;
-import com.tianli.management.dto.ProductSummaryDataDto;
-import com.tianli.management.query.FinancialProductEditQuery;
-import com.tianli.management.query.FinancialProductEditStatusQuery;
-import com.tianli.management.query.FinancialProductLadderRateIoUQuery;
-import com.tianli.management.query.FinancialProductsQuery;
-import com.tianli.management.service.IWalletAgentProductService;
-import com.tianli.management.vo.MFinancialProductVO;
-import com.tianli.mconfig.ConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -473,6 +474,19 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
         productHoldRecordService.delete(uid, record.getProductId(), record.getId());
         return RedeemResultDto.builder()
                 .orderNo(order.getOrderNo()).build();
+    }
+
+    @Override
+    public IncomeDto incomeOperation(Long uid, Long productId, Long recordId) {
+        FinancialIncomeAccrue accrue = financialIncomeAccrueService.getByRecordId(uid, recordId);
+        var record = financialRecordService.getById(recordId);
+        return IncomeDto.builder()
+                .coin(record.getCoin())
+                .holdAmount(record.getHoldAmount())
+                .accrueIncomeAmount(accrue == null ? BigDecimal.ZERO : accrue.getIncomeAmount())
+                .dailyIncomeAmount(this.exceptDailyIncome(uid, productId, recordId).getExpectIncome())
+                .calIncomeAmount(BigDecimal.ZERO)
+                .waitIncomeAmount(BigDecimal.ZERO).build();
     }
 
 }

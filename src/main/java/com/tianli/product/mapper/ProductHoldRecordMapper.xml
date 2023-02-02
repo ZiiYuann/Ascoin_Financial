@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tianli.product.mapper.ProductHoldRecordMapper">
+
+
+    <select id="holdUidPage" resultType="java.lang.Long">
+        SELECT DISTINCT `uid`
+        FROM `product_hold_record`
+        <where>
+            <if test=" query.uid != null">
+                AND uid = #{query.uid}
+            </if>
+            <if test=" query.productId != null">
+                AND product_id = #{query.productId}
+            </if>
+            <if test=" query.productTypes != null and query.productTypes.size > 0 ">
+                AND product_type in
+                <foreach collection="query.productTypes" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+
+    </select>
+</mapper>

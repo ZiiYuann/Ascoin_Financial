@@ -5,7 +5,9 @@ import com.tianli.charge.entity.Order;
 import com.tianli.charge.query.RedeemQuery;
 import com.tianli.product.dto.PurchaseResultDto;
 import com.tianli.product.dto.RedeemResultDto;
+import com.tianli.product.financial.dto.IncomeDto;
 import com.tianli.product.financial.entity.FinancialProduct;
+import com.tianli.product.financial.enums.ProductType;
 import com.tianli.product.financial.query.PurchaseQuery;
 import com.tianli.product.financial.vo.ExpectIncomeVO;
 
@@ -71,11 +73,12 @@ public interface ProductOperation<T> extends IService<T> {
      */
     BigDecimal incomeRate(Long uid, Long productId, Long recordId);
 
+    IncomeDto income(ProductType type, Long uid, Long productId, Long record);
+
     /**
      * 校验申购限额
      *
      * @param amount 申购金额
      */
     void validPurchaseAmount(Long uid, FinancialProduct product, BigDecimal amount);
-
 }
