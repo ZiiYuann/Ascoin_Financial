@@ -37,7 +37,6 @@ public class ManageProductController {
     @Resource
     private FinancialService financialService;
 
-
     /**
      * 新增或者修改产品
      */
