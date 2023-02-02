@@ -57,6 +57,7 @@ import com.tianli.product.fund.query.FundRecordQuery;
 import com.tianli.product.fund.service.IFundIncomeRecordService;
 import com.tianli.product.fund.service.IFundRecordService;
 import com.tianli.product.service.FinancialProductService;
+import com.tianli.product.service.FundProductService;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
@@ -664,7 +665,7 @@ public class FinancialServiceImpl implements FinancialService {
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             incomeVO.setWaitAuditIncomeAmount(waitInterestAmount);
             incomeVO.setWaitAuditIncomeFee(waitInterestAmount.multiply(dollarRate));
-            incomeVO.setDailyIncomeFee(financialProductService
+            incomeVO.setDailyIncomeFee(fundProductService
                     .exceptDailyIncome(uid, holdProductVo.getProductId(), holdProductVo.getRecordId())
                     .getExpectIncome()
             );
@@ -779,6 +780,8 @@ public class FinancialServiceImpl implements FinancialService {
     private AccountBalanceService accountBalanceService;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private FundProductService fundProductService;
 
 
 }
