@@ -53,6 +53,8 @@
         <kaptcha.version>2.3.2</kaptcha.version>
         <testable.version>0.7.7</testable.version>
         <party.52it.version>1.0.0</party.52it.version>
+        <cafe.cryptography.curve25519-elisabeth.version>0.1.0</cafe.cryptography.curve25519-elisabeth.version>
+        <net.i2p.crypto.eddsa.version>0.3.0</net.i2p.crypto.eddsa.version>
     </properties>
 
     <dependencies>
@@ -309,7 +311,16 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
+        <dependency>
+            <groupId>net.i2p.crypto</groupId>
+            <artifactId>eddsa</artifactId>
+            <version>${net.i2p.crypto.eddsa.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cafe.cryptography</groupId>
+            <artifactId>curve25519-elisabeth</artifactId>
+            <version>${cafe.cryptography.curve25519-elisabeth.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>ROOT</finalName>
