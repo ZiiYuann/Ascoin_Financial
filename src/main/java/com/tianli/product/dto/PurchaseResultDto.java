@@ -1,7 +1,7 @@
 package com.tianli.product.dto;
 
-import com.tianli.product.financial.vo.FinancialPurchaseResultVO;
-import com.tianli.product.fund.vo.FundTransactionRecordVO;
+import com.tianli.product.afinancial.vo.FinancialPurchaseResultVO;
+import com.tianli.product.afund.vo.FundTransactionRecordVO;
 import lombok.Builder;
 import lombok.Data;
 

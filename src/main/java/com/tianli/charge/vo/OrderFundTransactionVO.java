@@ -1,6 +1,6 @@
 package com.tianli.charge.vo;
 
-import com.tianli.product.fund.enums.FundTransactionType;
+import com.tianli.product.afund.enums.FundTransactionType;
 import lombok.*;
 
 import java.math.BigDecimal;

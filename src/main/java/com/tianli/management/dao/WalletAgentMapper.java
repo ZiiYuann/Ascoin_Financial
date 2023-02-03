@@ -5,7 +5,7 @@ import com.tianli.management.dto.AmountDto;
 import com.tianli.management.entity.WalletAgent;
 import com.tianli.management.query.WalletAgentQuery;
 import com.tianli.management.vo.WalletAgentVO;
-import com.tianli.product.fund.enums.FundTransactionType;
+import com.tianli.product.afund.enums.FundTransactionType;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.*;
 

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tianli.product.afinancial.mapper.FinancialProductMapper">
+    <select id="listProductRateDTO" resultType="com.tianli.product.afinancial.dto.ProductRateDTO">
+
+        SELECT
+        max( IF(max_rate = 0,rate,max_rate) ) AS max_rate,
+        min( IF(min_rate = 0,rate,min_rate) ) AS min_rate,
+        coin,
+        count( 1 ) AS product_count,
+        id
+        FROM financial_product
+        WHERE `status` = 'open' AND deleted = 0
+        <if test="productType != null ">
+            AND type = #{productType}
+        </if>
+        GROUP BY coin
+        order by max_rate desc
+    </select>
+</mapper>

@@ -1,16 +1,15 @@
 package com.tianli.management.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.address.mapper.Address;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.management.vo.MUserHoldRecordVO;
 import com.tianli.product.entity.ProductHoldRecord;
-import com.tianli.product.financial.entity.FinancialProduct;
-import com.tianli.product.financial.query.ProductHoldQuery;
-import com.tianli.product.financial.service.FinancialService;
-import com.tianli.product.financial.vo.HoldProductVo;
+import com.tianli.product.afinancial.entity.FinancialProduct;
+import com.tianli.product.afinancial.query.ProductHoldQuery;
+import com.tianli.product.afinancial.service.FinancialService;
+import com.tianli.product.afinancial.vo.HoldProductVo;
 import com.tianli.management.service.ManageUserService;
 import com.tianli.management.vo.MUserListVO;
 import com.tianli.openapi.query.OpenapiAccountQuery;

@@ -1,6 +1,6 @@
 package com.tianli.product.entity;
 
-import com.tianli.product.financial.enums.ProductType;
+import com.tianli.product.afinancial.enums.ProductType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

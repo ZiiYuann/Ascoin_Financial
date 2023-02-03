@@ -6,16 +6,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.product.dto.UserHoldRecordDto;
 import com.tianli.product.entity.ProductHoldRecord;
-import com.tianli.product.financial.query.ProductHoldQuery;
+import com.tianli.product.afinancial.query.ProductHoldQuery;
 import com.tianli.product.mapper.ProductHoldRecordMapper;
 import com.tianli.product.service.ProductHoldRecordService;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**

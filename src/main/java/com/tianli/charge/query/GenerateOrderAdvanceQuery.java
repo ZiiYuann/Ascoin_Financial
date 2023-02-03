@@ -1,7 +1,7 @@
 package com.tianli.charge.query;
 
 import com.tianli.common.blockchain.NetworkType;
-import com.tianli.product.financial.enums.PurchaseTerm;
+import com.tianli.product.afinancial.enums.PurchaseTerm;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

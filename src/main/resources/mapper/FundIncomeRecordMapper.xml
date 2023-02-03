@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tianli.product.fund.dao.FundIncomeRecordMapper">
 
-    <select id="selectAmount" resultType="com.tianli.product.fund.dto.FundIncomeAmountDTO">
+    <select id="selectAmount" resultType="com.tianli.product.afund.dto.FundIncomeAmountDTO">
         select
         sum(a.interest_amount) totalAmount,
         sum(if(a.status = 1 or a.status =2, a.interest_amount,0)) waitInterestAmount,
@@ -15,7 +15,7 @@
         group by coin
     </select>
 
-    <select id="selectIncomePage" resultType="com.tianli.product.fund.vo.FundIncomeRecordVO">
+    <select id="selectIncomePage" resultType="com.tianli.product.afund.vo.FundIncomeRecordVO">
         select
         a.id,
         a.product_id productId,
@@ -43,7 +43,7 @@
         where a.status in (1, 2)
           and b.agent_id = #{agentId}
     </select>
-    <select id="selectSummaryIncomePage" resultType="com.tianli.product.fund.vo.FundIncomeRecordVO">
+    <select id="selectSummaryIncomePage" resultType="com.tianli.product.afund.vo.FundIncomeRecordVO">
         select
         a.product_name productName,
         a.coin,

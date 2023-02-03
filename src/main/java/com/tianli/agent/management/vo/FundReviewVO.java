@@ -1,6 +1,6 @@
 package com.tianli.agent.management.vo;
 
-import com.tianli.product.fund.enums.FundReviewStatus;
+import com.tianli.product.afund.enums.FundReviewStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -2,7 +2,7 @@ package com.tianli.management.converter;
 
 
 import com.tianli.chain.entity.Coin;
-import com.tianli.product.financial.entity.FinancialProduct;
+import com.tianli.product.afinancial.entity.FinancialProduct;
 import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.entity.HotWalletDetailed;
