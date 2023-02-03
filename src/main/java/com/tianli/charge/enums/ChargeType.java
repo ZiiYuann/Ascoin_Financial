@@ -38,7 +38,7 @@ public enum ChargeType {
     transfer_increase("Transfer Increase", "划转增加",AccountChangeType.transaction_reward),
     transfer_reduce("Transfer Reduce", "划转减少",AccountChangeType.transaction_reward),
     return_gas("Return Gas", "免Gas费",AccountChangeType.return_gas),
-    airdrop("Airdrop", "空投",AccountChangeType.return_gas)
+    airdrop("Airdrop", "空投",AccountChangeType.airdrop)
     // 增加类型需要在 ChargeRemarks 中增加对应的状态和文字，不然会报错
     // 增加类型需要在 ChargeGroup 中增加对应，不然会报错
     ;

@@ -53,6 +53,7 @@ public enum AccountChangeType {
     transfer_reduce("TSR"),
     //免Gas费
     return_gas("RG"),
+    airdrop("AIR"),
     ;
 
 
