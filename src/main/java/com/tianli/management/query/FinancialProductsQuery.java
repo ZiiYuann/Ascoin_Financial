@@ -1,7 +1,7 @@
 package com.tianli.management.query;
 
-import com.tianli.product.financial.enums.ProductStatus;
-import com.tianli.product.financial.enums.ProductType;
+import com.tianli.product.afinancial.enums.ProductStatus;
+import com.tianli.product.afinancial.enums.ProductType;
 import lombok.Data;
 
 /**

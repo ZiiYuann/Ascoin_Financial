@@ -1,7 +1,7 @@
 package com.tianli.management.vo;
 
 import com.tianli.common.annotation.BigDecimalFormat;
-import com.tianli.product.financial.enums.ProductType;
+import com.tianli.product.afinancial.enums.ProductType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

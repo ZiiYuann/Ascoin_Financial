@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tianli.product.afinancial.mapper.ProductMapper">
+
+
+    <select id="holdProductPage" resultType="com.tianli.product.afinancial.vo.HoldProductVo">
+        SELECT temp.*,
+        pro.`name`,
+        pro.name_en,
+        pro.coin,
+        pro.logo,
+        pro.type as productType,
+        pro.term
+        FROM (
+
+        <if test="query.type != 'fixed' and query.type != 'current' ">
+            SELECT id as record_id,
+            uid,
+            product_id,
+            hold_amount,
+            create_time AS purchase_time,
+            cumulative_income_amount AS accrue_income_amount
+            FROM fund_record
+            WHERE `status` = 'PROCESS'
+            <if test="query.uid != null">
+                AND uid = #{query.uid}
+            </if>
+            <if test="query.productId != null">
+                AND product_id = #{query.productId}
+            </if>
+        </if>
+
+        <if test="query.type == null ">
+            UNION
+        </if>
+
+        <if test="query.type != 'fund' ">
+            SELECT r.id as record_id,
+            r.uid,
+            r.product_id,
+            r.hold_amount,
+            r.purchase_time AS purchase_time,
+            i.income_amount AS accrue_income_amount
+            FROM financial_record r
+            LEFT JOIN financial_income_accrue i on r.uid = i.uid and r.id = i.record_id
+            WHERE r.`status` = 'PROCESS'
+            <if test="query.uid != null">
+                AND r.uid = #{query.uid}
+            </if>
+            <if test="query.type == 'fixed' or query.type == 'current' ">
+                AND r.product_type = #{query.type}
+            </if>
+            <if test="query.productId != null">
+                AND r.product_id = #{query.productId}
+            </if>
+        </if>
+        ) temp
+        LEFT JOIN financial_product pro ON temp.product_id = pro.id
+        ORDER BY purchase_time DESC
+    </select>
+
+
+    <select id="transactionRecordPage" resultType="com.tianli.product.afinancial.vo.TransactionRecordVO">
+        select temp.*,pro.type as product_type,pro.logo,pro.name,pro.name_en
+        from (select o.order_no as details_id,o.amount,o.coin, o.create_time, o.type, o.`status`, oa.product_id as
+        product_id
+        from `order` o
+        left join order_advance oa on o.related_id = oa.id
+        where o.type in ('purchase', 'redeem','transfer')
+        AND o.uid = #{uid}
+        and o.order_no like 'APU%'
+        UNION
+        select o.order_no as details_id, o.amount,o.coin, o.create_time, o.type, o.`status`, fe.product_id as product_id
+        from `order` o
+        left join financial_record fe on o.related_id = fe.id
+        where o.type in ('purchase', 'redeem','transfer')
+        AND o.uid = #{uid}
+        and o.order_no not like 'APU%'
+
+        <if test="type == null or type == 'fund'">
+            union
+            select
+            id as details_id,
+            transaction_amount as amount ,
+            coin,
+            create_time,
+            CASE type
+            WHEN 'redemption' THEN 'redeem'
+            ELSE type END,
+            CASE `status`
+            WHEN 1 THEN
+            'chain_success'
+            WHEN 2 THEN
+            'chaining'
+            WHEN 3 THEN
+            'created'
+            WHEN 4 and type = 'redemption' THEN
+            'review_fail'
+            ELSE
+            'chain_fail'
+            END as `status`,
+            product_id
+            from fund_transaction_record
+            where uid = #{uid}
+        </if>
+        ) temp
+        inner join financial_product pro on temp.product_id = pro.id
+        where 1=1
+        <if test="type != null">
+            and pro.type = #{type}
+        </if>
+        ORDER BY temp.create_time desc
+
+    </select>
+    <select id="holdProductIds" resultType="java.lang.Long">
+        SELECT DISTINCT product_id
+        FROM (
+        <if test="type != 'fixed' and type != 'current' ">
+            SELECT product_id,
+            create_time AS time
+            FROM fund_record
+            WHERE `status` = 'PROCESS'
+            AND uid = #{uid}
+        </if>
+
+        <if test="type == null ">
+            UNION
+        </if>
+
+        <if test="type != 'fund' ">
+            SELECT r.product_id,
+            r.purchase_time AS time
+            FROM financial_record r
+            WHERE r.`status` = 'PROCESS'
+            AND r.uid = #{uid}
+            <if test="type == 'fixed' or type == 'current' ">
+                AND r.product_type = #{type}
+            </if>
+        </if>
+        ) temp ORDER BY time DESC
+    </select>
+    <select id="holdProducts" resultType="com.tianli.product.afinancial.vo.HoldProductVo">
+
+        SELECT temp.*,
+        pro.`name`,
+        pro.name_en,
+        pro.coin,
+        pro.logo,
+        pro.type as productType
+        FROM (
+
+
+        SELECT id as record_id,
+        product_id,
+        hold_amount,
+        create_time AS time,
+        cumulative_income_amount AS accrue_income_amount
+        FROM fund_record
+        WHERE `status` = 'PROCESS'
+        AND uid = #{uid}
+        <if test="productIds != null and productIds.size > 0 ">
+            AND product_id in
+            <foreach collection="productIds" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="productIds == null or productIds.size = 0 ">
+            AND product_id = 0
+        </if>
+
+
+        UNION
+
+
+        SELECT r.id as record_id,
+        r.product_id,
+        r.hold_amount,
+        r.purchase_time AS time,
+        i.income_amount AS accrue_income_amount
+        FROM financial_record r
+        LEFT JOIN financial_income_accrue i on r.uid = i.uid and r.id = i.record_id
+        WHERE r.`status` = 'PROCESS'
+        AND r.uid = #{uid}
+        <if test="productIds != null and productIds.size > 0 ">
+            AND r.product_id in
+            <foreach collection="productIds" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="productIds == null or productIds.size = 0 ">
+            AND r.product_id = 0
+        </if>
+
+        ) temp
+        LEFT JOIN financial_product pro ON temp.product_id = pro.id
+        ORDER BY time DESC
+
+    </select>
+
+
+</mapper>

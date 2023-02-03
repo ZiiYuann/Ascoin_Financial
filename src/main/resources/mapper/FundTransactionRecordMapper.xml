@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tianli.product.fund.dao.FundTransactionRecordMapper">
 
-    <select id="selectTransactionAmount" resultType="com.tianli.product.fund.dto.FundTransactionAmountDTO">
+    <select id="selectTransactionAmount" resultType="com.tianli.product.afund.dto.FundTransactionAmountDTO">
         select
         sum(if(type = 'purchase',a.transaction_amount,0 ) ) purchaseAmount,
         sum(if(type = 'redemption',a.transaction_amount,0 ) ) redemptionAmount,
@@ -15,7 +15,7 @@
         group by coin
     </select>
 
-    <select id="selectTransactionPage" resultType="com.tianli.product.fund.vo.FundTransactionRecordVO">
+    <select id="selectTransactionPage" resultType="com.tianli.product.afund.vo.FundTransactionRecordVO">
         select
         a.id,
         a.uid,

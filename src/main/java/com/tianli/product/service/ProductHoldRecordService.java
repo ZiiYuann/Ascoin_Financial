@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.product.dto.UserHoldRecordDto;
 import com.tianli.product.entity.ProductHoldRecord;
-import com.tianli.product.financial.query.ProductHoldQuery;
+import com.tianli.product.afinancial.query.ProductHoldQuery;
 
 import java.util.List;
 

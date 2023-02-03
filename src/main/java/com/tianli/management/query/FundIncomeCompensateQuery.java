@@ -1,6 +1,6 @@
 package com.tianli.management.query;
 
-import com.tianli.product.fund.contant.FundIncomeStatus;
+import com.tianli.product.afund.contant.FundIncomeStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

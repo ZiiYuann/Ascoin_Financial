@@ -5,11 +5,11 @@ import com.tianli.charge.entity.Order;
 import com.tianli.charge.query.RedeemQuery;
 import com.tianli.product.dto.PurchaseResultDto;
 import com.tianli.product.dto.RedeemResultDto;
-import com.tianli.product.financial.dto.IncomeDto;
-import com.tianli.product.financial.entity.FinancialProduct;
-import com.tianli.product.financial.enums.ProductType;
-import com.tianli.product.financial.query.PurchaseQuery;
-import com.tianli.product.financial.vo.ExpectIncomeVO;
+import com.tianli.product.afinancial.dto.IncomeDto;
+import com.tianli.product.afinancial.entity.FinancialProduct;
+import com.tianli.product.afinancial.enums.ProductType;
+import com.tianli.product.afinancial.query.PurchaseQuery;
+import com.tianli.product.afinancial.vo.ExpectIncomeVO;
 
 import java.math.BigDecimal;
 
