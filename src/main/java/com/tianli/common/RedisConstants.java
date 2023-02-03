@@ -40,4 +40,5 @@ public class RedisConstants {
     public static final String WITHDRAW_BLACK = "withdraw:black";
 
     public static final String HOT_WALLET_BALANCE = "hot:wallet:balance";
+
 }

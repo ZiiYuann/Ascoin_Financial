@@ -17,6 +17,7 @@ import com.tianli.chain.service.CoinBaseService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
+import com.tianli.common.RedisConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
@@ -28,6 +29,8 @@ import com.tianli.product.fund.query.FundRecordQuery;
 import com.tianli.product.fund.service.IFundRecordService;
 import com.tianli.management.dto.AmountDto;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,6 +110,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
 
     @Transactional
     public void reduce(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+        this.validBlackUser(uid);
         getAndInit(uid, coin);
 
         if (accountBalanceMapper.reduce(uid, amount, coin) <= 0L) {
@@ -147,6 +151,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
 
     @Transactional
     public void freeze(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+        this.validBlackUser(uid);
         getAndInit(uid, coin);
 
         if (accountBalanceMapper.freeze(uid, amount, coin) <= 0L) {
@@ -400,6 +405,13 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         throw ErrorCodeEnum.CURRENCY_NOT_SUPPORT.generalException();
     }
 
+    private void validBlackUser(Long uid) {
+        Boolean member = stringRedisTemplate.opsForSet().isMember(RedisConstants.WITHDRAW_BLACK, uid + "");
+        if (Objects.nonNull(member) && member) {
+            ErrorCodeEnum.WITHDRAW_BLACK.throwException();
+        }
+    }
+
     @Resource
     private AccountBalanceMapper accountBalanceMapper;
     @Resource
@@ -418,6 +430,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
     private CoinBaseService coinBaseService;
     @Resource
     private OrderService orderService;
-
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
 }
