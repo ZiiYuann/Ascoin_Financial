@@ -134,6 +134,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
     @Transactional
     public void decrease(long uid, ChargeType type, String coin, NetworkType networkType,
                          BigDecimal amount, String sn, String des, AccountOperationType accountOperationType) {
+        this.validBlackUser(uid);
         getAndInit(uid, coin);
         if (accountBalanceMapper.decrease(uid, amount, coin) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
