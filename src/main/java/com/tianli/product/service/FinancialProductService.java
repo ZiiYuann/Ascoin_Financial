@@ -240,7 +240,8 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
         }
 
         if (Objects.nonNull(query.getRecommend())) {
-            queryWrapper = queryWrapper.eq(FinancialProduct::isRecommend, query.getRecommend());
+            queryWrapper = queryWrapper.eq(FinancialProduct::isRecommend, query.getRecommend())
+                    .orderByDesc(FinancialProduct :: getRecommendWeight);
         }
 
 
