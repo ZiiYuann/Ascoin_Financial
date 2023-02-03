@@ -29,7 +29,7 @@ public class ProductHoldRecordServiceImpl extends ServiceImpl<ProductHoldRecordM
 
 
     @Override
-    public boolean save(ProductHoldRecord entity) {
+    public boolean saveDo(ProductHoldRecord entity) {
         return saveOrUpdate(entity, new LambdaQueryWrapper<ProductHoldRecord>()
                 .eq(ProductHoldRecord::getUid, entity.getUid())
                 .eq(ProductHoldRecord::getProductId, entity.getProductId())

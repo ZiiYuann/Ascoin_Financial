@@ -16,6 +16,8 @@ import java.util.List;
  **/
 public interface ProductHoldRecordService extends IService<ProductHoldRecord> {
 
+    boolean saveDo(ProductHoldRecord entity);
+
     /**
      * 删除
      */
