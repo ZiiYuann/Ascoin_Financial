@@ -151,12 +151,6 @@ public class ChargeController {
         Long uid = requestInitService.uid();
         RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW + uid + ":" + withdrawDTO.getCoin());
 
-        Set<String> members = Optional.ofNullable(stringRedisTemplate.opsForSet().members(RedisConstants.WITHDRAW_BLACK))
-                .orElse((Set<String>) SetUtils.EMPTY_SORTED_SET);
-        if (members.contains(uid + "")) {
-            ErrorCodeEnum.WITHDRAW_BLACK.throwException();
-        }
-
         try {
             lock.lock();
             chargeService.withdrawApply(uid, withdrawDTO);
