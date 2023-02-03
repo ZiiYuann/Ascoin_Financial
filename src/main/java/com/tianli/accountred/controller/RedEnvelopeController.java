@@ -9,17 +9,22 @@ import com.tianli.accountred.query.RedEnvelopeIoUQuery;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
 import com.tianli.common.PageQuery;
+import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.sso.init.RequestInitService;
+import org.apache.commons.collections4.SetUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author chenb
@@ -38,6 +43,8 @@ public class RedEnvelopeController {
     private RedissonClient redissonClient;
     @Resource
     private RedEnvelopeSpiltGetRecordService redEnvelopeSpiltGetRecordService;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 发红包
@@ -45,6 +52,13 @@ public class RedEnvelopeController {
     @PostMapping("/give")
     public Result give(@RequestBody @Valid RedEnvelopeIoUQuery query) {
         Long uid = requestInitService.uid();
+
+        Set<String> members = Optional.ofNullable(stringRedisTemplate.opsForSet().members(RedisConstants.WITHDRAW_BLACK))
+                .orElse((Set<String>) SetUtils.EMPTY_SORTED_SET);
+        if (members.contains(uid + "")) {
+            ErrorCodeEnum.WITHDRAW_BLACK.throwException();
+        }
+
         Long shortUid = requestInitService.get().getUserInfo().getChatId();
         if (Objects.isNull(shortUid)) {
             ErrorCodeEnum.ACCOUNT_ERROR.throwException();
