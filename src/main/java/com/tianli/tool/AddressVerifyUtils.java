@@ -42,7 +42,7 @@ public class AddressVerifyUtils {
     private static byte[] SIGNING_CONTEXT = "substrate".getBytes();
 
     public static void main(String[] args) {
-        String password = "dutch squirrel expect promote captain hub buzz into pig spy tiger enact";
+        String password = "addict language slim sense lobster assume disagree enforce client define net tooth";
         System.out.println("pwd:\n" + password);
 
         BigInteger privateKey = Bip44Utils.getPathPrivateKey(Collections.singletonList(password), "m/44'/60'/0'/0/0");
@@ -52,8 +52,10 @@ public class AddressVerifyUtils {
         System.out.println("address:\n" + walletAddress);
 
 
-        String sign = ethSignMessage("1234567890", password);
+        String sign = ethSignMessage("{\"coin\":\"usdt\",\"network\":\"erc20\",\"to\":\"0x0E0993f38269a666391dc288C8874D51Ea6d9721\",\"amount\":\"0.12\"}", password);
         System.out.println("sign:\n" + sign);
+
+
 
 
 

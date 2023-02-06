@@ -263,8 +263,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         BigDecimal fixedAmount = coin.getWithdrawFixedAmount();
 
         // 提现数额
-        BigDecimal withdrawAmount = BigDecimal.valueOf(query.getAmount());
-        if (BigDecimal.valueOf(query.getAmount()).compareTo(withdrawMinAmount) < 0)
+        BigDecimal withdrawAmount = new BigDecimal(query.getAmount());
+        if (new BigDecimal(query.getAmount()).compareTo(withdrawMinAmount) < 0)
             ErrorCodeEnum.throwException("提现数额过小");
 
         // 手续费
@@ -301,7 +301,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         long id = CommonFunction.generalId();
         Order order = new Order();
         order.setUid(uid);
-        order.setAmount(BigDecimal.valueOf(query.getAmount()));
+        order.setAmount(new BigDecimal(query.getAmount()));
         order.setServiceAmount(serviceAmount);
         order.setOrderNo(AccountChangeType.withdraw.getPrefix() + CommonFunction.generalSn(id));
         order.setStatus(ChargeStatus.created);
@@ -317,7 +317,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         OrderReviewStrategy strategy = withdrawReviewStrategy.getStrategy(order, orderChargeInfo, true);
         if (!OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy)) {
-            String msg = WebHookTemplate.withdrawApply(query.getAmount(), query.getCoin());
+            String msg = WebHookTemplate.withdrawApply(Double.parseDouble(query.getAmount()), query.getCoin());
             webHookService.dingTalkSend(msg, WebHookToken.FINANCIAL_PRODUCT);
         }
 
@@ -668,7 +668,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     /**
      * 提现黑名单
      */
-    public void withdrawBlack(Long uid){
+    public void withdrawBlack(Long uid) {
 
     }
 
