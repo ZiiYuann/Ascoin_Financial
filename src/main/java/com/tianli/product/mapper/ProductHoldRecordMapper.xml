@@ -9,6 +9,17 @@
     <select id="holdUids" resultType="java.lang.Long">
         <include refid="holdQuery"/>
     </select>
+    <select id="list" resultType="com.tianli.product.entity.ProductHoldRecord">
+        SELECT * FROM `product_hold_record`
+        <where>
+            <if test=" query.uid != null">
+                AND uid = #{query.uid}
+            </if>
+            <if test=" query.productId != null">
+                AND product_id = #{query.productId}
+            </if>
+        </where>
+    </select>
 
 
     <sql id="holdQuery">
