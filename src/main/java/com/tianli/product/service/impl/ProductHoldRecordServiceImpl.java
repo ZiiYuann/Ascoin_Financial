@@ -44,6 +44,7 @@ public class ProductHoldRecordServiceImpl extends ServiceImpl<ProductHoldRecordM
     public IPage<UserHoldRecordDto> userHoldRecordPage(ProductHoldQuery query, Page<ProductHoldRecord> page) {
         IPage<Long> uidPage = this.baseMapper.holdUidPage(page, query);
         return uidPage.convert(uid -> {
+            query.setUid(uid);
             List<ProductHoldRecord> productHoldRecords = this.baseMapper.list(query);
             return UserHoldRecordDto.builder().uid(uid).records(productHoldRecords).build();
         });
@@ -53,6 +54,7 @@ public class ProductHoldRecordServiceImpl extends ServiceImpl<ProductHoldRecordM
     public List<UserHoldRecordDto> userHoldRecordData(ProductHoldQuery query) {
         List<Long> uidPage = this.baseMapper.holdUids(query);
         return uidPage.stream().map(uid -> {
+            query.setUid(uid);
             List<ProductHoldRecord> productHoldRecords = this.baseMapper.list(query);
             return UserHoldRecordDto.builder().uid(uid).records(productHoldRecords).build();
         }).collect(Collectors.toList());
