@@ -55,6 +55,8 @@ public class AddressVerifyUtils {
         String sign = ethSignMessage("1234567890", password);
         System.out.println("sign:\n" + sign);
 
+
+
         String address = ethSignedToAddress(sign, "1234567890");
         System.out.println("ethSignedToAddress:\n" + address);
 
