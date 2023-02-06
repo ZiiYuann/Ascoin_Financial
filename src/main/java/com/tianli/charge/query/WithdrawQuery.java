@@ -23,4 +23,6 @@ public class WithdrawQuery {
 
     private String amount;
 
+    private String timestamp;
+
 }
