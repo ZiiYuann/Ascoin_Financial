@@ -169,8 +169,8 @@ public class ChargeController {
         Long uid = requestInitService.uid();
 
         String addressStr = AddressVerifyUtils.ethSignedToAddress(sign, JSONUtil.toJsonStr(withdrawDTO));
-        String address = addressService.get(uid, withdrawDTO.getNetwork().getChainType());
-        if (address.equals(addressStr)) {
+        String address = requestInitService.get().getAddress();
+        if (!address.equalsIgnoreCase(addressStr)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
 
