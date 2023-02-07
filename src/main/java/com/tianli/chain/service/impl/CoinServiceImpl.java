@@ -147,7 +147,8 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         Coin coin = coinMapper.selectById(id);
 
         List<FinancialProduct> products = financialProductService.list(new LambdaQueryWrapper<FinancialProduct>()
-                .eq(FinancialProduct::getCoin, coin.getName()));
+                .eq(FinancialProduct::getCoin, coin.getName())
+                .eq(FinancialProduct::isDeleted, false));
         if (CollectionUtils.isNotEmpty(products)) {
             ErrorCodeEnum.throwException("该币种已经配置理财产品，无法下架");
         }
