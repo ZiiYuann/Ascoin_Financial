@@ -7,6 +7,7 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.management.query.UidsQuery;
 import com.tianli.openapi.query.OpenapiOperationQuery;
+import com.tianli.openapi.query.UserTransferQuery;
 import com.tianli.openapi.service.OpenApiService;
 import com.tianli.tool.crypto.Crypto;
 import org.bouncycastle.crypto.util.DigestFactory;
@@ -65,6 +66,19 @@ public class OpenApiController {
     }
 
     /**
+     * 用户间划转
+     */
+    @PostMapping("/user/transfer")
+    public Result userTransfer(@RequestBody @Valid UserTransferQuery query,
+                               @RequestHeader("sign") String sign,
+                               @RequestHeader("timestamp") String timestamp) {
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
+        }
+        return Result.success(openApiService.transfer(query));
+    }
+
+    /**
      * 余额
      */
     @GetMapping("/balances/{uid}")
@@ -75,7 +89,6 @@ public class OpenApiController {
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
-
         return Result.success(accountBalanceServiceImpl.accountList(uid));
     }
 
@@ -159,8 +172,8 @@ public class OpenApiController {
      */
     @PostMapping("/return/gas")
     public Result returnGas(@RequestBody @Valid OpenapiOperationQuery query,
-                         @RequestHeader("sign") String sign,
-                         @RequestHeader("timestamp") String timestamp) {
+                            @RequestHeader("sign") String sign,
+                            @RequestHeader("timestamp") String timestamp) {
 
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();

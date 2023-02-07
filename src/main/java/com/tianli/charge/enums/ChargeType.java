@@ -35,8 +35,8 @@ public enum ChargeType {
     red_get("Red Packet Collection", "红包领取"),
     red_back("Red Packet Refund", "红包退款"),
     transaction_reward("Trading Bonus", "交易奖励", AccountChangeType.transaction_reward),
-    transfer_increase("Transfer Increase", "划转增加",AccountChangeType.transaction_reward),
-    transfer_reduce("Transfer Reduce", "划转减少",AccountChangeType.transaction_reward),
+    transfer_increase("Transfer Increase", "划转增加",AccountChangeType.transfer_increase),
+    transfer_reduce("Transfer Reduce", "划转减少",AccountChangeType.transfer_reduce),
     return_gas("Return Gas", "免Gas费",AccountChangeType.return_gas),
     airdrop("Airdrop", "空投",AccountChangeType.airdrop)
     // 增加类型需要在 ChargeRemarks 中增加对应的状态和文字，不然会报错
