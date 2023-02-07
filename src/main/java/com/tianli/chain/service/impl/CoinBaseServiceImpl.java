@@ -90,6 +90,11 @@ public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> i
     }
 
     @Override
+    public void notShow(String name) {
+        coinBaseMapper.displayColse(name);
+    }
+
+    @Override
     public void deleteCache(String name) {
         redisTemplate.delete(RedisConstants.COIN_BASE + name);
     }

@@ -20,10 +20,13 @@ import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.query.CoinIoUQuery;
 import com.tianli.management.query.CoinStatusQuery;
 import com.tianli.management.query.CoinWithdrawQuery;
+import com.tianli.product.afinancial.entity.FinancialProduct;
+import com.tianli.product.service.FinancialProductService;
 import com.tianli.sqs.SqsContext;
 import com.tianli.sqs.SqsService;
 import com.tianli.sqs.SqsTypeEnum;
 import com.tianli.sqs.context.PushAddressContext;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -62,6 +65,8 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     private CoinBaseService coinBaseService;
     @Resource
     private ContractAdapter contractAdapter;
+    @Resource
+    private FinancialProductService financialProductService;
 
     // 存储每批数据的临时容器
     private final List<Address> addresses = new ArrayList<>();
@@ -133,6 +138,33 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
             coinBaseService.flushPushListCache();
             this.deletePushListCache();
         }
+    }
+
+    @Override
+    @Transactional
+    public void close(String nickname, CoinStatusQuery query) {
+        Long id = query.getId();
+        Coin coin = coinMapper.selectById(id);
+
+        List<FinancialProduct> products = financialProductService.list(new LambdaQueryWrapper<FinancialProduct>()
+                .eq(FinancialProduct::getCoin, coin.getName()));
+        if (CollectionUtils.isNotEmpty(products)) {
+            ErrorCodeEnum.throwException("该币种已经配置理财产品，无法下架");
+        }
+
+        coin.setStatus((byte) 3);
+        coinMapper.updateById(coin);
+        this.deletePushListCache();
+
+        Integer count = coinMapper.selectCount(new LambdaQueryWrapper<Coin>()
+                .eq(Coin::getName, coin.getName())
+                .eq(Coin::getStatus, (byte) 2));
+
+        if (Objects.isNull(count) || count == 0) {
+            coinBaseService.notShow(coin.getName());
+            coinBaseService.deletePushListCache();
+        }
+
     }
 
     @Override
