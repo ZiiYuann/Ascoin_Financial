@@ -237,7 +237,10 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         existCoinNames.forEach(coinNames::remove);
 
         for (String coin : coinNames) {
-            CoinBase coinBase = validCurrencyToken(coin);
+            CoinBase coinBase = getPushBaseCoin(coin);
+            if (coinBase == null) {
+                continue;
+            }
             AccountBalanceVO accountBalanceVO = AccountBalanceVO.getDefault(coinBase);
             accountBalanceVO.setDollarRate(currencyService.getDollarRate(String.valueOf(coin)));
             accountBalanceVO.setWeight(coinBase.getWeight());
@@ -404,6 +407,16 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
             }
         }
         throw ErrorCodeEnum.CURRENCY_NOT_SUPPORT.generalException();
+    }
+
+    private CoinBase getPushBaseCoin(String tokenName) {
+        List<CoinBase> coins = coinBaseService.getPushListCache();
+        for (CoinBase coinBase : coins) {
+            if (coinBase.getName().equalsIgnoreCase(tokenName)) {
+                return coinBase;
+            }
+        }
+        return null;
     }
 
     private void validBlackUser(Long uid) {
