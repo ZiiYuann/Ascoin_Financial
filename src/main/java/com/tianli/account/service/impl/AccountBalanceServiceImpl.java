@@ -287,6 +287,12 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
 
     public List<AccountBalanceVO> accountList(Long uid) {
         List<AccountBalance> accountBalances = Optional.ofNullable(this.list(uid)).orElse(new ArrayList<>());
+
+        Set<String> coinNames = coinBaseService.pushCoinNames();
+        accountBalances = accountBalances.stream()
+                .filter(accountBalance -> coinNames.contains(accountBalance.getCoin()))
+                .collect(Collectors.toList());
+
         List<AccountBalanceVO> accountBalanceVOS = new ArrayList<>(accountBalances.size());
         accountBalances.forEach(accountBalance -> accountBalanceVOS.add(accountSingleCoin(uid, accountBalance.getCoin())));
         return accountBalanceVOS;
