@@ -472,10 +472,10 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
         if (recordLatest.getHoldAmount().compareTo(BigDecimal.ZERO) == 0) {
             recordLatest.setStatus(RecordStatus.SUCCESS);
             recordLatest.setUpdateTime(LocalDateTime.now());
+            productHoldRecordService.delete(uid, record.getProductId(), record.getId());
 
         }
         financialRecordService.updateById(recordLatest);
-        productHoldRecordService.delete(uid, record.getProductId(), record.getId());
         return RedeemResultDto.builder()
                 .orderNo(order.getOrderNo()).build();
     }
