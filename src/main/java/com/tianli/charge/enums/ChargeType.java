@@ -31,7 +31,7 @@ public enum ChargeType {
     agent_fund_sale("Sales Revenue", "销售收入"),
     agent_fund_redeem("Redemption expense", "赎回支出"),
     agent_fund_interest("Interest payments", "利息支付"),
-    red_give("Send Red Packet", "红包已发送"),
+    red_give("Send Red Packet", "红包发送"),
     red_get("Red Packet Collection", "红包领取"),
     red_back("Red Packet Refund", "红包退款"),
     transaction_reward("Trading Bonus", "交易奖励", AccountChangeType.transaction_reward),
