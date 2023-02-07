@@ -40,10 +40,7 @@ import com.tianli.product.afinancial.entity.FinancialIncomeAccrue;
 import com.tianli.product.afinancial.entity.FinancialIncomeDaily;
 import com.tianli.product.afinancial.entity.FinancialProduct;
 import com.tianli.product.afinancial.entity.FinancialRecord;
-import com.tianli.product.afinancial.enums.BusinessType;
-import com.tianli.product.afinancial.enums.ProductStatus;
-import com.tianli.product.afinancial.enums.ProductType;
-import com.tianli.product.afinancial.enums.RecordStatus;
+import com.tianli.product.afinancial.enums.*;
 import com.tianli.product.afinancial.mapper.ProductMapper;
 import com.tianli.product.afinancial.query.FinancialRecordQuery;
 import com.tianli.product.afinancial.query.ProductHoldQuery;
@@ -695,7 +692,7 @@ public class FinancialServiceImpl implements FinancialService {
             holdProductVo.setIncomeTime(purchaseTime.toLocalDate().atStartOfDay().plusDays(4));
         }
         if (!ProductType.fund.equals(productType)) {
-            holdProductVo.setIncomeTime(purchaseTime.toLocalDate().atStartOfDay().plusDays(holdProductVo.getTerm().getDay()));
+            holdProductVo.setIncomeTime(purchaseTime.toLocalDate().atStartOfDay().plusDays(PurchaseTerm.NONE.getDay()));
         }
 
         holdProductVo.setIncomeDays(Duration.between(holdProductVo.getIncomeTime(), LocalDateTime.now()).toDays());
