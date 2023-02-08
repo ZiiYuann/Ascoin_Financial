@@ -313,9 +313,6 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         Coin coin = coinMapper.selectById(id);
         Optional.ofNullable(coin).orElseThrow(NullPointerException::new);
 
-        if (coin.getStatus() != 1) {
-            throw new UnsupportedOperationException();
-        }
         coin.setStatus((byte) 2);
         coinMapper.updateById(coin);
 
