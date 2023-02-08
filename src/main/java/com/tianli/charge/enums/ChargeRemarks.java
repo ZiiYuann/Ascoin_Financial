@@ -48,6 +48,7 @@ public enum ChargeRemarks {
     transfer_reduce_success("划转减少", "Transfer Reduce", ChargeType.transfer_reduce, ChargeStatus.chain_success),
     return_gas_success("Gas费已到账", "Gas Fee Received", ChargeType.return_gas, ChargeStatus.chain_success),
     airdrop_success("空投到账", "Airdrop Received", ChargeType.airdrop, ChargeStatus.chain_success),
+    gold_exchange_success("金币兑换到账", "Gold Exchange Received", ChargeType.gold_exchange, ChargeStatus.chain_success),
     points_sale_success("积分销售成功", "Points sale successful", ChargeType.points_sale, ChargeStatus.chain_success),
     points_withdrawal_success(" 积分提现成功", "Points withdrawal successful", ChargeType.points_withdrawal, ChargeStatus.chain_success),
     points_payment_success("积分购买成功", "Points payment successful", ChargeType.points_payment, ChargeStatus.chain_success),
