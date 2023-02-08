@@ -173,11 +173,11 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
         LambdaQueryWrapper<WalletImputationLog> queryWrapper = new LambdaQueryWrapper<>();
 
         if (Objects.nonNull(startTime) && Objects.nonNull(endTime)) {
-            queryWrapper = queryWrapper.between(WalletImputationLog::getFinishTime, startTime, endTime);
+            queryWrapper = queryWrapper.between(WalletImputationLog::getCreateTime, startTime, endTime);
         }
 
         if (Objects.nonNull(startTime) && Objects.isNull(endTime)) {
-            queryWrapper = queryWrapper.ge(WalletImputationLog::getFinishTime, startTime);
+            queryWrapper = queryWrapper.ge(WalletImputationLog::getCreateTime, startTime);
         }
 
         // 提现订单
@@ -185,7 +185,7 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
 
         return walletImputationLogs.stream().map(walletImputationLog ->
                 new ServiceFeeDTO(walletImputationLog.getNetwork(), walletImputationLog.getTxid()
-                        , walletImputationLog.getFinishTime().toLocalDate().toString(), (byte) 1)).collect(Collectors.toList());
+                        , walletImputationLog.getCreateTime().toLocalDate().toString(), (byte) 1)).collect(Collectors.toList());
 
     }
 

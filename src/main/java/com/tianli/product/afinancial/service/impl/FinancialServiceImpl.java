@@ -306,7 +306,12 @@ public class FinancialServiceImpl implements FinancialService {
             queryWrapper = queryWrapper.like(Address::getUid, uid);
         }
 
+
         var addresses = addressService.page(page, queryWrapper);
+
+        if (CollectionUtils.isEmpty(addresses.getRecords())) {
+            return addresses.convert(a -> new FinancialUserInfoVO());
+        }
         List<Long> uids = addresses.getRecords().stream().map(Address::getUid).collect(Collectors.toList());
 
         var rechargeOrderAmount = orderService.getSummaryOrderAmount(uids, ChargeType.recharge);

@@ -4,7 +4,14 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.address.mapper.Address;
 import com.tianli.currency.service.CurrencyService;
+import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.vo.MUserHoldRecordVO;
+import com.tianli.product.afinancial.entity.FinancialIncomeAccrue;
+import com.tianli.product.afinancial.service.FinancialIncomeAccrueService;
+import com.tianli.product.afinancial.service.FinancialRecordService;
+import com.tianli.product.afund.query.FundIncomeQuery;
+import com.tianli.product.afund.query.FundRecordQuery;
+import com.tianli.product.afund.service.IFundIncomeRecordService;
 import com.tianli.product.dto.UserHoldRecordDto;
 import com.tianli.product.entity.ProductHoldRecord;
 import com.tianli.product.afinancial.dto.IncomeDto;
@@ -48,6 +55,10 @@ public class ManageUserService {
     private ProductService productService;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private IFundIncomeRecordService fundIncomeRecordService;
+    @Resource
+    private FinancialIncomeAccrueService financialIncomeAccrueService;
 
     /**
      * 理财用户信息y
@@ -87,7 +98,11 @@ public class ManageUserService {
         Map<ProductType, BigDecimal> holdFeeBigDecimalMap = new HashMap<>(records.size());
         BigDecimal calIncomeFee = BigDecimal.ZERO;
         BigDecimal waitIncomeFee = BigDecimal.ZERO;
-        BigDecimal accrueIncomeAmount = BigDecimal.ZERO;
+
+        BigDecimal fundIncomeFee =
+                fundIncomeRecordService.amountDollar(FundIncomeQuery.builder().uid(uid).build());
+        BigDecimal financialIncomeFee =
+                financialIncomeAccrueService.summaryIncomeByQuery(FinancialProductIncomeQuery.builder().uid(uid + "").build());
 
         for (ProductHoldRecord record : records) {
             Long productId = record.getProductId();
@@ -107,7 +122,6 @@ public class ManageUserService {
 
             waitIncomeFee = waitIncomeFee.add(income.getWaitIncomeAmount().multiply(dollarRate));
 
-            accrueIncomeAmount = accrueIncomeAmount.add(income.getAccrueIncomeAmount().multiply(dollarRate));
         }
 
         return MUserHoldRecordVO.builder()
@@ -116,7 +130,7 @@ public class ManageUserService {
                 .holdFeeMap(holdFeeMap)
                 .calIncomeFee(calIncomeFee)
                 .waitIncomeFee(waitIncomeFee)
-                .accrueIncomeAmount(accrueIncomeAmount)
+                .accrueIncomeFee(fundIncomeFee.add(financialIncomeFee))
                 .build();
     }
 

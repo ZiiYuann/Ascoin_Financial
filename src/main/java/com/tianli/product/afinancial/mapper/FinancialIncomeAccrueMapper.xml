@@ -39,7 +39,8 @@
         record.product_term ,
         record.hold_amount,
         record.coin,
-        record.logo
+        record.logo,
+        record.product_id
         FROM financial_income_accrue income
         INNER JOIN financial_record record ON income.uid = record.uid and income.record_id = record.id
         where 1=1

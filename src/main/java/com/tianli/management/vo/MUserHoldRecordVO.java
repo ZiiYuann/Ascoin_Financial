@@ -35,7 +35,7 @@ public class MUserHoldRecordVO {
     private BigDecimal waitIncomeFee;
 
     @BigDecimalFormat("0.00")
-    private BigDecimal accrueIncomeAmount;
+    private BigDecimal accrueIncomeFee;
 
 
 }

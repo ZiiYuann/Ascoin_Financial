@@ -42,4 +42,6 @@ public class FinancialIncomeAccrueDTO extends FinancialIncomeAccrue {
     private String logo;
 
     private String productNameEn;
+
+    private Long productId;
 }

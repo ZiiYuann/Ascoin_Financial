@@ -79,7 +79,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         Object o = redisTemplate.opsForValue().get(RedisConstants.COIN_PUSH_LIST);
         if (Objects.isNull(o)) {
             List<Coin> coins = this.list(new LambdaQueryWrapper<Coin>()
-                    .gt(Coin::getStatus, (byte) 0));
+                    .eq(Coin::getStatus, (byte) 2));
             redisTemplate.opsForValue().set(RedisConstants.COIN_PUSH_LIST, coins);
             return coins;
         }
@@ -127,17 +127,27 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     @Transactional
     public void push(String nickname, CoinStatusQuery query) {
         Long id = query.getId();
-        var coin = processStatus(nickname, id);
+        Coin coin = coinMapper.selectById(id);
+
+        if (coin.getStatus() == 0) {
+            processStatus(nickname, id);
+        }
+
+        if (coin.getStatus() == 3) {
+            successStatus(coin.getId());
+        }
+
         // 执行ETH、BSC、TRON 推送数据
         if (ChainType.BSC.equals(coin.getChain()) ||
                 ChainType.TRON.equals(coin.getChain()) ||
                 ChainType.ETH.equals(coin.getChain())) {
             asyncService.async(() -> this.asyncPush(coin));
-        } else {
+        }else {
             successStatus(coin.getId());
-            coinBaseService.flushPushListCache();
-            this.deletePushListCache();
         }
+
+        coinBaseService.flushPushListCache();
+        this.deletePushListCache();
     }
 
     @Override
@@ -286,9 +296,6 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         Coin coin = coinMapper.selectById(id);
         Optional.ofNullable(coin).orElseThrow(NullPointerException::new);
 
-        if (coin.getStatus() > 1) {
-            throw new UnsupportedOperationException();
-        }
         if (coin.getWithdrawFixedAmount().compareTo(BigDecimal.ZERO) == 0
                 || coin.getWithdrawMin().compareTo(BigDecimal.ZERO) == 0) {
             ErrorCodeEnum.COIN_NOT_CONFIG_NOT_EXIST.throwException();
