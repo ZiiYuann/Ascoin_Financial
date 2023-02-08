@@ -47,8 +47,6 @@ public class OpenApiController {
                          @RequestHeader("timestamp") String timestamp) {
 
 
-        ErrorCodeEnum.NOT_OPEN.throwException();
-
 
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();

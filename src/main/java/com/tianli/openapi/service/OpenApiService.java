@@ -13,6 +13,8 @@ import com.tianli.charge.query.OrderMQuery;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
+import com.tianli.common.RedisLockConstants;
+import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.openapi.dto.IdDto;
 import com.tianli.openapi.dto.TransferResultDto;
@@ -27,6 +29,8 @@ import com.tianli.rpc.RpcService;
 import com.tianli.rpc.dto.InviteDTO;
 import com.tianli.tool.time.TimeTool;
 import org.apache.commons.collections4.CollectionUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +38,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -56,6 +61,10 @@ public class OpenApiService {
     private FinancialIncomeAccrueService financialIncomeAccrueService;
     @Resource
     private AccountUserTransferService accountUserTransferService;
+    @Resource
+    private RedissonClient redissonClient;
+    @Resource
+    private WebHookService webHookService;
 
     @Transactional
     public IdDto reward(OpenapiOperationQuery query) {
@@ -74,35 +83,49 @@ public class OpenApiService {
         LocalDateTime orderDateTime = orderRewardRecord.getGiveTime();
 
         LocalDateTime hour = TimeTool.hour(orderDateTime);
-        Order order = orderService.getOne(new LambdaQueryWrapper<Order>()
-                .eq(Order::getType, query.getType())
-                .eq(Order::getUid, query.getUid())
-                .eq(Order::getCoin, query.getCoin())
-                .eq(Order::getCreateTime, hour));
+        String key = RedisLockConstants.LOCK_REWARD + query.getUid() + ":" + query.getCoin();
+        RLock rLock = redissonClient.getLock(key);
+        try {
+            boolean lock = rLock.tryLock(2L, TimeUnit.SECONDS);
+            if (!lock) {
+                webHookService.dingTalkSend("交易奖励获取锁超时" + key);
+            }
 
+            Order order = orderService.getOne(new LambdaQueryWrapper<Order>()
+                    .eq(Order::getType, query.getType())
+                    .eq(Order::getUid, query.getUid())
+                    .eq(Order::getCoin, query.getCoin())
+                    .eq(Order::getCreateTime, hour));
 
-        if (Objects.nonNull(order)) {
-            orderService.addAmount(order.getId(), query.getAmount());
-        } else {
-            long id = CommonFunction.generalId();
-            Order newOrder = Order.builder()
-                    .id(id)
-                    .uid(query.getUid())
-                    .coin(query.getCoin())
-                    .orderNo(query.getType().getAccountChangeType().getPrefix() + id)
-                    .amount(query.getAmount())
-                    .type(query.getType())
-                    .status(ChargeStatus.chain_success)
-                    .relatedId(query.getId())
-                    .createTime(hour)
-                    .completeTime(hour.plusHours(1).plusSeconds(-1))
-                    .build();
-            orderService.save(newOrder);
-            order = newOrder;
+            if (Objects.nonNull(order)) {
+                orderService.addAmount(order.getId(), query.getAmount());
+            } else {
+                long id = CommonFunction.generalId();
+                Order newOrder = Order.builder()
+                        .id(id)
+                        .uid(query.getUid())
+                        .coin(query.getCoin())
+                        .orderNo(query.getType().getAccountChangeType().getPrefix() + id)
+                        .amount(query.getAmount())
+                        .type(query.getType())
+                        .status(ChargeStatus.chain_success)
+                        .relatedId(query.getId())
+                        .createTime(hour)
+                        .completeTime(hour.plusHours(1).plusSeconds(-1))
+                        .build();
+                orderService.save(newOrder);
+                order = newOrder;
+            }
+
+            accountBalanceServiceImpl.increase(query.getUid(), query.getType(), query.getCoin()
+                    , query.getAmount(), order.getOrderNo(), query.getType().getNameZn());
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            assert rLock != null;
+            rLock.unlock();
         }
-
-        accountBalanceServiceImpl.increase(query.getUid(), query.getType(), query.getCoin()
-                , query.getAmount(), order.getOrderNo(), query.getType().getNameZn());
         return new IdDto(recordId);
     }
 
