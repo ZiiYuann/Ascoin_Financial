@@ -378,6 +378,9 @@ public class FinancialServiceImpl implements FinancialService {
         query.setChargeType(ChargeType.withdraw);
         withdrawFee = orderService.orderAmountDollarSum(query);
 
+        financialIncomeFee = financialIncomeAccrueService.summaryIncomeByQuery(new FinancialProductIncomeQuery());
+        fundIncomeFee = fundIncomeRecordService.amountDollar(new FundIncomeQuery());
+
         return MWalletUserManagerDataVO.builder()
                 .rechargeFee(rechargeFee)
                 .withdrawFee(withdrawFee)
