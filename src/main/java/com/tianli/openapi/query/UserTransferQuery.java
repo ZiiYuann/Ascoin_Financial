@@ -1,5 +1,6 @@
 package com.tianli.openapi.query;
 
+import com.tianli.charge.enums.ChargeType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,4 +28,6 @@ public class UserTransferQuery {
     private BigDecimal amount;
 
     private Long relatedId;
+
+    private ChargeType chargeType;
 }

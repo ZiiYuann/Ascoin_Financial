@@ -43,30 +43,72 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
                     .eq(AccountUserTransfer::getExternalPk, query.getRelatedId()));
             Optional.ofNullable(accountUserTransfer).ifPresent(o -> ErrorCodeEnum.TRANSFER_ORDER_EXIST.throwException());
         }
-        LocalDateTime now = LocalDateTime.now();
         long accountUserTransferId = CommonFunction.generalId();
-        long tId = CommonFunction.generalId();
-        long rId = CommonFunction.generalId();
-        String s = CommonFunction.generalSn(tId);
-
         String coin = query.getCoin();
         BigDecimal amount = query.getAmount();
 
+        String orderNo = null;
+
+        if (ChargeType.points_sale.equals(query.getChargeType())) {
+            orderNo = transferOperation(accountUserTransferId,
+                    query.getTransferUid(), ChargeType.points_payment,
+                    query.getReceiveUid(), ChargeType.points_sale,
+                    coin, amount);
+        }
+
+        if (ChargeType.points_withdrawal.equals(query.getChargeType())) {
+            orderNo = transferOperation(accountUserTransferId,
+                    query.getTransferUid(), ChargeType.points_withdrawal,
+                    query.getReceiveUid(), ChargeType.points_return,
+                    coin, amount);
+        }
+
+        if (ChargeType.transfer_reduce.equals(query.getChargeType())) {
+            orderNo = transferOperation(accountUserTransferId,
+                    query.getTransferUid(), ChargeType.transfer_reduce,
+                    query.getReceiveUid(), ChargeType.transfer_increase,
+                    coin, amount);
+        }
+
+        Optional.ofNullable(orderNo).orElseThrow(ErrorCodeEnum.TRANSFER_ERROR::generalException);
+
+        AccountUserTransfer accountUserTransfer = AccountUserTransfer.builder()
+                .id(accountUserTransferId)
+                .transferUid(query.getTransferUid())
+                .receiveUid(query.getReceiveUid())
+                .amount(amount)
+                .coin(coin)
+                .transferOrderNo(orderNo)
+                .externalPk(query.getRelatedId()).build();
+        this.save(accountUserTransfer);
+        return accountUserTransfer;
+    }
+
+    private String transferOperation(
+            Long accountUserTransferId,
+            Long decreaseUid, ChargeType decreaseType,
+            Long increaseUid, ChargeType increaseType,
+            String coin, BigDecimal amount) {
+        LocalDateTime now = LocalDateTime.now();
+        long tId = CommonFunction.generalId();
+        long rId = CommonFunction.generalId();
+        String s = CommonFunction.generalSn(tId);
         Order transferOrder = Order.builder()
                 .id(tId)
-                .uid(query.getTransferUid())
-                .orderNo(ChargeType.transfer_reduce.getAccountChangeType() + s)
-                .type(ChargeType.transfer_reduce)
+                .uid(decreaseUid)
+                .orderNo(decreaseType.getAccountChangeType().getPrefix() + s)
+                .type(decreaseType)
                 .status(ChargeStatus.chain_success)
                 .coin(coin)
                 .amount(amount)
                 .relatedId(accountUserTransferId)
                 .completeTime(now).build();
+
         Order receiveOrder = Order.builder()
                 .id(rId)
-                .uid(query.getReceiveUid())
-                .orderNo(ChargeType.transfer_increase.getAccountChangeType() + s)
-                .type(ChargeType.transfer_increase)
+                .uid(increaseUid)
+                .orderNo(increaseType.getAccountChangeType().getPrefix() + s)
+                .type(increaseType)
                 .status(ChargeStatus.chain_success)
                 .coin(coin)
                 .amount(amount)
@@ -76,20 +118,10 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
         orderService.save(transferOrder);
         orderService.save(receiveOrder);
 
-        accountBalanceService.decrease(query.getTransferUid(), ChargeType.transfer_reduce, coin, amount
-                , transferOrder.getOrderNo(), "划转减少");
-        accountBalanceService.increase(query.getReceiveUid(), ChargeType.transfer_increase, coin, amount
-                , receiveOrder.getOrderNo(), "划转增加");
-
-        AccountUserTransfer accountUserTransfer = AccountUserTransfer.builder()
-                .id(accountUserTransferId)
-                .transferUid(query.getTransferUid())
-                .receiveUid(query.getReceiveUid())
-                .amount(amount)
-                .coin(coin)
-                .transferOrderNo(transferOrder.getOrderNo())
-                .externalPk(query.getRelatedId()).build();
-        this.save(accountUserTransfer);
-        return accountUserTransfer;
+        accountBalanceService.decrease(decreaseUid, decreaseType, coin, amount
+                , transferOrder.getOrderNo(), decreaseType.getNameZn());
+        accountBalanceService.increase(increaseUid, increaseType, coin, amount
+                , receiveOrder.getOrderNo(), increaseType.getNameZn());
+        return transferOrder.getOrderNo();
     }
 }

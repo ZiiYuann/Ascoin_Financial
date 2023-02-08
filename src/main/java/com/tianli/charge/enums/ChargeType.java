@@ -39,6 +39,12 @@ public enum ChargeType {
     transfer_reduce("Transfer Reduce", "划转减少",AccountChangeType.transfer_reduce),
     return_gas("Return Gas", "免Gas费",AccountChangeType.return_gas),
     gold_exchange("Gold Exchange", "金币兑换",AccountChangeType.gold_exchange),
+    // 商户 points_sale 加钱 points_withdrawal 减钱
+    points_sale("Points sale","积分销售",AccountChangeType.points_sale),
+    points_withdrawal("Points withdrawal","积分提现",AccountChangeType.points_withdrawal),
+    // 用户 points_payment 减钱 points_return 加钱
+    points_payment("Points payment","积分购买",AccountChangeType.points_payment),
+    points_return("Points return","积分返还",AccountChangeType.points_return),
     airdrop("Airdrop", "空投",AccountChangeType.airdrop)
     // 增加类型需要在 ChargeRemarks 中增加对应的状态和文字，不然会报错
     // 增加类型需要在 ChargeGroup 中增加对应，不然会报错
