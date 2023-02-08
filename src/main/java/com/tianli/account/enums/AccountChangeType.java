@@ -54,7 +54,7 @@ public enum AccountChangeType {
     //免Gas费
     return_gas("RG"),
     airdrop("AIR"),
-    ;
+    gold_exchange("GE");
 
 
     AccountChangeType(String prefix) {

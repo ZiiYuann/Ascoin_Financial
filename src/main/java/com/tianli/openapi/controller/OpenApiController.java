@@ -2,6 +2,7 @@ package com.tianli.openapi.controller;
 
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
@@ -181,6 +182,21 @@ public class OpenApiController {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
         openApiService.returnGas(query);
+        return Result.success();
+    }
+
+    /**
+     * cpl金币奖励
+     */
+    @PostMapping("/gold/exchange")
+    public Result goldExchange(@RequestBody @Valid OpenapiOperationQuery query,
+                            @RequestHeader("sign") String sign,
+                            @RequestHeader("timestamp") String timestamp) {
+
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
+        }
+        openApiService.goldExchange(query);
         return Result.success();
     }
 }
