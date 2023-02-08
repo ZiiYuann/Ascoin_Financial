@@ -65,10 +65,18 @@ public class ManageCoinController {
      */
     @AdminPrivilege
     @PostMapping("/push")
-    public Result saveOrUpdate(@RequestBody @Valid CoinStatusQuery query) {
+    public Result<Void> push(@RequestBody @Valid CoinStatusQuery query) {
         String nickname = AdminContent.get().getNickname();
         coinService.push(nickname, query);
-        return Result.success();
+        return new Result<>();
+    }
+
+    @AdminPrivilege
+    @PostMapping("/close")
+    public Result<Void> close(@RequestBody @Valid CoinStatusQuery query) {
+        String nickname = AdminContent.get().getNickname();
+        coinService.close(nickname, query);
+        return new Result<>();
     }
 
     /**

@@ -36,8 +36,8 @@ public enum ErrorCodeEnum {
     GENERATE_MNEMONIC_FAILED(126, "生成助记词失败"),
     GENERATE_CHARGE_ADDRESS_FAILED(127, "生成充值地址失败"),
     AGENT_TOKEN_NOT_NULL(128, "agent token不能为空"),
-    AGENT_TOKEN_NOT_EXIST(129, "agent token不能存在"),
-    SESSION_TMP_R_NOT_EXIST(130, "admin _r 请求头不存在"),
+    AGENT_TOKEN_NOT_EXIST(129, "agent token不存在"),
+    SESSION_TMP_R_NOT_EXIST(130, "admin_r 请求头不存在"),
     SSO_SERVICE_ERROR(131, "SSO外部服务异常"),
 
 
@@ -158,6 +158,8 @@ public enum ErrorCodeEnum {
     COIN_NOT_ALLOW_OPERATION(3804, "币种不允许操作"),
     COIN_NOT_CONFIG_NOT_EXIST(3805, "币种上线前请先配置最小提币和手续费"),
     MANUAL_TRANSFER_HASH_NULL(3806, "人工审核转账HASH为空"),
+    TRANSFER_ORDER_EXIST(3807, "转账已存在"),
+    TRANSFER_ERROR(3808, "转账异常"),
 
     ;
     private int errorNo;

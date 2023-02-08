@@ -31,7 +31,6 @@ import com.tianli.charge.entity.OrderChargeInfo;
 import com.tianli.charge.enums.*;
 import com.tianli.charge.mapper.OrderMapper;
 import com.tianli.charge.query.OrderReviewQuery;
-import com.tianli.charge.query.RedeemQuery;
 import com.tianli.charge.query.WithdrawQuery;
 import com.tianli.charge.vo.OrderBaseVO;
 import com.tianli.charge.vo.OrderChargeInfoVO;
@@ -50,13 +49,12 @@ import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
-import com.tianli.financial.entity.FinancialProduct;
-import com.tianli.financial.entity.FinancialRecord;
-import com.tianli.financial.enums.ProductType;
-import com.tianli.financial.enums.RecordStatus;
-import com.tianli.financial.service.FinancialProductService;
-import com.tianli.financial.service.FinancialRecordService;
-import com.tianli.financial.vo.ExpectIncomeVO;
+import com.tianli.product.afinancial.entity.FinancialProduct;
+import com.tianli.product.afinancial.entity.FinancialRecord;
+import com.tianli.product.afinancial.enums.ProductType;
+import com.tianli.product.service.FinancialProductService;
+import com.tianli.product.afinancial.service.FinancialRecordService;
+import com.tianli.product.afinancial.vo.ExpectIncomeVO;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.service.IWalletAgentService;
 import com.tianli.mconfig.ConfigService;
@@ -387,55 +385,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         String txid = (String) result.getData();
         orderChargeInfo.setTxid(txid);
         orderChargeInfoService.updateById(orderChargeInfo);
-    }
-
-    @Transactional
-    public String redeem(Long uid, RedeemQuery query) {
-        // todo 计算利息的时候不允许进行赎回操
-        Long recordId = query.getRecordId();
-        FinancialRecord record = financialRecordService.selectById(recordId, uid);
-
-        if (RecordStatus.SUCCESS.equals(record.getStatus())) {
-            log.info("recordId:{},已经处于完成状态，请校验是否有误", recordId);
-            ErrorCodeEnum.TRADE_FAIL.throwException();
-        }
-
-        if (query.getRedeemAmount().compareTo(record.getHoldAmount()) > 0) {
-            log.info("赎回金额 {}  大于持有金额 {}", query.getRedeemAmount(), record.getHoldAmount());
-            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
-        }
-
-        //创建赎回订单  没有审核操作，在一个事物里无需操作
-        LocalDateTime now = LocalDateTime.now();
-        long id = CommonFunction.generalId();
-        Order order = new Order();
-        order.setId(id);
-        order.setUid(uid);
-        order.setAmount(query.getRedeemAmount());
-        order.setOrderNo(AccountChangeType.redeem.getPrefix() + CommonFunction.generalSn(id));
-        order.setStatus(ChargeStatus.chain_success);
-        order.setType(ChargeType.redeem);
-        order.setRelatedId(recordId);
-        order.setCoin(record.getCoin());
-        order.setCreateTime(now);
-        order.setCompleteTime(now);
-        orderService.save(order);
-
-        // 增加
-        accountBalanceServiceImpl.increase(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount(), order.getOrderNo(), CurrencyLogDes.赎回.name());
-
-        // 减少产品持有
-        financialRecordService.redeem(record.getId(), query.getRedeemAmount(), record.getHoldAmount());
-
-        // 更新记录状态
-        FinancialRecord recordLatest = financialRecordService.selectById(recordId, uid);
-        if (recordLatest.getHoldAmount().compareTo(BigDecimal.ZERO) == 0) {
-            recordLatest.setStatus(RecordStatus.SUCCESS);
-            recordLatest.setUpdateTime(LocalDateTime.now());
-        }
-        financialRecordService.updateById(recordLatest);
-
-        return order.getOrderNo();
     }
 
     /**

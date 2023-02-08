@@ -1,6 +1,6 @@
 package com.tianli.management.vo;
 
-import com.tianli.financial.enums.*;
+import com.tianli.product.afinancial.enums.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -93,6 +93,8 @@ public class MFinancialProductVO {
     private BigDecimal minRate;
 
     private boolean recommend;
+
+    private int recommendWeight;
 
     /**
      * 阶梯利率

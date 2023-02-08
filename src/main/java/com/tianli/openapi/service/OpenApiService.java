@@ -3,6 +3,7 @@ package com.tianli.openapi.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tianli.account.service.AccountUserTransferService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.AccountBalanceVO;
 import com.tianli.charge.entity.Order;
@@ -13,13 +14,15 @@ import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.financial.service.FinancialIncomeAccrueService;
+import com.tianli.openapi.dto.IdDto;
+import com.tianli.openapi.dto.TransferResultDto;
+import com.tianli.product.afinancial.service.FinancialIncomeAccrueService;
 import com.tianli.management.query.FinancialProductIncomeQuery;
-import com.tianli.openapi.IdVO;
 import com.tianli.openapi.entity.OrderRewardRecord;
 import com.tianli.openapi.query.OpenapiAccountQuery;
 import com.tianli.openapi.query.OpenapiOperationQuery;
-import com.tianli.openapi.vo.StatisticsData;
+import com.tianli.openapi.query.UserTransferQuery;
+import com.tianli.openapi.dto.StatisticsDataDto;
 import com.tianli.rpc.RpcService;
 import com.tianli.rpc.dto.InviteDTO;
 import com.tianli.tool.time.TimeTool;
@@ -51,9 +54,11 @@ public class OpenApiService {
     private RpcService rpcService;
     @Resource
     private FinancialIncomeAccrueService financialIncomeAccrueService;
+    @Resource
+    private AccountUserTransferService accountUserTransferService;
 
     @Transactional
-    public IdVO reward(OpenapiOperationQuery query) {
+    public IdDto reward(OpenapiOperationQuery query) {
         if (!ChargeType.transaction_reward.equals(query.getType())) {
             ErrorCodeEnum.throwException("当前接口交易类型不匹配");
         }
@@ -61,7 +66,7 @@ public class OpenApiService {
         OrderRewardRecord rewardRecord = orderRewardRecordService.lambdaQuery()
                 .eq(OrderRewardRecord::getOrderId, query.getId()).one();
         if (Objects.nonNull(rewardRecord)) {
-            return new IdVO(rewardRecord.getId());
+            return new IdDto(rewardRecord.getId());
         }
 
         OrderRewardRecord orderRewardRecord = insertOrderRecord(query);
@@ -98,11 +103,18 @@ public class OpenApiService {
 
         accountBalanceServiceImpl.increase(query.getUid(), query.getType(), query.getCoin()
                 , query.getAmount(), order.getOrderNo(), query.getType().getNameZn());
-        return new IdVO(recordId);
+        return new IdDto(recordId);
+    }
+
+    public TransferResultDto transfer(UserTransferQuery query) {
+        TransferResultDto transferResultDto = new TransferResultDto();
+        transferResultDto.setAmount(query.getAmount());
+        transferResultDto.setId(accountUserTransferService.transfer(query).getId());
+        return transferResultDto;
     }
 
     @Transactional
-    public IdVO transfer(OpenapiOperationQuery query) {
+    public IdDto transfer(OpenapiOperationQuery query) {
         if (!ChargeType.transfer_increase.equals(query.getType())
                 && !ChargeType.transfer_reduce.equals(query.getType())
                 && !ChargeType.airdrop.equals(query.getType())) {
@@ -114,7 +126,7 @@ public class OpenApiService {
                 .eq(OrderRewardRecord::getType, query.getType())
                 .one();
         if (Objects.nonNull(rewardRecord)) {
-            return new IdVO(rewardRecord.getId());
+            return new IdDto(rewardRecord.getId());
         }
 
         OrderRewardRecord orderRewardRecord = insertOrderRecord(query);
@@ -145,7 +157,7 @@ public class OpenApiService {
                     , query.getAmount(), newOrder.getOrderNo(), query.getType().getNameZn());
         }
 
-        return new IdVO(orderRewardRecord.getId());
+        return new IdDto(orderRewardRecord.getId());
     }
 
     /**
@@ -177,7 +189,7 @@ public class OpenApiService {
      * @param query 请求参数
      * @return 统计数据
      */
-    public StatisticsData accountData(OpenapiAccountQuery query) {
+    public StatisticsDataDto accountData(OpenapiAccountQuery query) {
 
         InviteDTO user = rpcService.inviteRpc(query.getChatId());
         var subUids = user.getList().stream().map(InviteDTO::getUid).collect(Collectors.toList());
@@ -205,7 +217,7 @@ public class OpenApiService {
         return getStatisticsData(uid, subUids, startTime, endTime);
     }
 
-    private StatisticsData getStatisticsData(Long uid, List<Long> subUids, LocalDateTime startTime, LocalDateTime endTime) {
+    private StatisticsDataDto getStatisticsData(Long uid, List<Long> subUids, LocalDateTime startTime, LocalDateTime endTime) {
         var totalSummaryData = accountBalanceServiceImpl.accountList(uid);
         // 总余额
         BigDecimal balance = totalSummaryData.stream()
@@ -229,7 +241,7 @@ public class OpenApiService {
                 financialIncomeAccrueService.summaryIncomeByQuery(FinancialProductIncomeQuery.builder().uid(uid + "").build());
 
 
-        StatisticsData data = StatisticsData.builder().balance(balance)
+        StatisticsDataDto data = StatisticsDataDto.builder().balance(balance)
                 .redeemAmount(redeemAmount)
                 .rechargeAmount(rechargeAmount)
                 .withdrawAmount(withdrawAmount)
@@ -238,20 +250,18 @@ public class OpenApiService {
                 .build();
 
         if (CollectionUtils.isNotEmpty(subUids)) {
-            Map<Long, BigDecimal> summaryBalanceAmount = accountBalanceServiceImpl.getSummaryBalanceAmount(subUids);
-            BigDecimal subBalance = summaryBalanceAmount.values().stream()
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            BigDecimal subPurchaseAmount = orderService.uAmount(subUids, ChargeType.purchase);
+            var allUserAssetsVO = accountBalanceServiceImpl.getAllUserAssetsVO(subUids);
+
             BigDecimal subRedeemAmount = orderService.uAmount(subUids, ChargeType.redeem);
-            data.setSubBalance(subBalance);
-            data.setSubPurchaseAmount(subPurchaseAmount);
+            data.setSubBalance(allUserAssetsVO.getBalanceAmount());
+            data.setSubPurchaseAmount(allUserAssetsVO.getPurchaseAmount());
             data.setSubRedeemAmount(subRedeemAmount);
         }
 
         return data;
     }
 
-    public IPage<StatisticsData> accountSubData(Long chatId, PageQuery<StatisticsData> pageQuery) {
+    public IPage<StatisticsDataDto> accountSubData(Long chatId, PageQuery<StatisticsDataDto> pageQuery) {
         InviteDTO user = rpcService.inviteRpc(chatId);
         List<InviteDTO> list = Optional.ofNullable(user.getList()).orElse(new ArrayList<>());
 
@@ -266,15 +276,15 @@ public class OpenApiService {
             pageSub.add(list.get(i));
         }
         var subUids = pageSub.stream().map(InviteDTO::getUid).collect(Collectors.toList());
-        List<StatisticsData> records = pageSub.stream().map(inviteDTO -> {
-            StatisticsData statisticsData = getStatisticsData(inviteDTO.getUid(), null, null, null);
-            statisticsData.setUid(inviteDTO.getUid());
-            statisticsData.setChatId(inviteDTO.getChatId());
-            return statisticsData;
+        List<StatisticsDataDto> records = pageSub.stream().map(inviteDTO -> {
+            StatisticsDataDto statisticsDataDto = getStatisticsData(inviteDTO.getUid(), null, null, null);
+            statisticsDataDto.setUid(inviteDTO.getUid());
+            statisticsDataDto.setChatId(inviteDTO.getChatId());
+            return statisticsDataDto;
         }).collect(Collectors.toList());
 
         // 最终记录行
-        List<StatisticsData> resultRecords = new ArrayList<>();
+        List<StatisticsDataDto> resultRecords = new ArrayList<>();
 
         BigDecimal rechargeAmount = orderService.uAmount(subUids, ChargeType.recharge);
         BigDecimal withdrawAmount = orderService.uAmount(subUids, ChargeType.withdraw);
@@ -282,19 +292,16 @@ public class OpenApiService {
         BigDecimal redeemAmount = orderService.uAmount(subUids, ChargeType.redeem);
         BigDecimal incomeAmount = CollectionUtils.isEmpty(subUids) ? BigDecimal.ZERO :
                 financialIncomeAccrueService.summaryIncomeByQuery(FinancialProductIncomeQuery.builder().uids(subUids).build());
-        Map<Long, BigDecimal> balanceMap = accountBalanceServiceImpl.getSummaryBalanceAmount(subUids);
-        BigDecimal balance = balanceMap.values().stream()
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        var allUserAssetsVO = accountBalanceServiceImpl.getAllUserAssetsVO(subUids);
 
-
-        Page<StatisticsData> result = pageQuery.page();
-        StatisticsData firstRow = StatisticsData.builder()
+        Page<StatisticsDataDto> result = pageQuery.page();
+        StatisticsDataDto firstRow = StatisticsDataDto.builder()
                 .rechargeAmount(rechargeAmount)
                 .withdrawAmount(withdrawAmount)
                 .purchaseAmount(purchaseAmount)
                 .redeemAmount(redeemAmount)
                 .incomeAmount(incomeAmount)
-                .balance(balance).build();
+                .balance(allUserAssetsVO.getBalanceAmount()).build();
 
         resultRecords.add(firstRow);
         resultRecords.addAll(records);
@@ -308,6 +315,15 @@ public class OpenApiService {
 
     public void returnGas(OpenapiOperationQuery query) {
         query.setType(ChargeType.return_gas);
+        increaseBalance(query);
+    }
+
+    public void goldExchange(OpenapiOperationQuery query) {
+        query.setType(ChargeType.gold_exchange);
+        increaseBalance(query);
+    }
+
+    private void increaseBalance(OpenapiOperationQuery query) {
         LocalDateTime now = LocalDateTime.now();
         long id = CommonFunction.generalId();
         Order newOrder = Order.builder()

@@ -1,12 +1,21 @@
 package com.tianli.management.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.address.mapper.Address;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
-import com.tianli.financial.service.FinancialService;
+import com.tianli.management.vo.MUserHoldRecordVO;
+import com.tianli.management.vo.MWalletUserManagerDataVO;
+import com.tianli.product.entity.ProductHoldRecord;
+import com.tianli.product.afinancial.entity.FinancialProduct;
+import com.tianli.product.afinancial.query.ProductHoldQuery;
+import com.tianli.product.afinancial.service.FinancialService;
+import com.tianli.product.afinancial.vo.HoldProductVo;
+import com.tianli.management.service.ManageUserService;
+import com.tianli.management.vo.MUserListVO;
 import com.tianli.openapi.query.OpenapiAccountQuery;
 import com.tianli.openapi.service.OpenApiService;
-import com.tianli.openapi.vo.StatisticsData;
+import com.tianli.openapi.dto.StatisticsDataDto;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,8 +39,36 @@ public class ManageUserController {
      */
     @GetMapping("/list")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result user(PageQuery<Address> page, String uid) {
-        return Result.success().setData(financialService.financialUserPage(uid, page.page()));
+    public Result<IPage<MUserListVO>> user(PageQuery<Address> page, String uid) {
+        return new Result<>(manageUserService.financialUserPage(uid, page.page()));
+    }
+
+    /**
+     * 理财用户管理-持仓用户
+     */
+    @GetMapping("/hold/record")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result<IPage<MUserHoldRecordVO>> holdRecord(ProductHoldQuery query, PageQuery<ProductHoldRecord> page) {
+        return new Result<>(manageUserService.userHoldRecordPage(query, page.page()));
+    }
+
+    /**
+     * 理财用户管理-持仓用户
+     */
+    @GetMapping("/hold/record/data")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result<MUserHoldRecordVO> holdRecordData(ProductHoldQuery query) {
+        return new Result<>(manageUserService.userHoldRecordData(query));
+    }
+
+    /**
+     * 理财用户管理-持仓中
+     */
+    @GetMapping("/hold")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result<IPage<HoldProductVo>> userHold(PageQuery<FinancialProduct> pageQuery
+            , ProductHoldQuery query) {
+        return new Result<>(financialService.holdProductPage(pageQuery.page(), query));
     }
 
     /**
@@ -39,8 +76,8 @@ public class ManageUserController {
      */
     @GetMapping("/data")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result data(String uid) {
-        return Result.success().setData(financialService.userSummaryData(uid));
+    public Result<MWalletUserManagerDataVO> data(String uid) {
+        return new Result<>(financialService.mWalletUserManagerData(uid));
     }
 
     /**
@@ -66,7 +103,7 @@ public class ManageUserController {
      */
     @GetMapping("/account/sub")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result statisticsData(Long chatId, PageQuery<StatisticsData> pageQuery) {
+    public Result statisticsData(Long chatId, PageQuery<StatisticsDataDto> pageQuery) {
         return Result.success(openApiService.accountSubData(chatId, pageQuery));
     }
 
@@ -74,4 +111,6 @@ public class ManageUserController {
     private FinancialService financialService;
     @Resource
     private OpenApiService openApiService;
+    @Resource
+    private ManageUserService manageUserService;
 }

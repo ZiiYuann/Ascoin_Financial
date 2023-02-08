@@ -3,7 +3,7 @@ package com.tianli.management.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.management.entity.ServiceFee;
 import com.tianli.management.query.TimeQuery;
-import com.tianli.management.vo.ServiceFeeVO;
+import com.tianli.management.vo.BoardServiceFeeVO;
 
 import java.time.LocalDate;
 
@@ -34,5 +34,5 @@ public interface ServiceFeeService extends IService<ServiceFee> {
     /**
      * 手续费展板
      */
-    ServiceFeeVO board(TimeQuery timeQuery, Byte type);
+    BoardServiceFeeVO board(TimeQuery timeQuery, Byte type);
 }

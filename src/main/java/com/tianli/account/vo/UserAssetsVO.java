@@ -32,4 +32,25 @@ public class UserAssetsVO {
 
     @BigDecimalFormat("0.00")
     private BigDecimal purchaseAmount;
+
+    @BigDecimalFormat("0.00")
+    private BigDecimal balanceAmount;
+
+    @BigDecimalFormat("0.00")
+    private BigDecimal freezeAmount;
+
+    @BigDecimalFormat("0.00")
+    private BigDecimal remainAmount;
+
+    public static UserAssetsVO defaultInstance() {
+        UserAssetsVO userAssetsVO = new UserAssetsVO();
+        userAssetsVO.setAssets(BigDecimal.ZERO);
+        userAssetsVO.setFinancialHoldAmount(BigDecimal.ZERO);
+        userAssetsVO.setFundHoldAmount(BigDecimal.ZERO);
+        userAssetsVO.setPurchaseAmount(BigDecimal.ZERO);
+        userAssetsVO.setBalanceAmount(BigDecimal.ZERO);
+        userAssetsVO.setFreezeAmount(BigDecimal.ZERO);
+        userAssetsVO.setRemainAmount(BigDecimal.ZERO);
+        return userAssetsVO;
+    }
 }

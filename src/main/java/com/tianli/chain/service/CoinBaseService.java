@@ -52,6 +52,8 @@ public interface CoinBaseService extends IService<CoinBase> {
      */
     void show(String name);
 
+    void notShow(String name);
+
     /**
      * 删除缓存
      *

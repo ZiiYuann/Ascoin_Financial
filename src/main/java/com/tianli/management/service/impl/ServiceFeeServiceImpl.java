@@ -24,7 +24,7 @@ import com.tianli.management.entity.ServiceFee;
 import com.tianli.management.mapper.ServiceFeeMapper;
 import com.tianli.management.query.TimeQuery;
 import com.tianli.management.service.ServiceFeeService;
-import com.tianli.management.vo.ServiceFeeVO;
+import com.tianli.management.vo.BoardServiceFeeVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -144,11 +144,11 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
                 .in(Order::getStatus, List.of(ChargeStatus.chain_success, ChargeStatus.chain_fail));
 
         if (Objects.nonNull(startTime) && Objects.nonNull(endTime)) {
-            queryWrapper = queryWrapper.between(Order::getCreateTime, startTime, endTime);
+            queryWrapper = queryWrapper.between(Order:: getCompleteTime, startTime, endTime);
         }
 
         if (Objects.nonNull(startTime) && Objects.isNull(endTime)) {
-            queryWrapper = queryWrapper.ge(Order::getCreateTime, startTime);
+            queryWrapper = queryWrapper.ge(Order::getCompleteTime, startTime);
         }
 
         // 提现订单
@@ -173,11 +173,11 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
         LambdaQueryWrapper<WalletImputationLog> queryWrapper = new LambdaQueryWrapper<>();
 
         if (Objects.nonNull(startTime) && Objects.nonNull(endTime)) {
-            queryWrapper = queryWrapper.between(WalletImputationLog::getFinishTime, startTime, endTime);
+            queryWrapper = queryWrapper.between(WalletImputationLog::getCreateTime, startTime, endTime);
         }
 
         if (Objects.nonNull(startTime) && Objects.isNull(endTime)) {
-            queryWrapper = queryWrapper.ge(WalletImputationLog::getFinishTime, startTime);
+            queryWrapper = queryWrapper.ge(WalletImputationLog::getCreateTime, startTime);
         }
 
         // 提现订单
@@ -185,7 +185,7 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
 
         return walletImputationLogs.stream().map(walletImputationLog ->
                 new ServiceFeeDTO(walletImputationLog.getNetwork(), walletImputationLog.getTxid()
-                        , walletImputationLog.getFinishTime().toLocalDate().toString(), (byte) 1)).collect(Collectors.toList());
+                        , walletImputationLog.getCreateTime().toLocalDate().toString(), (byte) 1)).collect(Collectors.toList());
 
     }
 
@@ -200,19 +200,19 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
     }
 
     @Override
-    public ServiceFeeVO board(TimeQuery timeQuery, Byte type) {
+    public BoardServiceFeeVO board(TimeQuery timeQuery, Byte type) {
         // 更新今日数据
         init(LocalDate.now(), type);
 
         timeQuery.calTime();
         List<ServiceFee> allFeeByType = this.getBaseMapper().getTotalAmount(timeQuery, type);
 
-        HashMap<ChainType, ServiceFeeVO> defaultChainMap = ServiceFeeVO.getDefaultChainMap();
+        HashMap<ChainType, BoardServiceFeeVO> defaultChainMap = BoardServiceFeeVO.getDefaultChainMap();
         allFeeByType.forEach(serviceFee -> {
-            ServiceFeeVO serviceFeeVO = managementConverter.toServiceFeeVO(serviceFee);
-            serviceFeeVO.setRate(currencyService.getDollarRate(serviceFee.getCoin()));
-            serviceFeeVO.setChainType(serviceFee.getNetwork().getChainType());
-            defaultChainMap.put(serviceFee.getNetwork().getChainType(), serviceFeeVO);
+            BoardServiceFeeVO boardServiceFeeVO = managementConverter.toServiceFeeVO(serviceFee);
+            boardServiceFeeVO.setRate(currencyService.getDollarRate(serviceFee.getCoin()));
+            boardServiceFeeVO.setChainType(serviceFee.getNetwork().getChainType());
+            defaultChainMap.put(serviceFee.getNetwork().getChainType(), boardServiceFeeVO);
         });
         var allSummaryFee = defaultChainMap.values();
         BigDecimal allFeeDollar = defaultChainMap.values().stream()
@@ -233,19 +233,19 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
         int offsetDay = -14;
         //获取13天前零点时间
         //构建13天的数据
-        Map<String, ServiceFeeVO> withdrawServiceFeeVOMap = new LinkedHashMap<>();
+        Map<String, BoardServiceFeeVO> withdrawServiceFeeVOMap = new LinkedHashMap<>();
         for (int i = offsetDay; i <= 0; i++) {
             DateTime time = DateUtil.offsetDay(new Date(), i);
             String dateTimeStr = DateUtil.format(time, "yyyy-MM-dd");
-            withdrawServiceFeeVOMap.put(dateTimeStr, ServiceFeeVO.getDefault(time.toLocalDateTime().toLocalDate()));
+            withdrawServiceFeeVOMap.put(dateTimeStr, BoardServiceFeeVO.getDefault(time.toLocalDateTime().toLocalDate()));
         }
         serviceFeeMap.forEach((key, fees) -> {
             LocalDate time = LocalDate.parse(key);
-            List<ServiceFeeVO> insideFeeVOs = new ArrayList<>();
+            List<BoardServiceFeeVO> insideFeeVOs = new ArrayList<>();
             BigDecimal totalAmount = BigDecimal.ZERO;
 
             for (ServiceFee fee : fees) {
-                ServiceFeeVO insideVo = managementConverter.toServiceFeeVO(fee);
+                BoardServiceFeeVO insideVo = managementConverter.toServiceFeeVO(fee);
                 BigDecimal dollarRate = currencyService.getDollarRate(fee.getCoin());
                 insideVo.setRate(dollarRate);
                 insideVo.setChainType(fee.getNetwork().getChainType());
@@ -254,7 +254,7 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
                 insideFeeVOs.add(insideVo);
             }
 
-            ServiceFeeVO externalVo = ServiceFeeVO.builder()
+            BoardServiceFeeVO externalVo = BoardServiceFeeVO.builder()
                     .createTime(time)
                     .amount(totalAmount)
                     .fees(insideFeeVOs)
@@ -263,7 +263,7 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
             withdrawServiceFeeVOMap.put(key, externalVo);
         });
 
-        ServiceFeeVO result = new ServiceFeeVO();
+        BoardServiceFeeVO result = new BoardServiceFeeVO();
         result.setAmount(allFeeDollar);
         result.setFees(new ArrayList<>(withdrawServiceFeeVOMap.values()));
         result.setSummaryFees(new ArrayList<>(allSummaryFee));

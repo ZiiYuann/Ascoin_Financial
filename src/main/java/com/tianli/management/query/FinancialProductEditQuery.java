@@ -1,7 +1,7 @@
 package com.tianli.management.query;
 
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.tianli.financial.enums.*;
+import com.tianli.product.afinancial.enums.*;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;

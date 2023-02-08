@@ -143,6 +143,8 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                     , List.of(ImputationStatus.wait, ImputationStatus.processing, ImputationStatus.fail));
         }
 
+        queryWrapper = queryWrapper.orderByDesc(WalletImputation :: getAmount);
+
         return walletImputationMapper.selectPage(page, queryWrapper).convert(chainConverter::toWalletImputationVO);
     }
 
