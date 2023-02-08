@@ -29,10 +29,7 @@ import com.tianli.management.query.TimeQuery;
 import com.tianli.management.service.FinancialBoardProductService;
 import com.tianli.management.service.FinancialBoardWalletService;
 import com.tianli.management.service.IWalletAgentProductService;
-import com.tianli.management.vo.FinancialSummaryDataVO;
-import com.tianli.management.vo.FinancialUserInfoVO;
-import com.tianli.management.vo.FundProductBindDropdownVO;
-import com.tianli.management.vo.UserAmountDetailsVO;
+import com.tianli.management.vo.*;
 import com.tianli.product.afinancial.convert.FinancialConverter;
 import com.tianli.product.afinancial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.product.afinancial.dto.ProductRateDTO;
@@ -348,7 +345,7 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public FinancialSummaryDataVO userSummaryData(String uid) {
+    public MWalletUserManagerDataVO userSummaryData(String uid) {
         BigDecimal rechargeAmount = BigDecimal.ZERO;
         BigDecimal withdrawAmount = BigDecimal.ZERO;
         BigDecimal moneyAmount = BigDecimal.ZERO;
@@ -361,15 +358,9 @@ public class FinancialServiceImpl implements FinancialService {
             for (FinancialUserInfoVO financialUserInfoVO : userInfos) {
                 rechargeAmount = rechargeAmount.add(financialUserInfoVO.getRechargeAmount());
                 withdrawAmount = withdrawAmount.add(financialUserInfoVO.getWithdrawAmount());
-                moneyAmount = moneyAmount.add(financialUserInfoVO.getMoneyAmount());
-                incomeAmount = incomeAmount.add(financialUserInfoVO.getFinancialIncomeAmount());
+
             }
-            return FinancialSummaryDataVO.builder()
-                    .rechargeAmount(rechargeAmount)
-                    .withdrawAmount(withdrawAmount)
-                    .moneyAmount(moneyAmount)
-                    .incomeAmount(incomeAmount)
-                    .build();
+            return null;
         }
 
         FinancialChargeQuery query = new FinancialChargeQuery();
@@ -387,12 +378,7 @@ public class FinancialServiceImpl implements FinancialService {
         // 累计盈亏
         incomeAmount = financialIncomeAccrueService.summaryIncomeByQuery(new FinancialProductIncomeQuery());
 
-        return FinancialSummaryDataVO.builder()
-                .rechargeAmount(rechargeAmount)
-                .withdrawAmount(withdrawAmount)
-                .moneyAmount(moneyAmount)
-                .incomeAmount(incomeAmount)
-                .build();
+        return null;
     }
 
     @Override

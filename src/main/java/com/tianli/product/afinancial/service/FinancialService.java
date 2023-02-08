@@ -7,10 +7,7 @@ import com.tianli.address.mapper.Address;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.query.TimeQuery;
-import com.tianli.management.vo.FinancialSummaryDataVO;
-import com.tianli.management.vo.FinancialUserInfoVO;
-import com.tianli.management.vo.FundProductBindDropdownVO;
-import com.tianli.management.vo.UserAmountDetailsVO;
+import com.tianli.management.vo.*;
 import com.tianli.product.afinancial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.product.afinancial.entity.FinancialIncomeDaily;
 import com.tianli.product.afinancial.entity.FinancialProduct;
@@ -96,7 +93,7 @@ public interface FinancialService {
     /**
      * 理财用户信息左上角信息
      */
-    FinancialSummaryDataVO userSummaryData(String uid);
+    MWalletUserManagerDataVO userSummaryData(String uid);
 
     /**
      * 手动更新数据展板
