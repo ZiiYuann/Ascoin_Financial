@@ -361,7 +361,7 @@ public class FinancialServiceImpl implements FinancialService {
 
             for (FinancialUserInfoVO financialUserInfoVO : userInfos) {
                 rechargeFee = rechargeFee.add(financialUserInfoVO.getRechargeAmount());
-                withdrawFee = rechargeFee.add(financialUserInfoVO.getWithdrawAmount());
+                withdrawFee = withdrawFee.add(financialUserInfoVO.getWithdrawAmount());
                 financialIncomeFee = financialIncomeFee.add(financialUserInfoVO.getFinancialIncomeAmount());
                 fundIncomeFee = fundIncomeFee.add(financialUserInfoVO.getFundIncomeAmount());
 
