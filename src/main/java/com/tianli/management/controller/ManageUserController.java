@@ -77,7 +77,7 @@ public class ManageUserController {
     @GetMapping("/data")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result<MWalletUserManagerDataVO> data(String uid) {
-        return new Result<>(financialService.userSummaryData(uid));
+        return new Result<>(financialService.mWalletUserManagerData(uid));
     }
 
     /**
