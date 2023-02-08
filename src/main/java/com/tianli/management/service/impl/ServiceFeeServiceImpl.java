@@ -144,11 +144,11 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
                 .in(Order::getStatus, List.of(ChargeStatus.chain_success, ChargeStatus.chain_fail));
 
         if (Objects.nonNull(startTime) && Objects.nonNull(endTime)) {
-            queryWrapper = queryWrapper.between(Order::getCreateTime, startTime, endTime);
+            queryWrapper = queryWrapper.between(Order:: getCompleteTime, startTime, endTime);
         }
 
         if (Objects.nonNull(startTime) && Objects.isNull(endTime)) {
-            queryWrapper = queryWrapper.ge(Order::getCreateTime, startTime);
+            queryWrapper = queryWrapper.ge(Order::getCompleteTime, startTime);
         }
 
         // 提现订单
