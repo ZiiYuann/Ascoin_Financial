@@ -8,5 +8,6 @@ CREATE TABLE `account_user_transfer`
     `create_time`       datetime       NOT NULL,
     `transfer_order_no` varchar(50) DEFAULT NULL COMMENT '转帐对应订单号',
     `external_pk`       bigint      DEFAULT NULL COMMENT '外部主键值',
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `eq_index` (`external_pk`)
 ) ENGINE = InnoDB;
