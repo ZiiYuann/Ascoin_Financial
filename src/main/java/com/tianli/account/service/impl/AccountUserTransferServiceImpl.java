@@ -41,7 +41,7 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
         if (Objects.nonNull(query.getRelatedId())) {
             AccountUserTransfer accountUserTransfer = this.baseMapper.selectOne(new LambdaQueryWrapper<AccountUserTransfer>()
                     .eq(AccountUserTransfer::getExternalPk, query.getRelatedId()));
-            Optional.ofNullable(accountUserTransfer).ifPresent(o -> ErrorCodeEnum.TRANSFER_ERROR.throwException());
+            Optional.ofNullable(accountUserTransfer).ifPresent(o -> ErrorCodeEnum.TRANSFER_ORDER_EXIST.throwException());
         }
         LocalDateTime now = LocalDateTime.now();
         long accountUserTransferId = CommonFunction.generalId();

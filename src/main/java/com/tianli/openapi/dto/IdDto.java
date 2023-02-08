@@ -1,4 +1,4 @@
-package com.tianli.openapi;
+package com.tianli.openapi.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class IdVO {
+public class IdDto {
     private Long id;
 }

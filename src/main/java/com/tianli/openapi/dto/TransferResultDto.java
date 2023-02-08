@@ -1,7 +1,6 @@
-package com.tianli.openapi.query;
+package com.tianli.openapi.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,21 +9,13 @@ import java.math.BigDecimal;
 /**
  * @author chenb
  * @apiNote
- * @since 2023-02-06
+ * @since 2023-02-08
  **/
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserTransferQuery {
-
-    private Long transferUid;
-
-    private Long receiveUid;
-
-    private String coin;
+public class TransferResultDto {
+    private Long id;
 
     private BigDecimal amount;
-
-    private Long relatedId;
 }
