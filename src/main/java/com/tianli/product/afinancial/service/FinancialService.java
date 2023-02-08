@@ -93,7 +93,7 @@ public interface FinancialService {
     /**
      * 理财用户信息左上角信息
      */
-    MWalletUserManagerDataVO userSummaryData(String uid);
+    MWalletUserManagerDataVO mWalletUserManagerData(String uid);
 
     /**
      * 手动更新数据展板

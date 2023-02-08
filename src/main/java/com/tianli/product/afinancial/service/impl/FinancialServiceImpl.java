@@ -39,7 +39,6 @@ import com.tianli.product.afinancial.entity.FinancialProduct;
 import com.tianli.product.afinancial.entity.FinancialRecord;
 import com.tianli.product.afinancial.enums.*;
 import com.tianli.product.afinancial.mapper.ProductMapper;
-import com.tianli.product.afinancial.query.FinancialRecordQuery;
 import com.tianli.product.afinancial.query.ProductHoldQuery;
 import com.tianli.product.afinancial.service.*;
 import com.tianli.product.afinancial.vo.*;
@@ -345,40 +344,49 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public MWalletUserManagerDataVO userSummaryData(String uid) {
-        BigDecimal rechargeAmount = BigDecimal.ZERO;
-        BigDecimal withdrawAmount = BigDecimal.ZERO;
-        BigDecimal moneyAmount = BigDecimal.ZERO;
-        BigDecimal incomeAmount = BigDecimal.ZERO;
+    public MWalletUserManagerDataVO mWalletUserManagerData(String uid) {
+        BigDecimal rechargeFee = BigDecimal.ZERO;
+        BigDecimal withdrawFee = BigDecimal.ZERO;
+        BigDecimal financialIncomeFee = BigDecimal.ZERO;
+        BigDecimal fundIncomeFee = BigDecimal.ZERO;
 
         if (StringUtils.isNotBlank(uid)) {
             IPage<Address> page = new Page<>(1, 10);
             var userInfos = financialUserPage(uid, page).getRecords();
 
             for (FinancialUserInfoVO financialUserInfoVO : userInfos) {
-                rechargeAmount = rechargeAmount.add(financialUserInfoVO.getRechargeAmount());
-                withdrawAmount = withdrawAmount.add(financialUserInfoVO.getWithdrawAmount());
+                rechargeFee = rechargeFee.add(financialUserInfoVO.getRechargeAmount());
+                withdrawFee = rechargeFee.add(financialUserInfoVO.getWithdrawAmount());
+                financialIncomeFee = financialIncomeFee.add(financialUserInfoVO.getFinancialIncomeAmount());
+                fundIncomeFee = fundIncomeFee.add(financialUserInfoVO.getFundIncomeAmount());
 
             }
-            return null;
+            return MWalletUserManagerDataVO.builder()
+                    .rechargeFee(rechargeFee)
+                    .withdrawFee(withdrawFee)
+                    .financialIncomeFee(financialIncomeFee)
+                    .fundIncomeFee(fundIncomeFee)
+                    .build();
         }
 
         FinancialChargeQuery query = new FinancialChargeQuery();
 
         // 充值
         query.setChargeType(ChargeType.recharge);
-        rechargeAmount = orderService.orderAmountDollarSum(query);
+        rechargeFee = orderService.orderAmountDollarSum(query);
         // 提现
         query.setChargeType(ChargeType.withdraw);
-        withdrawAmount = orderService.orderAmountDollarSum(query);
-        // 持有数量
-        BigDecimal currentAmount = financialRecordService.dollarHold(new FinancialRecordQuery(ProductType.current));
-        BigDecimal fixedAmount = financialRecordService.dollarHold(new FinancialRecordQuery(ProductType.fixed));
-        moneyAmount = moneyAmount.add(currentAmount).add(fixedAmount);
-        // 累计盈亏
-        incomeAmount = financialIncomeAccrueService.summaryIncomeByQuery(new FinancialProductIncomeQuery());
+        withdrawFee = orderService.orderAmountDollarSum(query);
 
-        return null;
+        financialIncomeFee = financialIncomeAccrueService.summaryIncomeByQuery(new FinancialProductIncomeQuery());
+        fundIncomeFee = fundIncomeRecordService.amountDollar(new FundIncomeQuery());
+
+        return MWalletUserManagerDataVO.builder()
+                .rechargeFee(rechargeFee)
+                .withdrawFee(withdrawFee)
+                .financialIncomeFee(financialIncomeFee)
+                .fundIncomeFee(fundIncomeFee)
+                .build();
     }
 
     @Override
