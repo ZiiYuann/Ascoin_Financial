@@ -48,6 +48,7 @@ public enum ChargeRemarks {
     transfer_reduce_success("划转减少", "Transfer Reduce", ChargeType.transfer_reduce, ChargeStatus.chain_success),
     return_gas_success("Gas费已到账", "Gas Fee Received", ChargeType.return_gas, ChargeStatus.chain_success),
     airdrop_success("空投到账", "Airdrop Received", ChargeType.airdrop, ChargeStatus.chain_success),
+    gold_exchange("金币兑换到账", "Gold Exchange Received", ChargeType.gold_exchange, ChargeStatus.chain_success),
     ;
 
     ChargeRemarks(String remarks, String remarksEn, ChargeType type, ChargeStatus status) {
