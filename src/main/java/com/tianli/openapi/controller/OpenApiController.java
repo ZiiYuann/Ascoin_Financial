@@ -2,6 +2,7 @@ package com.tianli.openapi.controller;
 
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.vo.AccountUserTransferVO;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.exception.ErrorCodeEnum;
@@ -45,7 +46,6 @@ public class OpenApiController {
     public Result reward(@RequestBody @Valid OpenapiOperationQuery query,
                          @RequestHeader("sign") String sign,
                          @RequestHeader("timestamp") String timestamp) {
-
 
 
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
@@ -127,6 +127,20 @@ public class OpenApiController {
     }
 
     /**
+     * 订单信息
+     */
+    @GetMapping("/transferInfo/{transferId}")
+    public Result<AccountUserTransferVO> transferOrder(@PathVariable Long transferId,
+                                                       @RequestHeader("sign") String sign,
+                                                       @RequestHeader("timestamp") String timestamp) {
+
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
+        }
+        return new Result<>(openApiService.transferOrder(transferId));
+    }
+
+    /**
      * 用户资产
      */
     @GetMapping("/assets/{uid}")
@@ -192,8 +206,8 @@ public class OpenApiController {
      */
     @PostMapping("/gold/exchange")
     public Result goldExchange(@RequestBody @Valid OpenapiOperationQuery query,
-                            @RequestHeader("sign") String sign,
-                            @RequestHeader("timestamp") String timestamp) {
+                               @RequestHeader("sign") String sign,
+                               @RequestHeader("timestamp") String timestamp) {
 
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();

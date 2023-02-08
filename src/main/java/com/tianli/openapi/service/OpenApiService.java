@@ -3,9 +3,11 @@ package com.tianli.openapi.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tianli.account.entity.AccountUserTransfer;
 import com.tianli.account.service.AccountUserTransferService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.AccountBalanceVO;
+import com.tianli.account.vo.AccountUserTransferVO;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
@@ -365,5 +367,9 @@ public class OpenApiService {
 
         accountBalanceServiceImpl.increase(query.getUid(), query.getType(), query.getCoin()
                 , query.getAmount(), newOrder.getOrderNo(), query.getType().getNameZn());
+    }
+
+    public AccountUserTransferVO transferOrder(Long transferId) {
+        return accountUserTransferService.getVO(transferId);
     }
 }
