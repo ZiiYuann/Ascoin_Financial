@@ -315,6 +315,15 @@ public class OpenApiService {
 
     public void returnGas(OpenapiOperationQuery query) {
         query.setType(ChargeType.return_gas);
+        increaseBalance(query);
+    }
+
+    public void goldExchange(OpenapiOperationQuery query) {
+        query.setType(ChargeType.gold_exchange);
+        increaseBalance(query);
+    }
+
+    private void increaseBalance(OpenapiOperationQuery query) {
         LocalDateTime now = LocalDateTime.now();
         long id = CommonFunction.generalId();
         Order newOrder = Order.builder()
