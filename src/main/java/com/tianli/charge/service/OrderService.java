@@ -16,8 +16,8 @@ import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.financial.enums.ProductType;
-import com.tianli.financial.vo.OrderFinancialVO;
+import com.tianli.product.afinancial.enums.ProductType;
+import com.tianli.product.afinancial.vo.OrderFinancialVO;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.query.FinancialOrdersQuery;
@@ -184,6 +184,10 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
     public BigDecimal uAmount(OrderMQuery query) {
         List<AmountDto> amountDtos = orderMapper.amounts(query);
         return currencyService.calDollarAmount(amountDtos);
+    }
+
+    public List<AmountDto> amount(OrderMQuery query) {
+        return orderMapper.amounts(query);
     }
 
     public Order getByOrderNo(String orderNo) {

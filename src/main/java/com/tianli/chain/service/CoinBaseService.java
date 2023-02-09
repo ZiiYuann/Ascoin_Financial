@@ -52,6 +52,8 @@ public interface CoinBaseService extends IService<CoinBase> {
      */
     void show(String name);
 
+    void notShow(String name);
+
     /**
      * 删除缓存
      *
@@ -78,4 +80,7 @@ public interface CoinBaseService extends IService<CoinBase> {
      * @return 有效的币种名称
      */
     Set<String> pushCoinNames();
+
+    Set<String> pushCoinNames(int version);
+
 }

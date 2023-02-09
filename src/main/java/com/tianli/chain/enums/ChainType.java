@@ -9,16 +9,23 @@ import lombok.Getter;
  */
 @Getter
 public enum ChainType {
-    BSC("bnb"),
-    ETH("eth"),
-    TRON("trx");
+//    BTC("btc"),
+    ETH("eth", "ETH", 1),
+    BSC("bnb", "BSC", 2),
+    TRON("trx", "TRON", 3),
+    POLYGON("matic", "Polygon", 4),
+    OPTIMISTIC("eth", "Optimistic", 5),
+    ARBITRUM("eth", "Arbitrum", 6);
 
-    ChainType(String mainToken) {
+    ChainType(String mainToken, String display, int sequence) {
         this.mainToken = mainToken;
+        this.display = display;
+        this.sequence = sequence;
     }
 
     private final String mainToken;
-
+    private final String display;
+    private final int sequence;
 
     public static TokenAdapter getTokenAdapter(ChainType chainType) {
         if (ChainType.BSC.equals(chainType)) return TokenAdapter.bnb;

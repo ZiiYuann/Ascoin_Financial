@@ -1,21 +1,28 @@
 package com.tianli.chain.service.contract;
 
+import cn.hutool.json.JSONUtil;
 import com.google.protobuf.ByteString;
 import com.tianli.chain.entity.Coin;
 import com.tianli.common.ConfigConstants;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.blockchain.SignTransactionResult;
-import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.time.TimeTool;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.bouncycastle.jcajce.provider.digest.SHA256;
 import org.bouncycastle.util.encoders.Hex;
 import org.springframework.stereotype.Component;
 import org.tron.api.GrpcAPI;
 import org.tron.api.WalletGrpc;
+import org.tron.common.crypto.Sha256Sm3Hash;
 import org.tron.common.utils.Base58Utils;
 import org.tron.common.utils.ByteArray;
 import org.tron.protos.Protocol;
@@ -32,6 +39,7 @@ import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -44,22 +52,27 @@ import java.util.List;
 @Component
 public class TronTriggerContract extends AbstractContractOperation {
 
+    @Resource
+    private ConfigService configService;
+    @Resource
+    private WalletGrpc.WalletBlockingStub blockingStub;
+
     @Override
-    public String computeAddress(long uid) {
-        return computeAddress(BigInteger.valueOf(uid));
+    public String computeAddress(long addressId) {
+        return computeAddress(BigInteger.valueOf(addressId));
     }
 
-    public String computeAddress(BigInteger uid) {
+    public String computeAddress(BigInteger addressId) {
         String address = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
-        return computeAddress(address, uid);
+        return computeAddress(address, addressId);
     }
 
-    public String computeAddress(String walletAddress, BigInteger uid) {
+    public String computeAddress(String walletAddress, BigInteger addressId) {
         String contractAddress = configService.get(ConfigConstants.TRON_TRIGGER_ADDRESS);
 
         String data = FunctionEncoder.encode(
                 new Function("computeAddress",
-                        List.of(new Address(walletAddress), new Uint(uid)),
+                        List.of(new Address(walletAddress), new Uint(addressId)),
                         List.of()));
 
         GrpcAPI.TransactionExtention transactionExtention = blockingStub.triggerConstantContract(
@@ -96,7 +109,7 @@ public class TronTriggerContract extends AbstractContractOperation {
     @Override
     public Result tokenTransfer(String to, BigInteger val, Coin coin) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
-        String contractAddress = coin.getContract();
+        String contractAddress = coin.isMainToken() ? "" : coin.getContract();
         String data = org.tron.tronj.abi.FunctionEncoder.encode(
                 new org.tron.tronj.abi.datatypes.Function("transfer",
                         List.of(new org.tron.tronj.abi.datatypes.Address(to), new org.tron.tronj.abi.datatypes.generated.Uint256(val)),
@@ -106,7 +119,14 @@ public class TronTriggerContract extends AbstractContractOperation {
 
     @Override
     Result mainTokenTransfer(String to, BigInteger val, Coin coin) {
-        throw ErrorCodeEnum.NOT_OPEN.generalException();
+        String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
+        var transferContract = BalanceContract.TransferContract.newBuilder()
+                .setToAddress(address2ByteString(to))
+                .setOwnerAddress(address2ByteString(ownerAddress))
+                .setAmount(val.longValue())
+                .build();
+        GrpcAPI.TransactionExtention extention = blockingStub.createTransaction2(transferContract);
+        return Result.success(processTransactionExtention(extention));
     }
 
     public String triggerSmartContract(String ownerAddress, String contractAddress, String data, long feeLimit) {
@@ -217,7 +237,7 @@ public class TronTriggerContract extends AbstractContractOperation {
     }
 
     @Override
-    public BigDecimal tokenBalance(String address, TokenAdapter tokenAdapter) {
+    public BigDecimal tokenBalance(String address, Coin coin) {
         byte[] ownerAddresses;
         ownerAddresses = Base58Utils.decodeFromBase58Check(address);
         if (ownerAddresses == null) ErrorCodeEnum.ADDRESS_ERROR.throwException();
@@ -226,7 +246,7 @@ public class TronTriggerContract extends AbstractContractOperation {
         String argsStr = "\"" + address + "\"";
         boolean isHex = false;
         byte[] input = Hex.decode(Base58Utils.parseMethod(methodStr, argsStr, isHex));
-        byte[] contractAddress = Base58Utils.decodeFromBase58Check(tokenAdapter.getContractAddress());
+        byte[] contractAddress = Base58Utils.decodeFromBase58Check(coin.getContract());
         if (contractAddress == null) ErrorCodeEnum.throwException("合约地址错误");
 
         SmartContractOuterClass.TriggerSmartContract.Builder builder = SmartContractOuterClass.TriggerSmartContract.newBuilder();
@@ -240,7 +260,7 @@ public class TronTriggerContract extends AbstractContractOperation {
         transactionExtention = blockingStub.triggerConstantContract(triggerContract);
 
         if (transactionExtention == null || !transactionExtention.getResult().getResult()) {
-            ErrorCodeEnum.throwException(String.format("[%s]获取%s代币余额失败", "tron", tokenAdapter.getCurrencyCoin()));
+            ErrorCodeEnum.throwException(String.format("[%s]获取%s代币余额失败", "tron", coin.getName()));
         }
         Protocol.Transaction transaction = transactionExtention.getTransaction();
         if (transaction.getRetCount() != 0) {
@@ -268,11 +288,55 @@ public class TronTriggerContract extends AbstractContractOperation {
         }
     }
 
+    @Override
+    public boolean matchByChain(NetworkType chain) {
+        return NetworkType.trc20.equals(chain);
+    }
 
-    @Resource
-    private ConfigService configService;
-    @Resource
-    private WalletGrpc.WalletBlockingStub blockingStub;
+    @Override
+    public BigDecimal getConsumeFee(String hash) throws IOException {
+
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpGet httpGet = new HttpGet("https://apilist.tronscanapi.com/api/transaction-info?hash=" + hash);
+
+        HttpResponse execute = client.execute(httpGet);
+        String result = EntityUtils.toString(execute.getEntity());
+
+        BigDecimal energyFee = JSONUtil.parseObj(result).getByPath("cost.energy_fee", BigDecimal.class);
+        BigDecimal netFee = JSONUtil.parseObj(result).getByPath("cost.net_fee", BigDecimal.class);
+
+        return energyFee.add(netFee).multiply(BigDecimal.valueOf(0.000001));
+
+    }
+
+    private String processTransactionExtention(GrpcAPI.TransactionExtention transactionExtention) {
+        if (transactionExtention == null) {
+            return null;
+        }
+        GrpcAPI.Return ret = transactionExtention.getResult();
+        if (!ret.getResult()) {
+            System.out.println("Code = " + ret.getCode());
+            System.out.println("Message = " + ret.getMessage().toStringUtf8());
+            return null;
+        }
+        Protocol.Transaction transaction = transactionExtention.getTransaction();
+        if (transaction.getRawData().getContractCount() == 0) {
+            System.out.println("Transaction is empty");
+            return null;
+        }
+
+        if (transaction.getRawData().getContract(0).getType()
+                == Protocol.Transaction.Contract.ContractType.ShieldedTransferContract) {
+            return null;
+        }
+        System.out.println("before sign transaction hex string is " +
+                ByteArray.toHexString(transaction.toByteArray()));
+        transaction = signTransaction(transactionExtention, getKeyPair());
+//        showTransactionAfterSign(transaction);
+        GrpcAPI.Return ret2 = blockingStub.broadcastTransaction(transaction);
+        if (!ret2.getResult()) return null;
+        return ByteArray.toHexString(Sha256Sm3Hash.hash(transaction.getRawData().toByteArray()));
+    }
 
 
 }

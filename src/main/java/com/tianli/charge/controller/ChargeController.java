@@ -2,6 +2,8 @@ package com.tianli.charge.controller;
 
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.json.JSONUtil;
+import com.tianli.address.Service.AddressService;
 import com.tianli.chain.entity.ChainCallbackLog;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.ChainCallbackLogService;
@@ -17,14 +19,15 @@ import com.tianli.common.RedisLockConstants;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
-import com.tianli.financial.enums.ProductType;
-import com.tianli.financial.query.PurchaseQuery;
-import com.tianli.financial.service.FinancialProductService;
-import com.tianli.financial.service.FinancialService;
-import com.tianli.financial.vo.FinancialPurchaseResultVO;
-import com.tianli.financial.vo.OrderFinancialVO;
+import com.tianli.product.afinancial.enums.ProductType;
+import com.tianli.product.afinancial.query.PurchaseQuery;
+import com.tianli.product.service.FinancialProductService;
+import com.tianli.product.afinancial.service.FinancialService;
+import com.tianli.product.afinancial.vo.FinancialPurchaseResultVO;
+import com.tianli.product.afinancial.vo.OrderFinancialVO;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.sso.init.RequestInitService;
+import com.tianli.tool.AddressVerifyUtils;
 import com.tianli.tool.crypto.Crypto;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.crypto.util.DigestFactory;
@@ -65,6 +68,8 @@ public class ChargeController {
     private OrderAdvanceService orderAdvanceService;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private AddressService addressService;
 
     /**
      * 充值回调
@@ -154,7 +159,29 @@ public class ChargeController {
         } finally {
             lock.unlock();
         }
+    }
 
+    /**
+     * 提现申请
+     */
+    @PostMapping("/withdraw/apply/sign")
+    public Result withdrawWithSign(@RequestBody @Valid WithdrawQuery withdrawDTO, @RequestHeader("sign") String sign) {
+        Long uid = requestInitService.uid();
+
+        String addressStr = AddressVerifyUtils.ethSignedToAddress(sign, JSONUtil.toJsonStr(withdrawDTO));
+        String address = requestInitService.get().getAddress();
+        if (!address.equalsIgnoreCase(addressStr)) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
+        }
+
+        RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW + uid + ":" + withdrawDTO.getCoin());
+        try {
+            lock.lock();
+            chargeService.withdrawApply(uid, withdrawDTO);
+            return Result.instance();
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -166,9 +193,9 @@ public class ChargeController {
         RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_REDEEM + uid + ":" + query.getRecordId());
         try {
             lock.lock();
-            String orderNo = chargeService.redeem(uid, query);
+            var redeemResultDto = financialProductService.redeem(uid, query);
             HashMap<Object, Object> result = MapUtil.newHashMap();
-            result.put("orderNo", orderNo);
+            result.put("orderNo", redeemResultDto.getOrderNo());
             return Result.instance().setData(result);
         } finally {
             lock.unlock();
@@ -179,12 +206,12 @@ public class ChargeController {
      * 申购理财产品（余额）
      */
     @PostMapping("/purchase/balance")
-    public Result balancePurchase(@RequestBody @Valid PurchaseQuery purchaseQuery) {
+    public Result<FinancialPurchaseResultVO> balancePurchase(@RequestBody @Valid PurchaseQuery purchaseQuery) {
         Long uid = requestInitService.uid();
         RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_PURCHASE + uid + ":" + purchaseQuery.getProductId());
         try {
             lock.lock();
-            return Result.instance().setData(financialProductService.purchase(uid, purchaseQuery, FinancialPurchaseResultVO.class));
+            return Result.instance().setData(financialProductService.purchase(uid, purchaseQuery).getFinancialPurchaseResultVO());
         } finally {
             lock.unlock();
         }
@@ -258,4 +285,6 @@ public class ChargeController {
     public Result updateOrderAdvance(@RequestBody GenerateOrderAdvanceQuery query) {
         return Result.success(orderAdvanceService.updateOrderAdvance(query));
     }
+
+
 }

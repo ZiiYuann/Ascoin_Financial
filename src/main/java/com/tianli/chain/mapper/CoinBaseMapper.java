@@ -25,6 +25,9 @@ public interface CoinBaseMapper extends BaseMapper<CoinBase> {
     @Update(" UPDATE  `coin_base` SET `display` = true WHERE name =#{name}")
     int displayOpen(@Param("name") String name);
 
+    @Update(" UPDATE  `coin_base` SET `display` = false WHERE name =#{name}")
+    int displayColse(@Param("name") String name);
+
     @Select(" SELECT  * FROM `coin_base`  WHERE name =#{name}")
     CoinBase selectByName(@Param("name") String name);
 

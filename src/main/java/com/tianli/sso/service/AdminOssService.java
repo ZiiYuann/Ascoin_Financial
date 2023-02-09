@@ -28,7 +28,7 @@ public class AdminOssService {
             // cookie不存时获取请求头中信息
             Object headerSession = httpServletRequest.getHeader(SESSION_TMP);
             if(Objects.isNull(headerSession)){
-                ErrorCodeEnum.UNLOIGN.throwException();
+                ErrorCodeEnum.SESSION_TMP_R_NOT_EXIST.throwException();
             }
             String sessionInfo = headerSession.toString();
             //eg: 1687406546639098600-fa6b466a-24b5-4747-9c07-6cc1506aa1e6
@@ -55,6 +55,7 @@ public class AdminOssService {
             if (StringUtils.equals(res.getCode(), "103")) {
                 ErrorCodeEnum.ACCESS_DENY.throwException();
             }
+            log.error("login error[1]");
             ErrorCodeEnum.UNLOIGN.throwException();
         }
         JsonObject dataJsonObj = Constants.GSON.fromJson(data.toString(), JsonObject.class);

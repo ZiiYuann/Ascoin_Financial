@@ -86,10 +86,10 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
         }
     }
 
-    protected String computeAddress(String walletAddress, BigInteger uid, String contractAddress) throws IOException {
+    protected String computeAddress(String walletAddress, BigInteger addressId, String contractAddress) throws IOException {
         EthCall send = this.getWeb3j().ethCall(Transaction.createEthCallTransaction(null, contractAddress,
                 new DefaultFunctionEncoder().encodeFunction(
-                        new Function("computeAddress", List.of(new Address(walletAddress), new Uint(uid)),
+                        new Function("computeAddress", List.of(new Address(walletAddress), new Uint(addressId)),
                                 List.of())
                 )), DefaultBlockParameterName.LATEST).send();
         Address address = new Address(send.getValue());
@@ -207,12 +207,12 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public BigDecimal tokenBalance(String address, TokenAdapter tokenAdapter) {
+    public BigDecimal tokenBalance(String address, Coin coin) {
         String balanceOf;
         try {
             var transaction = Transaction.createEthCallTransaction(
                     null
-                    , tokenAdapter.getContractAddress()
+                    , coin.getContract()
                     , new DefaultFunctionEncoder().encodeFunction(
                             new Function("balanceOf", List.of(new Address(address)),
                                     List.of(TypeReference.create(Uint.class)))

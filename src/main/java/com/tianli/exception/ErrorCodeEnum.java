@@ -33,6 +33,12 @@ public enum ErrorCodeEnum {
     INSUFFICIENT_BALANCE(123, "余额不足"),
     PURCHASE_AMOUNT_TO_SMALL(124, "申购金额低于系统限制"),
     ACCOUNT_ERROR(125, "账户异常"),
+    GENERATE_MNEMONIC_FAILED(126, "生成助记词失败"),
+    GENERATE_CHARGE_ADDRESS_FAILED(127, "生成充值地址失败"),
+    AGENT_TOKEN_NOT_NULL(128, "agent token不能为空"),
+    AGENT_TOKEN_NOT_EXIST(129, "agent token不存在"),
+    SESSION_TMP_R_NOT_EXIST(130, "admin_r 请求头不存在"),
+    SSO_SERVICE_ERROR(131, "SSO外部服务异常"),
 
 
     /*** －－－－－－业务错误码-账号相关－－－－－－*/
@@ -55,7 +61,8 @@ public enum ErrorCodeEnum {
     NO_CREDIT_SCORE(2015, "账户信用评分不足"),
     ACCOUNT_NOT_ACTIVE(2016, "云钱包未激活"),
     CURRENCY_NOT_SUPPORT(2017, "币别尚未支持"),
-    ACCOUNT_ACTIVATE_UID_NULL(2018,"激活uid参数为null"),
+    ACCOUNT_ACTIVATE_UID_NULL(2018, "激活uid参数为null"),
+    CHARGE_ADDRESS_NOT_FOUND(2019, "充值地址获取失败"),
 
     /*** －－－－－－业务错误码-余额相关－－－－－－*/
     CREDIT_LACK(2100, "额度不足"),
@@ -83,6 +90,8 @@ public enum ErrorCodeEnum {
     PRODUCT_CAN_NOT_EDIT(3109, "产品暂时不可修改"),
     AUTO_PASS_ERROR(3110, "自动审核提现超过5000$上限"),
     WEB3J_DECIMALS(3111, "获取合约小数点位数失败"),
+    IMPUTATION_NOT_NEED(3112, "本次不需要归集"),
+    WITHDRAW_BLACK(3113, "账户异常被封"),
 
 
     /*** －－－－－－业务错误码-现货交易－－－－－－*/
@@ -146,14 +155,15 @@ public enum ErrorCodeEnum {
     RED_HAVE_RECEIVED(3712,"红包已领取"),
     RED_STRATEGY_ERROR(3711, "红包策略暂不支持"),
 
-
     /*** －－－－－－业务错误码-理财相关－－－－－－*/
-    FINANCIAL_INCOME_REPEAT(3801,"理财利息当日利息已经计算"),
-    FINANCIAL_TO_ERROR(3802,"提现地址不允许是当前云钱包地址"),
-    COIN_RATE_ERROR(3803,"币别汇率获取异常"),
-    COIN_NOT_ALLOW_OPERATION(3804,"币种不允许操作"),
-    COIN_NOT_CONFIG_NOT_EXIST(3805,"币种上线前请先配置最小提币和手续费"),
-    MANUAL_TRANSFER_HASH_NULL(3806,"人工审核转账HASH为空"),
+    FINANCIAL_INCOME_REPEAT(3801, "理财利息当日利息已经计算"),
+    FINANCIAL_TO_ERROR(3802, "提现地址不允许是当前云钱包地址"),
+    COIN_RATE_ERROR(3803, "币别汇率获取异常"),
+    COIN_NOT_ALLOW_OPERATION(3804, "币种不允许操作"),
+    COIN_NOT_CONFIG_NOT_EXIST(3805, "币种上线前请先配置最小提币和手续费"),
+    MANUAL_TRANSFER_HASH_NULL(3806, "人工审核转账HASH为空"),
+    TRANSFER_ORDER_EXIST(3807, "转账已存在"),
+    TRANSFER_ERROR(3808, "转账异常"),
 
     ;
     private int errorNo;

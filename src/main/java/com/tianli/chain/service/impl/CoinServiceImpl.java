@@ -2,9 +2,10 @@ package com.tianli.chain.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.address.AddressService;
+import com.tianli.address.Service.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.mapper.CoinMapper;
 import com.tianli.chain.service.CoinBaseService;
 import com.tianli.chain.service.CoinService;
@@ -19,10 +20,13 @@ import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.query.CoinIoUQuery;
 import com.tianli.management.query.CoinStatusQuery;
 import com.tianli.management.query.CoinWithdrawQuery;
+import com.tianli.product.afinancial.entity.FinancialProduct;
+import com.tianli.product.service.FinancialProductService;
 import com.tianli.sqs.SqsContext;
 import com.tianli.sqs.SqsService;
 import com.tianli.sqs.SqsTypeEnum;
 import com.tianli.sqs.context.PushAddressContext;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -61,6 +65,8 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     private CoinBaseService coinBaseService;
     @Resource
     private ContractAdapter contractAdapter;
+    @Resource
+    private FinancialProductService financialProductService;
 
     // 存储每批数据的临时容器
     private final List<Address> addresses = new ArrayList<>();
@@ -73,7 +79,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         Object o = redisTemplate.opsForValue().get(RedisConstants.COIN_PUSH_LIST);
         if (Objects.isNull(o)) {
             List<Coin> coins = this.list(new LambdaQueryWrapper<Coin>()
-                    .gt(Coin::getStatus, (byte) 0));
+                    .eq(Coin::getStatus, (byte) 2));
             redisTemplate.opsForValue().set(RedisConstants.COIN_PUSH_LIST, coins);
             return coins;
         }
@@ -121,7 +127,59 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     @Transactional
     public void push(String nickname, CoinStatusQuery query) {
         Long id = query.getId();
-        var coin = processStatus(nickname, id);
+        Coin coin = coinMapper.selectById(id);
+
+        if (coin.getStatus() == 0) {
+            processStatus(nickname, id);
+        }
+
+        if (coin.getStatus() == 3) {
+            successStatus(coin.getId());
+        }
+
+        // 执行ETH、BSC、TRON 推送数据
+        if (ChainType.BSC.equals(coin.getChain()) ||
+                ChainType.TRON.equals(coin.getChain()) ||
+                ChainType.ETH.equals(coin.getChain())) {
+            asyncService.async(() -> this.asyncPush(coin));
+        }else {
+            successStatus(coin.getId());
+        }
+
+        coinBaseService.flushPushListCache();
+        this.deletePushListCache();
+    }
+
+    @Override
+    @Transactional
+    public void close(String nickname, CoinStatusQuery query) {
+        Long id = query.getId();
+        Coin coin = coinMapper.selectById(id);
+
+        List<FinancialProduct> products = financialProductService.list(new LambdaQueryWrapper<FinancialProduct>()
+                .eq(FinancialProduct::getCoin, coin.getName())
+                .eq(FinancialProduct::isDeleted, false));
+        if (CollectionUtils.isNotEmpty(products)) {
+            ErrorCodeEnum.throwException("该币种已经配置理财产品，无法下架");
+        }
+
+        coin.setStatus((byte) 3);
+        coinMapper.updateById(coin);
+        this.deletePushListCache();
+
+        Integer count = coinMapper.selectCount(new LambdaQueryWrapper<Coin>()
+                .eq(Coin::getName, coin.getName())
+                .eq(Coin::getStatus, (byte) 2));
+
+        if (Objects.isNull(count) || count == 0) {
+            coinBaseService.notShow(coin.getName());
+            coinBaseService.deletePushListCache();
+        }
+
+    }
+
+    @Override
+    public void push(Coin coin) {
         asyncService.async(() -> this.asyncPush(coin));
     }
 
@@ -183,8 +241,9 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     }
 
     @Override
-    public Coin mainToken(String name) {
+    public Coin mainToken(ChainType chain, String name) {
         return this.getOne(new LambdaQueryWrapper<Coin>()
+                .eq(Coin::getChain, chain)
                 .eq(Coin::getName, name)
                 .eq(Coin::isMainToken, true));
     }
@@ -242,9 +301,6 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         Coin coin = coinMapper.selectById(id);
         Optional.ofNullable(coin).orElseThrow(NullPointerException::new);
 
-        if (coin.getStatus() > 1) {
-            throw new UnsupportedOperationException();
-        }
         if (coin.getWithdrawFixedAmount().compareTo(BigDecimal.ZERO) == 0
                 || coin.getWithdrawMin().compareTo(BigDecimal.ZERO) == 0) {
             ErrorCodeEnum.COIN_NOT_CONFIG_NOT_EXIST.throwException();
@@ -262,9 +318,6 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         Coin coin = coinMapper.selectById(id);
         Optional.ofNullable(coin).orElseThrow(NullPointerException::new);
 
-        if (coin.getStatus() != 1) {
-            throw new UnsupportedOperationException();
-        }
         coin.setStatus((byte) 2);
         coinMapper.updateById(coin);
 

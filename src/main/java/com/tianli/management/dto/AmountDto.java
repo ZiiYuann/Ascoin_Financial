@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class AmountDto {
 
-    private BigDecimal amount;
+    private BigDecimal amount = BigDecimal.ZERO;
 
     private String coin;
 }

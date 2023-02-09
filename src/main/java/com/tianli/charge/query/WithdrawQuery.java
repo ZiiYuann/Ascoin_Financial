@@ -12,15 +12,17 @@ import javax.validation.constraints.NotNull;
 @Data
 public class WithdrawQuery {
 
-    private double amount;
+    @NotNull(message = "币别不能为null")
+    private String coin;
 
     @NotNull(message = "提币网络不能为null")
     private NetworkType network;
 
-    @NotNull(message = "币别不能为null")
-    private String coin;
-
     @NotNull(message = "地址不能为空")
     private String to;
+
+    private String amount;
+
+    private String timestamp;
 
 }

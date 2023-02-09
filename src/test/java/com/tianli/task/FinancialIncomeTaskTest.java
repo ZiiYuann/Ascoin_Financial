@@ -8,9 +8,10 @@ import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
-import com.tianli.financial.entity.FinancialProduct;
-import com.tianli.financial.entity.FinancialRecord;
-import com.tianli.financial.service.*;
+import com.tianli.product.afinancial.entity.FinancialProduct;
+import com.tianli.product.afinancial.entity.FinancialRecord;
+import com.tianli.product.afinancial.service.*;
+import com.tianli.product.service.FinancialProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
@@ -71,7 +72,7 @@ public class FinancialIncomeTaskTest {
         }
 
         @MockInvoke(scope = MockScope.ASSOCIATED)
-        public BigDecimal calLadderIncome(FinancialProductLadderRateService self,FinancialRecord record) {
+        public BigDecimal calLadderIncome(FinancialProductLadderRateService self, FinancialRecord record) {
             self = new FinancialProductLadderRateService();
             return self.calLadderIncome(record);
         }

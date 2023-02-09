@@ -24,6 +24,7 @@ import com.tianli.accountred.mapper.RedEnvelopeMapper;
 import com.tianli.accountred.query.RedEnvelopeChainQuery;
 import com.tianli.accountred.query.RedEnvelopeExchangeCodeQuery;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
+import com.tianli.accountred.query.RedEnvelopeGiveRecordQuery;
 import com.tianli.accountred.query.RedEnvelopeIoUQuery;
 import com.tianli.accountred.service.RedEnvelopeConfigService;
 import com.tianli.accountred.service.RedEnvelopeService;
@@ -424,11 +425,26 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     }
 
     @Override
-    public IPage<RedEnvelopeGiveRecordVO> giveRecord(Long uid, PageQuery<RedEnvelope> pageQuery) {
-        Page<RedEnvelope> page = this.page(pageQuery.page()
-                , new LambdaQueryWrapper<RedEnvelope>().eq(RedEnvelope::getUid, uid)
-                        .ne(RedEnvelope::getStatus, RedEnvelopeStatus.WAIT)
-                        .last(" order by create_time desc "));
+    public IPage<RedEnvelopeGiveRecordVO> giveRecord(RedEnvelopeGiveRecordQuery query, PageQuery<RedEnvelope> pageQuery) {
+        LambdaQueryWrapper<RedEnvelope> queryWrapper = new LambdaQueryWrapper<>();
+
+        if (Objects.nonNull(query.getUid())) {
+            queryWrapper = queryWrapper.eq(RedEnvelope::getUid, query.getUid());
+        }
+
+        if (Objects.nonNull(query.getCreateTime())) {
+            queryWrapper = queryWrapper.eq(RedEnvelope::getCreateTime, query.getCreateTime());
+        }
+
+        if (Objects.isNull(query.getStatus())) {
+            queryWrapper = queryWrapper.ne(RedEnvelope::getStatus, RedEnvelopeStatus.WAIT);
+        } else {
+            queryWrapper = queryWrapper.eq(RedEnvelope::getStatus, query.getStatus());
+        }
+
+        queryWrapper = queryWrapper.last(" order by create_time desc ");
+
+        Page<RedEnvelope> page = this.page(pageQuery.page(), queryWrapper);
         return page.convert(redEnvelopeConvert::toRedEnvelopeGiveRecordVO);
     }
 

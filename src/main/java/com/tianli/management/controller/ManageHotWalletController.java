@@ -1,17 +1,22 @@
 package com.tianli.management.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
+import com.tianli.management.entity.HotWalletDetailed;
 import com.tianli.management.query.HotWalletDetailedIoUQuery;
 import com.tianli.management.query.HotWalletDetailedPQuery;
 import com.tianli.management.service.HotWalletDetailedService;
-import com.tianli.management.entity.HotWalletDetailed;
+import com.tianli.management.vo.HotWalletBalanceVO;
+import com.tianli.management.vo.HotWalletDetailedSummaryDataVO;
+import com.tianli.management.vo.HotWalletDetailedVO;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @author chenb
@@ -30,9 +35,9 @@ public class ManageHotWalletController {
      */
     @PostMapping("/detailed")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result insertOrUpdate(@RequestBody @Valid HotWalletDetailedIoUQuery ioUQuery) {
+    public Result<Void> insertOrUpdate(@RequestBody @Valid HotWalletDetailedIoUQuery ioUQuery) {
         hotWalletDetailedService.insertOrUpdate(ioUQuery);
-        return Result.success();
+        return new Result<>();
     }
 
     /**
@@ -40,9 +45,9 @@ public class ManageHotWalletController {
      */
     @DeleteMapping("/detailed")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result insertOrUpdate(Long id) {
+    public Result<Void> insertOrUpdate(Long id) {
         hotWalletDetailedService.delete(id);
-        return Result.success();
+        return new Result<>();
     }
 
     /**
@@ -50,8 +55,8 @@ public class ManageHotWalletController {
      */
     @GetMapping("/detailed")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result page(PageQuery<HotWalletDetailed> pageQuery, HotWalletDetailedPQuery query) {
-        return Result.success().setData(hotWalletDetailedService.pageByQuery(pageQuery.page(), query));
+    public Result<IPage<HotWalletDetailedVO>> page(PageQuery<HotWalletDetailed> pageQuery, HotWalletDetailedPQuery query) {
+        return new Result<>(hotWalletDetailedService.pageByQuery(pageQuery.page(), query));
     }
 
     /**
@@ -59,8 +64,8 @@ public class ManageHotWalletController {
      */
     @GetMapping("/detailed/data")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result summaryData(HotWalletDetailedPQuery query) {
-        return Result.success().setData(hotWalletDetailedService.SummaryData(query));
+    public Result<HotWalletDetailedSummaryDataVO> summaryData(HotWalletDetailedPQuery query) {
+        return new Result<>(hotWalletDetailedService.SummaryData(query));
     }
 
     /**
@@ -68,8 +73,8 @@ public class ManageHotWalletController {
      */
     @GetMapping("/detailed/balance")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result balance() {
-        return Result.success().setData(hotWalletDetailedService.balance());
+    public Result<List<HotWalletBalanceVO>> balance() {
+        return new Result<>(hotWalletDetailedService.balance());
     }
 
 }

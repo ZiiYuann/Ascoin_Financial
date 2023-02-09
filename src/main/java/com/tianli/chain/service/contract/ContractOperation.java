@@ -1,7 +1,7 @@
 package com.tianli.chain.service.contract;
 
 import com.tianli.chain.entity.Coin;
-import com.tianli.currency.enums.TokenAdapter;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.exception.Result;
 
 import java.io.IOException;
@@ -16,11 +16,11 @@ import java.util.List;
  **/
 public interface ContractOperation {
 
-    String computeAddress(long uid) throws IOException;
+    String computeAddress(long addressId) throws IOException;
 
-    String computeAddress(BigInteger uid) throws IOException;
+    String computeAddress(BigInteger addressId) throws IOException;
 
-    String computeAddress(String walletAddress, BigInteger uid) throws IOException;
+    String computeAddress(String walletAddress, BigInteger addressId) throws IOException;
 
     /**
      * 归集接口
@@ -70,11 +70,11 @@ public interface ContractOperation {
     /**
      * 代币余额
      *
-     * @param address      钱包地址
-     * @param tokenAdapter 代币合约
+     * @param address 钱包地址
+     * @param coin    代币信息
      * @return 余额
      */
-    BigDecimal tokenBalance(String address, TokenAdapter tokenAdapter);
+    BigDecimal tokenBalance(String address, Coin coin);
 
     /**
      * 获取合约的小数点位数
@@ -83,4 +83,12 @@ public interface ContractOperation {
      * @return 小数点位数
      */
     Integer decimals(String contractAddress);
+
+    BigDecimal getConsumeFee(String hash) throws IOException;
+
+    /**
+     * @param chain todo 类型需要修改
+     * @return boolean
+     */
+    boolean matchByChain(NetworkType chain);
 }

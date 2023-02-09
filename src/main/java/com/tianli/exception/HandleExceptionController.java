@@ -1,9 +1,8 @@
 package com.tianli.exception;
 
-import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
-import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.async.AsyncService;
+import com.tianli.common.webhook.WebHookService;
 import com.tianli.tool.ApplicationContextTool;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -46,8 +45,12 @@ public class HandleExceptionController {
             result.setMsg("系统异常");
             result.setEnMsg("System exception");
         }
+
         ExceptionUtils.printStackTrace(e);
-        e.printStackTrace();
+        if (!(e instanceof ErrCodeException) ||
+                ErrorCodeEnum.UNLOIGN.getErrorNo() != Integer.parseInt(((ErrCodeException) e).errcode)) {
+            e.printStackTrace();
+        }
         result.setTime(System.currentTimeMillis());
         AsyncService asyncService = ApplicationContextTool.getBean(AsyncService.class);
         if (asyncService != null)

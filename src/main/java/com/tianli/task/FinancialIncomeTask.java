@@ -14,20 +14,23 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisLockConstants;
-import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.async.AsyncService;
+import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrCodeException;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.financial.entity.FinancialProduct;
-import com.tianli.financial.entity.FinancialRecord;
-import com.tianli.financial.enums.BusinessType;
-import com.tianli.financial.enums.ProductStatus;
-import com.tianli.financial.enums.ProductType;
-import com.tianli.financial.enums.RecordStatus;
-import com.tianli.financial.query.PurchaseQuery;
-import com.tianli.financial.service.*;
-import com.tianli.financial.vo.FinancialPurchaseResultVO;
+import com.tianli.product.afinancial.entity.FinancialProduct;
+import com.tianli.product.afinancial.entity.FinancialRecord;
+import com.tianli.product.afinancial.enums.BusinessType;
+import com.tianli.product.afinancial.enums.ProductStatus;
+import com.tianli.product.afinancial.enums.ProductType;
+import com.tianli.product.afinancial.enums.RecordStatus;
+import com.tianli.product.afinancial.query.PurchaseQuery;
+import com.tianli.product.afinancial.service.FinancialIncomeAccrueService;
+import com.tianli.product.afinancial.service.FinancialIncomeDailyService;
+import com.tianli.product.afinancial.service.FinancialProductLadderRateService;
+import com.tianli.product.afinancial.service.FinancialRecordService;
+import com.tianli.product.service.FinancialProductService;
 import com.tianli.tool.ApplicationContextTool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.BoundValueOperations;
@@ -42,10 +45,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -161,18 +161,16 @@ public class FinancialIncomeTask {
     public void incomeExternalTranscation(FinancialRecord financialRecord, LocalDateTime incomeTime) {
 
         FinancialIncomeTask bean = ApplicationContextTool.getBean(FinancialIncomeTask.class);
-        if (Objects.isNull(bean)) {
-            ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
-        }
+        bean = Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
         incomeTime = MoreObjects.firstNonNull(incomeTime, LocalDateTime.now());
         LocalDateTime todayZero = MoreObjects.firstNonNull(incomeTime.toLocalDate().atStartOfDay()
                 , DateUtil.beginOfDay(new Date()).toLocalDateTime());
-        HashMap<String, Order> orderMap = bean.incomeAndSettleTransaction(financialRecord, incomeTime);
+        Map<ChargeType, Order> orderMap = bean.incomeAndSettleTransaction(financialRecord, incomeTime);
 
         try {
             if (ProductType.fixed.equals(financialRecord.getProductType()) && financialRecord.getEndTime()
                     .compareTo(todayZero) == 0) {
-                bean.renewalTransaction(financialRecord, orderMap.get("income"), orderMap.get("settle"), incomeTime);
+                bean.renewalTransaction(financialRecord, orderMap.get(ChargeType.income), orderMap.get(ChargeType.settle), incomeTime);
             }
         } catch (Exception e) {
             webHookService.dingTalkSend(String.format("产品[%d]自动续费失败", financialRecord.getProductId()), e);
@@ -181,8 +179,8 @@ public class FinancialIncomeTask {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public HashMap<String, Order> incomeAndSettleTransaction(FinancialRecord financialRecord, LocalDateTime incomeTime) {
-        HashMap<String, Order> result = new HashMap<>();
+    public Map<ChargeType, Order> incomeAndSettleTransaction(FinancialRecord financialRecord, LocalDateTime incomeTime) {
+        EnumMap<ChargeType, Order> result = new EnumMap<>(ChargeType.class);
         ProductType type = financialRecord.getProductType();
         LocalDateTime endTime = financialRecord.getEndTime();
         LocalDateTime grantIncomeTime = financialRecord.getStartIncomeTime().plusDays(1);
@@ -197,21 +195,18 @@ public class FinancialIncomeTask {
         }
 
         // 如果是定期产品且当前时间为到期前一天则计算利息
-        if (ProductType.fixed.equals(type) && endTime.compareTo(incomeTimeZero) == 0) {
+        if (ProductType.fixed.equals(type) && endTime.compareTo(incomeTimeZero) <= 0) {
             var incomeOrder = incomeOperation(financialRecord, incomeTime);
             var settleOrder = settleOperation(financialRecord, incomeTime);
             // 对于自动续费操作来说，可能会有业务异常，不影响利息对发放
-            result.put("income", incomeOrder);
-            result.put("settle", settleOrder);
+            result.put(ChargeType.income, incomeOrder);
+            result.put(ChargeType.settle, settleOrder);
         }
 
-        // 如果是活期产品需要当前时间 >= 收益发放时间
-        if (ProductType.current.equals(type)) {
-            // 记息金额为0 且 待记息金额 不为 0， 直接增加记息金额后返回
-            if (incomeTimeZero.compareTo(grantIncomeTime) >= 0) {
-                Order incomeOrder = incomeOperation(financialRecord, incomeTime);
-                result.put("income", incomeOrder);
-            }
+        // 如果是活期产品需要当前时间 >= 收益发放时间 记息金额为0 且 待记息金额 不为 0， 直接增加记息金额后返回
+        if (ProductType.current.equals(type) && incomeTimeZero.compareTo(grantIncomeTime) >= 0) {
+            Order incomeOrder = incomeOperation(financialRecord, incomeTime);
+            result.put(ChargeType.income, incomeOrder);
         }
 
         return result;
@@ -269,7 +264,7 @@ public class FinancialIncomeTask {
         purchaseQuery.setCoin(product.getCoin());
         purchaseQuery.setTerm(product.getTerm());
         purchaseQuery.setAutoCurrent(false);
-        financialProductService.purchase(financialRecord.getUid(), purchaseQuery, FinancialPurchaseResultVO.class, order);
+        financialProductService.purchase(financialRecord.getUid(), purchaseQuery, order);
     }
 
     /**

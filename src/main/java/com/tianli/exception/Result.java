@@ -1,13 +1,15 @@
 package com.tianli.exception;
 
 import com.tianli.tool.MapTool;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 /**
  * Created by wangqiyun on 2018/7/11.
  */
-public class Result {
+@NoArgsConstructor
+public class Result<T> {
     private String code = "0";
     private String msg = "成功";
     private String enMsg = "Succeed";
@@ -16,6 +18,10 @@ public class Result {
 
     public static Result instance() {
         return new Result();
+    }
+
+    public Result(Object data) {
+        this.data = data;
     }
 
     public String getCode() {

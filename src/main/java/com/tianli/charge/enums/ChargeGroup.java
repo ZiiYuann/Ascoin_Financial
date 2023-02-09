@@ -15,11 +15,12 @@ public enum ChargeGroup {
     receive(List.of(ChargeType.recharge, ChargeType.income, ChargeType.redeem, ChargeType.settle
             , ChargeType.borrow, ChargeType.release, ChargeType.agent_fund_sale, ChargeType.fund_redeem
             , ChargeType.fund_interest, ChargeType.red_back, ChargeType.red_get, ChargeType.transaction_reward
-            , ChargeType.transfer_increase)),
+            , ChargeType.transfer_increase, ChargeType.return_gas, ChargeType.airdrop, ChargeType.gold_exchange,
+            ChargeType.points_return, ChargeType.points_sale)),
     // 支出
     pay(List.of(ChargeType.withdraw, ChargeType.purchase, ChargeType.transfer, ChargeType.repay
             , ChargeType.pledge, ChargeType.fund_purchase, ChargeType.agent_fund_redeem, ChargeType.agent_fund_interest
-            , ChargeType.red_give, ChargeType.transfer_reduce));
+            , ChargeType.red_give, ChargeType.transfer_reduce, ChargeType.points_payment, ChargeType.points_withdrawal));
 
     ChargeGroup(List<ChargeType> chargeTypes) {
         this.name = name();

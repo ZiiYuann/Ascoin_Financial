@@ -2,9 +2,9 @@ package com.tianli.charge.vo;
 
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
-import com.tianli.financial.enums.ProductType;
-import com.tianli.financial.enums.PurchaseTerm;
-import com.tianli.financial.enums.RiskType;
+import com.tianli.product.afinancial.enums.ProductType;
+import com.tianli.product.afinancial.enums.PurchaseTerm;
+import com.tianli.product.afinancial.enums.RiskType;
 import lombok.Data;
 
 import java.math.BigDecimal;

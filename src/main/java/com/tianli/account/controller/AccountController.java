@@ -5,10 +5,11 @@ import com.google.common.base.MoreObjects;
 import com.tianli.account.query.AccountDetailsQuery;
 import com.tianli.account.query.IdsQuery;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
-import com.tianli.address.AddressService;
+import com.tianli.address.Service.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.vo.AddressVO;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.CoinService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.service.ChargeService;
@@ -114,6 +115,17 @@ public class AccountController {
     }
 
     /**
+     * 根据链获取钱包地址 非eth bsc tron等常用链 采用懒加载模式生成对应链的地址
+     *
+     * @param chain 所属链
+     */
+    @GetMapping("/address/{chain}")
+    public Result address(@PathVariable("chain") ChainType chain) {
+        Long uid = requestInitService.uid();
+        return Result.success(addressService.get(uid, chain));
+    }
+
+    /**
      * 主钱包地址
      */
     @GetMapping("/address/config")
@@ -157,16 +169,17 @@ public class AccountController {
     @GetMapping("/balance/summary")
     public Result accountBalance() {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(accountBalanceServiceImpl.accountSummary(uid, true));
+        return Result.instance().setData(accountBalanceServiceImpl.accountSummary(uid, true, 0));
     }
 
     /**
      * 【云钱包】总资产 + 账户列表
      */
     @GetMapping("/balance/summary/dynamic")
-    public Result accountBalanceDynamic() {
+    public Result accountBalanceDynamic(Integer version) {
+        version = MoreObjects.firstNonNull(version, 0);
         Long uid = requestInitService.uid();
-        return Result.instance().setData(accountBalanceServiceImpl.accountSummary(uid));
+        return Result.instance().setData(accountBalanceServiceImpl.accountSummary(uid, version));
     }
 
     /**

@@ -44,4 +44,6 @@ public class RedisLockConstants {
 
     public static String ORDER_ADVANCE = "order:advance";
 
+    public static final String LOCK_REWARD = "lock:reward:";
+
 }

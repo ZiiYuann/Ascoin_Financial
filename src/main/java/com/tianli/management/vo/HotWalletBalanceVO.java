@@ -1,10 +1,13 @@
 package com.tianli.management.vo;
 
+import com.tianli.chain.enums.ChainType;
+import com.tianli.common.blockchain.NetworkType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * @author chenb
@@ -16,15 +19,14 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class HotWalletBalanceVO {
 
-    private BigDecimal usdtBep20;
-    private BigDecimal usdcBep20;
-    private BigDecimal bnb;
+    private String CoinName;
 
-    private BigDecimal usdtERC20;
-    private BigDecimal usdcERC20;
-    private BigDecimal eth;
+    private ChainType chain;
 
-    private BigDecimal usdtTRC20;
-    private BigDecimal usdcTRC20;
-    private BigDecimal trx;
+    private NetworkType network;
+
+    private BigDecimal amount;
+
+    private List<HotWalletBalanceVO> tokens;
+
 }

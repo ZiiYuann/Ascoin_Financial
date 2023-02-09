@@ -28,15 +28,15 @@ public class AgentPermissionAspect {
 
     @Before(value = "@annotation(privilege)")
     public void verifyActiveAdmin(AgentPrivilege privilege){
-        String REQUEST_HEAD = "token";
-        String token = httpServletRequest.getHeader(REQUEST_HEAD);
+        String requestHeader = "token";
+        String token = httpServletRequest.getHeader(requestHeader);
         if(Objects.isNull(token)){
-            ErrorCodeEnum.UNLOIGN.throwException();
+            ErrorCodeEnum.AGENT_TOKEN_NOT_NULL.throwException();
         }
         String sessionKey = RedisConstants.AGENT_SESSION_KEY + token;
         RBucket<String> bucket = redissonClient.getBucket(sessionKey);
         if(!bucket.isExists()){
-            ErrorCodeEnum.UNLOIGN.throwException();
+            ErrorCodeEnum.AGENT_TOKEN_NOT_EXIST.throwException();
         }
         AgentInfo agentInfo = Constants.GSON.fromJson(bucket.get(), AgentInfo.class);
         AgentContent.set(agentInfo);

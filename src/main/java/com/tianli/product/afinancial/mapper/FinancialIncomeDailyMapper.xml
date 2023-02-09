@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tianli.product.afinancial.mapper.FinancialIncomeDailyMapper">
+    <!--    <select id="pageByQuery" resultType="com.tianli.financial.dto.FinancialIncomeDailyDTO">-->
+    <!--        SELECT income.*,-->
+    <!--        record.product_name,-->
+    <!--        record.product_type,-->
+    <!--        record.rate,-->
+    <!--        record.product_term ,-->
+    <!--        record.hold_amount,-->
+    <!--        record.coin-->
+    <!--        FROM financial_income_daily income-->
+    <!--        INNER JOIN financial_record record ON income.uid = record.uid and income.record_id = record.id-->
+    <!--        where 1=1-->
+    <!--        <if test="query.uid != null and query.uid ！= '' ">-->
+    <!--            AND record.uid = #{query.uid}-->
+    <!--        </if>-->
+    <!--        <if test="query.productName != null and query.productName != ''">-->
+    <!--            AND record.product_name = #{query.productName}-->
+    <!--        </if>-->
+    <!--        <if test="query.productType != null and query.productType != ''">-->
+    <!--            AND record.product_type = #{query.productType}-->
+    <!--        </if>-->
+    <!--        <if test="query.coin != null and query.coin != ''">-->
+    <!--            AND record.coin = #{query.coin}-->
+    <!--        </if>-->
+    <!--        <if test="query.startTime != null and query.endTime != null">-->
+    <!--            AND income.update_time BETWEEN #{query.startTime} AND #{query.endTime}-->
+    <!--        </if>-->
+
+    <!--    </select>-->
+    <select id="listByUidAndType" resultType="com.tianli.product.afinancial.dto.FinancialIncomeDailyDTO">
+        SELECT income.*,
+        record.product_name,
+        record.product_type,
+        record.rate,
+        record.product_term ,
+        record.hold_amount,
+        record.coin
+        FROM financial_income_daily income
+        INNER JOIN financial_record record ON income.uid = record.uid and income.record_id = record.id
+        where 1 = 1
+
+        <if test="uid != null">
+            and record.uid = #{uid}
+        </if>
+
+        <if test="type != null">
+            and record.product_type = #{type}
+        </if>
+
+        <if test="recordId != null">
+            and record.id = #{recordId}
+        </if>
+
+        and income.finish_time between #{yesterdayZero} and #{todayZero}
+    </select>
+</mapper>

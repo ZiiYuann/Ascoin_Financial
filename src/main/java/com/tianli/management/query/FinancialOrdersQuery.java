@@ -2,7 +2,7 @@ package com.tianli.management.query;
 
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
-import com.tianli.financial.enums.ProductType;
+import com.tianli.product.afinancial.enums.ProductType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

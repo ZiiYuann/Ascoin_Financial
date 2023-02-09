@@ -34,9 +34,9 @@ public class RedisConstants {
      */
     public static String RED_ENVELOPE_GET_RECORD = "red:get:record:";
 
-    public static String RED_ENVELOPE_RECORD = "red:record:";
+    public static String RECOMMEND_PRODUCT = "recommend:list";
 
-    public static String RECOMMEND_PRODUCT = "product:recommend";
+    public static String RED_ENVELOPE_RECORD = "red:record:";
 
     public static String ACCOUNT_TRANSACTION_TYPE = "account:transaction:type";
 
@@ -47,4 +47,9 @@ public class RedisConstants {
     public static String COIN_PUSH_LIST = "coin:push:list";
 
     public static final String USER_WITHDRAW_LIMIT = "user:withdraw:limit:";
+
+    public static final String WITHDRAW_BLACK = "withdraw:black";
+
+    public static final String HOT_WALLET_BALANCE = "hot:wallet:balance";
+
 }

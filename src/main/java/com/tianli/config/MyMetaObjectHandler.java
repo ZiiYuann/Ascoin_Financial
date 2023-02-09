@@ -18,7 +18,7 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
     @Override
     public void insertFill(MetaObject metaObject) {
         // createTime 这个字段与pojo类中字段对应
-        this.setFieldValByName("createTime", LocalDateTime.now(), metaObject);
+        this.fillStrategy(metaObject, "createTime", LocalDateTime.now());
         this.setFieldValByName("updateTime", LocalDateTime.now(), metaObject);
         this.setFieldValByName("createBy", AdminContent.get().getNickname(), metaObject);
         this.setFieldValByName("updateBy", AdminContent.get().getNickname(), metaObject);

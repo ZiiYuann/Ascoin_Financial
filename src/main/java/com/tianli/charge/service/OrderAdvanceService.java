@@ -17,26 +17,25 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.annotation.NoRepeatCommit;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.financial.entity.FinancialProduct;
-import com.tianli.financial.entity.FinancialRecord;
-import com.tianli.financial.enums.ProductStatus;
-import com.tianli.financial.enums.ProductType;
-import com.tianli.financial.enums.RecordStatus;
-import com.tianli.financial.query.PurchaseQuery;
-import com.tianli.financial.service.FinancialProductService;
-import com.tianli.financial.service.FinancialRecordService;
-import com.tianli.financial.vo.FinancialPurchaseResultVO;
-import com.tianli.fund.bo.FundPurchaseBO;
-import com.tianli.fund.contant.FundTransactionStatus;
-import com.tianli.fund.entity.FundRecord;
-import com.tianli.fund.entity.FundTransactionRecord;
-import com.tianli.fund.enums.FundRecordStatus;
-import com.tianli.fund.enums.FundTransactionType;
-import com.tianli.fund.service.IFundTransactionRecordService;
-import com.tianli.fund.service.impl.FundRecordServiceImpl;
-import com.tianli.fund.vo.FundTransactionRecordVO;
 import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.service.IWalletAgentProductService;
+import com.tianli.product.afinancial.entity.FinancialProduct;
+import com.tianli.product.afinancial.entity.FinancialRecord;
+import com.tianli.product.afinancial.enums.ProductStatus;
+import com.tianli.product.afinancial.enums.ProductType;
+import com.tianli.product.afinancial.enums.RecordStatus;
+import com.tianli.product.afinancial.query.PurchaseQuery;
+import com.tianli.product.afinancial.service.FinancialRecordService;
+import com.tianli.product.afund.bo.FundPurchaseBO;
+import com.tianli.product.afund.contant.FundTransactionStatus;
+import com.tianli.product.afund.entity.FundRecord;
+import com.tianli.product.afund.entity.FundTransactionRecord;
+import com.tianli.product.afund.enums.FundRecordStatus;
+import com.tianli.product.afund.enums.FundTransactionType;
+import com.tianli.product.afund.service.IFundTransactionRecordService;
+import com.tianli.product.afund.service.impl.FundRecordServiceImpl;
+import com.tianli.product.service.FinancialProductService;
+import com.tianli.product.service.FundProductService;
 import com.tianli.sso.init.RequestInitService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -72,6 +71,8 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
     private IWalletAgentProductService walletAgentProductService;
     @Resource
     private FundRecordServiceImpl fundRecordService;
+    @Resource
+    private FundProductService fundProductService;
     @Resource
     private IFundTransactionRecordService fundTransactionRecordService;
 
@@ -202,7 +203,10 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                     .coin(product.getCoin())
                     .id(orderAdvance.getId())
                     .transactionAmount(orderAdvance.getAmount())
-                    .expectedIncome(fundRecordService.dailyIncome(orderAdvance.getAmount(), product.getRate()))
+                    .expectedIncome(
+                            financialProductService.exceptDailyIncome(orderAdvance.getAmount(), product.getRate(), 365)
+                                    .getExpectIncome()
+                    )
                     .build();
             orderFundTransactionVO.setProductName(product.getName());
             orderFundTransactionVO.setProductNameEn(product.getNameEn());
@@ -267,7 +271,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                 fundPurchaseBO.setProductId(orderAdvance.getProductId());
                 fundPurchaseBO.setReferralCode(walletAgentProduct.getReferralCode());
                 fundPurchaseBO.setPurchaseAmount(orderAdvance.getAmount());
-                fundRecordService.purchase(uid, fundPurchaseBO, FundTransactionRecordVO.class, order);
+                fundProductService.purchase(uid, fundPurchaseBO, order);
             }
 
             if (!ProductType.fund.equals(product.getType())) {
@@ -277,7 +281,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                         .amount(orderAdvance.getAmount())
                         .autoCurrent(orderAdvance.isAutoCurrent())
                         .productId(orderAdvance.getProductId()).build();
-                financialProductService.purchase(uid, purchaseQuery, FinancialPurchaseResultVO.class, order);
+                financialProductService.purchase(uid, purchaseQuery, order);
             }
 
             // 预订单状态设置为完成

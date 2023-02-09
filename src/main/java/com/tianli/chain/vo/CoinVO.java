@@ -23,7 +23,15 @@ public class CoinVO {
 
     private String contract;
 
+    /**
+     * app和后台交互的
+     */
     private ChainType chain;
+
+    /**
+     * app给用户展示的
+     */
+    private String chainName;
 
     private NetworkType network;
 

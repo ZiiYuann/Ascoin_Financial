@@ -6,6 +6,7 @@ import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.query.RedEnvelopeChainQuery;
 import com.tianli.accountred.query.RedEnvelopeExchangeCodeQuery;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
+import com.tianli.accountred.query.RedEnvelopeGiveRecordQuery;
 import com.tianli.accountred.query.RedEnvelopeIoUQuery;
 import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO;
 import com.tianli.accountred.vo.RedEnvelopeGetDetailsVO;
@@ -61,7 +62,7 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
     /**
      * 发红包记录
      */
-    IPage<RedEnvelopeGiveRecordVO> giveRecord(Long uid, PageQuery<RedEnvelope> pageQuery);
+    IPage<RedEnvelopeGiveRecordVO> giveRecord(RedEnvelopeGiveRecordQuery query, PageQuery<RedEnvelope> pageQuery);
 
     /**
      * 红包到期

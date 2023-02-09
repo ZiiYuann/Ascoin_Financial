@@ -2,6 +2,7 @@ package com.tianli.chain.controller;
 
 import com.tianli.chain.converter.ChainConverter;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.CoinService;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.vo.CoinMapVO;
@@ -9,16 +10,16 @@ import com.tianli.chain.vo.CoinVO;
 import com.tianli.chain.vo.NetworkTypeVO;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.exception.Result;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.tianli.common.Constants.CHAIN_TYPE_VERSION;
 
 /**
  * @author chenb
@@ -51,7 +52,8 @@ public class ChainController {
      * 获取上线的币别信息
      */
     @GetMapping("/coin/infos")
-    public Result coinInfos() {
+    public Result coinInfos(Integer version) {
+        final var versionFinal = Optional.ofNullable(version).orElse(0);
         List<Coin> coins = coinService.pushCoinsWithCache();
 
         Map<String, List<CoinVO>> coinsMap = coins.stream()
@@ -60,8 +62,17 @@ public class ChainController {
 
         List<CoinMapVO> result = new ArrayList<>();
         coinsMap.forEach((key, value) -> {
+            List<ChainType> chainTypes = CHAIN_TYPE_VERSION.get(versionFinal);
+            if (CollectionUtils.isNotEmpty(chainTypes)) {
+                value = value.stream().filter(coin -> chainTypes.contains(coin.getChain())).collect(Collectors.toList());
+            }
+            if (CollectionUtils.isEmpty(value)) {
+                return;
+            }
             CoinMapVO coinMapVO = new CoinMapVO();
             coinMapVO.setName(key);
+            value.sort(Comparator.comparing(coin -> coin.getChain().getSequence()));
+            value.forEach(e -> e.setChainName(e.getChain().getDisplay()));
             coinMapVO.setCoins(value);
             coinMapVO.setWithdrawDecimals(value.get(0).getWithdrawDecimals());
             result.add(coinMapVO);
@@ -85,5 +96,10 @@ public class ChainController {
                 });
 
         return Result.success().setData(result);
+    }
+
+    @GetMapping("/network/type")
+    public Result networkType() {
+        return Result.success(List.of(NetworkType.values()));
     }
 }

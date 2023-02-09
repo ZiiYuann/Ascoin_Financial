@@ -1,6 +1,6 @@
 package com.tianli.management.vo;
 
-import com.tianli.financial.dto.FinancialIncomeAccrueDTO;
+import com.tianli.product.afinancial.dto.FinancialIncomeAccrueDTO;
 
 /**
  * @author chenb

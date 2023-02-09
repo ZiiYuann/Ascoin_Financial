@@ -4,10 +4,11 @@ import com.alibaba.testable.core.annotation.MockInvoke;
 import com.alibaba.testable.core.model.MockScope;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.tianli.CommonConstant;
-import com.tianli.financial.convert.FinancialConverter;
-import com.tianli.financial.entity.FinancialProductLadderRate;
-import com.tianli.financial.mapper.FinancialProductLadderRateMapper;
+import com.tianli.product.afinancial.convert.FinancialConverter;
+import com.tianli.product.afinancial.entity.FinancialProductLadderRate;
+import com.tianli.product.afinancial.mapper.FinancialProductLadderRateMapper;
 import com.tianli.management.query.FinancialProductLadderRateIoUQuery;
+import com.tianli.product.afinancial.service.FinancialProductLadderRateService;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

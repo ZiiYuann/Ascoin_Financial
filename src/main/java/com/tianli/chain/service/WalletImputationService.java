@@ -3,8 +3,9 @@ package com.tianli.chain.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.address.AddressService;
+import com.tianli.address.Service.AddressService;
 import com.tianli.address.mapper.Address;
+import com.tianli.address.pojo.MainWalletAddress;
 import com.tianli.chain.converter.ChainConverter;
 import com.tianli.chain.dto.TRONTokenReq;
 import com.tianli.chain.entity.Coin;
@@ -39,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -80,10 +82,9 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     public void insert(Long uid, Address address, Coin coin
             , TRONTokenReq tronTokenReq, BigDecimal finalAmount) {
 
-        StringBuilder keyBuilder = new StringBuilder()
-                .append(RedisLockConstants.RECYCLE_LOCK).append(":").append(coin.getNetwork().name())
-                .append(":").append(coin.getName()).append(":").append(tronTokenReq.getTo());
-        redisLock.lock(keyBuilder.toString(), 1L, TimeUnit.MINUTES);
+        String keyBuilder = RedisLockConstants.RECYCLE_LOCK + ":" + coin.getNetwork().name() +
+                ":" + coin.getName() + ":" + tronTokenReq.getTo();
+        redisLock.waitLock(keyBuilder, 1000L);
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -93,7 +94,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                 .eq(WalletImputation::getNetwork, coin.getNetwork())
                 .eq(WalletImputation::getCoin, coin.getName())
                 .eq(WalletImputation::getStatus, ImputationStatus.wait)
-                .orderByDesc(WalletImputation :: getCreateTime);
+                .orderByDesc(WalletImputation::getCreateTime);
 
         // 操作归集信息的时候不允许管理端进行归集操作
         List<WalletImputation> walletImputations = walletImputationMapper.selectList(query);
@@ -114,6 +115,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                 .createTime(now).updateTime(now)
                 .build();
         walletImputationMapper.insert(walletImputationInsert);
+        redisLock.unlock();
     }
 
     /**
@@ -141,6 +143,8 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                     , List.of(ImputationStatus.wait, ImputationStatus.processing, ImputationStatus.fail));
         }
 
+        queryWrapper = queryWrapper.orderByDesc(WalletImputation :: getAmount);
+
         return walletImputationMapper.selectPage(page, queryWrapper).convert(chainConverter::toWalletImputationVO);
     }
 
@@ -157,10 +161,9 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         // 检测是否有订单操作归集信息
         walletImputations.forEach(walletImputation -> {
-            StringBuilder keyBuilder = new StringBuilder()
-                    .append(RedisLockConstants.RECYCLE_LOCK).append(":").append(walletImputation.getNetwork().name())
-                    .append(":").append(walletImputation.getCoin()).append(":").append(walletImputation.getAddress());
-            redisLock.isLock(keyBuilder.toString());
+            String keyBuilder = RedisLockConstants.RECYCLE_LOCK + ":" + walletImputation.getNetwork().name() +
+                    ":" + walletImputation.getCoin() + ":" + walletImputation.getAddress();
+            redisLock.isLock(keyBuilder);
         });
 
 
@@ -173,7 +176,14 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         Coin coin = coinService.getByNameAndNetwork(coinName, network);
 
-        List<Long> addressIds = walletImputations.stream().map(WalletImputation::getAddressId).collect(Collectors.toList());
+        // 优化：取实际金额,避免账户没钱被归,减少莫名奇妙的手续费
+        walletImputations.forEach(walletImputation -> {
+            String address = walletImputation.getAddress();
+            BigDecimal balance = baseContractService.getBalance(network, address, coin);
+            walletImputation.setAmount(balance.setScale(8, RoundingMode.DOWN));
+        });
+
+        List<Long> addressIds = walletImputations.stream().map(WalletImputation::getAddressId).distinct().collect(Collectors.toList());
         String hash = baseContractService.getOne(network).recycle(null, addressIds, coin.isMainToken()
                 ? Collections.emptyList() : List.of(coin.getContract()));
         // 事务问题如何解决，如果中间出现异常，整个事务回滚，归集状态为wait，重新归集只收取手续费
@@ -194,22 +204,23 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                 .createTime(LocalDateTime.now()).build();
         walletImputationLogService.save(walletImputationLog);
 
-        List<WalletImputationLogAppendix> logAppendices = walletImputations.stream().map(walletImputation -> {
-            WalletImputationLogAppendix appendix = new WalletImputationLogAppendix();
-            appendix.setAmount(walletImputation.getAmount());
-            appendix.setNetwork(walletImputation.getNetwork());
-            appendix.setFromAddress(walletImputation.getAddress());
-            appendix.setTxid(hash);
-            return appendix;
-        }).collect(Collectors.toList());
+        List<WalletImputationLogAppendix> logAppendices = walletImputations.stream()
+                .filter(walletImputation -> walletImputation.getAmount().compareTo(BigDecimal.ZERO) > 0)
+                .map(walletImputation -> {
+                    WalletImputationLogAppendix appendix = new WalletImputationLogAppendix();
+                    appendix.setAmount(walletImputation.getAmount());
+                    appendix.setNetwork(walletImputation.getNetwork());
+                    appendix.setFromAddress(walletImputation.getAddress());
+                    appendix.setTxid(hash);
+                    return appendix;
+                }).collect(Collectors.toList());
         walletImputationLogAppendixService.saveBatch(logAppendices);
 
-        var walletImputationsUpdate = walletImputations.stream().map(walletImputation -> {
+        walletImputations.forEach(walletImputation -> {
             walletImputation.setStatus(ImputationStatus.processing);
             walletImputation.setLogId(logId);
-            return walletImputation;
-        }).collect(Collectors.toList());
-        this.updateBatchById(walletImputationsUpdate);
+        });
+        this.updateBatchById(walletImputations);
 
         // 异步检测数据
         asynCheckImputationStatus();
@@ -225,7 +236,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         if (Objects.isNull(walletImputation) || !ImputationStatus.processing.equals(walletImputation.getStatus())
                 || Objects.isNull(walletImputation.getLogId())) {
-            ErrorCodeEnum.throwException("本次归集不需要补偿");
+            throw ErrorCodeEnum.IMPUTATION_NOT_NEED.generalException();
         }
 
         Long logId = walletImputation.getLogId();
@@ -253,7 +264,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         WalletImputation walletImputation = walletImputationMapper.selectById(imputationId);
         if (Objects.isNull(walletImputation) || !ImputationStatus.processing.equals(walletImputation.getStatus())
                 || Objects.isNull(walletImputation.getLogId())) {
-            ErrorCodeEnum.throwException("本次归集不需要补偿");
+            throw ErrorCodeEnum.IMPUTATION_NOT_NEED.generalException();
         }
         WalletImputationLog walletImputationLog = walletImputationLogService.getById(walletImputation.getLogId());
         List<WalletImputation> walletImputations = walletImputationMapper.selectList(new LambdaQueryWrapper<WalletImputation>()
@@ -271,7 +282,6 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                 new LambdaQueryWrapper<WalletImputation>().eq(WalletImputation::getStatus, ImputationStatus.processing);
         List<WalletImputation> walletImputations = walletImputationMapper.selectList(query);
         walletImputations.stream().collect(Collectors.groupingBy(WalletImputation::getLogId)).entrySet()
-                .stream()
                 .forEach(entry -> RetryScheduledExecutor.DEFAULT_EXECUTOR.schedule(() -> checkImputationStatus(entry.getKey(), entry.getValue()),
                         10, TimeUnit.MINUTES
                         , new RetryTaskInfo<>("asynCheckImputationStatus", "异步定时扫链检测归集状态", entry)));
@@ -308,7 +318,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
             return;
         }
 
-        Address configAddress = addressService.getConfigAddress();
+        MainWalletAddress configAddress = addressService.getConfigAddress();
         String toAddress = null;
         switch (network) {
             case bep20:
@@ -319,6 +329,15 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                 break;
             case trc20:
                 toAddress = configAddress.getTron();
+                break;
+            case erc20_optimistic:
+                toAddress = configAddress.getOp();
+                break;
+            case erc20_arbitrum:
+                toAddress = configAddress.getArbi();
+                break;
+            case erc20_polygon:
+                toAddress = configAddress.getPolygon();
                 break;
             default:
                 break;

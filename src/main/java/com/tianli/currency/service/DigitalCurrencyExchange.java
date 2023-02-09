@@ -80,7 +80,7 @@ public class DigitalCurrencyExchange {
         return aDouble;
     }
 
-    public double coinUsdtPrice(String coinName) {
+    public double coinUsdtPriceHuobi(String coinName) {
         coinName = coinName.toLowerCase(Locale.ROOT);
         var key = coinName + "UsdtPrice";
         BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(key);
@@ -93,6 +93,36 @@ public class DigitalCurrencyExchange {
         ops.set(aDouble, 1L, TimeUnit.MINUTES);
         return aDouble;
     }
+
+    public double coinUsdtPriceBnb(String coinName) {
+        coinName = coinName.toLowerCase(Locale.ROOT);
+        var key = coinName + "UsdtPrice";
+        BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(key);
+        Object o = ops.get();
+        if (o != null) return Double.parseDouble(o.toString());
+        String stringResult = HttpHandler.execute(new HttpRequest().setUrl("https://api.binance.com/api/v3/ticker/price?symbol=" + coinName.toUpperCase(Locale.ROOT) + "USDT")).getStringResult();
+        JsonObject jsonObject = new Gson().fromJson(stringResult, JsonObject.class);
+        Double aDouble = JsonObjectTool.getAsDouble(jsonObject, "price");
+        if (aDouble == null) ErrorCodeEnum.NETWORK_ERROR.throwException();
+        ops.set(aDouble, 1L, TimeUnit.MINUTES);
+        return aDouble;
+    }
+
+    public double coinUsdtPriceOkx(String coinName) {
+        coinName = coinName.toLowerCase(Locale.ROOT);
+        var key = coinName + "UsdtPrice";
+        BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(key);
+        Object o = ops.get();
+        if (o != null) return Double.parseDouble(o.toString());
+        String stringResult = HttpHandler.execute(new HttpRequest().setUrl("https://www.okx.com/api/v5/market/ticker?instId=" + coinName.toUpperCase(Locale.ROOT) + "-USDT")).getStringResult();
+        JsonObject jsonObject = new Gson().fromJson(stringResult, JsonObject.class);
+        Double aDouble = JsonObjectTool.getAsDouble(jsonObject, "data[0].last");
+        if (aDouble == null) ErrorCodeEnum.NETWORK_ERROR.throwException();
+        ops.set(aDouble, 1L, TimeUnit.MINUTES);
+        return aDouble;
+    }
+
+
 
     public double btcUsdtPrice() {
         BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps("btcUsdtPrice");

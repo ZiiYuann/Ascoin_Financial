@@ -3,10 +3,10 @@ package com.tianli.chain.service.contract;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tianli.FinancialApplication;
 import com.tianli.common.RedisConstants;
-import com.tianli.financial.entity.FinancialRecord;
-import com.tianli.financial.service.FinancialRecordService;
-import com.tianli.fund.entity.FundRecord;
-import com.tianli.fund.service.IFundRecordService;
+import com.tianli.product.afinancial.entity.FinancialRecord;
+import com.tianli.product.afinancial.service.FinancialRecordService;
+import com.tianli.product.afund.entity.FundRecord;
+import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.task.FinancialIncomeTask;
 import com.tianli.task.FundIncomeTask;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,6 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
-
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = FinancialApplication.class)

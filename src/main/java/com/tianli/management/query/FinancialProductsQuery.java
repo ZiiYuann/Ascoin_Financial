@@ -1,7 +1,7 @@
 package com.tianli.management.query;
 
-import com.tianli.financial.enums.ProductStatus;
-import com.tianli.financial.enums.ProductType;
+import com.tianli.product.afinancial.enums.ProductStatus;
+import com.tianli.product.afinancial.enums.ProductType;
 import lombok.Data;
 
 /**
@@ -19,4 +19,6 @@ public class FinancialProductsQuery {
     private ProductStatus status;
 
     private String coin;
+
+    private Boolean recommend;
 }

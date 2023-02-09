@@ -51,8 +51,15 @@ public enum AccountChangeType {
     transaction_reward("TR"),
     transfer_increase("TSI"),
     transfer_reduce("TSR"),
+    //免Gas费
+    return_gas("RG"),
+    airdrop("AIR"),
+    gold_exchange("GE"),
+    points_sale("PS"),
+    points_withdrawal("PW"),
+    points_payment("PP"),
+    points_return("PR"),
     ;
-
 
     AccountChangeType(String prefix) {
         this.prefix = prefix;
