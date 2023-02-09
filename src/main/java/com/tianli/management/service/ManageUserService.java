@@ -81,7 +81,7 @@ public class ManageUserService {
         IPage<UserHoldRecordDto> userHoldRecordDtoIPage = productHoldRecordService.userHoldRecordPage(query, page);
         return userHoldRecordDtoIPage.convert(userHoldRecordDto -> {
             Long uid = userHoldRecordDto.getUid();
-            return mUserHoldRecordVO(userHoldRecordDto.getRecords(), uid);
+            return mUserHoldRecordVO(userHoldRecordDto.getRecords(), uid, query.getProductId());
         });
     }
 
@@ -89,20 +89,24 @@ public class ManageUserService {
         var records = productHoldRecordService.userHoldRecordData(query)
                 .stream()
                 .flatMap(r -> r.getRecords().stream()).collect(Collectors.toList());
-        return mUserHoldRecordVO(records, null);
+        return mUserHoldRecordVO(records, null, query.getProductId());
     }
 
-    private MUserHoldRecordVO mUserHoldRecordVO(List<ProductHoldRecord> records, Long uid) {
+    private MUserHoldRecordVO mUserHoldRecordVO(List<ProductHoldRecord> records, Long uid, Long queryProductId) {
         BigDecimal holdFee = BigDecimal.ZERO;
         Map<ProductType, String> holdFeeMap = new HashMap<>(records.size());
         Map<ProductType, BigDecimal> holdFeeBigDecimalMap = new HashMap<>(records.size());
         BigDecimal calIncomeFee = BigDecimal.ZERO;
         BigDecimal waitIncomeFee = BigDecimal.ZERO;
 
-        BigDecimal fundIncomeFee =
-                fundIncomeRecordService.amountDollar(FundIncomeQuery.builder().uid(uid).build());
+        BigDecimal fundIncomeFee = fundIncomeRecordService.amountDollar(FundIncomeQuery.builder()
+                .productId(queryProductId)
+                .uid(uid).build());
         BigDecimal financialIncomeFee =
-                financialIncomeAccrueService.summaryIncomeByQuery(FinancialProductIncomeQuery.builder().uid(uid + "").build());
+                financialIncomeAccrueService.summaryIncomeByQuery(FinancialProductIncomeQuery.builder()
+                        .uid(uid + "")
+                        .productId(queryProductId)
+                        .build());
 
         for (ProductHoldRecord record : records) {
             Long productId = record.getProductId();
