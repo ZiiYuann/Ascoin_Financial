@@ -142,7 +142,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
                 ChainType.TRON.equals(coin.getChain()) ||
                 ChainType.ETH.equals(coin.getChain())) {
             asyncService.async(() -> this.asyncPush(coin));
-        }else {
+        } else {
             successStatus(coin.getId());
         }
 
@@ -176,11 +176,6 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
             coinBaseService.deletePushListCache();
         }
 
-    }
-
-    @Override
-    public void push(Coin coin) {
-        asyncService.async(() -> this.asyncPush(coin));
     }
 
     @Override

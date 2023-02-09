@@ -10,6 +10,7 @@ import com.tianli.accountred.query.RedEnvelopeGiveRecordQuery;
 import com.tianli.accountred.query.RedEnvelopeIoUQuery;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
+import com.tianli.accountred.vo.RedEnvelopeGiveVO;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.ErrorCodeEnum;
@@ -85,7 +86,7 @@ public class RedEnvelopeController {
      * 发红包
      */
     @PostMapping("/give/txid")
-    public Result giveTxid(@RequestBody @Valid RedEnvelopeChainQuery query) {
+    public Result<RedEnvelopeGiveVO> giveTxid(@RequestBody @Valid RedEnvelopeChainQuery query) {
         Long uid = requestInitService.uid();
         RLock lock = redissonClient.getLock(RedisLockConstants.RED_ENVELOPE_GIVE + uid);
         try {

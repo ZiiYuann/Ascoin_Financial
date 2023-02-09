@@ -21,11 +21,7 @@ import com.tianli.accountred.enums.RedEnvelopeStatus;
 import com.tianli.accountred.enums.RedEnvelopeType;
 import com.tianli.accountred.enums.RedEnvelopeWay;
 import com.tianli.accountred.mapper.RedEnvelopeMapper;
-import com.tianli.accountred.query.RedEnvelopeChainQuery;
-import com.tianli.accountred.query.RedEnvelopeExchangeCodeQuery;
-import com.tianli.accountred.query.RedEnvelopeGetQuery;
-import com.tianli.accountred.query.RedEnvelopeGiveRecordQuery;
-import com.tianli.accountred.query.RedEnvelopeIoUQuery;
+import com.tianli.accountred.query.*;
 import com.tianli.accountred.service.RedEnvelopeConfigService;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
@@ -53,7 +49,6 @@ import com.tianli.tool.ApplicationContextTool;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.session.SqlSession;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
@@ -84,6 +79,8 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEnvelope> implements RedEnvelopeService {
+
+    public static final String BLOOM = "bloom";
 
     @Resource
     private AccountBalanceServiceImpl accountBalanceServiceImpl;
@@ -123,7 +120,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     @PostConstruct
     public void initBloomFilter() {
         // 布隆过滤器，防止缓存击穿
-        final RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConstants.RED_ENVELOPE + "bloom");
+        final RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConstants.RED_ENVELOPE + BLOOM);
 
         if (bloomFilter.isExists()) {
             return;
@@ -202,9 +199,9 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     @Override
     @SneakyThrows
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public Result give(Long uid, Long shortUid, RedEnvelopeChainQuery query) {
+    public Result<RedEnvelopeGiveVO> give(Long uid, Long shortUid, RedEnvelopeChainQuery query) {
         RedEnvelope redEnvelope = this.getWithCache(query.getId());
-        Optional.ofNullable(redEnvelope).orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
+        redEnvelope = Optional.ofNullable(redEnvelope).orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
 
         redEnvelope.setTxid(query.getTxid());
         sqlSession.clearCache();
@@ -350,10 +347,10 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         RedEnvelopeGetDetailsVO redEnvelopeGetDetailsVO = redEnvelopeConvert.toRedEnvelopeGetDetailsVO(redEnvelope);
         redEnvelopeGetDetailsVO.setRecords(recordVo);
 
-        RedEnvelopeSpiltGetRecord record = redEnvelopeSpiltGetRecordService.getRecords(rid, uid);
-        redEnvelopeGetDetailsVO.setReceiveAmount(Objects.isNull(record) ? null : record.getAmount());
-        redEnvelopeGetDetailsVO.setUReceiveAmount(Objects.isNull(record) ? null
-                : record.getAmount().multiply(currencyService.getDollarRate(redEnvelope.getCoin())));
+        RedEnvelopeSpiltGetRecord getRecord = redEnvelopeSpiltGetRecordService.getRecords(rid, uid);
+        redEnvelopeGetDetailsVO.setReceiveAmount(Objects.isNull(getRecord) ? null : getRecord.getAmount());
+        redEnvelopeGetDetailsVO.setUReceiveAmount(Objects.isNull(getRecord) ? null
+                : getRecord.getAmount().multiply(currencyService.getDollarRate(redEnvelope.getCoin())));
 
         CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
         redEnvelopeGetDetailsVO.setCoinUrl(coinBase.getLogo());
@@ -580,7 +577,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     @Override
     public RedEnvelope getWithCache(Long id) {
         // 布隆过滤器，防止缓存击穿
-        final RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConstants.RED_ENVELOPE + "bloom");
+        final RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConstants.RED_ENVELOPE + BLOOM);
         if (!bloomFilter.contains(id)) {
             ErrorCodeEnum.RED_NOT_EXIST_BLOOM.throwException();
         }
@@ -589,7 +586,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         if (Objects.isNull(cache)) {
             RedEnvelope redEnvelope = this.getById(id);
             if (Objects.isNull(redEnvelope)) {
-                ErrorCodeEnum.RED_NOT_EXIST.throwException();
+               throw  ErrorCodeEnum.RED_NOT_EXIST.generalException();
             }
             setRedisCache(redEnvelope);
             return redEnvelope;
@@ -605,16 +602,6 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         }
 
         return redEnvelope;
-    }
-
-    /**
-     * 把红包状态设置过期
-     */
-    private void overdue(Long id, LocalDateTime finishTime) {
-        int i = this.getBaseMapper().overdue(id, finishTime);
-        if (i == 0) {
-            ErrorCodeEnum.RED_STATUS_ERROR.throwException();
-        }
     }
 
     /**
@@ -668,7 +655,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
         RedEnvelopeServiceImpl bean = ApplicationContextTool.getBean(RedEnvelopeServiceImpl.class);
         if (Objects.isNull(bean)) {
-            ErrorCodeEnum.SYSTEM_ERROR.throwException();
+            throw ErrorCodeEnum.SYSTEM_ERROR.generalException();
         }
         bean.redEnvelopeRollback(redEnvelope, RedEnvelopeStatus.BACK);
     }
@@ -688,7 +675,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
      * 设置步隆过滤器缓存
      */
     private void setBloomCache(Long id) {
-        final RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConstants.RED_ENVELOPE + "bloom");
+        final RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConstants.RED_ENVELOPE + BLOOM);
         boolean success = bloomFilter.add(id);
         if (!success) {
             ErrorCodeEnum.RED_SET_BLOOM_FAIl.throwException();

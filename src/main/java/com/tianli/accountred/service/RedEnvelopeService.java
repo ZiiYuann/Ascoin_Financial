@@ -8,10 +8,7 @@ import com.tianli.accountred.query.RedEnvelopeExchangeCodeQuery;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.query.RedEnvelopeGiveRecordQuery;
 import com.tianli.accountred.query.RedEnvelopeIoUQuery;
-import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO;
-import com.tianli.accountred.vo.RedEnvelopeGetDetailsVO;
-import com.tianli.accountred.vo.RedEnvelopeGetVO;
-import com.tianli.accountred.vo.RedEnvelopeGiveRecordVO;
+import com.tianli.accountred.vo.*;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.sqs.context.RedEnvelopeContext;
@@ -32,12 +29,12 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
      * @param shortUid 用户id
      * @param query    发红包参数
      */
-    Result give(Long uid, Long shortUid, RedEnvelopeIoUQuery query);
+    Result<RedEnvelopeGiveVO> give(Long uid, Long shortUid, RedEnvelopeIoUQuery query);
 
     /**
      * 链上红包发放
      */
-    Result give(Long uid, Long shortUid, RedEnvelopeChainQuery query);
+    Result<RedEnvelopeGiveVO> give(Long uid, Long shortUid, RedEnvelopeChainQuery query);
 
     /**
      * 抢红包（聊天）
