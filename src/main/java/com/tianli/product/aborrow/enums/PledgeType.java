@@ -1,8 +1,9 @@
 package com.tianli.product.aborrow.enums;
 
 public enum PledgeType {
+
     // 普通
-    NORMAL,
+    WALLET,
     // 理财
-    FIN
+    FINANCIAL
 }

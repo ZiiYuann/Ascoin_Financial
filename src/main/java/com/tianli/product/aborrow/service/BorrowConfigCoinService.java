@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.product.aborrow.entity.BorrowConfigCoin;
 import com.tianli.product.aborrow.enums.BorrowStatus;
+import com.tianli.product.aborrow.query.BorrowCoinQuery;
 import com.tianli.product.aborrow.query.BorrowConfigCoinIoUQuery;
 import com.tianli.product.aborrow.query.BorrowQuery;
 import com.tianli.product.aborrow.vo.MBorrowConfigCoinVO;
@@ -21,4 +22,5 @@ public interface BorrowConfigCoinService extends IService<BorrowConfigCoin> {
 
     void modifyStatus(String coin, BorrowStatus borrowStatus);
 
+    void check(Long uid, BorrowCoinQuery query);
 }

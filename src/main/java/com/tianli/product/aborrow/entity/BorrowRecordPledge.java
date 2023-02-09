@@ -1,5 +1,9 @@
 package com.tianli.product.aborrow.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.tianli.product.aborrow.enums.PledgeType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * @author chenb
@@ -19,9 +24,10 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class BorrowRecordPledge {
 
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
-    private Long bid;
+    private PledgeType pledgeType;
 
     private Long uid;
 
@@ -29,8 +35,11 @@ public class BorrowRecordPledge {
 
     private BigDecimal amount;
 
-    private PledgeType type;
-
-    // 相关的记录质押记录id
     private Long recordId;
+
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
+
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateTime;
 }

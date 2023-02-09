@@ -161,6 +161,14 @@ public enum ErrorCodeEnum {
     TRANSFER_ORDER_EXIST(3807, "转账已存在"),
     TRANSFER_ERROR(3808, "转账异常"),
 
+    /*** －－－－－－业务错误码-质押－－－－－－*/
+    BORROW_COIN_ERROR(3901, "借币异常"),
+    BORROW_RECORD_PLEDGE_ERROR(3902, "质押记录异常"),
+    BORROW_RECORD_COIN_ERROR(3903, "借币记录异常"),
+    BORROW_AMOUNT_MIN_ERROR(3904, "借币金额过小"),
+    BORROW_AMOUNT_MAX_ERROR(3905, "借币金额过大"),
+    BORROW_COIN_NOT_OPEN(3906, "此币种未开放"),
+
     ;
     private int errorNo;
 

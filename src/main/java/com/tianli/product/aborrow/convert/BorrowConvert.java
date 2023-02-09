@@ -1,7 +1,9 @@
 package com.tianli.product.aborrow.convert;
 
+import com.tianli.product.aborrow.dto.BorrowRecordPledgeDto;
 import com.tianli.product.aborrow.entity.BorrowConfigCoin;
 import com.tianli.product.aborrow.entity.BorrowConfigPledge;
+import com.tianli.product.aborrow.entity.BorrowRecordPledge;
 import com.tianli.product.aborrow.query.BorrowConfigCoinIoUQuery;
 import com.tianli.product.aborrow.query.BorrowConfigPledgeIoUQuery;
 import com.tianli.product.aborrow.vo.MBorrowConfigCoinVO;
@@ -24,5 +26,6 @@ public interface BorrowConvert {
 
     MBorrowConfigPledgeVO toMBorrowConfigPledgeVO(BorrowConfigPledge borrowConfigPledge);
 
+    BorrowRecordPledgeDto toBorrowRecordPledgeDto(BorrowRecordPledge borrowRecordPledge);
 
 }

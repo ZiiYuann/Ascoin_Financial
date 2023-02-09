@@ -8,6 +8,7 @@ import com.tianli.management.dto.ProductSummaryDataDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -50,6 +51,9 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
 
     int updateRateByProductId(@Param("productId") Long productId,
                               @Param("rate") BigDecimal rate);
+
+    @Update("UPDATE financial_record SET  pledge = #{pledge} WHERE uid = #{uid} AND id =#{id} ")
+    int updatePledge(@Param("uid") Long uid, @Param("id") Long id, @Param("pledge") boolean pledge);
 
     /**
      * 用户还持用产品的数量

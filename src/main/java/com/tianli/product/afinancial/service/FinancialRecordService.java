@@ -359,4 +359,10 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         financialRecordMapper.updateRateByProductId(productId, rate);
     }
 
+    public void updatePledge(Long uid, Long recordId, boolean pledge) {
+        int i = financialRecordMapper.updatePledge(uid, recordId, pledge);
+        if (i <= 0) {
+            ErrorCodeEnum.throwException("记录不存在");
+        }
+    }
 }

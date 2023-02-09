@@ -1,5 +1,7 @@
 package com.tianli.product.afinancial.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.tianli.product.afinancial.enums.*;
 import lombok.Builder;
 import lombok.Data;
@@ -106,10 +108,16 @@ public class FinancialRecord {
     /**
      * 更新时间
      */
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 
     /**
      * 是否本地申购记录
      */
     private boolean localPurchase;
+
+    /**
+     * 是否被质押
+     */
+    private boolean pledge;
 }
