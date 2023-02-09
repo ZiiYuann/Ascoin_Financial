@@ -1,6 +1,5 @@
-package com.tianli.openapi.vo;
+package com.tianli.openapi.dto;
 
-import com.tianli.charge.enums.ChargeType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,7 +16,7 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StatisticsData {
+public class StatisticsDataDto {
 
     private BigDecimal balance;
 

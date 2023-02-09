@@ -79,7 +79,7 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
     /**
      * 根据record获取收益
      *
-     * @param recordId
+     * @param recordId record id
      */
     public FinancialIncomeAccrue getByRecordId(Long uid, Long recordId) {
         return this.getOne(new LambdaQueryWrapper<FinancialIncomeAccrue>()
@@ -123,11 +123,21 @@ public class FinancialIncomeAccrueService extends ServiceImpl<FinancialIncomeAcc
 
         return incomeMapByUid.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
-                entry -> entry.getValue().stream().map(income -> {
-                    BigDecimal holdAmount = income.getIncomeAmount();
-                    BigDecimal rate = currencyService.getDollarRate(income.getCoin());
-                    return holdAmount.multiply(rate);
-                }).reduce(BigDecimal.ZERO, BigDecimal::add)
+                entry -> {
+                    List<FinancialIncomeAccrue> value = entry.getValue();
+                    List<AmountDto> amounts = new ArrayList<>();
+                    value.stream()
+                            .collect(Collectors.groupingBy(FinancialIncomeAccrue::getCoin))
+                            .forEach((k, v) -> {
+                                AmountDto amountDto = new AmountDto();
+                                amountDto.setCoin(k);
+                                amountDto.setAmount(v.stream().map(FinancialIncomeAccrue::getIncomeAmount)
+                                        .reduce(BigDecimal.ZERO, BigDecimal::add));
+                                amounts.add(amountDto);
+                            });
+
+                    return currencyService.calDollarAmount(amounts);
+                }
         ));
     }
 }

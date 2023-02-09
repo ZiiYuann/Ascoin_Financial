@@ -126,7 +126,8 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
         PurchaseResultDto resultDto = this.purchaseOperation(uid, purchaseQuery, order);
 
         // finish operation
-        productHoldRecordService.save(ProductHoldRecord.builder().uid(uid)
+        productHoldRecordService.saveDo(ProductHoldRecord.builder().uid(uid)
+                .productType(product.getType())
                 .productId(purchaseQuery.getProductId())
                 .recordId(resultDto.getRecordId())
                 .build());

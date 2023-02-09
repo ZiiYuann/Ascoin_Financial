@@ -56,6 +56,26 @@ import com.tianli.product.afund.query.FundIncomeQuery;
 import com.tianli.product.afund.query.FundRecordQuery;
 import com.tianli.product.afund.service.IFundIncomeRecordService;
 import com.tianli.product.afund.service.IFundRecordService;
+import com.tianli.management.vo.*;
+import com.tianli.product.afinancial.convert.FinancialConverter;
+import com.tianli.product.afinancial.dto.FinancialIncomeAccrueDTO;
+import com.tianli.product.afinancial.dto.ProductRateDTO;
+import com.tianli.product.afinancial.entity.FinancialIncomeAccrue;
+import com.tianli.product.afinancial.entity.FinancialIncomeDaily;
+import com.tianli.product.afinancial.entity.FinancialProduct;
+import com.tianli.product.afinancial.entity.FinancialRecord;
+import com.tianli.product.afinancial.enums.*;
+import com.tianli.product.afinancial.mapper.ProductMapper;
+import com.tianli.product.afinancial.query.ProductHoldQuery;
+import com.tianli.product.afinancial.service.*;
+import com.tianli.product.afinancial.vo.*;
+import com.tianli.product.afund.contant.FundIncomeStatus;
+import com.tianli.product.afund.dto.FundIncomeAmountDTO;
+import com.tianli.product.afund.entity.FundRecord;
+import com.tianli.product.afund.query.FundIncomeQuery;
+import com.tianli.product.afund.query.FundRecordQuery;
+import com.tianli.product.afund.service.IFundIncomeRecordService;
+import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.product.service.FinancialProductService;
 import com.tianli.product.service.FundProductService;
 import com.tianli.sso.init.RequestInitService;
@@ -313,7 +333,12 @@ public class FinancialServiceImpl implements FinancialService {
             queryWrapper = queryWrapper.like(Address::getUid, uid);
         }
 
+
         var addresses = addressService.page(page, queryWrapper);
+
+        if (CollectionUtils.isEmpty(addresses.getRecords())) {
+            return addresses.convert(a -> new FinancialUserInfoVO());
+        }
         List<Long> uids = addresses.getRecords().stream().map(Address::getUid).collect(Collectors.toList());
 
         var rechargeOrderAmount = orderService.getSummaryOrderAmount(uids, ChargeType.recharge);
@@ -351,27 +376,28 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public FinancialSummaryDataVO userSummaryData(String uid) {
-        BigDecimal rechargeAmount = BigDecimal.ZERO;
-        BigDecimal withdrawAmount = BigDecimal.ZERO;
-        BigDecimal moneyAmount = BigDecimal.ZERO;
-        BigDecimal incomeAmount = BigDecimal.ZERO;
+    public MWalletUserManagerDataVO mWalletUserManagerData(String uid) {
+        BigDecimal rechargeFee = BigDecimal.ZERO;
+        BigDecimal withdrawFee = BigDecimal.ZERO;
+        BigDecimal financialIncomeFee = BigDecimal.ZERO;
+        BigDecimal fundIncomeFee = BigDecimal.ZERO;
 
         if (StringUtils.isNotBlank(uid)) {
             IPage<Address> page = new Page<>(1, 10);
             var userInfos = financialUserPage(uid, page).getRecords();
 
             for (FinancialUserInfoVO financialUserInfoVO : userInfos) {
-                rechargeAmount = rechargeAmount.add(financialUserInfoVO.getRechargeAmount());
-                withdrawAmount = withdrawAmount.add(financialUserInfoVO.getWithdrawAmount());
-                moneyAmount = moneyAmount.add(financialUserInfoVO.getMoneyAmount());
-                incomeAmount = incomeAmount.add(financialUserInfoVO.getFinancialIncomeAmount());
+                rechargeFee = rechargeFee.add(financialUserInfoVO.getRechargeAmount());
+                withdrawFee = withdrawFee.add(financialUserInfoVO.getWithdrawAmount());
+                financialIncomeFee = financialIncomeFee.add(financialUserInfoVO.getFinancialIncomeAmount());
+                fundIncomeFee = fundIncomeFee.add(financialUserInfoVO.getFundIncomeAmount());
+
             }
-            return FinancialSummaryDataVO.builder()
-                    .rechargeAmount(rechargeAmount)
-                    .withdrawAmount(withdrawAmount)
-                    .moneyAmount(moneyAmount)
-                    .incomeAmount(incomeAmount)
+            return MWalletUserManagerDataVO.builder()
+                    .rechargeFee(rechargeFee)
+                    .withdrawFee(withdrawFee)
+                    .financialIncomeFee(financialIncomeFee)
+                    .fundIncomeFee(fundIncomeFee)
                     .build();
         }
 
@@ -379,22 +405,19 @@ public class FinancialServiceImpl implements FinancialService {
 
         // 充值
         query.setChargeType(ChargeType.recharge);
-        rechargeAmount = orderService.orderAmountDollarSum(query);
+        rechargeFee = orderService.orderAmountDollarSum(query);
         // 提现
         query.setChargeType(ChargeType.withdraw);
-        withdrawAmount = orderService.orderAmountDollarSum(query);
-        // 持有数量
-        BigDecimal currentAmount = financialRecordService.dollarHold(new FinancialRecordQuery(ProductType.current));
-        BigDecimal fixedAmount = financialRecordService.dollarHold(new FinancialRecordQuery(ProductType.fixed));
-        moneyAmount = moneyAmount.add(currentAmount).add(fixedAmount);
-        // 累计盈亏
-        incomeAmount = financialIncomeAccrueService.summaryIncomeByQuery(new FinancialProductIncomeQuery());
+        withdrawFee = orderService.orderAmountDollarSum(query);
 
-        return FinancialSummaryDataVO.builder()
-                .rechargeAmount(rechargeAmount)
-                .withdrawAmount(withdrawAmount)
-                .moneyAmount(moneyAmount)
-                .incomeAmount(incomeAmount)
+        financialIncomeFee = financialIncomeAccrueService.summaryIncomeByQuery(new FinancialProductIncomeQuery());
+        fundIncomeFee = fundIncomeRecordService.amountDollar(new FundIncomeQuery());
+
+        return MWalletUserManagerDataVO.builder()
+                .rechargeFee(rechargeFee)
+                .withdrawFee(withdrawFee)
+                .financialIncomeFee(financialIncomeFee)
+                .fundIncomeFee(fundIncomeFee)
                 .build();
     }
 
@@ -695,7 +718,7 @@ public class FinancialServiceImpl implements FinancialService {
             holdProductVo.setIncomeTime(purchaseTime.toLocalDate().atStartOfDay().plusDays(4));
         }
         if (!ProductType.fund.equals(productType)) {
-            holdProductVo.setIncomeTime(purchaseTime.toLocalDate().atStartOfDay().plusDays(holdProductVo.getTerm().getDay()));
+            holdProductVo.setIncomeTime(purchaseTime.toLocalDate().atStartOfDay().plusDays(PurchaseTerm.NONE.getDay()));
         }
 
         holdProductVo.setIncomeDays(Duration.between(holdProductVo.getIncomeTime(), LocalDateTime.now()).toDays());

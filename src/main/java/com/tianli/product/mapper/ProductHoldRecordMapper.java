@@ -24,6 +24,5 @@ public interface ProductHoldRecordMapper extends BaseMapper<ProductHoldRecord> {
 
     List<Long> holdUids(@Param("query") ProductHoldQuery query);
 
-    @Select("SELECT * FROM `product_hold_record` WHERE `uid` = #{uid}")
-    List<ProductHoldRecord> listByUid(@Param("uid") Long uid);
+    List<ProductHoldRecord> list(@Param("query") ProductHoldQuery query);
 }

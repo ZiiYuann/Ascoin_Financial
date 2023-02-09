@@ -37,6 +37,24 @@ import com.tianli.product.afund.enums.FundTransactionType;
 import com.tianli.product.afund.query.FundRecordQuery;
 import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.product.afund.service.IFundTransactionRecordService;
+import com.tianli.product.afinancial.dto.IncomeDto;
+import com.tianli.product.afinancial.entity.FinancialProduct;
+import com.tianli.product.afinancial.enums.ProductType;
+import com.tianli.product.afinancial.mapper.FinancialProductMapper;
+import com.tianli.product.afinancial.query.PurchaseQuery;
+import com.tianli.product.afinancial.service.AbstractProductOperation;
+import com.tianli.product.afinancial.vo.ExpectIncomeVO;
+import com.tianli.product.afund.bo.FundPurchaseBO;
+import com.tianli.product.afund.contant.FundTransactionStatus;
+import com.tianli.product.afund.convert.FundRecordConvert;
+import com.tianli.product.afund.entity.FundRecord;
+import com.tianli.product.afund.entity.FundTransactionRecord;
+import com.tianli.product.afund.enums.FundRecordStatus;
+import com.tianli.product.afund.enums.FundTransactionType;
+import com.tianli.product.afund.query.FundRecordQuery;
+import com.tianli.product.afund.service.IFundRecordService;
+import com.tianli.product.afund.service.IFundTransactionRecordService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -45,6 +63,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author chenb
@@ -73,7 +92,10 @@ public class FundProductService extends AbstractProductOperation<FinancialProduc
     public void validPurchaseAmount(Long uid, FinancialProduct product, BigDecimal amount) {
         List<AmountDto> holdAmounts = fundRecordService.hold(FundRecordQuery.builder()
                 .uid(uid).productId(product.getId()).build());
-        var holdAmount = Opt.ofNullable(holdAmounts.get(0)).orElse(new AmountDto());
+        var holdAmount = new AmountDto();
+        if (CollectionUtils.isNotEmpty(holdAmounts)) {
+            holdAmount = holdAmounts.get(0);
+        }
         if (product.getPersonQuota() != null && product.getPersonQuota().compareTo(BigDecimal.ZERO) > 0 &&
                 amount.add(holdAmount.getAmount()).compareTo(product.getPersonQuota()) > 0) {
             ErrorCodeEnum.PURCHASE_GT_PERSON_QUOTA.throwException();

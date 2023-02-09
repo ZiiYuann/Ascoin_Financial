@@ -195,7 +195,7 @@ public class FinancialIncomeTask {
         }
 
         // 如果是定期产品且当前时间为到期前一天则计算利息
-        if (ProductType.fixed.equals(type) && endTime.compareTo(incomeTimeZero) == 0) {
+        if (ProductType.fixed.equals(type) && endTime.compareTo(incomeTimeZero) <= 0) {
             var incomeOrder = incomeOperation(financialRecord, incomeTime);
             var settleOrder = settleOperation(financialRecord, incomeTime);
             // 对于自动续费操作来说，可能会有业务异常，不影响利息对发放

@@ -158,6 +158,8 @@ public enum ErrorCodeEnum {
     COIN_NOT_ALLOW_OPERATION(3804, "币种不允许操作"),
     COIN_NOT_CONFIG_NOT_EXIST(3805, "币种上线前请先配置最小提币和手续费"),
     MANUAL_TRANSFER_HASH_NULL(3806, "人工审核转账HASH为空"),
+    TRANSFER_ORDER_EXIST(3807, "转账已存在"),
+    TRANSFER_ERROR(3808, "转账异常"),
 
     ;
     private int errorNo;

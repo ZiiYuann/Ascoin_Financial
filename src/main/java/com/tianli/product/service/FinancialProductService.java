@@ -12,6 +12,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.query.RedeemQuery;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
+import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.currency.log.CurrencyLogDes;
@@ -49,6 +50,7 @@ import com.tianli.product.afund.service.IFundRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,6 +98,8 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
     private OrderService orderService;
     @Resource
     private ProductHoldRecordService productHoldRecordService;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 删除产品
@@ -192,9 +196,7 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
             product = Optional.ofNullable(product).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
 
             if (ProductStatus.close.equals(query.getStatus())) {
-                if (product.isRecommend()) {
-                    ErrorCodeEnum.throwException("下线前请先修改推荐状态为关闭");
-                }
+                product.setRecommend(false);
                 redisLock.lock(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + query.getProductId(), 5L, TimeUnit.SECONDS);
             }
 
@@ -214,6 +216,7 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
             e.printStackTrace();
             throw e;
         } finally {
+            stringRedisTemplate.delete(RedisConstants.RECOMMEND_PRODUCT); // 删除缓存
             redisLock.unlock(RedisLockConstants.PRODUCT_CLOSE_LOCK_PREFIX + query.getProductId());
         }
 
@@ -241,7 +244,7 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
 
         if (Objects.nonNull(query.getRecommend())) {
             queryWrapper = queryWrapper.eq(FinancialProduct::isRecommend, query.getRecommend())
-                    .orderByDesc(FinancialProduct :: getRecommendWeight);
+                    .orderByDesc(FinancialProduct::getRecommendWeight);
         }
 
 
@@ -469,10 +472,10 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
         if (recordLatest.getHoldAmount().compareTo(BigDecimal.ZERO) == 0) {
             recordLatest.setStatus(RecordStatus.SUCCESS);
             recordLatest.setUpdateTime(LocalDateTime.now());
+            productHoldRecordService.delete(uid, record.getProductId(), record.getId());
 
         }
         financialRecordService.updateById(recordLatest);
-        productHoldRecordService.delete(uid, record.getProductId(), record.getId());
         return RedeemResultDto.builder()
                 .orderNo(order.getOrderNo()).build();
     }

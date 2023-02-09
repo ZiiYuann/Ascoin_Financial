@@ -5,6 +5,7 @@ import com.tianli.address.mapper.Address;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.management.vo.MUserHoldRecordVO;
+import com.tianli.management.vo.MWalletUserManagerDataVO;
 import com.tianli.product.entity.ProductHoldRecord;
 import com.tianli.product.afinancial.entity.FinancialProduct;
 import com.tianli.product.afinancial.query.ProductHoldQuery;
@@ -14,7 +15,7 @@ import com.tianli.management.service.ManageUserService;
 import com.tianli.management.vo.MUserListVO;
 import com.tianli.openapi.query.OpenapiAccountQuery;
 import com.tianli.openapi.service.OpenApiService;
-import com.tianli.openapi.vo.StatisticsData;
+import com.tianli.openapi.dto.StatisticsDataDto;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -75,8 +76,8 @@ public class ManageUserController {
      */
     @GetMapping("/data")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result data(String uid) {
-        return Result.success().setData(financialService.userSummaryData(uid));
+    public Result<MWalletUserManagerDataVO> data(String uid) {
+        return new Result<>(financialService.mWalletUserManagerData(uid));
     }
 
     /**
@@ -102,7 +103,7 @@ public class ManageUserController {
      */
     @GetMapping("/account/sub")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result statisticsData(Long chatId, PageQuery<StatisticsData> pageQuery) {
+    public Result statisticsData(Long chatId, PageQuery<StatisticsDataDto> pageQuery) {
         return Result.success(openApiService.accountSubData(chatId, pageQuery));
     }
 

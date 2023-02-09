@@ -2,6 +2,8 @@ package com.tianli.charge.controller;
 
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.json.JSONUtil;
+import com.tianli.address.Service.AddressService;
 import com.tianli.chain.entity.ChainCallbackLog;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.ChainCallbackLogService;
@@ -13,7 +15,6 @@ import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.service.OrderAdvanceService;
 import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.common.PageQuery;
-import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
@@ -26,20 +27,21 @@ import com.tianli.product.afinancial.vo.FinancialPurchaseResultVO;
 import com.tianli.product.afinancial.vo.OrderFinancialVO;
 import com.tianli.management.query.FinancialOrdersQuery;
 import com.tianli.sso.init.RequestInitService;
+import com.tianli.tool.AddressVerifyUtils;
 import com.tianli.tool.crypto.Crypto;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.SetUtils;
 import org.bouncycastle.crypto.util.DigestFactory;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author wangqiyun
@@ -67,7 +69,7 @@ public class ChargeController {
     @Resource
     private WebHookService webHookService;
     @Resource
-    private StringRedisTemplate stringRedisTemplate;
+    private AddressService addressService;
 
     /**
      * 充值回调
@@ -150,13 +152,29 @@ public class ChargeController {
     public Result withdraw(@RequestBody @Valid WithdrawQuery withdrawDTO) {
         Long uid = requestInitService.uid();
         RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW + uid + ":" + withdrawDTO.getCoin());
+        try {
+            lock.lock();
+            chargeService.withdrawApply(uid, withdrawDTO);
+            return Result.instance();
+        } finally {
+            lock.unlock();
+        }
+    }
 
-        Set<String> members = Optional.ofNullable(stringRedisTemplate.opsForSet().members(RedisConstants.WITHDRAW_BLACK))
-                .orElse((Set<String>) SetUtils.EMPTY_SORTED_SET);
-        if (members.contains(uid + "")) {
-            ErrorCodeEnum.WITHDRAW_BLACK.throwException();
+    /**
+     * 提现申请
+     */
+    @PostMapping("/withdraw/apply/sign")
+    public Result withdrawWithSign(@RequestBody @Valid WithdrawQuery withdrawDTO, @RequestHeader("sign") String sign) {
+        Long uid = requestInitService.uid();
+
+        String addressStr = AddressVerifyUtils.ethSignedToAddress(sign, JSONUtil.toJsonStr(withdrawDTO));
+        String address = requestInitService.get().getAddress();
+        if (!address.equalsIgnoreCase(addressStr)) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
 
+        RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW + uid + ":" + withdrawDTO.getCoin());
         try {
             lock.lock();
             chargeService.withdrawApply(uid, withdrawDTO);

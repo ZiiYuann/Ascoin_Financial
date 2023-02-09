@@ -17,6 +17,7 @@ import com.tianli.chain.service.CoinBaseService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
+import com.tianli.common.RedisConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
@@ -28,6 +29,8 @@ import com.tianli.product.afund.query.FundRecordQuery;
 import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.management.dto.AmountDto;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,6 +110,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
 
     @Transactional
     public void reduce(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+        this.validBlackUser(uid);
         getAndInit(uid, coin);
 
         if (accountBalanceMapper.reduce(uid, amount, coin) <= 0L) {
@@ -125,6 +129,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
     @Transactional
     public void decrease(long uid, ChargeType type, String coin, NetworkType networkType,
                          BigDecimal amount, String sn, String des, AccountOperationType accountOperationType) {
+        this.validBlackUser(uid);
         getAndInit(uid, coin);
         if (accountBalanceMapper.decrease(uid, amount, coin) <= 0L) {
             ErrorCodeEnum.CREDIT_LACK.throwException();
@@ -147,6 +152,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
 
     @Transactional
     public void freeze(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+        this.validBlackUser(uid);
         getAndInit(uid, coin);
 
         if (accountBalanceMapper.freeze(uid, amount, coin) <= 0L) {
@@ -231,7 +237,10 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         existCoinNames.forEach(coinNames::remove);
 
         for (String coin : coinNames) {
-            CoinBase coinBase = validCurrencyToken(coin);
+            CoinBase coinBase = getPushBaseCoin(coin);
+            if (coinBase == null) {
+                continue;
+            }
             AccountBalanceVO accountBalanceVO = AccountBalanceVO.getDefault(coinBase);
             accountBalanceVO.setDollarRate(currencyService.getDollarRate(String.valueOf(coin)));
             accountBalanceVO.setWeight(coinBase.getWeight());
@@ -278,6 +287,12 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
 
     public List<AccountBalanceVO> accountList(Long uid) {
         List<AccountBalance> accountBalances = Optional.ofNullable(this.list(uid)).orElse(new ArrayList<>());
+
+        Set<String> coinNames = coinBaseService.pushCoinNames();
+        accountBalances = accountBalances.stream()
+                .filter(accountBalance -> coinNames.contains(accountBalance.getCoin()))
+                .collect(Collectors.toList());
+
         List<AccountBalanceVO> accountBalanceVOS = new ArrayList<>(accountBalances.size());
         accountBalances.forEach(accountBalance -> accountBalanceVOS.add(accountSingleCoin(uid, accountBalance.getCoin())));
         return accountBalanceVOS;
@@ -400,6 +415,23 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         throw ErrorCodeEnum.CURRENCY_NOT_SUPPORT.generalException();
     }
 
+    private CoinBase getPushBaseCoin(String tokenName) {
+        List<CoinBase> coins = coinBaseService.getPushListCache();
+        for (CoinBase coinBase : coins) {
+            if (coinBase.getName().equalsIgnoreCase(tokenName)) {
+                return coinBase;
+            }
+        }
+        return null;
+    }
+
+    private void validBlackUser(Long uid) {
+        Boolean member = stringRedisTemplate.opsForSet().isMember(RedisConstants.WITHDRAW_BLACK, uid + "");
+        if (Objects.nonNull(member) && member) {
+            ErrorCodeEnum.WITHDRAW_BLACK.throwException();
+        }
+    }
+
     @Resource
     private AccountBalanceMapper accountBalanceMapper;
     @Resource
@@ -418,6 +450,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
     private CoinBaseService coinBaseService;
     @Resource
     private OrderService orderService;
-
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
 }

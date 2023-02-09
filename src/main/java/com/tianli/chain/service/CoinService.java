@@ -48,6 +48,8 @@ public interface CoinService extends IService<Coin> {
      */
     void push(String nickname, CoinStatusQuery query);
 
+    void close(String nickname, CoinStatusQuery query);
+
     void push(Coin coin);
 
     /**
