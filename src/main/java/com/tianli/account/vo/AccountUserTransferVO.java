@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class AccountUserTransferVO {
 
-    @Id
     private Long id;
 
     private Long transferUid;
@@ -33,7 +32,6 @@ public class AccountUserTransferVO {
 
     private BigDecimal amount;
 
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
     private String transferOrderNo;
