@@ -1,7 +1,9 @@
 package com.tianli.account.convert;
 
 import com.tianli.account.entity.AccountBalance;
+import com.tianli.account.entity.AccountUserTransfer;
 import com.tianli.account.vo.AccountBalanceVO;
+import com.tianli.account.vo.AccountUserTransferVO;
 import org.mapstruct.Mapper;
 
 /**
@@ -13,4 +15,6 @@ import org.mapstruct.Mapper;
 public interface AccountConverter {
 
     AccountBalanceVO toVO(AccountBalance accountBalance);
+
+    AccountUserTransferVO toAccountUserTransferVO(AccountUserTransfer accountUserTransfer);
 }

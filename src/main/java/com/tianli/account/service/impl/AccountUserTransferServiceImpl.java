@@ -2,9 +2,11 @@ package com.tianli.account.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.account.convert.AccountConverter;
 import com.tianli.account.entity.AccountUserTransfer;
 import com.tianli.account.mapper.AccountUserTransferMapper;
 import com.tianli.account.service.AccountUserTransferService;
+import com.tianli.account.vo.AccountUserTransferVO;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
@@ -34,6 +36,8 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
     private OrderService orderService;
     @Resource
     private AccountBalanceServiceImpl accountBalanceService;
+    @Resource
+    private AccountConverter accountConverter;
 
     @Override
     @Transactional
@@ -82,6 +86,11 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
                 .externalPk(query.getRelatedId()).build();
         this.save(accountUserTransfer);
         return accountUserTransfer;
+    }
+
+    @Override
+    public AccountUserTransferVO getVO(Long transferId) {
+        return accountConverter.toAccountUserTransferVO(this.getById(transferId));
     }
 
     private String transferOperation(

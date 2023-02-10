@@ -4,7 +4,12 @@
 
 
     <sql id="FinancialProductIncomeQuery">
-
+        <if test="query.productId != null ">
+            AND record.product_id = #{query.productId}
+        </if>
+        <if test="query.status != null ">
+            AND record.status = #{query.status}
+        </if>
         <if test="query.uid != null and query.uid != '' ">
             AND record.uid like concat('%',#{query.uid},'%')
         </if>

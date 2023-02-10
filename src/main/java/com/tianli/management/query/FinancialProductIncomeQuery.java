@@ -1,6 +1,8 @@
 package com.tianli.management.query;
 
+import com.tianli.product.afinancial.entity.FinancialRecord;
 import com.tianli.product.afinancial.enums.ProductType;
+import com.tianli.product.afinancial.enums.RecordStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,6 +31,8 @@ public class FinancialProductIncomeQuery {
 
     private ProductType productType;
 
+    private RecordStatus status;
+
     private String coin;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -36,6 +40,8 @@ public class FinancialProductIncomeQuery {
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
+
+    private Long productId;
 
 
 

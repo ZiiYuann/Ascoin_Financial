@@ -424,7 +424,9 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
         BigDecimal allHoldAmount = financialRecord.getHoldAmount()
                 .add(redeemOrders.stream().map(Order::getAmount)
                         .reduce(BigDecimal.ZERO, BigDecimal::add));
-
+        if (allHoldAmount.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
         return incomeAmount.divide(allHoldAmount, 4, RoundingMode.HALF_UP);
     }
 

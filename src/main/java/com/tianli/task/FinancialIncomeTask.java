@@ -31,6 +31,7 @@ import com.tianli.product.afinancial.service.FinancialIncomeDailyService;
 import com.tianli.product.afinancial.service.FinancialProductLadderRateService;
 import com.tianli.product.afinancial.service.FinancialRecordService;
 import com.tianli.product.service.FinancialProductService;
+import com.tianli.product.service.ProductHoldRecordService;
 import com.tianli.tool.ApplicationContextTool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.BoundValueOperations;
@@ -76,6 +77,8 @@ public class FinancialIncomeTask {
     private FinancialProductLadderRateService financialProductLadderRateService;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private ProductHoldRecordService productHoldRecordService;
 
     private static final ConcurrentHashMap<String, AtomicInteger> FAIL_COUNT_CACHE = new ConcurrentHashMap<>();
 
@@ -298,6 +301,7 @@ public class FinancialIncomeTask {
                 , financialRecord.getHoldAmount(), order.getOrderNo(), CurrencyLogDes.结算.name());
         // 减少产品使用额度
         financialProductService.reduceUseQuota(financialRecord.getProductId(), financialRecord.getHoldAmount());
+        productHoldRecordService.delete(financialRecord.getUid(), financialRecord.getProductId(), financialRecord.getId());
         return order;
     }
 
