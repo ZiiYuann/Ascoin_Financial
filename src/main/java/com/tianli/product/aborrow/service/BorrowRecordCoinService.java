@@ -14,7 +14,7 @@ import java.util.List;
  **/
 public interface BorrowRecordCoinService extends IService<BorrowRecordCoin> {
 
-    void save(Long uid, BorrowCoinQuery query);
+    void save(Long uid,Long bid, BorrowCoinQuery query);
 
     List<BorrowRecordCoin> listByUid(Long uid);
 

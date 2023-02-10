@@ -14,7 +14,7 @@ import java.util.List;
  **/
 public interface BorrowRecordPledgeService extends IService<BorrowRecordPledge> {
 
-    void save(Long uid, PledgeContextQuery query);
+    void save(Long uid, Long bid,PledgeContextQuery query);
 
     List<BorrowRecordPledgeDto> dtoListByUid(Long uid);
 }

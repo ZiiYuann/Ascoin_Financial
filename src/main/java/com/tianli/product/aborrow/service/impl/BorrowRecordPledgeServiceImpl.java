@@ -35,10 +35,14 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
     private FinancialRecordService financialRecordService;
 
     @Override
-    public void save(Long uid, PledgeContextQuery query) {
+    public void save(Long uid, Long bid, PledgeContextQuery query) {
         if (PledgeType.WALLET.equals(query.getPledgeType())) {
             BorrowRecordPledge borrowRecordPledge = getAndInit(uid, query.getCoin(), query.getPledgeType(), null);
             this.casIncrease(uid, query.getCoin(), query.getPledgeAmount(), borrowRecordPledge.getAmount(), query.getPledgeType());
+
+
+
+
         }
 
         if (PledgeType.FINANCIAL.equals(query.getPledgeType())) {

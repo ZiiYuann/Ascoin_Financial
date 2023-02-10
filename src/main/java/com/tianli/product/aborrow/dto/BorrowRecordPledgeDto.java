@@ -1,9 +1,5 @@
 package com.tianli.product.aborrow.dto;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.tianli.product.aborrow.enums.PledgeType;
 import com.tianli.product.afinancial.entity.FinancialRecord;
 import lombok.AllArgsConstructor;

@@ -71,8 +71,9 @@ public class Order {
      * 提现 + 充值: order_charge_info 链上记录表
      * 申购: [区分本地申购和普通申购通过 order_no] 普通申购：持用id 本地申购 预订单表id
      * 本地申购 order_advance id 一般申购（基金：基金持用fund_record id 理财：理财持用 financial_record id）
-     * 借贷：弃用
+     * 借币：借贷操作日志id
      * 赎回：financial_record id
+     *
      */
     private Long relatedId;
 

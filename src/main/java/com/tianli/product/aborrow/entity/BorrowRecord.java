@@ -31,7 +31,9 @@ public class BorrowRecord {
 
     private boolean autoReplenishment;
 
-    private Long newestSSnapshotId;
+    private Long newestSnapshotId;
+
+    private boolean finish;
 
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;

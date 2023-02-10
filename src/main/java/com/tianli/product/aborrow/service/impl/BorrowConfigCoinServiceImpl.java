@@ -16,13 +16,16 @@ import com.tianli.product.aborrow.query.BorrowConfigCoinIoUQuery;
 import com.tianli.product.aborrow.query.BorrowQuery;
 import com.tianli.product.aborrow.service.BorrowConfigCoinService;
 import com.tianli.product.aborrow.service.BorrowRecordCoinService;
+import com.tianli.product.aborrow.vo.BorrowConfigCoinVO;
 import com.tianli.product.aborrow.vo.MBorrowConfigCoinVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -85,6 +88,14 @@ public class BorrowConfigCoinServiceImpl extends ServiceImpl<BorrowConfigCoinMap
         if (Objects.nonNull(borrowConfigCoin.getMaxAmount()) && totalBorrowAmount.compareTo(borrowConfigCoin.getMaxAmount()) > 0) {
             throw ErrorCodeEnum.BORROW_AMOUNT_MAX_ERROR.generalException();
         }
+    }
+
+    @Override
+    public List<BorrowConfigCoinVO> getVOs() {
+        return this.list(new LambdaQueryWrapper<BorrowConfigCoin>()
+                        .eq(BorrowConfigCoin::getStatus, 1))
+                .stream().map(borrowConvert::toBorrowConfigCoinVO)
+                .collect(Collectors.toList());
     }
 
 }

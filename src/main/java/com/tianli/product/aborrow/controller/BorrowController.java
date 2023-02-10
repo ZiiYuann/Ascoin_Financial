@@ -1,26 +1,29 @@
 package com.tianli.product.aborrow.controller;
 
-/**
- * @author chenb
- * @apiNote
- * @since 2023-02-09
- **/
-
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedissonClientTool;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.product.aborrow.query.BorrowCoinQuery;
+import com.tianli.product.aborrow.query.CalPledgeQuery;
+import com.tianli.product.aborrow.service.BorrowConfigCoinService;
+import com.tianli.product.aborrow.service.BorrowConfigPledgeService;
 import com.tianli.product.aborrow.service.BorrowService;
+import com.tianli.product.aborrow.vo.BorrowConfigCoinVO;
+import com.tianli.product.aborrow.vo.BorrowConfigPledgeVO;
+import com.tianli.product.aborrow.vo.CalPledgeVO;
 import com.tianli.sso.init.RequestInitService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.List;
 
+/**
+ * @author chenb
+ * @apiNote
+ * @since 2023-02-09
+ **/
 @RestController
 @RequestMapping("/borrow")
 public class BorrowController {
@@ -31,7 +34,14 @@ public class BorrowController {
     private BorrowService borrowService;
     @Resource
     private RedissonClientTool redissonClientTool;
+    @Resource
+    private BorrowConfigPledgeService borrowConfigPledgeService;
+    @Resource
+    private BorrowConfigCoinService borrowConfigCoinService;
 
+    /**
+     * 借币
+     */
     @PostMapping("/coin")
     public Result<Void> coin(@RequestBody @Valid BorrowCoinQuery query) {
         Long uid = requestInitService.uid();
@@ -42,10 +52,29 @@ public class BorrowController {
         return new Result<>();
     }
 
+    /**
+     * 质押计算
+     */
     @PostMapping("/pledge/cal")
-    public Result<Void> pledge(@RequestBody @Valid BorrowCoinQuery query) {
-
+    public Result<CalPledgeVO> pledge(@RequestBody @Valid CalPledgeQuery query) {
+        Long uid = requestInitService.uid();
+        return new Result<>(new CalPledgeVO(borrowService.preCalPledgeRate(uid, query)));
     }
 
+    /**
+     * 质押币配置
+     */
+    @GetMapping("/config/pledge")
+    public Result<List<BorrowConfigPledgeVO>> pledgeConfig() {
+        return new Result<>(borrowConfigPledgeService.getVOs());
+    }
+
+    /**
+     * 借币配置
+     */
+    @GetMapping("/config/coin")
+    public Result<List<BorrowConfigCoinVO>> coinConfig() {
+        return new Result<>(borrowConfigCoinService.getVOs());
+    }
 
 }

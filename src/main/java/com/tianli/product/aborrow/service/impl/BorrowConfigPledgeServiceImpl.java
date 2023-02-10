@@ -14,11 +14,14 @@ import com.tianli.product.aborrow.mapper.BorrowConfigPledgeMapper;
 import com.tianli.product.aborrow.query.BorrowConfigPledgeIoUQuery;
 import com.tianli.product.aborrow.query.BorrowQuery;
 import com.tianli.product.aborrow.service.BorrowConfigPledgeService;
+import com.tianli.product.aborrow.vo.BorrowConfigPledgeVO;
 import com.tianli.product.aborrow.vo.MBorrowConfigPledgeVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -59,6 +62,15 @@ public class BorrowConfigPledgeServiceImpl extends ServiceImpl<BorrowConfigPledg
         BorrowConfigPledge borrowConfigPledge = this.getById(coin);
         borrowConfigPledge.setStatus(borrowStatus.getStatus());
         this.update(borrowConfigPledge, QueryWrapperUtils.generate(BorrowConfigPledge.class, query));
+    }
+
+    @Override
+    public List<BorrowConfigPledgeVO> getVOs() {
+        return this.list(new LambdaQueryWrapper<BorrowConfigPledge>()
+                        .eq(BorrowConfigPledge::getStatus, 1))
+                .stream()
+                .map(borrowConvert::toBorrowConfigPledgeVO)
+                .collect(Collectors.toList());
     }
 
 

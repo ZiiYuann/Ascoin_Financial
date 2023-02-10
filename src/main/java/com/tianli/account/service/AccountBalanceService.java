@@ -28,6 +28,16 @@ public interface AccountBalanceService {
     void increase(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des);
 
     /**
+     * 质押冻结
+     */
+    void pledgeFreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des);
+
+    /**
+     * 质押解冻
+     */
+    void pledgeUnfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des);
+
+    /**
      * 获取并且不存在的话会初始化
      */
     AccountBalance getAndInit(long uid, String coinName);

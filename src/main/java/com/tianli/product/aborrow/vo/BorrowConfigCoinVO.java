@@ -1,7 +1,7 @@
-package com.tianli.product.aborrow.entity;
+package com.tianli.product.aborrow.vo;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.AllArgsConstructor;
@@ -9,28 +9,28 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
  * @author chenb
  * @apiNote
- * @since 2023-02-06
+ * @since 2023-02-10
  **/
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BorrowRecordSnapshot {
+public class BorrowConfigCoinVO {
 
-    @TableId(type = IdType.ASSIGN_ID)
-    private Long id;
+    private String coin;
 
-    private Long uid;
+    private String logo;
 
-    // JSON 数据 BorrowRecordSnapshotDto
-    private String data;
+    private BigDecimal minAmount;
 
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
+    private BigDecimal maxAmount;
+
+    private BigDecimal hourRate;
 
 }

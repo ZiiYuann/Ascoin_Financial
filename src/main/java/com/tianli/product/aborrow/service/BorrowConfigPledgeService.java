@@ -7,8 +7,11 @@ import com.tianli.product.aborrow.entity.BorrowConfigPledge;
 import com.tianli.product.aborrow.enums.BorrowStatus;
 import com.tianli.product.aborrow.query.BorrowConfigPledgeIoUQuery;
 import com.tianli.product.aborrow.query.BorrowQuery;
+import com.tianli.product.aborrow.vo.BorrowConfigPledgeVO;
 import com.tianli.product.aborrow.vo.MBorrowConfigCoinVO;
 import com.tianli.product.aborrow.vo.MBorrowConfigPledgeVO;
+
+import java.util.List;
 
 /**
  * @author chenb
@@ -22,4 +25,7 @@ public interface BorrowConfigPledgeService extends IService<BorrowConfigPledge> 
     IPage<MBorrowConfigPledgeVO> MBorrowConfigCoinVOPage(IPage<BorrowConfigPledge> page, BorrowQuery borrowQuery);
 
     void modifyStatus(String coin, BorrowStatus borrowStatus);
+
+    List<BorrowConfigPledgeVO> getVOs();
 }
+

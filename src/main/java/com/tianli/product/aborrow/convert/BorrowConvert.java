@@ -6,6 +6,8 @@ import com.tianli.product.aborrow.entity.BorrowConfigPledge;
 import com.tianli.product.aborrow.entity.BorrowRecordPledge;
 import com.tianli.product.aborrow.query.BorrowConfigCoinIoUQuery;
 import com.tianli.product.aborrow.query.BorrowConfigPledgeIoUQuery;
+import com.tianli.product.aborrow.vo.BorrowConfigCoinVO;
+import com.tianli.product.aborrow.vo.BorrowConfigPledgeVO;
 import com.tianli.product.aborrow.vo.MBorrowConfigCoinVO;
 import com.tianli.product.aborrow.vo.MBorrowConfigPledgeVO;
 import org.mapstruct.Mapper;
@@ -22,10 +24,16 @@ public interface BorrowConvert {
 
     BorrowConfigPledge toBorrowConfigPledge(BorrowConfigPledgeIoUQuery query);
 
+    BorrowConfigPledgeVO toBorrowConfigPledgeVO(BorrowConfigPledge borrowConfigPledge);
+
+    BorrowConfigCoinVO toBorrowConfigCoinVO(BorrowConfigCoin borrowConfigCoin);
+
     MBorrowConfigCoinVO toMBorrowConfigCoinVO(BorrowConfigCoin borrowConfigCoin);
 
     MBorrowConfigPledgeVO toMBorrowConfigPledgeVO(BorrowConfigPledge borrowConfigPledge);
 
     BorrowRecordPledgeDto toBorrowRecordPledgeDto(BorrowRecordPledge borrowRecordPledge);
+
+
 
 }

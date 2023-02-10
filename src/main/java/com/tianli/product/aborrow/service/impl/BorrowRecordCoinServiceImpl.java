@@ -2,11 +2,20 @@ package com.tianli.product.aborrow.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.currency.service.CurrencyService;
+import com.tianli.account.enums.AccountChangeType;
+import com.tianli.account.service.AccountBalanceService;
+import com.tianli.charge.entity.Order;
+import com.tianli.charge.enums.ChargeStatus;
+import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.service.OrderService;
+import com.tianli.common.CommonFunction;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.product.aborrow.entity.BorrowOperationLog;
 import com.tianli.product.aborrow.entity.BorrowRecordCoin;
+import com.tianli.product.aborrow.enums.LogType;
 import com.tianli.product.aborrow.mapper.BorrowRecordCoinMapper;
 import com.tianli.product.aborrow.query.BorrowCoinQuery;
+import com.tianli.product.aborrow.service.BorrowOperationLogService;
 import com.tianli.product.aborrow.service.BorrowRecordCoinService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,15 +35,42 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
         implements BorrowRecordCoinService {
 
     @Resource
-    private CurrencyService currencyService;
+    private AccountBalanceService accountBalanceService;
+    @Resource
+    private OrderService orderService;
+    @Resource
+    private BorrowOperationLogService borrowOperationLogService;
 
     @Override
     @Transactional
-    public void save(Long uid, BorrowCoinQuery query) {
+    public void save(Long uid, Long bid, BorrowCoinQuery query) {
         String coin = query.getBorrowCoin();
         BorrowRecordCoin borrowRecordCoin = getAndInit(uid, coin);
         this.casIncrease(uid, coin, query.getBorrowAmount(), borrowRecordCoin.getAmount());
-        // todo 记录日志
+
+        long operationLogId = CommonFunction.generalId();
+        BorrowOperationLog operationLog = BorrowOperationLog.builder()
+                .bid(bid)
+                .id(operationLogId)
+                .uid(uid)
+                .coin(coin)
+                .amount(query.getBorrowAmount())
+                .logType(LogType.BORROW).build();
+        borrowOperationLogService.save(operationLog);
+
+        // 订单信息
+        Order order = Order.builder()
+                .uid(uid)
+                .orderNo(AccountChangeType.borrow.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
+                .amount(query.getBorrowAmount())
+                .status(ChargeStatus.chain_success)
+                .type(ChargeType.borrow)
+                .coin(coin)
+                .relatedId(bid)
+                .build();
+        orderService.save(order);
+
+        accountBalanceService.increase(uid, ChargeType.borrow, coin, query.getBorrowAmount(), order.getOrderNo(), "借币");
     }
 
     @Override

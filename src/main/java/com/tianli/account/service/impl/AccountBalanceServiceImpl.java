@@ -74,6 +74,11 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         freeze(uid, type, coin, null, amount, sn, des);
     }
 
+    @Transactional
+    public void pledgeFreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
+        pledgeFreeze(uid, type, coin, null, amount, sn, des);
+    }
+
     /**
      * 扣除冻结金额
      *
@@ -151,6 +156,18 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
     }
 
     @Transactional
+    public void pledgeFreeze(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+        this.validBlackUser(uid);
+        getAndInit(uid, coin);
+
+        if (accountBalanceMapper.pledgeFreeze(uid, amount, coin) <= 0L) {
+            ErrorCodeEnum.CREDIT_LACK.throwException();
+        }
+        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.pledge_freeze, amount, sn, des);
+    }
+
+    @Transactional
     public void freeze(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
         this.validBlackUser(uid);
         getAndInit(uid, coin);
@@ -160,7 +177,6 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
         accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.freeze, amount, sn, des);
-
     }
 
     /**
@@ -182,8 +198,31 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.unfreeze, amount, sn, des);
     }
 
+    /**
+     * 解冻金额
+     *
+     * @param uid    用户id
+     * @param amount 金额
+     * @param sn     订单号
+     */
+    @Transactional
+    public void pledgeUnfreeze(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+        getAndInit(uid, coin);
+
+        if (accountBalanceMapper.pledgeUnfreeze(uid, amount, coin) <= 0L) {
+            ErrorCodeEnum.CREDIT_LACK.throwException();
+        }
+
+        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.pledge_unfreeze, amount, sn, des);
+    }
+
     public void unfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
         unfreeze(uid, type, coin, null, amount, sn, des);
+    }
+
+    public void pledgeUnfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
+        pledgeUnfreeze(uid, type, coin, null, amount, sn, des);
     }
 
     @Transactional
@@ -195,7 +234,6 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
                     .id(CommonFunction.generalId())
                     .uid(uid)
                     .coin(coinBase.getName())
-                    .logo(coinBase.getLogo())
                     .balance(BigDecimal.ZERO)
                     .freeze(BigDecimal.ZERO)
                     .remain(BigDecimal.ZERO)
