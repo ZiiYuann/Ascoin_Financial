@@ -2,6 +2,7 @@ package com.tianli.product.aborrow.service.impl;
 
 import com.tianli.product.aborrow.query.BorrowCoinQuery;
 import com.tianli.product.aborrow.service.*;
+import com.tianli.product.aborrow.vo.CalPledgeVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,5 +36,10 @@ public class BorrowServiceImpl implements BorrowService {
 
         borrowRecordService.calPledgeRate(uid, query.getAutoReplenishment());
 
+    }
+
+    @Override
+    public CalPledgeVO calPledge(Long uid, BorrowCoinQuery query) {
+        return null;
     }
 }

@@ -18,12 +18,25 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class PledgeRateDto {
 
-    private BigDecimal lqPledgeRate;
-
     // 质押总金额
     private BigDecimal pledgeAmount;
 
     // 强平可借
-    private BigDecimal LqBorrowAmount;
+    private BigDecimal LqAmount;
+
+    private BigDecimal lqPledgeRate;
+
+    private BigDecimal warnAmount;
+
+    private BigDecimal warnPledgeRate;
+
+    private BigDecimal assureLqAmount;
+
+    private BigDecimal assureLqPledgeRate;
+
+    private BigDecimal borrowAmount;
+
+    private BigDecimal currencyPledgeRate;
+
 
 }

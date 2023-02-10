@@ -3,6 +3,7 @@ package com.tianli.currency.service;
 import com.tianli.management.dto.AmountDto;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -35,4 +36,6 @@ public interface CurrencyService {
      * @return 汇率信息
      */
     BigDecimal huobiUsdtRate(String coinName);
+
+    HashMap<String,BigDecimal> rateMap();
 }

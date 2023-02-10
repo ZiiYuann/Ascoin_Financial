@@ -26,4 +26,6 @@ public class BorrowRecordSnapshotDto {
     private List<BorrowRecordCoin> borrowRecordCoins;
 
     private List<BorrowRecordPledgeDto> borrowRecordPledgeDtos;
+
+    private PledgeRateDto pledgeRateDto;
 }

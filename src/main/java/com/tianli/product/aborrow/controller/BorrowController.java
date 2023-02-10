@@ -33,13 +33,18 @@ public class BorrowController {
     private RedissonClientTool redissonClientTool;
 
     @PostMapping("/coin")
-    public Result<Void> pledge(@RequestBody @Valid BorrowCoinQuery query) {
+    public Result<Void> coin(@RequestBody @Valid BorrowCoinQuery query) {
         Long uid = requestInitService.uid();
         String key = RedisLockConstants.LOCK_BORROW_COIN + uid;
 
         redissonClientTool.tryLock(key, () -> borrowService.borrowCoin(uid, query), ErrorCodeEnum.BORROW_COIN_ERROR);
 
         return new Result<>();
+    }
+
+    @PostMapping("/pledge/cal")
+    public Result<Void> pledge(@RequestBody @Valid BorrowCoinQuery query) {
+
     }
 
 
