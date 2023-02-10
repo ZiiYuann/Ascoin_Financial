@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.service.OrderService;
+import com.tianli.common.CommonFunction;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -98,5 +100,25 @@ public class Order {
      * 订单完成时间
      */
     private LocalDateTime completeTime;
+
+    public static Order success(Long uid, ChargeType chargeType, String coin, BigDecimal amount, Long relatedId) {
+        Order order = Order.generate(uid, chargeType, coin, amount, relatedId);
+        order.setCompleteTime(LocalDateTime.now());
+        order.setStatus(ChargeStatus.chain_success);
+        return order;
+    }
+
+    public static Order generate(Long uid, ChargeType chargeType, String coin, BigDecimal amount, Long relatedId) {
+        long id = CommonFunction.generalId();
+        return Order.builder()
+                .id(id)
+                .uid(uid)
+                .orderNo(chargeType.getAccountChangeType().getPrefix() + CommonFunction.generalSn(id))
+                .amount(amount)
+                .type(chargeType)
+                .coin(coin)
+                .relatedId(relatedId)
+                .build();
+    }
 
 }

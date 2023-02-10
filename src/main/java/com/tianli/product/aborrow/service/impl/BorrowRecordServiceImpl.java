@@ -25,6 +25,7 @@ public class BorrowRecordServiceImpl extends ServiceImpl<BorrowRecordMapper, Bor
         BorrowRecord borrowRecord = this.getOne(new LambdaQueryWrapper<BorrowRecord>()
                 .eq(BorrowRecord::getUid, uid)
                 .eq(BorrowRecord::isFinish, false));
+
         if (Objects.isNull(borrowRecord)) {
             borrowRecord = BorrowRecord.builder()
                     .uid(uid)

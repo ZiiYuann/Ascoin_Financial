@@ -2,13 +2,18 @@ package com.tianli.product.aborrow.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.charge.entity.Order;
+import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.service.OrderService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.product.aborrow.convert.BorrowConvert;
 import com.tianli.product.aborrow.dto.BorrowRecordPledgeDto;
+import com.tianli.product.aborrow.entity.BorrowOperationLog;
 import com.tianli.product.aborrow.entity.BorrowRecordPledge;
 import com.tianli.product.aborrow.enums.PledgeType;
 import com.tianli.product.aborrow.mapper.BorrowRecordPledgeMapper;
 import com.tianli.product.aborrow.query.PledgeContextQuery;
+import com.tianli.product.aborrow.service.BorrowOperationLogService;
 import com.tianli.product.aborrow.service.BorrowRecordPledgeService;
 import com.tianli.product.afinancial.entity.FinancialRecord;
 import com.tianli.product.afinancial.service.FinancialRecordService;
@@ -33,6 +38,10 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
     private BorrowConvert borrowConvert;
     @Resource
     private FinancialRecordService financialRecordService;
+    @Resource
+    private OrderService orderService;
+    @Resource
+    private BorrowOperationLogService borrowOperationLogService;
 
     @Override
     public void save(Long uid, Long bid, PledgeContextQuery query) {
@@ -40,20 +49,32 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
             BorrowRecordPledge borrowRecordPledge = getAndInit(uid, query.getCoin(), query.getPledgeType(), null);
             this.casIncrease(uid, query.getCoin(), query.getPledgeAmount(), borrowRecordPledge.getAmount(), query.getPledgeType());
 
+            Order order = Order.success(uid, ChargeType.pledge, query.getCoin(), query.getPledgeAmount(), bid);
+            orderService.save(order);
 
-
-
+            BorrowOperationLog operationLog = BorrowOperationLog.log(ChargeType.pledge, bid, uid, query.getCoin(), query.getPledgeAmount());
+            borrowOperationLogService.save(operationLog);
         }
 
         if (PledgeType.FINANCIAL.equals(query.getPledgeType())) {
             query.getRecordIds().forEach(recordId -> {
-                getAndInit(uid, query.getCoin(), query.getPledgeType(), recordId);
-                financialRecordService.updatePledge(uid, recordId, true);
+
+                BigDecimal amount = financialRecordService.selectById(recordId, uid).getHoldAmount();
+                financialRecordService.updatePledge(uid, recordId, amount, true);
+
+                BorrowRecordPledge borrowRecordPledge = getAndInit(uid, query.getCoin(), query.getPledgeType(), recordId);
+                borrowRecordPledge.setAmount(amount);
+
+                Order order = Order.success(uid, ChargeType.pledge, query.getCoin(), amount, bid);
+                orderService.save(order);
+
+                BorrowOperationLog operationLog = BorrowOperationLog.log(ChargeType.pledge, bid, uid, query.getCoin(), amount);
+                borrowOperationLogService.save(operationLog);
             });
         }
 
-        // TODO 日志
     }
+
 
     @Override
     public List<BorrowRecordPledgeDto> dtoListByUid(Long uid) {
@@ -64,7 +85,6 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
 
                     if (PledgeType.FINANCIAL.equals(index.getPledgeType())) {
                         FinancialRecord financialRecord = financialRecordService.selectById(index.getRecordId(), uid);
-                        borrowRecordPledgeDto.setAmount(financialRecord.getHoldAmount());
                         borrowRecordPledgeDto.setFinancialRecord(financialRecord);
                     }
                     return borrowRecordPledgeDto;

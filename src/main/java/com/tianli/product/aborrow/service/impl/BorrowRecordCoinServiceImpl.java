@@ -2,17 +2,13 @@ package com.tianli.product.aborrow.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.charge.entity.Order;
-import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
-import com.tianli.common.CommonFunction;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.product.aborrow.entity.BorrowOperationLog;
 import com.tianli.product.aborrow.entity.BorrowRecordCoin;
-import com.tianli.product.aborrow.enums.LogType;
 import com.tianli.product.aborrow.mapper.BorrowRecordCoinMapper;
 import com.tianli.product.aborrow.query.BorrowCoinQuery;
 import com.tianli.product.aborrow.service.BorrowOperationLogService;
@@ -48,26 +44,10 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
         BorrowRecordCoin borrowRecordCoin = getAndInit(uid, coin);
         this.casIncrease(uid, coin, query.getBorrowAmount(), borrowRecordCoin.getAmount());
 
-        long operationLogId = CommonFunction.generalId();
-        BorrowOperationLog operationLog = BorrowOperationLog.builder()
-                .bid(bid)
-                .id(operationLogId)
-                .uid(uid)
-                .coin(coin)
-                .amount(query.getBorrowAmount())
-                .logType(LogType.BORROW).build();
+        BorrowOperationLog operationLog = BorrowOperationLog.log(ChargeType.borrow, bid, uid, coin, query.getBorrowAmount());
         borrowOperationLogService.save(operationLog);
 
-        // 订单信息
-        Order order = Order.builder()
-                .uid(uid)
-                .orderNo(AccountChangeType.borrow.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
-                .amount(query.getBorrowAmount())
-                .status(ChargeStatus.chain_success)
-                .type(ChargeType.borrow)
-                .coin(coin)
-                .relatedId(bid)
-                .build();
+        Order order = Order.success(uid, ChargeType.borrow, coin, query.getBorrowAmount(), bid);
         orderService.save(order);
 
         accountBalanceService.increase(uid, ChargeType.borrow, coin, query.getBorrowAmount(), order.getOrderNo(), "借币");

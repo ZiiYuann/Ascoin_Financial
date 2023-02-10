@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.tianli.product.aborrow.enums.LogType;
+import com.tianli.charge.enums.ChargeType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,17 +27,24 @@ public class BorrowOperationLog {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
-    private Long bid;
-
     private Long uid;
+
+    private Long bid;
 
     private String coin;
 
     private BigDecimal amount;
 
-    private LogType logType;
+    private ChargeType chargeType;
 
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
+
+    public static BorrowOperationLog log(ChargeType chargeType, Long bid, Long uid, String coin, BigDecimal amount) {
+        return BorrowOperationLog.builder()
+                .bid(bid)
+                .uid(uid)
+                .coin(coin).amount(amount).chargeType(chargeType).build();
+    }
 
 }

@@ -29,6 +29,10 @@ public class BorrowRecord {
 
     private BigDecimal lqPledgeRate;
 
+    private BigDecimal warnPledgeRate;
+
+    private BigDecimal assureLqPledgeRate;
+
     private boolean autoReplenishment;
 
     private Long newestSnapshotId;

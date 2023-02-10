@@ -79,6 +79,8 @@ public class BorrowServiceImpl implements BorrowService {
         PledgeRateDto pledgeRateDto = this.calPledgeRate(coinRates, borrowRecordPledges, borrowRecordCoins);
         borrowRecord.setLqPledgeRate(pledgeRateDto.getLqPledgeRate());
         borrowRecord.setCurrencyPledgeRate(pledgeRateDto.getCurrencyPledgeRate());
+        borrowRecord.setAssureLqPledgeRate(pledgeRateDto.getAssureLqPledgeRate());
+        borrowRecord.setWarnPledgeRate(pledgeRateDto.getWarnPledgeRate());
 
         var snapshot = generateSnapshot(uid, borrowRecordCoins, borrowRecordPledges, pledgeRateDto, coinRates);
 
