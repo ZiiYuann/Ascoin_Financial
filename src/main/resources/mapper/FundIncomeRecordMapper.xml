@@ -64,6 +64,10 @@
             <if test="query.agentId != null">
                 c.agent_id = #{query.agentId}
             </if>
+            <if test="query.recordStatus != null">
+             b.status = #{query.recordStatus}
+            </if>
+
             <if test="query.uid != null">
                 and a.uid = #{query.uid}
             </if>

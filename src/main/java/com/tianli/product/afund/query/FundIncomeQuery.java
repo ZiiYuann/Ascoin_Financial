@@ -1,5 +1,6 @@
 package com.tianli.product.afund.query;
 
+import com.tianli.product.afund.enums.FundRecordStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,6 +32,8 @@ public class FundIncomeQuery {
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
+
+    private FundRecordStatus recordStatus;
 
     private Long productId;
 

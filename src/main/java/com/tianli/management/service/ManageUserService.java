@@ -4,25 +4,24 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.address.mapper.Address;
 import com.tianli.currency.service.CurrencyService;
+import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.query.FinancialProductIncomeQuery;
+import com.tianli.management.vo.FinancialUserInfoVO;
 import com.tianli.management.vo.MUserHoldRecordVO;
-import com.tianli.product.afinancial.entity.FinancialIncomeAccrue;
-import com.tianli.product.afinancial.service.FinancialIncomeAccrueService;
-import com.tianli.product.afinancial.service.FinancialRecordService;
-import com.tianli.product.afund.query.FundIncomeQuery;
-import com.tianli.product.afund.query.FundRecordQuery;
-import com.tianli.product.afund.service.IFundIncomeRecordService;
-import com.tianli.product.dto.UserHoldRecordDto;
-import com.tianli.product.entity.ProductHoldRecord;
+import com.tianli.management.vo.MUserListVO;
 import com.tianli.product.afinancial.dto.IncomeDto;
 import com.tianli.product.afinancial.enums.ProductType;
+import com.tianli.product.afinancial.enums.RecordStatus;
 import com.tianli.product.afinancial.query.ProductHoldQuery;
+import com.tianli.product.afinancial.service.FinancialIncomeAccrueService;
 import com.tianli.product.afinancial.service.FinancialService;
+import com.tianli.product.afund.enums.FundRecordStatus;
+import com.tianli.product.afund.query.FundIncomeQuery;
+import com.tianli.product.afund.service.IFundIncomeRecordService;
 import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.product.afund.vo.FundMainPageVO;
-import com.tianli.management.converter.ManagementConverter;
-import com.tianli.management.vo.FinancialUserInfoVO;
-import com.tianli.management.vo.MUserListVO;
+import com.tianli.product.dto.UserHoldRecordDto;
+import com.tianli.product.entity.ProductHoldRecord;
 import com.tianli.product.service.ProductHoldRecordService;
 import com.tianli.product.service.ProductService;
 import org.springframework.stereotype.Service;
@@ -100,11 +99,13 @@ public class ManageUserService {
         BigDecimal waitIncomeFee = BigDecimal.ZERO;
 
         BigDecimal fundIncomeFee = fundIncomeRecordService.amountDollar(FundIncomeQuery.builder()
+                .recordStatus(FundRecordStatus.PROCESS)
                 .productId(queryProductId)
                 .uid(uid).build());
         BigDecimal financialIncomeFee =
                 financialIncomeAccrueService.summaryIncomeByQuery(FinancialProductIncomeQuery.builder()
                         .uid(uid + "")
+                        .status(RecordStatus.PROCESS)
                         .productId(queryProductId)
                         .build());
 
