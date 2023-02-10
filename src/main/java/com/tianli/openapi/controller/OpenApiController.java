@@ -129,15 +129,15 @@ public class OpenApiController {
     /**
      * 订单信息
      */
-    @GetMapping("/transferInfo/{transferId}")
-    public Result<AccountUserTransferVO> transferOrder(@PathVariable Long transferId,
+    @GetMapping("/transferInfo/{externalPk}")
+    public Result<AccountUserTransferVO> transferOrder(@PathVariable Long externalPk,
                                                        @RequestHeader("sign") String sign,
                                                        @RequestHeader("timestamp") String timestamp) {
 
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
-        return new Result<>(openApiService.transferOrder(transferId));
+        return new Result<>(openApiService.transferOrder(externalPk));
     }
 
     /**
@@ -190,7 +190,7 @@ public class OpenApiController {
      * nft返还gas
      */
     @PostMapping("/return/gas")
-    public Result returnGas(@RequestBody @Valid OpenapiOperationQuery query,
+    public Result<Void> returnGas(@RequestBody @Valid OpenapiOperationQuery query,
                             @RequestHeader("sign") String sign,
                             @RequestHeader("timestamp") String timestamp) {
 

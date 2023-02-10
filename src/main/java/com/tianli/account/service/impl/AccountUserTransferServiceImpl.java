@@ -89,8 +89,9 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
     }
 
     @Override
-    public AccountUserTransferVO getVO(Long transferId) {
-        return accountConverter.toAccountUserTransferVO(this.getById(transferId));
+    public AccountUserTransferVO getByExternalPk(Long externalPk) {
+        return accountConverter.toAccountUserTransferVO(this.getOne(new LambdaQueryWrapper<AccountUserTransfer>()
+                .eq(AccountUserTransfer::getExternalPk, externalPk)));
     }
 
     private String transferOperation(

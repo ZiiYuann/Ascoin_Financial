@@ -3,7 +3,6 @@ package com.tianli.openapi.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tianli.account.entity.AccountUserTransfer;
 import com.tianli.account.service.AccountUserTransferService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.AccountBalanceVO;
@@ -351,6 +350,18 @@ public class OpenApiService {
     private void increaseBalance(OpenapiOperationQuery query) {
         LocalDateTime now = LocalDateTime.now();
         long id = CommonFunction.generalId();
+
+        OrderRewardRecord orderRewardRecord = OrderRewardRecord.builder()
+                .id(CommonFunction.generalId())
+                .coin(query.getCoin())
+                .amount(query.getAmount())
+                .type(query.getType())
+                .uid(query.getUid())
+                .giveTime(now)
+                .orderId(query.getId())
+                .build();
+        orderRewardRecordService.save(orderRewardRecord);
+
         Order newOrder = Order.builder()
                 .id(id)
                 .uid(query.getUid())
@@ -369,7 +380,7 @@ public class OpenApiService {
                 , query.getAmount(), newOrder.getOrderNo(), query.getType().getNameZn());
     }
 
-    public AccountUserTransferVO transferOrder(Long transferId) {
-        return accountUserTransferService.getVO(transferId);
+    public AccountUserTransferVO transferOrder(Long externalPk) {
+        return accountUserTransferService.getByExternalPk(externalPk);
     }
 }
