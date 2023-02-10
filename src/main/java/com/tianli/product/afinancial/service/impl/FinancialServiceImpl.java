@@ -663,14 +663,14 @@ public class FinancialServiceImpl implements FinancialService {
             incomeVO.setWaitAuditIncomeFee(waitInterestAmount.multiply(dollarRate));
             incomeVO.setDailyIncomeFee(fundProductService
                     .exceptDailyIncome(uid, holdProductVo.getProductId(), holdProductVo.getRecordId())
-                    .getExpectIncome()
+                    .getExpectIncome().multiply(dollarRate)
             );
         }
         if (!ProductType.fund.equals(holdProductVo.getProductType())) {
             incomeVO.setYesterdayIncomeAmount(financialIncomeDailyService.amountYesterday(holdProductVo.getRecordId()));
             incomeVO.setDailyIncomeFee(financialProductService
                     .exceptDailyIncome(uid, holdProductVo.getProductId(), holdProductVo.getRecordId())
-                    .getExpectIncome()
+                    .getExpectIncome().multiply(dollarRate)
             );
         }
 
