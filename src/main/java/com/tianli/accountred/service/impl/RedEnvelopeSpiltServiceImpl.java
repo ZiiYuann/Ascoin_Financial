@@ -85,7 +85,6 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     @Resource
     private RedEnvelopeService redEnvelopeService;
 
-
     @Override
     @Transactional
     @SuppressWarnings("unchecked")
@@ -350,13 +349,18 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
 
     @Override
     public RedEnvelopeSpiltDTO getRedEnvelopeSpiltDTOCache(String exchangeCode) {
-        String exchangeCodeKey = RedisConstants.RED_EXTERN_CODE + exchangeCode; // 获取并删除:验证码和红包信息对应
+        String exchangeCodeKey = RedisConstants.RED_EXTERN_CODE + exchangeCode;
         String cache = stringRedisTemplate.opsForValue().get(exchangeCodeKey);
         if (Objects.isNull(cache)) {
             ErrorCodeEnum.RED_EXCHANGE_ERROR.throwException();
         }
-        stringRedisTemplate.delete(exchangeCodeKey);
         return JSONUtil.toBean(cache, RedEnvelopeSpiltDTO.class);
+    }
+
+    @Override
+    public void deleteExchangeCode(String exchangeCode, Long rid, Long uid) {
+        String exchangeCodeKey = RedisConstants.RED_EXTERN_CODE + exchangeCode;
+
     }
 
 }

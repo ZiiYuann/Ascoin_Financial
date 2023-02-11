@@ -33,11 +33,7 @@ import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
-import com.tianli.common.CommonFunction;
-import com.tianli.common.PageQuery;
-import com.tianli.common.Constants;
-import com.tianli.common.RedisConstants;
-import com.tianli.common.RedisService;
+import com.tianli.common.*;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
@@ -270,10 +266,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
         CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
         // 等待、失败、过期、结束
-        if (RedEnvelopeStatus.WAIT.equals(redEnvelope.getStatus())
-                || RedEnvelopeStatus.FAIL.equals(redEnvelope.getStatus())
-                || RedEnvelopeStatus.OVERDUE.equals(redEnvelope.getStatus())
-                || RedEnvelopeStatus.FINISH.equals(redEnvelope.getStatus())) {
+        if (!RedEnvelopeStatus.valid(redEnvelope.getStatus())) {
             return new RedEnvelopeGetVO(redEnvelope.getStatus(), coinBase);
         }
 
@@ -296,20 +289,48 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             ErrorCodeEnum.RED_HAVE_RECEIVED.throwException();
         }
 
-        RedEnvelope redEnvelope = this.getWithCache(Long.valueOf(redEnvelopeSpiltDTO.getRid()));
+        Long rid = Long.valueOf(redEnvelopeSpiltDTO.getRid());
+        RedEnvelope redEnvelope = this.getWithCache(rid);
+        CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
+
 
         // 不是站外红包不支持此领取方式
         if (!RedEnvelopeChannel.EXTERN.equals(redEnvelope.getChannel())) {
             ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
         }
 
-        CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
+        RedEnvelopeStatus status = redEnvelope.getStatus();
         // 等待、失败、过期、结束
-        if (RedEnvelopeStatus.WAIT.equals(redEnvelope.getStatus())
-                || RedEnvelopeStatus.FAIL.equals(redEnvelope.getStatus())
-                || RedEnvelopeStatus.OVERDUE.equals(redEnvelope.getStatus())
-                || RedEnvelopeStatus.FINISH.equals(redEnvelope.getStatus())) {
-            return new RedEnvelopeGetVO(redEnvelope.getStatus(), coinBase);
+        if (!RedEnvelopeStatus.valid(status)) {
+            return new RedEnvelopeGetVO(status, coinBase);
+        }
+
+        String receivedKey = RedisConstants.SPILT_RED_ENVELOPE_GET + rid + ":" + uid;
+        String exchangeCodeKey = RedisConstants.RED_EXTERN_CODE + query.getExchangeCode();
+        String script =
+                "if redis.call('EXISTS', KEYS[1]) > 0 then\n" +
+                        "    return 'RECEIVED'\n" +
+                        "elseif redis.call('EXISTS', KEYS[2]) == 0 then\n" +
+                        "    return 'FINISH'\n" +
+                        "else\n" +
+                        "    redis.call('SET',KEYS[1],'')\n" +
+                        "    redis.call('EXPIRE',KEYS[1],2592000)\n" +
+                        "    redis.call('DEL',KEYS[2])\n" +
+                        "end";
+        DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
+        redisScript.setResultType(String.class);
+        redisScript.setScriptText(script);
+        String result;
+        try {
+            result = stringRedisTemplate.opsForValue().getOperations().execute(redisScript, List.of(receivedKey, exchangeCodeKey));
+        } catch (Exception e) {
+            // 防止由于网络波动导致的红包异常 暂时做通知处理，如果情况比较多，后续进行补偿
+            webHookService.dingTalkSend("兑换红包状态异常，请及时处理，红包id：" + rid + " uid：" + uid, e);
+            throw e;
+        }
+
+        if ((status = RedEnvelopeStatus.getInstance(result)) != null) {
+            return new RedEnvelopeGetVO(status, coinBase);
         }
 
         // 异步转账
@@ -410,11 +431,10 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         }
 
         CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
-        if (RedEnvelopeStatus.FINISH.name().equals(result)) {
-            return new RedEnvelopeGetVO(RedEnvelopeStatus.FINISH, coinBase);
-        }
-        if (RedEnvelopeStatus.RECEIVED.name().equals(result)) {
-            return new RedEnvelopeGetVO(RedEnvelopeStatus.RECEIVED, coinBase);
+
+        RedEnvelopeStatus status;
+        if ((status = RedEnvelopeStatus.getInstance(result)) != null) {
+            return new RedEnvelopeGetVO(status, coinBase);
         }
 
         // 异步转账

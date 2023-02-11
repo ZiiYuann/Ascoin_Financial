@@ -72,4 +72,12 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
      */
     RedEnvelopeSpiltDTO getRedEnvelopeSpiltDTOCache(String exchangeCode);
 
+    /**
+     * 删除兑换码信息
+     *
+     * @param rid 兑换码
+     * @param uid 兑换码
+     */
+    void deleteExchangeCode(String exchangeCode, Long rid, Long uid);
+
 }
