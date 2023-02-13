@@ -17,6 +17,7 @@ import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.enums.RedEnvelopeStatus;
 import com.tianli.accountred.mapper.RedEnvelopeSpiltMapper;
+import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
 import com.tianli.accountred.service.RedEnvelopeSpiltService;
 import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO;
@@ -81,6 +82,8 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     private CoinBaseService coinBaseService;
     @Resource
     private RedEnvelopeConvert redEnvelopeConvert;
+    @Resource
+    private RedEnvelopeService redEnvelopeService;
 
 
     @Override
@@ -258,6 +261,23 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 .build();
 
 
+    }
+
+    @Override
+    public RedEnvelopeExchangeCodeVO getInfo(String exchangeCode) {
+        String exchangeCodeKey = RedisConstants.RED_EXTERN_CODE + exchangeCode;
+        String cache = stringRedisTemplate.opsForValue().get(exchangeCodeKey);
+        RedEnvelopeSpiltDTO dto = JSONUtil.toBean(cache, RedEnvelopeSpiltDTO.class);
+        RedEnvelope redEnvelope = redEnvelopeService.getWithCache(dto.getRid());
+        return RedEnvelopeExchangeCodeVO.builder()
+                .receiveAmount(dto.getAmount())
+                .exchangeCode(exchangeCode)
+                .coin(redEnvelope.getCoin())
+                .usdtRate(currencyService.huobiUsdtRate(redEnvelope.getCoin()))
+                .usdtCnyRate(BigDecimal.valueOf(digitalCurrencyExchange.usdtCnyPrice()))
+                .totalAmount(redEnvelope.getTotalAmount())
+                .flag(redEnvelope.getFlag())
+                .build();
     }
 
     @Override

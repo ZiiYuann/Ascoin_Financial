@@ -349,6 +349,11 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     }
 
     @Override
+    public RedEnvelopeExchangeCodeVO getExternCode(String exchangeCode) {
+        return redEnvelopeSpiltService.getInfo(exchangeCode);
+    }
+
+    @Override
     public RedEnvelopeGetDetailsVO getDetails(Long uid, Long rid) {
         RedEnvelope redEnvelope = getWithCache(rid);
         List<RedEnvelopeSpiltGetRecordVO> recordVo = redEnvelopeSpiltGetRecordService.getRecordVos(redEnvelope);

@@ -2,13 +2,14 @@ package com.tianli.openapi.controller;
 
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.vo.AccountUserTransferVO;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltService;
+import com.tianli.accountred.vo.ORedEnvelopVO;
+import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO;
 import com.tianli.accountred.vo.RedEnvelopeExternGetDetailsVO;
-import com.tianli.account.vo.AccountUserTransferVO;
-import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.common.Constants;
 import com.tianli.common.PageQuery;
@@ -17,6 +18,7 @@ import com.tianli.exception.Result;
 import com.tianli.management.query.UidsQuery;
 import com.tianli.openapi.dto.TransferResultDto;
 import com.tianli.openapi.query.OpenapiOperationQuery;
+import com.tianli.openapi.query.OpenapiRedQuery;
 import com.tianli.openapi.query.UserTransferQuery;
 import com.tianli.openapi.service.OpenApiService;
 import com.tianli.tool.IPUtils;
@@ -204,8 +206,8 @@ public class OpenApiController {
      */
     @PostMapping("/return/gas")
     public Result<Void> returnGas(@RequestBody @Valid OpenapiOperationQuery query,
-                            @RequestHeader("sign") String sign,
-                            @RequestHeader("timestamp") String timestamp) {
+                                  @RequestHeader("sign") String sign,
+                                  @RequestHeader("timestamp") String timestamp) {
 
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
@@ -218,41 +220,66 @@ public class OpenApiController {
      * cpl金币奖励
      */
     @PostMapping("/gold/exchange")
-    public Result goldExchange(@RequestBody @Valid OpenapiOperationQuery query,
-                               @RequestHeader("sign") String sign,
-                               @RequestHeader("timestamp") String timestamp) {
+    public Result<Void> goldExchange(@RequestBody @Valid OpenapiOperationQuery query,
+                                     @RequestHeader("sign") String sign,
+                                     @RequestHeader("timestamp") String timestamp) {
 
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
         openApiService.goldExchange(query);
-        return Result.success();
-    }
-
-    /**
-     * 领取站外红包
-     */
-    @GetMapping("/red/extern/get")
-    public Result externRedGet(HttpServletRequest request, String content) {
-        String ip = IPUtils.getIpAddress(request);
-        // todo 指纹
-        String fingerprint;
-        String id = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, content);
-        return Result.success().setData(redEnvelopeService.getExternCode(Long.parseLong(id)));
+        return new Result<>();
     }
 
     /**
      * 领取站外红包记录
      */
     @GetMapping("/red/extern/record")
-    public Result externRedRecord(String content, PageQuery<RedEnvelopeSpiltGetRecord> pageQuery) {
+    public Result<RedEnvelopeExternGetDetailsVO> externRedRecord(OpenapiRedQuery query
+            , PageQuery<RedEnvelopeSpiltGetRecord> pageQuery) {
 
-        String rid = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, content);
+        String rid = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, query.getContext());
         RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.parseLong(rid));
 
         RedEnvelopeExternGetDetailsVO redEnvelopeExternGetDetailsVO =
                 redEnvelopeSpiltService.getExternDetailsRedis(redEnvelope, pageQuery);
-        return Result.success().setData(redEnvelopeExternGetDetailsVO);
+        return new Result<>(redEnvelopeExternGetDetailsVO);
     }
+
+    /**
+     * 领取站外红包
+     */
+    @GetMapping("/red/extern/get")
+    public Result<RedEnvelopeExchangeCodeVO> externRedGet(HttpServletRequest request, OpenapiRedQuery query) {
+        String ip = IPUtils.getIpAddress(request);
+        // todo 指纹
+        String fingerprint;
+        String id = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, query.getContext());
+        return new Result<>(redEnvelopeService.getExternCode(Long.parseLong(id)));
+    }
+
+    /**
+     *  没必要的接口，前端不愿意加缓存非要后端加
+     */
+    @GetMapping("/red/extern/{exchangeCode}")
+    public Result<RedEnvelopeExchangeCodeVO> externRedGet(@PathVariable String exchangeCode) {
+        return new Result<>(redEnvelopeService.getExternCode(exchangeCode));
+    }
+
+    /**
+     * 站外红包信息
+     */
+    @GetMapping("/red/extern/info")
+    public Result<RedEnvelopeExchangeCodeVO> externRedGet(OpenapiRedQuery query) {
+        String rid = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, query.getContext());
+        RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.parseLong(rid));
+        ORedEnvelopVO vo = ORedEnvelopVO.builder()
+                .coin(redEnvelope.getCoin())
+                .nickname("")
+                .remarks(redEnvelope.getRemarks())
+                .build();
+        return new Result<>(vo);
+    }
+
 
 }

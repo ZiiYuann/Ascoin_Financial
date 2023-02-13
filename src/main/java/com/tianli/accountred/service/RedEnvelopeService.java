@@ -51,6 +51,9 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
      */
     RedEnvelopeExchangeCodeVO getExternCode(Long rid);
 
+    //没必要的接口，前端不愿意加缓存非要后端加
+    RedEnvelopeExchangeCodeVO getExternCode(String exchangeCode);
+
     /**
      * 抢红包详情
      */

@@ -6,7 +6,6 @@ import com.tianli.accountred.dto.RedEnvelopeSpiltDTO;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
-import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO;
 import com.tianli.accountred.vo.RedEnvelopeExternGetDetailsVO;
 import com.tianli.common.PageQuery;
@@ -52,6 +51,9 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
      * @param redEnvelope 红包参数
      */
     RedEnvelopeExchangeCodeVO getExternOperationRedis(RedEnvelope redEnvelope);
+
+    // 没必要的接口，前端不愿意加缓存非要后端加
+    RedEnvelopeExchangeCodeVO getInfo(String exchangeCode);
 
     /**
      * 获取红包领取记录VO（站外实未领取，分页50条一页）
