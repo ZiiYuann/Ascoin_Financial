@@ -28,7 +28,7 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
      * @param uuid              拆分红包id
      * @param redEnvelopeGetDTO 领取红包参数
      */
-    void getRedEnvelopeSpilt(Long uid, Long shortUid, String uuid, RedEnvelopeGetDTO redEnvelopeGetDTO);
+    RedEnvelopeSpiltGetRecord getRedEnvelopeSpilt(Long uid, Long shortUid, String uuid, RedEnvelopeGetDTO redEnvelopeGetDTO);
 
     /**
      * 拆分红包,并且会把拆分id缓存到redis中

@@ -85,7 +85,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     @Override
     @Transactional
     @SuppressWarnings("unchecked")
-    public void getRedEnvelopeSpilt(Long uid, Long shortUid, String uuid, RedEnvelopeGetDTO redEnvelopeGetDTO) {
+    public RedEnvelopeSpiltGetRecord getRedEnvelopeSpilt(Long uid, Long shortUid, String uuid, RedEnvelopeGetDTO redEnvelopeGetDTO) {
         RedEnvelope redEnvelope = redEnvelopeGetDTO.getRedEnvelope();
         LocalDateTime receiveTime = LocalDateTime.now();
         uuid = uuid.replace("\"", "");
@@ -144,6 +144,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 }
             });
         }
+        return redEnvelopeSpiltGetRecord;
     }
 
     @Override
@@ -252,6 +253,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 .usdtRate(currencyService.huobiUsdtRate(redEnvelope.getCoin()))
                 .usdtCnyRate(BigDecimal.valueOf(digitalCurrencyExchange.usdtCnyPrice()))
                 .totalAmount(redEnvelope.getTotalAmount())
+                .flag(redEnvelope.getFlag())
                 .build();
 
 
@@ -267,7 +269,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         // 当前时间
         String externRecordKey = RedisConstants.RED_EXTERN_RECORD + redEnvelope.getId(); //获取缓存 用于获取列表
 
-        // 处于被领取，但是没有过期的兑换码数量
+        // 已经领取过兑换码的数量
         Long receiveNum = MoreObjects.firstNonNull(
                 stringRedisTemplate.opsForZSet().count(externRecordKey, TIME_BEGIN, Double.MAX_VALUE),
                 0L);
@@ -297,21 +299,12 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         page.setSize(pageQuery.getPageSize());
         page.setCurrent(pageQuery.getPage());
 
-        return RedEnvelopeExternGetDetailsVO.builder()
-                .coin(coin)
-                .coinUrl(coinBase.getLogo())
-                .num(redEnvelope.getNum())
-                // 领取的数量 = 实际领取的数量 + 待兑换数量
-                .receiveNum(receiveNum.intValue())
-                .shortUid(redEnvelope.getShortUid())
-                .uid(redEnvelope.getUid())
-                .totalAmount(redEnvelope.getTotalAmount())
-                .remarks(redEnvelope.getRemarks())
-                .status(redEnvelope.getStatus())
-                .usdtRate(currencyService.getDollarRate(coin))
-                .expireTime(redEnvelope.getCreateTime().plusDays(redEnvelope.getChannel().getExpireDays()))
-                .recordPage(page)
-                .build();
+        var vo = redEnvelopeConvert.toRedEnvelopeExternGetDetailsVO(redEnvelope);
+        vo.setCoinUrl(coinBase.getLogo());
+        vo.setUsdtRate(currencyService.getDollarRate(coin));
+        vo.setExpireTime(redEnvelope.getCreateTime().plusDays(redEnvelope.getChannel().getExpireDays()));
+        vo.setRecordPage(page);
+        return vo;
     }
 
     @Override

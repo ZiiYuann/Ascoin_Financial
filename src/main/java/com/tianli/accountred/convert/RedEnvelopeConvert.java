@@ -5,6 +5,7 @@ import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.query.RedEnvelopeIoUQuery;
+import com.tianli.accountred.vo.RedEnvelopeExternGetDetailsVO;
 import com.tianli.accountred.vo.RedEnvelopeGetDetailsVO;
 import com.tianli.accountred.vo.RedEnvelopeGiveRecordVO;
 import com.tianli.accountred.vo.RedEnvelopeSpiltGetRecordVO;
@@ -27,4 +28,7 @@ public interface RedEnvelopeConvert {
     RedEnvelopeGetDetailsVO toRedEnvelopeGetDetailsVO(RedEnvelope redEnvelope);
 
     RedEnvelopeSpiltDTO toRedEnvelopeSpiltDTO(RedEnvelopeSpilt redEnvelopeSpilt);
+
+    RedEnvelopeExternGetDetailsVO toRedEnvelopeExternGetDetailsVO(RedEnvelope redEnvelope);
+
 }

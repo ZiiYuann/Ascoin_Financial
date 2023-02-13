@@ -5,9 +5,11 @@ import com.tianli.accountred.dto.RedEnvelopeGetDTO;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
+import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.vo.RedEnvelopeSpiltGetRecordVO;
 import com.tianli.common.PageQuery;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -75,6 +77,11 @@ public interface RedEnvelopeSpiltGetRecordService {
     /**
      * 领取红包记录
      */
-    IPage<RedEnvelopeSpiltGetRecordVO> getRecords(Long uid, PageQuery<RedEnvelopeSpiltGetRecord> pageQuery);
+    IPage<RedEnvelopeSpiltGetRecordVO> getRecords(Long uid, RedEnvelopeChannel channel, PageQuery<RedEnvelopeSpiltGetRecord> pageQuery);
+
+    /**
+     * 已经领取金额
+     */
+    BigDecimal receivedAmount(Long rid);
 
 }

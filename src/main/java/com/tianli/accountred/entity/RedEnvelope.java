@@ -67,6 +67,11 @@ public class RedEnvelope {
     private int receiveNum;
 
     /**
+     * 领取金额
+     */
+    private BigDecimal receiveAmount;
+
+    /**
      * 红包文案
      */
     private String remarks;

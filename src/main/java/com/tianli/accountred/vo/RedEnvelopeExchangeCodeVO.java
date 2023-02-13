@@ -48,6 +48,8 @@ public class RedEnvelopeExchangeCodeVO {
 
     private LocalDateTime latestExpireTime;
 
+    private String flag;
+
     public RedEnvelopeExchangeCodeVO(RedEnvelopeStatus status) {
         this.status = status;
     }

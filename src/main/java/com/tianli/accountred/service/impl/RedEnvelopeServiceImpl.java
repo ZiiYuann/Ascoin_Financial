@@ -35,17 +35,20 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
+import com.tianli.common.Constants;
 import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisService;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.mconfig.ConfigService;
 import com.tianli.sqs.SqsContext;
 import com.tianli.sqs.SqsService;
 import com.tianli.sqs.SqsTypeEnum;
 import com.tianli.sqs.context.RedEnvelopeContext;
 import com.tianli.tool.ApplicationContextTool;
+import com.tianli.tool.crypto.PBE;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -69,6 +72,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
+import static com.tianli.sso.service.SSOService.WALLET_NEWS_SERVER_URL;
 
 /**
  * @author chenb
@@ -160,7 +165,9 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
         setBloomCache(redEnvelope.getId());
         setRedisCache(redEnvelope);
-        return Result.success(new RedEnvelopeGiveVO(redEnvelope.getId(), redEnvelope.getChannel()));
+        return Result.success(new RedEnvelopeGiveVO(redEnvelope.getId()
+                , redEnvelope.getChannel()
+                , getExternUrl(redEnvelope.getChannel(), redEnvelope.getId())));
     }
 
     /**
@@ -232,7 +239,9 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         this.process(redEnvelope.getId(), query.getTxid());
 
         setRedisCache(redEnvelope);
-        return Result.success(new RedEnvelopeGiveVO(redEnvelope.getId(), redEnvelope.getChannel()));
+        return Result.success(new RedEnvelopeGiveVO(redEnvelope.getId()
+                , redEnvelope.getChannel()
+                , getExternUrl(redEnvelope.getChannel(), redEnvelope.getId())));
     }
 
     @Override
@@ -433,6 +442,10 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             queryWrapper = queryWrapper.eq(RedEnvelope::getCreateTime, query.getCreateTime());
         }
 
+        if (Objects.nonNull(query.getChannel())) {
+            queryWrapper = queryWrapper.eq(RedEnvelope::getChannel, query.getChannel());
+        }
+
         if (Objects.isNull(query.getStatus())) {
             queryWrapper = queryWrapper.ne(RedEnvelope::getStatus, RedEnvelopeStatus.WAIT);
         } else {
@@ -442,7 +455,12 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         queryWrapper = queryWrapper.last(" order by create_time desc ");
 
         Page<RedEnvelope> page = this.page(pageQuery.page(), queryWrapper);
-        return page.convert(redEnvelopeConvert::toRedEnvelopeGiveRecordVO);
+        return page.convert(red -> {
+            var vo = redEnvelopeConvert.toRedEnvelopeGiveRecordVO(red);
+            vo.setExternUrl(this.getExternUrl(red.getChannel(), red.getId()));
+            vo.setNotReceiveAmount(red.getTotalAmount().subtract(red.getReceiveAmount()));
+            return vo;
+        });
     }
 
     @Override
@@ -512,9 +530,9 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
 
         // 领取子红包（创建订单，余额操作）
-        redEnvelopeSpiltService.getRedEnvelopeSpilt(uid, shortUid, spiltId, query);
+        var redEnvelopeSpilt = redEnvelopeSpiltService.getRedEnvelopeSpilt(uid, shortUid, spiltId, query);
         // 增加已经领取红包个数
-        int i = this.getBaseMapper().increaseReceiveNum(query.getRid());
+        int i = this.getBaseMapper().increaseReceive(query.getRid(), redEnvelopeSpilt.getAmount());
         if (i == 0) {
             ErrorCodeEnum.RED_STATUS_ERROR.throwException();
         }
@@ -560,7 +578,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         orderService.save(order);
 
         accountBalanceServiceImpl.increase(redEnvelope.getUid(), ChargeType.red_back, redEnvelope.getCoin(), rollbackAmount
-                , order.getOrderNo(), "红包回退");
+                , order.getOrderNo(), ChargeType.red_back.getNameZn());
 
 
         this.statusProcess(status, redEnvelope.getReceiveNum(), now);
@@ -586,7 +604,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         if (Objects.isNull(cache)) {
             RedEnvelope redEnvelope = this.getById(id);
             if (Objects.isNull(redEnvelope)) {
-               throw  ErrorCodeEnum.RED_NOT_EXIST.generalException();
+                throw ErrorCodeEnum.RED_NOT_EXIST.generalException();
             }
             setRedisCache(redEnvelope);
             return redEnvelope;
@@ -646,6 +664,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     }
 
     @Override
+    @Transactional
     public void back(Long uid, Long rid) {
         RedEnvelope redEnvelope = getWithCache(uid, rid);
         // 只支持站外红包
@@ -754,6 +773,19 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                         + redEnvelope.getTotalAmount().toPlainString());
             }
         }
+    }
+
+    private String getExternUrl(RedEnvelopeChannel channel, Long id) {
+        if (!RedEnvelopeChannel.EXTERN.equals(channel)) {
+            return null;
+        }
+
+        ConfigService bean = ApplicationContextTool.getBean(ConfigService.class);
+        Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
+        return bean
+                .getOrDefault(WALLET_NEWS_SERVER_URL, "https://wallet-news.giantdt.com")
+                + "/api/openapi/red/extern/get?content="
+                + PBE.encryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, id + "").replace("+", "%2B");
     }
 
 

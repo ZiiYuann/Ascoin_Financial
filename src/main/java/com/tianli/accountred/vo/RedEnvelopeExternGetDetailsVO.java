@@ -61,6 +61,8 @@ public class RedEnvelopeExternGetDetailsVO {
 
     private LocalDateTime expireTime;
 
+    private String flag;
+
     // 这里的record是基于缓存的记录，并不是真正的领取记录
     private IPage<RedEnvelopeExternGetRecordVO> recordPage;
 

@@ -11,9 +11,9 @@ import com.tianli.accountred.dto.RedEnvelopeGetDTO;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
+import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.mapper.RedEnvelopeMapper;
 import com.tianli.accountred.mapper.RedEnvelopeSpiltGetRecordMapper;
-import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
 import com.tianli.accountred.vo.RedEnvelopeSpiltGetRecordVO;
 import com.tianli.common.CommonFunction;
@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,15 +86,15 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
                 return ZSetOperations.TypedTuple.of(JSONUtil.toJsonStr(record), (double) score);
             }).collect(Collectors.toSet());
             stringRedisTemplate.opsForZSet().add(getRecordsKey, typedTuples);
-            stringRedisTemplate.expire(getRecordsKey,redEnvelope.getChannel().getExpireDays(), TimeUnit.DAYS);
+            stringRedisTemplate.expire(getRecordsKey, redEnvelope.getChannel().getExpireDays(), TimeUnit.DAYS);
         }
 
         long now = System.currentTimeMillis();
         Set<String> recordsCache = stringRedisTemplate.opsForZSet().rangeByScore(getRecordsKey
-                , 0,now
-                , pageQuery.getOffset(),pageQuery.getPageSize());
+                , 0, now
+                , pageQuery.getOffset(), pageQuery.getPageSize());
 
-        Long count = stringRedisTemplate.opsForZSet().count(getRecordsKey, 0,now);
+        Long count = stringRedisTemplate.opsForZSet().count(getRecordsKey, 0, now);
 
         List<RedEnvelopeSpiltGetRecord> records =
                 new ArrayList<>(MoreObjects.firstNonNull(recordsCache, (Set<String>) SetUtils.EMPTY_SORTED_SET))
@@ -140,19 +141,28 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
         this.save(redEnvelopeSpiltGetRecord);
         long score = redEnvelopeSpiltGetRecord.getReceiveTime().toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
         String getRecordsKey = RedisConstants.RED_ENVELOPE_RECORD + redEnvelope.getId();
-        stringRedisTemplate.opsForZSet().add(getRecordsKey,JSONUtil.toJsonStr(redEnvelopeSpiltGetRecord),score);
+        stringRedisTemplate.opsForZSet().add(getRecordsKey, JSONUtil.toJsonStr(redEnvelopeSpiltGetRecord), score);
 
         return redEnvelopeSpiltGetRecord;
     }
 
     @Override
-    public IPage<RedEnvelopeSpiltGetRecordVO> getRecords(Long uid, PageQuery<RedEnvelopeSpiltGetRecord> pageQuery) {
+    public IPage<RedEnvelopeSpiltGetRecordVO> getRecords(Long uid, RedEnvelopeChannel channel, PageQuery<RedEnvelopeSpiltGetRecord> pageQuery) {
         LambdaQueryWrapper<RedEnvelopeSpiltGetRecord> queryWrapper = new LambdaQueryWrapper<RedEnvelopeSpiltGetRecord>()
                 .eq(RedEnvelopeSpiltGetRecord::getUid, uid)
                 .last(" order by receive_time desc");
 
+        if (RedEnvelopeChannel.EXTERN.equals(channel)) {
+            queryWrapper = queryWrapper.isNotNull(RedEnvelopeSpiltGetRecord::getExchangeCode);
+        }
+
         return this.getBaseMapper().selectPage(pageQuery.page(), queryWrapper)
                 .convert(redEnvelopeConvert::toRedEnvelopeSpiltGetRecordVO);
+    }
+
+    @Override
+    public BigDecimal receivedAmount(Long rid) {
+        return MoreObjects.firstNonNull(baseMapper.receivedAmount(rid), BigDecimal.ZERO);
     }
 
 }

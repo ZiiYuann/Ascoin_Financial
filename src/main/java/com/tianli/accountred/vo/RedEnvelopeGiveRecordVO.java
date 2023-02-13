@@ -1,5 +1,6 @@
 package com.tianli.accountred.vo;
 
+import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.enums.RedEnvelopeStatus;
 import com.tianli.accountred.enums.RedEnvelopeType;
 import lombok.AllArgsConstructor;
@@ -40,4 +41,11 @@ public class RedEnvelopeGiveRecordVO {
     private RedEnvelopeType type;
 
     private String flag;
+
+    private String externUrl;
+
+    private RedEnvelopeChannel channel;
+
+    private BigDecimal notReceiveAmount;
+
 }
