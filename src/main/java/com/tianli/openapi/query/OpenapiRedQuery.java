@@ -15,4 +15,5 @@ import lombok.NoArgsConstructor;
 public class OpenapiRedQuery {
 
     private String context;
+
 }

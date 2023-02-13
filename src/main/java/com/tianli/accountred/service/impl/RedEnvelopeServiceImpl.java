@@ -295,7 +295,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             ErrorCodeEnum.RED_HAVE_RECEIVED.throwException();
         }
 
-        RedEnvelope redEnvelope = this.getWithCache(redEnvelopeSpiltDTO.getRid());
+        RedEnvelope redEnvelope = this.getWithCache(Long.valueOf(redEnvelopeSpiltDTO.getRid()));
 
         // 不是站外红包不支持此领取方式
         if (!RedEnvelopeChannel.EXTERN.equals(redEnvelope.getChannel())) {
@@ -791,6 +791,12 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                 .getOrDefault(WALLET_NEWS_SERVER_URL, "https://wallet-news.giantdt.com")
                 + "/api/openapi/red/extern/get?content="
                 + PBE.encryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, id + "").replace("+", "%2B");
+    }
+
+    public static void main(String[] args) {
+
+        String s = PBE.encryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, "1757699208289090917");
+        System.out.println(s);
     }
 
 

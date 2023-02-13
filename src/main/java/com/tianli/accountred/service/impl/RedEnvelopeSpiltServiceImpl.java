@@ -218,7 +218,9 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 "local score = currentMs + termOfValidity * 1000 \n" +
                 "redis.call('ZADD',key,score,spiltReds[1])\n" +
                 "redis.call('ZADD',key3,currentMs,spiltReds[1])\n" +
-                "redis.call('SET',key2,spiltReds[1])\n" +
+                "local spiltRed = cjson.decode(spiltReds[1]) \n" +
+                "spiltRed.timestamp = score \n" +
+                "redis.call('SET',key2,cjson.encode(spiltRed))\n" +
                 "redis.call('EXPIRE',key2,termOfValidity)\n" +
                 "return spiltReds[1]";
         DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
@@ -267,8 +269,9 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     public RedEnvelopeExchangeCodeVO getInfo(String exchangeCode) {
         String exchangeCodeKey = RedisConstants.RED_EXTERN_CODE + exchangeCode;
         String cache = stringRedisTemplate.opsForValue().get(exchangeCodeKey);
+        Long timestamp = JSONUtil.parse(cache).getByPath("timestamp", Long.class);
         RedEnvelopeSpiltDTO dto = JSONUtil.toBean(cache, RedEnvelopeSpiltDTO.class);
-        RedEnvelope redEnvelope = redEnvelopeService.getWithCache(dto.getRid());
+        RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.valueOf(dto.getRid()));
         return RedEnvelopeExchangeCodeVO.builder()
                 .receiveAmount(dto.getAmount())
                 .exchangeCode(exchangeCode)
@@ -277,6 +280,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 .usdtCnyRate(BigDecimal.valueOf(digitalCurrencyExchange.usdtCnyPrice()))
                 .totalAmount(redEnvelope.getTotalAmount())
                 .flag(redEnvelope.getFlag())
+                .latestExpireTime(LocalDateTime.ofEpochSecond(timestamp / 1000, 0, ZoneOffset.ofHours(8)))
                 .build();
     }
 

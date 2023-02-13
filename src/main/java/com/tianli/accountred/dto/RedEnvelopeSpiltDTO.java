@@ -28,7 +28,7 @@ public class RedEnvelopeSpiltDTO {
     /**
      * 红包id
      */
-    private Long rid;
+    private String rid;
 
     /**
      * 红包金额
