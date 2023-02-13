@@ -234,6 +234,9 @@ public class OpenApiController {
     @GetMapping("/red/extern/record")
     public Result externRedRecord(String content, PageQuery<RedEnvelopeSpiltGetRecord> pageQuery) {
 
+        String rid = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, content);
+        RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.parseLong(rid));
+
         RedEnvelopeExternGetDetailsVO redEnvelopeExternGetDetailsVO =
                 redEnvelopeSpiltService.getExternDetailsRedis(redEnvelope, pageQuery);
         return Result.success().setData(redEnvelopeExternGetDetailsVO);
