@@ -34,6 +34,7 @@ import com.tianli.common.RedisConstants;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.tool.NameUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -288,8 +289,8 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                     .amount(dto.getAmount())
                     .receive(dto.isReceive())
                     .receiveTime(LocalDateTime.ofEpochSecond(score.longValue() / 1000, 0, ZoneOffset.ofHours(8)))
-                    .nickName("")
-                    .headLogo("")
+                    .nickName(NameUtil.getNickName(tuple.getScore().longValue()))
+                    .coin(coin)
                     .build();
         }).collect(Collectors.toList());
 
