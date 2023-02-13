@@ -230,7 +230,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      * 提现申请
      */
     @Transactional
-    public void withdrawApply(Long uid, WithdrawQuery query) {
+    public Long withdrawApply(Long uid, WithdrawQuery query) {
         Coin coin = coinService.getByNameAndNetwork(query.getCoin(), query.getNetwork());
 
         Address address = addressService.get(uid);
@@ -334,6 +334,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             orderReviewService.review(reviewQuery);
         }
 
+        return id;
     }
 
     /**
