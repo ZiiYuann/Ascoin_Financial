@@ -1,5 +1,6 @@
 package com.tianli.accountred.query;
 
+import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.enums.RedEnvelopeType;
 import com.tianli.accountred.enums.RedEnvelopeWay;
 import com.tianli.common.query.IoUQuery;
@@ -35,6 +36,8 @@ public class RedEnvelopeIoUQuery extends IoUQuery {
     private int num;
 
     private String remarks;
+
+    private RedEnvelopeChannel channel = RedEnvelopeChannel.CHAT;
 
     private RedEnvelopeType type;
 

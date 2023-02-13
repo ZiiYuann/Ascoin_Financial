@@ -30,7 +30,9 @@ public class Constants {
 
     public static final DateTimeFormatter standardDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    public static final String defaultUserNick = "Financial";
+    // public EOS7WCxFVheywM5R4zZd51Ksrjp7ngLMkR45BXPCRRtqjWFKh3htn
+    public static final String RED_ENVELOPE_PRIVATE_KEY = "5KfxvPXfXCMVBtGARPqKNpw1jhkacQa3WBoJ32VqF4AcQytjeuB";
+
 
     /**
      * 获取链上交易详情API
@@ -40,10 +42,16 @@ public class Constants {
 
     public static final String WALLET_REDIS_LOCK_KEY = "WALLET_REDIS_LOCK_KEY";
 
+    // 红包加密password
+    public static final String RED_SECRET_KEY = "TPtvrD;=FdPN.EHpn,&_Ppaz#!7ZX7";
+    // 红包加密salt
+    public static final byte[] RED_SALT = new byte[]{-19, 110, -73, -101, -1, 36, 81, 18};
+
     public static final Gson GSON = new Gson();
 
     public static final ExecutorService COMPLETABLE_FUTURE_EXECUTOR = new ThreadPoolExecutor(8, 16, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(1024), new ThreadFactory() {
         private AtomicInteger id = new AtomicInteger(1);
+
         @Override
         public Thread newThread(Runnable runnable) {
             return new Thread(runnable, "COMPLETABLE_FUTURE_EXECUTOR_" + id.getAndIncrement());

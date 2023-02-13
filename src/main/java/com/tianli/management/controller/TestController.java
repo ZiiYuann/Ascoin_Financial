@@ -17,13 +17,13 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.management.query.FundIncomeCompensateQuery;
 import com.tianli.management.query.FundIncomeTestQuery;
+import com.tianli.mconfig.ConfigService;
 import com.tianli.product.afinancial.entity.FinancialRecord;
 import com.tianli.product.afinancial.service.FinancialRecordService;
 import com.tianli.product.afund.entity.FundIncomeRecord;
 import com.tianli.product.afund.entity.FundRecord;
 import com.tianli.product.afund.service.IFundIncomeRecordService;
 import com.tianli.product.afund.service.IFundRecordService;
-import com.tianli.mconfig.ConfigService;
 import com.tianli.task.FinancialIncomeTask;
 import com.tianli.task.FundIncomeTask;
 import com.tianli.tool.time.TimeTool;
@@ -66,9 +66,9 @@ public class TestController {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
     @Resource
-    private CoinService coinService;
-    @Resource
     private RedEnvelopeService redEnvelopeService;
+    @Resource
+    private CoinService coinService;
 
     /**
      * 基金补偿

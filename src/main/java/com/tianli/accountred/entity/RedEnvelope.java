@@ -1,5 +1,6 @@
 package com.tianli.accountred.entity;
 
+import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.enums.RedEnvelopeStatus;
 import com.tianli.accountred.enums.RedEnvelopeType;
 import com.tianli.accountred.enums.RedEnvelopeWay;
@@ -28,6 +29,8 @@ public class RedEnvelope {
      */
     @Id
     private Long id;
+
+    private RedEnvelopeChannel channel;
 
     /**
      * 红包持有者
@@ -62,6 +65,11 @@ public class RedEnvelope {
     private int num;
 
     private int receiveNum;
+
+    /**
+     * 领取金额
+     */
+    private BigDecimal receiveAmount;
 
     /**
      * 红包文案

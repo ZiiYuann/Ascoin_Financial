@@ -98,7 +98,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     public void saveOrUpdate(String nickName, CoinIoUQuery query) {
         // 判断是否存在汇率
         currencyService.huobiUsdtRate(query.getName().toLowerCase(Locale.ROOT));
-        // 获取小数点位数
+        // h获取小数点位数
         Integer decimals = contractAdapter.getOne(query.getNetwork()).decimals(query.getContract());
         query.setDecimals(decimals);
 
@@ -142,7 +142,7 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
                 ChainType.TRON.equals(coin.getChain()) ||
                 ChainType.ETH.equals(coin.getChain())) {
             asyncService.async(() -> this.asyncPush(coin));
-        }else {
+        } else {
             successStatus(coin.getId());
         }
 

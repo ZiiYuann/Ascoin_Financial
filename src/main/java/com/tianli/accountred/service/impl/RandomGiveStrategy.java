@@ -1,5 +1,7 @@
 package com.tianli.accountred.service.impl;
 
+import com.google.common.base.MoreObjects;
+import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 
 import java.math.BigDecimal;
@@ -19,12 +21,22 @@ public class RandomGiveStrategy extends RedEnvelopeGiveStrategy {
 
     private static final BigDecimal LIMIT_AMOUNT = BigDecimal.valueOf(0.000001);
 
-    @Override
-    protected List<RedEnvelopeSpilt> spiltRedEnvelopeOperation(Long rid, int count, BigDecimal amount) {
+
+    /**
+     * 随机红包拆分操作
+     *
+     * @param rid         红包id
+     * @param count       数量
+     * @param amount      总金额
+     * @param limitAmount 最低红包金额
+     * @return 拆分红包
+     */
+    protected List<RedEnvelopeSpilt> spiltRedEnvelopeOperation(Long rid, int count, BigDecimal amount, BigDecimal limitAmount) {
         BigDecimal num = new BigDecimal(count);
         List<RedEnvelopeSpilt> redEnvelopes = new ArrayList<>();
-
-        BigDecimal remain = amount.subtract(LIMIT_AMOUNT.multiply(num));
+        // 最小金额
+        limitAmount = MoreObjects.firstNonNull(limitAmount, LIMIT_AMOUNT);
+        BigDecimal remain = amount.subtract(limitAmount.multiply(num));
         final Random random = new Random();
         final BigDecimal hundred = new BigDecimal("100");
         final BigDecimal two = new BigDecimal("2");
@@ -47,11 +59,22 @@ public class RandomGiveStrategy extends RedEnvelopeGiveStrategy {
                 remain = BigDecimal.ZERO;
             }
 
-            redEnvelopeSpilt.setAmount(LIMIT_AMOUNT.add(singleAmount));
+            redEnvelopeSpilt.setAmount(limitAmount.add(singleAmount));
             redEnvelopes.add(redEnvelopeSpilt);
 
         }
         return redEnvelopes;
+    }
+
+    @Override
+    protected List<RedEnvelopeSpilt> spiltRedEnvelopeOperation(Long rid, int num, BigDecimal amount) {
+        return this.spiltRedEnvelopeOperation(rid, num, amount, null);
+    }
+
+    @Override
+    protected List<RedEnvelopeSpilt> spiltRedEnvelopeOperation(RedEnvelope redEnvelope) {
+        return this.spiltRedEnvelopeOperation(redEnvelope.getId(), redEnvelope.getNum()
+                , redEnvelope.getAmount(), null);
     }
 
 }

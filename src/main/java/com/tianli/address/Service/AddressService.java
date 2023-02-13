@@ -21,6 +21,7 @@ import com.tianli.common.lock.RedisLock;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
+import com.tianli.tool.ApplicationContextTool;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
@@ -88,7 +89,9 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
 
         ids.parallelStream().forEach(id -> {
             try {
-                activityAccount(id, false);
+                Optional.ofNullable(ApplicationContextTool.getBean(AddressService.class))
+                        .orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException)
+                        .activityAccount(id, false);
             } catch (Exception e) {
                 webHookService.dingTalkSend("uid 激活失败：" + id);
             }

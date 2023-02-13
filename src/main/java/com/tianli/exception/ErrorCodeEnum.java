@@ -149,7 +149,11 @@ public enum ErrorCodeEnum {
     RED_LIMIT_AMOUNT(3706, "单个红包数额不得低于0.000001"),
     RED_ORDER_NOT_FIND(3707, "红包订单未找到"),
     RED_SET_BLOOM_FAIl(3708, "红包发送失败(bloom)"),
-
+    RED_NUM_ERROR(3709, "红包数量异常"),
+    RED_AMOUNT_ERROR(3710, "红包金额异常"),
+    RED_EXCHANGE_ERROR(3711, "红包兑换码无效"),
+    RED_HAVE_RECEIVED(3712,"红包已领取"),
+    RED_STRATEGY_ERROR(3711, "红包策略暂不支持"),
 
     /*** －－－－－－业务错误码-理财相关－－－－－－*/
     FINANCIAL_INCOME_REPEAT(3801, "理财利息当日利息已经计算"),

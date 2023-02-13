@@ -46,4 +46,6 @@ public class RedEnvelopeSpiltGetRecord {
 
     private String deviceNumber;
 
+    private String exchangeCode;
+
 }

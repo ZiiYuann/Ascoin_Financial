@@ -2,22 +2,31 @@ package com.tianli.openapi.controller;
 
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.accountred.entity.RedEnvelope;
+import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
+import com.tianli.accountred.service.RedEnvelopeService;
+import com.tianli.accountred.service.RedEnvelopeSpiltService;
+import com.tianli.accountred.vo.RedEnvelopeExternGetDetailsVO;
 import com.tianli.account.vo.AccountUserTransferVO;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.ChargeService;
+import com.tianli.common.Constants;
+import com.tianli.common.PageQuery;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.management.query.UidsQuery;
-import com.tianli.openapi.dto.IdDto;
 import com.tianli.openapi.dto.TransferResultDto;
 import com.tianli.openapi.query.OpenapiOperationQuery;
 import com.tianli.openapi.query.UserTransferQuery;
 import com.tianli.openapi.service.OpenApiService;
+import com.tianli.tool.IPUtils;
 import com.tianli.tool.crypto.Crypto;
+import com.tianli.tool.crypto.PBE;
 import org.bouncycastle.crypto.util.DigestFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Objects;
 
@@ -38,6 +47,10 @@ public class OpenApiController {
     private ChargeService chargeService;
     @Resource
     private AccountBalanceService accountBalanceService;
+    @Resource
+    private RedEnvelopeService redEnvelopeService;
+    @Resource
+    private RedEnvelopeSpiltService redEnvelopeSpiltService;
 
     /**
      * 奖励接口
@@ -215,4 +228,31 @@ public class OpenApiController {
         openApiService.goldExchange(query);
         return Result.success();
     }
+
+    /**
+     * 领取站外红包
+     */
+    @GetMapping("/red/extern/get")
+    public Result externRedGet(HttpServletRequest request, String content) {
+        String ip = IPUtils.getIpAddress(request);
+        // todo 指纹
+        String fingerprint;
+        String id = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, content);
+        return Result.success().setData(redEnvelopeService.getExternCode(Long.parseLong(id)));
+    }
+
+    /**
+     * 领取站外红包记录
+     */
+    @GetMapping("/red/extern/record")
+    public Result externRedRecord(String content, PageQuery<RedEnvelopeSpiltGetRecord> pageQuery) {
+
+        String rid = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, content);
+        RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.parseLong(rid));
+
+        RedEnvelopeExternGetDetailsVO redEnvelopeExternGetDetailsVO =
+                redEnvelopeSpiltService.getExternDetailsRedis(redEnvelope, pageQuery);
+        return Result.success().setData(redEnvelopeExternGetDetailsVO);
+    }
+
 }

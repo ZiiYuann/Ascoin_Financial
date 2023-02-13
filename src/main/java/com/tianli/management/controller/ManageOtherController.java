@@ -1,11 +1,13 @@
 package com.tianli.management.controller;
 
 import com.tianli.account.query.IdsQuery;
+import com.tianli.accountred.service.RedEnvelopeConfigService;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.other.entity.Banner;
 import com.tianli.other.query.BannerIoUQuery;
 import com.tianli.other.query.MBannerListQuery;
+import com.tianli.other.query.RedEnvelopeConfigIoUQuery;
 import com.tianli.other.service.BannerService;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
@@ -25,6 +27,8 @@ public class ManageOtherController {
 
     @Resource
     private BannerService bannerService;
+    @Resource
+    private RedEnvelopeConfigService redEnvelopeConfigService;
 
     @GetMapping("/banner/list")
     @AdminPrivilege(and = Privilege.理财配置)
@@ -45,4 +49,13 @@ public class ManageOtherController {
         bannerService.delete(query.getIds());
         return Result.success();
     }
+
+    @PostMapping("/red/config")
+    @AdminPrivilege(and = Privilege.理财配置)
+    public Result redConfig(@RequestBody RedEnvelopeConfigIoUQuery query) {
+        redEnvelopeConfigService.saveOrUpdate(query);
+        return Result.success();
+    }
+
+
 }
