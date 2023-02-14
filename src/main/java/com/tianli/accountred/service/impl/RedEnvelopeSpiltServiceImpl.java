@@ -253,6 +253,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         }
         RedEnvelopeSpilt redEnvelopeSpilt = JSONUtil.toBean(result, RedEnvelopeSpilt.class);
         return RedEnvelopeExchangeCodeVO.builder()
+                .status(RedEnvelopeStatus.SUCCESS)
                 .receiveAmount(redEnvelopeSpilt.getAmount())
                 .exchangeCode(uuid.toString())
                 .coin(redEnvelope.getCoin())
