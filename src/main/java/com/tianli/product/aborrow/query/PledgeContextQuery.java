@@ -24,13 +24,10 @@ public class PledgeContextQuery {
     @NotNull
     private PledgeType pledgeType;
 
-    @NotNull
     private List<Long> recordIds;
 
-    @NotNull
     private String coin;
 
-    @NotNull
     private BigDecimal pledgeAmount;
 
 

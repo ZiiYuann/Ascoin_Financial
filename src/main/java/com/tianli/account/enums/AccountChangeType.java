@@ -59,6 +59,8 @@ public enum AccountChangeType {
     points_withdrawal("PW"),
     points_payment("PP"),
     points_return("PR"),
+    auto_re("AUR"),
+    forced_closeout("FC")
     ;
 
     AccountChangeType(String prefix) {

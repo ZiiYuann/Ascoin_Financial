@@ -168,6 +168,9 @@ public enum ErrorCodeEnum {
     BORROW_AMOUNT_MIN_ERROR(3904, "借币金额过小"),
     BORROW_AMOUNT_MAX_ERROR(3905, "借币金额过大"),
     BORROW_COIN_NOT_OPEN(3906, "此币种未开放"),
+    BORROW_FIXED_PRODUCT_ERROR(3907, "定期产品不允许质押"),
+    BORROW_INTEREST_EXIST(3908, "借币利息异常，请联系管理员"),
+    BORROW_PRODUCT_HAVE_PLEDGE(3909, "理财产品已经质押"),
 
     ;
     private int errorNo;

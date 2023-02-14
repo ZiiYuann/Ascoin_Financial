@@ -2,9 +2,11 @@ package com.tianli.product.aborrow.service.impl;
 
 import cn.hutool.json.JSONUtil;
 import com.tianli.currency.service.CurrencyService;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.product.aborrow.dto.BorrowRecordPledgeDto;
 import com.tianli.product.aborrow.dto.BorrowRecordSnapshotDto;
 import com.tianli.product.aborrow.dto.PledgeRateDto;
+import com.tianli.product.aborrow.entity.BorrowConfigCoin;
 import com.tianli.product.aborrow.entity.BorrowRecord;
 import com.tianli.product.aborrow.entity.BorrowRecordCoin;
 import com.tianli.product.aborrow.entity.BorrowRecordSnapshot;
@@ -23,6 +25,7 @@ import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author chenb
@@ -86,7 +89,7 @@ public class BorrowServiceImpl implements BorrowService {
 
         borrowRecord.setNewestSnapshotId(snapshot.getId());
 
-        borrowRecordService.save(borrowRecord);
+        borrowRecordService.saveOrUpdate(borrowRecord);
     }
 
     @Override
@@ -94,6 +97,11 @@ public class BorrowServiceImpl implements BorrowService {
 
         List<BorrowRecordCoin> borrowRecordCoins = borrowRecordCoinService.listByUid(uid);
         var borrowRecordPledges = borrowRecordPledgeService.dtoListByUid(uid);
+
+        BorrowConfigCoin borrowConfigCoin = borrowConfigCoinService.getById(calPledgeQuery.getBorrowCoin());
+        if (Objects.isNull(borrowConfigCoin)) {
+            throw ErrorCodeEnum.BORROW_COIN_NOT_OPEN.generalException();
+        }
 
         BorrowRecordCoin borrowRecordCoin = BorrowRecordCoin.builder()
                 .amount(calPledgeQuery.getBorrowAmount())

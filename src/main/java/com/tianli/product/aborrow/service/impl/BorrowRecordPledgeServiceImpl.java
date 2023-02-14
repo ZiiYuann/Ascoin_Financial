@@ -2,6 +2,7 @@ package com.tianli.product.aborrow.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
@@ -16,8 +17,10 @@ import com.tianli.product.aborrow.query.PledgeContextQuery;
 import com.tianli.product.aborrow.service.BorrowOperationLogService;
 import com.tianli.product.aborrow.service.BorrowRecordPledgeService;
 import com.tianli.product.afinancial.entity.FinancialRecord;
+import com.tianli.product.afinancial.enums.ProductType;
 import com.tianli.product.afinancial.service.FinancialRecordService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -42,34 +45,50 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
     private OrderService orderService;
     @Resource
     private BorrowOperationLogService borrowOperationLogService;
+    @Resource
+    private AccountBalanceService accountBalanceService;
 
     @Override
+    @Transactional
     public void save(Long uid, Long bid, PledgeContextQuery query) {
+        ChargeType pledge = ChargeType.pledge;
         if (PledgeType.WALLET.equals(query.getPledgeType())) {
             BorrowRecordPledge borrowRecordPledge = getAndInit(uid, query.getCoin(), query.getPledgeType(), null);
             this.casIncrease(uid, query.getCoin(), query.getPledgeAmount(), borrowRecordPledge.getAmount(), query.getPledgeType());
-
-            Order order = Order.success(uid, ChargeType.pledge, query.getCoin(), query.getPledgeAmount(), bid);
+            Order order = Order.success(uid, pledge, query.getCoin(), query.getPledgeAmount(), bid);
             orderService.save(order);
 
-            BorrowOperationLog operationLog = BorrowOperationLog.log(ChargeType.pledge, bid, uid, query.getCoin(), query.getPledgeAmount());
-            borrowOperationLogService.save(operationLog);
+            BorrowOperationLog operationLog = BorrowOperationLog.log(pledge, bid, uid, query.getCoin(), query.getPledgeAmount());
+            borrowOperationLogService.saveOrUpdate(operationLog);
+
+            accountBalanceService.pledgeFreeze(uid, pledge, order.getCoin(), query.getPledgeAmount(), order.getOrderNo(), pledge.getNameZn());
         }
 
         if (PledgeType.FINANCIAL.equals(query.getPledgeType())) {
             query.getRecordIds().forEach(recordId -> {
 
-                BigDecimal amount = financialRecordService.selectById(recordId, uid).getHoldAmount();
+                FinancialRecord financialRecord = financialRecordService.selectById(recordId, uid);
+                if (ProductType.fixed.equals(financialRecord.getProductType())) {
+                    throw ErrorCodeEnum.BORROW_FIXED_PRODUCT_ERROR.generalException();
+                }
+                if (financialRecord.isPledge()) {
+                    throw ErrorCodeEnum.BORROW_PRODUCT_HAVE_PLEDGE.generalException();
+                }
+
+                BigDecimal amount = financialRecord.getHoldAmount();
                 financialRecordService.updatePledge(uid, recordId, amount, true);
 
-                BorrowRecordPledge borrowRecordPledge = getAndInit(uid, query.getCoin(), query.getPledgeType(), recordId);
+                BorrowRecordPledge borrowRecordPledge = getAndInit(uid, financialRecord.getCoin(), query.getPledgeType(), recordId);
                 borrowRecordPledge.setAmount(amount);
 
-                Order order = Order.success(uid, ChargeType.pledge, query.getCoin(), amount, bid);
+                Order order = Order.success(uid, pledge, financialRecord.getCoin(), amount, bid);
                 orderService.save(order);
 
-                BorrowOperationLog operationLog = BorrowOperationLog.log(ChargeType.pledge, bid, uid, query.getCoin(), amount);
+                BorrowOperationLog operationLog = BorrowOperationLog.log(pledge, bid, uid, financialRecord.getCoin(), amount);
                 borrowOperationLogService.save(operationLog);
+
+                accountBalanceService.pledgeFreeze(uid, pledge, order.getCoin(), amount, order.getOrderNo(), pledge.getNameZn());
+
             });
         }
 
@@ -93,14 +112,14 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
 
     private void casIncrease(Long uid, String coin, BigDecimal increaseAmount, BigDecimal originalAmount, PledgeType pledgeType) {
         int i = baseMapper.casIncrease(uid, coin, increaseAmount, originalAmount, pledgeType);
-        if (i == 1) {
+        if (i != 1) {
             throw ErrorCodeEnum.BORROW_RECORD_PLEDGE_ERROR.generalException();
         }
     }
 
     private void casDecrease(Long uid, String coin, BigDecimal decreaseAmount, BigDecimal originalAmount, PledgeType pledgeType) {
         int i = baseMapper.casDecrease(uid, coin, decreaseAmount, originalAmount, pledgeType);
-        if (i == 1) {
+        if (i != 1) {
             throw ErrorCodeEnum.BORROW_RECORD_PLEDGE_ERROR.generalException();
         }
     }

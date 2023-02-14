@@ -7,10 +7,13 @@ import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.product.aborrow.entity.BorrowConfigCoin;
 import com.tianli.product.aborrow.entity.BorrowOperationLog;
 import com.tianli.product.aborrow.entity.BorrowRecordCoin;
 import com.tianli.product.aborrow.mapper.BorrowRecordCoinMapper;
 import com.tianli.product.aborrow.query.BorrowCoinQuery;
+import com.tianli.product.aborrow.service.BorrowConfigCoinService;
+import com.tianli.product.aborrow.service.BorrowInterestService;
 import com.tianli.product.aborrow.service.BorrowOperationLogService;
 import com.tianli.product.aborrow.service.BorrowRecordCoinService;
 import org.springframework.stereotype.Service;
@@ -36,6 +39,10 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
     private OrderService orderService;
     @Resource
     private BorrowOperationLogService borrowOperationLogService;
+    @Resource
+    private BorrowConfigCoinService borrowConfigCoinService;
+    @Resource
+    private BorrowInterestService borrowInterestService;
 
     @Override
     @Transactional
@@ -51,6 +58,10 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
         orderService.save(order);
 
         accountBalanceService.increase(uid, ChargeType.borrow, coin, query.getBorrowAmount(), order.getOrderNo(), "借币");
+
+        BorrowConfigCoin borrowConfigCoin = borrowConfigCoinService.getById(coin);
+        BigDecimal hourRate = borrowConfigCoin.getHourRate();
+        borrowInterestService.add(bid, uid, coin, hourRate.multiply(query.getBorrowAmount()));
     }
 
     @Override
@@ -68,14 +79,14 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
 
     private void casIncrease(Long uid, String coin, BigDecimal increaseAmount, BigDecimal originalAmount) {
         int i = baseMapper.casIncrease(uid, coin, increaseAmount, originalAmount);
-        if (i == 1) {
+        if (i != 1) {
             throw ErrorCodeEnum.BORROW_RECORD_COIN_ERROR.generalException();
         }
     }
 
     private void casDecrease(Long uid, String coin, BigDecimal decreaseAmount, BigDecimal originalAmount) {
         int i = baseMapper.casDecrease(uid, coin, decreaseAmount, originalAmount);
-        if (i == 1) {
+        if (i != 1) {
             throw ErrorCodeEnum.BORROW_RECORD_COIN_ERROR.generalException();
         }
     }

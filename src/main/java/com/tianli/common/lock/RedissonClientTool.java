@@ -51,7 +51,6 @@ public class RedissonClientTool {
             if (lock) {
                 handler.execute();
             }
-            throw errorCodeEnum.generalException();
         } catch (InterruptedException e) {
             e.printStackTrace();
             throw errorCodeEnum.generalException();

@@ -80,7 +80,9 @@ public class BorrowConfigCoinServiceImpl extends ServiceImpl<BorrowConfigCoinMap
         }
 
         BorrowRecordCoin borrowRecordCoin = borrowRecordCoinService.getOne(uid, query.getBorrowCoin());
-        BigDecimal totalBorrowAmount = borrowRecordCoin.getAmount().add(query.getBorrowAmount());
+        BigDecimal borrowAmount = borrowRecordCoin != null ? borrowRecordCoin.getAmount() : BigDecimal.ZERO;
+
+        BigDecimal totalBorrowAmount = borrowAmount.add(query.getBorrowAmount());
         if (totalBorrowAmount.compareTo(borrowConfigCoin.getMinAmount()) < 0) {
             throw ErrorCodeEnum.BORROW_AMOUNT_MIN_ERROR.generalException();
         }

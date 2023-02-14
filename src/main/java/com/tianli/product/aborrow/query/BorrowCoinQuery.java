@@ -22,7 +22,6 @@ import java.util.List;
 @AllArgsConstructor
 public class BorrowCoinQuery {
 
-    @NotNull
     private List<PledgeContextQuery> pledgeContext;
 
     @NotNull

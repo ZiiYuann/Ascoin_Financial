@@ -24,7 +24,7 @@ import javax.validation.Valid;
  * @since 2023-02-07
  **/
 @RestController
-@RequestMapping("/management/borrow/")
+@RequestMapping("/management/borrow")
 public class ManageBorrowController {
 
     @Resource
@@ -32,6 +32,7 @@ public class ManageBorrowController {
     @Resource
     private BorrowConfigPledgeService borrowConfigPledgeService;
 
+    // 新增或者修改借币配置
     @AdminPrivilege
     @PostMapping("/config/coin")
     public Result<Void> configCoin(@RequestBody @Valid BorrowConfigCoinIoUQuery query) {
@@ -39,12 +40,14 @@ public class ManageBorrowController {
         return new Result<>();
     }
 
+    // 借币配置列表
     @AdminPrivilege
     @GetMapping("/config/coins")
     public Result<IPage<MBorrowConfigCoinVO>> configCoins(PageQuery<BorrowConfigCoin> page, BorrowQuery query) {
         return new Result<>(borrowConfigCoinService.MBorrowConfigCoinVOPage(page.page(), query));
     }
 
+    // 修改借币配置状态
     @AdminPrivilege
     @PostMapping("/config/coin/status")
     public Result<Void> configCoinStatus(@RequestBody BorrowQuery query) {
@@ -52,6 +55,7 @@ public class ManageBorrowController {
         return new Result<>();
     }
 
+    // 新增或者修改质押币配置
     @AdminPrivilege
     @PostMapping("/config/pledge")
     public Result<Void> configCoin(@RequestBody @Valid BorrowConfigPledgeIoUQuery query) {
@@ -59,12 +63,14 @@ public class ManageBorrowController {
         return new Result<>();
     }
 
+    // 质押币配置列表
     @AdminPrivilege
     @GetMapping("/config/pledges")
     public Result<IPage<MBorrowConfigPledgeVO>> configPledge(PageQuery<BorrowConfigPledge> page, BorrowQuery query) {
         return new Result<>(borrowConfigPledgeService.MBorrowConfigCoinVOPage(page.page(), query));
     }
 
+    // 修改质押币配置状态
     @AdminPrivilege
     @PostMapping("/config/pledge/status")
     public Result<Void> configCoin(@RequestBody BorrowQuery query) {
