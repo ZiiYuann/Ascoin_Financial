@@ -52,6 +52,8 @@ public class RedEnvelopeExchangeCodeVO {
 
     private String spiltRid;
 
+    private String coinUrl;
+
     public RedEnvelopeExchangeCodeVO(RedEnvelopeStatus status) {
         this.status = status;
     }

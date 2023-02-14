@@ -259,6 +259,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
             return new RedEnvelopeExchangeCodeVO(RedEnvelopeStatus.FINISH_TEMP, dateTime);
         }
         RedEnvelopeSpilt redEnvelopeSpilt = JSONUtil.toBean(result, RedEnvelopeSpilt.class);
+        CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
         return RedEnvelopeExchangeCodeVO.builder()
                 .status(RedEnvelopeStatus.SUCCESS)
                 .receiveAmount(redEnvelopeSpilt.getAmount())
@@ -268,6 +269,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 .usdtCnyRate(BigDecimal.valueOf(digitalCurrencyExchange.usdtCnyPrice()))
                 .totalAmount(redEnvelope.getTotalAmount())
                 .flag(redEnvelope.getFlag())
+                .coinUrl(coinBase.getLogo())
                 .build();
 
 
@@ -283,6 +285,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         String exchangeCode = JSONUtil.parse(cache).getByPath("exchangeCode", String.class);
         RedEnvelopeSpiltDTO dto = JSONUtil.toBean(cache, RedEnvelopeSpiltDTO.class);
         RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.valueOf(dto.getRid()));
+        CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
         return RedEnvelopeExchangeCodeVO.builder()
                 .receiveAmount(dto.getAmount())
                 .exchangeCode(exchangeCode)
@@ -292,6 +295,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 .totalAmount(redEnvelope.getTotalAmount())
                 .flag(redEnvelope.getFlag())
                 .spiltRid(dto.getId())
+                .coinUrl(coinBase.getLogo())
                 .latestExpireTime(LocalDateTime.ofEpochSecond(timestamp / 1000, 0, ZoneOffset.ofHours(8)))
                 .build();
     }
