@@ -52,6 +52,7 @@ import com.tianli.tool.crypto.PBE;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
@@ -345,7 +346,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             return new RedEnvelopeExchangeCodeVO(redEnvelope.getStatus());
         }
 
-        return redEnvelopeSpiltService.getExternOperationRedis(redEnvelope,ipKey,fingerprintKey);
+        return redEnvelopeSpiltService.getExternOperationRedis(redEnvelope, ipKey, fingerprintKey);
     }
 
     @Override
@@ -716,6 +717,10 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             // todo 考虑有缓存的情况下 redEnvelope 的channel会为null,上线24h后可以修改
             if (Objects.nonNull(channel) && !RedEnvelopeChannel.CHAT.equals(channel)) {
                 return;
+            }
+
+            if (StringUtils.isBlank(redEnvelope.getFlag())) {
+                throw ErrorCodeEnum.RED_FLAG_NULL.generalException();
             }
 
             BigDecimal totalAmount = redEnvelope.getTotalAmount();

@@ -24,7 +24,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class RedEnvelopeIoUQuery extends IoUQuery {
 
-    @NotBlank(message = "红包唯一标示不允许为空")
     private String flag;
 
     private String coin;
