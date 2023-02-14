@@ -29,6 +29,8 @@ public class RedisConstants {
      */
     public static String RED_ENVELOPE = "red:";
 
+    public static String RED_ENVELOPE_LIMIT = "red:limit:";
+
     /**
      * 红包领取记录
      */

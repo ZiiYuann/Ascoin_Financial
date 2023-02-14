@@ -13,6 +13,7 @@ import com.tianli.accountred.vo.RedEnvelopeExternGetDetailsVO;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.common.Constants;
 import com.tianli.common.PageQuery;
+import com.tianli.common.RedisConstants;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.management.query.UidsQuery;
@@ -27,6 +28,7 @@ import com.tianli.tool.IPUtils;
 import com.tianli.tool.crypto.Crypto;
 import com.tianli.tool.crypto.PBE;
 import org.bouncycastle.crypto.util.DigestFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -57,6 +59,8 @@ public class OpenApiController {
     private RedEnvelopeSpiltService redEnvelopeSpiltService;
     @Resource
     private RpcService rpcService;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 奖励接口
@@ -256,11 +260,18 @@ public class OpenApiController {
      * 领取站外红包
      */
     @GetMapping("/red/extern/get")
-    public Result<RedEnvelopeExchangeCodeVO> externRedGet(HttpServletRequest request, OpenapiRedQuery query) {
+    public Result<RedEnvelopeExchangeCodeVO> externRedGet(@RequestHeader("fingerprint") String fingerprint
+            , HttpServletRequest request, OpenapiRedQuery query) {
         String ip = IPUtils.getIpAddress(request);
-        // todo 指纹
-        String fingerprint;
         String id = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, query.getContext());
+
+        String key = RedisConstants.RED_ENVELOPE_LIMIT + id;
+        // todo 过期时间
+        Long count = stringRedisTemplate.opsForSet().add(key, ip + ":" + fingerprint);
+        if (Objects.isNull(count) || count == 0) {
+            throw ErrorCodeEnum.RED_EXTERN_LIMIT.generalException();
+        }
+
         return new Result<>(redEnvelopeService.getExternCode(Long.parseLong(id)));
     }
 
