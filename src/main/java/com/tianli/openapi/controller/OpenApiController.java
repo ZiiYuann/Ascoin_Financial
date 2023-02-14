@@ -288,10 +288,24 @@ public class OpenApiController {
     /**
      * 没必要的接口，前端不愿意加缓存非要后端加
      */
-    @GetMapping("/red/extern/{exchangeCode}")
-    public Result<RedEnvelopeExchangeCodeVO> externRedGet(@PathVariable String exchangeCode) {
-        String s = RedisConstants.RED_EXTERN_CODE + exchangeCode;
-        return new Result<>(redEnvelopeService.getExternCode(s));
+    @GetMapping("/red/extern")
+    public Result<RedEnvelopeExchangeCodeVO> externRedGet(@RequestHeader("fingerprint") String fingerprint
+            , HttpServletRequest request) {
+        String ip = IPUtils.getIpAddress(request);
+
+        String ipKey = RedisConstants.RED_ENVELOPE_LIMIT + ip;
+        String fingerprintKey = RedisConstants.RED_ENVELOPE_LIMIT + fingerprint;
+
+        RedEnvelopeExchangeCodeVO vo = null;
+        if ((vo = redEnvelopeService.getExternCode(fingerprintKey)) != null
+                || (vo = redEnvelopeService.getExternCode(ipKey)) != null) {
+            RedEnvelopeSpilt redEnvelopeSpilt = redEnvelopeSpiltService.getById(vo.getSpiltRid());
+            vo.setStatus(redEnvelopeSpilt.isReceive() ? RedEnvelopeStatus.EXCHANGE
+                    : RedEnvelopeStatus.WAIT_EXCHANGE);
+            return new Result<>(vo);
+        }
+
+        return new Result<>(vo);
     }
 
     /**
