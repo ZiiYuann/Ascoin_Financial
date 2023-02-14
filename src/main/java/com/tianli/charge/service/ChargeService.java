@@ -334,7 +334,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             orderReviewService.review(reviewQuery);
         }
 
-        return id;
+        return order.getId();
     }
 
     /**
