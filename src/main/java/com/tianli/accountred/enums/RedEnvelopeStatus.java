@@ -20,6 +20,8 @@ public enum RedEnvelopeStatus {
     // RECEIVED:已经领取 SUCCESS:领取成功
     RECEIVED,
     SUCCESS,
+    EXCHANGE,
+    WAIT_EXCHANGE,
 
     // 临时结束
     FINISH_TEMP,

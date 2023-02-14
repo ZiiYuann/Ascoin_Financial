@@ -50,10 +50,10 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
      *
      * @param redEnvelope 红包参数
      */
-    RedEnvelopeExchangeCodeVO getExternOperationRedis(RedEnvelope redEnvelope);
+    RedEnvelopeExchangeCodeVO getExternOperationRedis(RedEnvelope redEnvelope, String ipKey, String fingerprintKey);
 
     // 没必要的接口，前端不愿意加缓存非要后端加
-    RedEnvelopeExchangeCodeVO getInfo(String exchangeCode);
+    RedEnvelopeExchangeCodeVO getInfo(String key);
 
     /**
      * 获取红包领取记录VO（站外实未领取，分页50条一页）

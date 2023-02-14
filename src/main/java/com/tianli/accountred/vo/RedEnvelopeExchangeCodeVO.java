@@ -50,6 +50,8 @@ public class RedEnvelopeExchangeCodeVO {
 
     private String flag;
 
+    private String spiltRid;
+
     public RedEnvelopeExchangeCodeVO(RedEnvelopeStatus status) {
         this.status = status;
     }

@@ -49,7 +49,7 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
     /**
      * 抢红包Code（站外）
      */
-    RedEnvelopeExchangeCodeVO getExternCode(Long rid);
+    RedEnvelopeExchangeCodeVO getExternCode(Long rid, String ipKey, String fingerprintKey);
 
     //没必要的接口，前端不愿意加缓存非要后端加
     RedEnvelopeExchangeCodeVO getExternCode(String exchangeCode);

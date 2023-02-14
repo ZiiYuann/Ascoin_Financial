@@ -193,7 +193,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     }
 
     @Override
-    public RedEnvelopeExchangeCodeVO getExternOperationRedis(RedEnvelope redEnvelope) {
+    public RedEnvelopeExchangeCodeVO getExternOperationRedis(RedEnvelope redEnvelope, String ipKey, String fingerprintKey) {
         var rid = redEnvelope.getId();
         UUID uuid = UUID.randomUUID();
         String externKey = RedisConstants.RED_EXTERN + rid; // 用于获取可领取code
@@ -205,6 +205,8 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         String script = "local key = KEYS[1]\n" +
                 "local key2 = KEYS[2]\n" +
                 "local key3 = KEYS[3]\n" +
+                "local ipKey = KEYS[4]\n" +
+                "local fingerprintKey = KEYS[5]\n" +
                 "local currentMs = tonumber(ARGV[1]) \n" +
                 "local uuid = ARGV[2] \n" +
                 "local termOfValidity =  tonumber(ARGV[3]) * 60 * 60 \n" +
@@ -220,14 +222,19 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 "redis.call('ZADD',key3,currentMs,spiltReds[1])\n" +
                 "local spiltRed = cjson.decode(spiltReds[1]) \n" +
                 "spiltRed.timestamp = score \n" +
+                "spiltRed.exchangeCode = uuid \n" +
                 "redis.call('SET',key2,cjson.encode(spiltRed))\n" +
                 "redis.call('EXPIRE',key2,termOfValidity)\n" +
+                "redis.call('SET',ipKey,cjson.encode(spiltRed))\n" +
+                "redis.call('SET',fingerprintKey,cjson.encode(spiltRed))\n" +
+                "redis.call('EXPIRE',ipKey,termOfValidity)\n" +
+                "redis.call('EXPIRE',ipKey,termOfValidity)\n" +
                 "return spiltReds[1]";
         DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
         redisScript.setResultType(String.class);
         redisScript.setScriptText(script);
         String result = stringRedisTemplate.opsForValue().getOperations()
-                .execute(redisScript, List.of(externKey, exchangeCodeKey, externRecordKey)
+                .execute(redisScript, List.of(externKey, exchangeCodeKey, externRecordKey, ipKey, fingerprintKey)
                         , String.valueOf(now), uuid.toString(), exchangeCodeExpireTime);
         if (StringUtils.isBlank(result)) {
             ErrorCodeEnum.SYSTEM_ERROR.throwException();
@@ -267,10 +274,13 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     }
 
     @Override
-    public RedEnvelopeExchangeCodeVO getInfo(String exchangeCode) {
-        String exchangeCodeKey = RedisConstants.RED_EXTERN_CODE + exchangeCode;
-        String cache = stringRedisTemplate.opsForValue().get(exchangeCodeKey);
+    public RedEnvelopeExchangeCodeVO getInfo(String key) {
+        String cache = stringRedisTemplate.opsForValue().get(key);
+        if (StringUtils.isBlank(cache)) {
+            return null;
+        }
         Long timestamp = JSONUtil.parse(cache).getByPath("timestamp", Long.class);
+        String exchangeCode = JSONUtil.parse(cache).getByPath("exchangeCode", String.class);
         RedEnvelopeSpiltDTO dto = JSONUtil.toBean(cache, RedEnvelopeSpiltDTO.class);
         RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.valueOf(dto.getRid()));
         return RedEnvelopeExchangeCodeVO.builder()
@@ -281,6 +291,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 .usdtCnyRate(BigDecimal.valueOf(digitalCurrencyExchange.usdtCnyPrice()))
                 .totalAmount(redEnvelope.getTotalAmount())
                 .flag(redEnvelope.getFlag())
+                .spiltRid(dto.getId())
                 .latestExpireTime(LocalDateTime.ofEpochSecond(timestamp / 1000, 0, ZoneOffset.ofHours(8)))
                 .build();
     }

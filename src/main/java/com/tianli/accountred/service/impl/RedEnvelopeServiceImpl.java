@@ -331,7 +331,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     }
 
     @Override
-    public RedEnvelopeExchangeCodeVO getExternCode(Long rid) {
+    public RedEnvelopeExchangeCodeVO getExternCode(Long rid, String ipKey, String fingerprintKey) {
         RedEnvelope redEnvelope = Optional.ofNullable(this.getWithCache(rid))
                 .orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
 
@@ -345,12 +345,12 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             return new RedEnvelopeExchangeCodeVO(redEnvelope.getStatus());
         }
 
-        return redEnvelopeSpiltService.getExternOperationRedis(redEnvelope);
+        return redEnvelopeSpiltService.getExternOperationRedis(redEnvelope,ipKey,fingerprintKey);
     }
 
     @Override
-    public RedEnvelopeExchangeCodeVO getExternCode(String exchangeCode) {
-        return redEnvelopeSpiltService.getInfo(exchangeCode);
+    public RedEnvelopeExchangeCodeVO getExternCode(String key) {
+        return redEnvelopeSpiltService.getInfo(key);
     }
 
     @Override
