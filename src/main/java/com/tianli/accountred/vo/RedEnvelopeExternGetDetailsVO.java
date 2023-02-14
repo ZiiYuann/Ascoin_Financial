@@ -63,6 +63,11 @@ public class RedEnvelopeExternGetDetailsVO {
 
     private String flag;
 
+    /**
+     * 发红包的人昵称
+     */
+    private String nickname;
+
     // 这里的record是基于缓存的记录，并不是真正的领取记录
     private IPage<RedEnvelopeExternGetRecordVO> recordPage;
 

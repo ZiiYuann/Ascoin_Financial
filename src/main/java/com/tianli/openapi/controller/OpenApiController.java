@@ -21,6 +21,8 @@ import com.tianli.openapi.query.OpenapiOperationQuery;
 import com.tianli.openapi.query.OpenapiRedQuery;
 import com.tianli.openapi.query.UserTransferQuery;
 import com.tianli.openapi.service.OpenApiService;
+import com.tianli.rpc.RpcService;
+import com.tianli.rpc.dto.UserInfoDTO;
 import com.tianli.tool.IPUtils;
 import com.tianli.tool.crypto.Crypto;
 import com.tianli.tool.crypto.PBE;
@@ -53,6 +55,8 @@ public class OpenApiController {
     private RedEnvelopeService redEnvelopeService;
     @Resource
     private RedEnvelopeSpiltService redEnvelopeSpiltService;
+    @Resource
+    private RpcService rpcService;
 
     /**
      * 奖励接口
@@ -241,9 +245,11 @@ public class OpenApiController {
         String rid = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, query.getContext());
         RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.parseLong(rid));
 
-        RedEnvelopeExternGetDetailsVO redEnvelopeExternGetDetailsVO =
+        var vo =
                 redEnvelopeSpiltService.getExternDetailsRedis(redEnvelope, pageQuery);
-        return new Result<>(redEnvelopeExternGetDetailsVO);
+        UserInfoDTO userInfoDTO = rpcService.userInfoDTO(redEnvelope.getUid());
+        vo.setNickname(userInfoDTO.getNickname());
+        return new Result<>(vo);
     }
 
     /**
@@ -259,7 +265,7 @@ public class OpenApiController {
     }
 
     /**
-     *  没必要的接口，前端不愿意加缓存非要后端加
+     * 没必要的接口，前端不愿意加缓存非要后端加
      */
     @GetMapping("/red/extern/{exchangeCode}")
     public Result<RedEnvelopeExchangeCodeVO> externRedGet(@PathVariable String exchangeCode) {
@@ -270,12 +276,13 @@ public class OpenApiController {
      * 站外红包信息
      */
     @GetMapping("/red/extern/info")
-    public Result<RedEnvelopeExchangeCodeVO> externRedGet(OpenapiRedQuery query) {
+    public Result<ORedEnvelopVO> externRedGet(OpenapiRedQuery query) {
         String rid = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, query.getContext());
         RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.parseLong(rid));
+        UserInfoDTO userInfoDTO = rpcService.userInfoDTO(redEnvelope.getUid());
         ORedEnvelopVO vo = ORedEnvelopVO.builder()
                 .coin(redEnvelope.getCoin())
-                .nickname("")
+                .nickname(userInfoDTO.getNickname())
                 .remarks(redEnvelope.getRemarks())
                 .build();
         return new Result<>(vo);
