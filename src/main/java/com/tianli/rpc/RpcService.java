@@ -46,7 +46,7 @@ public class RpcService {
 
     public UserInfoDTO userInfoDTO(Long uid) {
         String walletNewsServerUrl = configService.getOrDefault(WALLET_NEWS_SERVER_URL
-                , "https://wallet-news.giantdt.com") + "user/info/" + uid;
+                , "https://wallet-news.giantdt.com") + "/api/user/info/" + uid;
         CloseableHttpClient client = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(walletNewsServerUrl);
         httpGet.setHeader("Content-Type", "application/json; charset=UTF-8");
