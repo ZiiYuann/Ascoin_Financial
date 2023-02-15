@@ -112,7 +112,14 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         // 审核通过需要上链 如果传入的hash值为空说明是自动转账
         if ((OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy) || OrderReviewStrategy.MANUAL_REVIEW_AUTO_TRANSFER.equals(strategy)) &&
                 query.isPass() && StringUtils.isBlank(query.getHash())) {
-            chargeService.withdrawChain(order);
+            // 最关键的提现操作 ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+            // 最关键的提现操作 ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+            String txid = chargeService.withdrawChain(order);
+            // 最关键的提现操作 ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+            // 最关键的提现操作 ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+
+            orderChargeInfo.setTxid(txid);
+            orderChargeInfoService.updateById(orderChargeInfo);
             order.setStatus(ChargeStatus.chaining);
             orderService.saveOrUpdate(order);
             // 上链数据通过回调操作，直接返回
