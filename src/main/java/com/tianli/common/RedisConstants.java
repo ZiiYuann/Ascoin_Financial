@@ -15,9 +15,10 @@ public class RedisConstants {
      */
     public static String RED_EXTERN_CODE = "red:extern:code:";
 
-    // 拆分红包后会生成 score < 10000 代表是没生成过兑换码，如果
+    // score 如果是时间搓代表兑换码过期时间
     public static String RED_EXTERN = "red:extern:";
 
+    // score 如果是时间搓代表兑换码领取时间
     public static String RED_EXTERN_RECORD = "red:extern:record:";
 
     /**

@@ -1,5 +1,6 @@
 package com.tianli.openapi.controller;
 
+import com.tianli.accountred.dto.RedEnvelopStatusDTO;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
@@ -72,17 +73,13 @@ public class OpenApiRedController {
         String ipKey = RedisConstants.RED_ENVELOPE_LIMIT + ip;
         String fingerprintKey = RedisConstants.RED_ENVELOPE_LIMIT + fingerprint;
 
-        RedEnvelopeExchangeCodeVO vo;
-        if ((vo = redEnvelopeService.getExternCode(fingerprintKey)) != null
-                || (vo = redEnvelopeService.getExternCode(ipKey)) != null) {
-            RedEnvelopeSpilt redEnvelopeSpilt = redEnvelopeSpiltService.getById(vo.getSpiltRid());
-            vo.setStatus(redEnvelopeSpilt.isReceive() ? RedEnvelopeStatus.EXCHANGE
-                    : RedEnvelopeStatus.WAIT_EXCHANGE);
-            return new Result<>(vo);
+        RedEnvelopStatusDTO redEnvelopStatusDTO;
+        // EXCHANGE WAIT_EXCHANGE
+        if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getIpOrFingerDTO(ip, fingerprint)) != null) {
+            return new Result<>(redEnvelopStatusDTO.getStatus());
         }
 
-        vo = redEnvelopeService.getExternCode(Long.parseLong(id), ipKey, fingerprintKey);
-        return new Result<>(vo);
+        return new Result<>(redEnvelopeSpiltService.getExchangeCode(Long.parseLong(id), ipKey, fingerprintKey));
     }
 
     /**
@@ -92,6 +89,8 @@ public class OpenApiRedController {
     public Result<RedEnvelopeExchangeCodeVO> extern(@RequestHeader("fingerprint") String fingerprint
             , HttpServletRequest request, OpenapiRedQuery query) {
         String rid = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, query.getContext());
+        String ip = IPUtils.getIpAddress(request);
+
         RedEnvelopeExchangeCodeVO vo;
 
         RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.valueOf(rid));
@@ -101,30 +100,22 @@ public class OpenApiRedController {
             return new Result<>(vo);
         }
 
-        String ip = IPUtils.getIpAddress(request);
-
-        String ipKey = RedisConstants.RED_ENVELOPE_LIMIT + ip;
-        String fingerprintKey = RedisConstants.RED_ENVELOPE_LIMIT + fingerprint;
-
+        RedEnvelopStatusDTO redEnvelopStatusDTO;
         // EXCHANGE WAIT_EXCHANGE
-        if ((vo = redEnvelopeService.getExternCode(fingerprintKey)) != null
-                || (vo = redEnvelopeService.getExternCode(ipKey)) != null) {
-            RedEnvelopeSpilt redEnvelopeSpilt = redEnvelopeSpiltService.getById(vo.getSpiltRid());
-            vo.setStatus(redEnvelopeSpilt.isReceive() ? RedEnvelopeStatus.EXCHANGE
-                    : RedEnvelopeStatus.WAIT_EXCHANGE);
-            return new Result<>(vo);
+        if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getIpOrFingerDTO(ip, fingerprint)) != null) {
+            return new Result<>(redEnvelopStatusDTO.getStatus());
         }
 
         // PROCESS
         String externKey = RedisConstants.RED_EXTERN + rid;
         long now = System.currentTimeMillis();
-        if ((vo = redEnvelopeSpiltService.getRedVO(externKey, now)) != null) {
-            return new Result<>(vo);
+        if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getNotExpireDTO(externKey, now)) != null) {
+            return new Result<>(redEnvelopStatusDTO.getStatus());
         }
 
         // FINISH_TEMP
-        vo = redEnvelopeSpiltService.getLatestExpireRedVO(externKey, now);
-        return new Result<>(vo);
+        redEnvelopStatusDTO = redEnvelopeSpiltService.getLatestExpireDTO(externKey, now);
+        return new Result<>(redEnvelopStatusDTO);
     }
 
     /**

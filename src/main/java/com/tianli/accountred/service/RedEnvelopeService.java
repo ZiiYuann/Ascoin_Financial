@@ -47,14 +47,6 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
     RedEnvelopeGetVO get(Long uid, Long shortUid, RedEnvelopeExchangeCodeQuery query);
 
     /**
-     * 抢红包Code（站外）
-     */
-    RedEnvelopeExchangeCodeVO getExternCode(Long rid, String ipKey, String fingerprintKey);
-
-    //没必要的接口，前端不愿意加缓存非要后端加
-    RedEnvelopeExchangeCodeVO getExternCode(String exchangeCode);
-
-    /**
      * 抢红包详情
      */
     RedEnvelopeGetDetailsVO getDetails(Long uid, Long rid);
@@ -65,16 +57,6 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
     IPage<RedEnvelopeGiveRecordVO> giveRecord(RedEnvelopeGiveRecordQuery query, PageQuery<RedEnvelope> pageQuery);
 
     /**
-     * 红包到期
-     */
-    void redEnvelopeExpiration(LocalDateTime now);
-
-    /**
-     * 获取红包信息
-     */
-    RedEnvelopeGetVO getInfoById(Long id);
-
-    /**
      * 异步领取红包
      *
      * @param sqsContext sqs信息
@@ -82,21 +64,27 @@ public interface RedEnvelopeService extends IService<RedEnvelope> {
     void asynGet(RedEnvelopeContext sqsContext);
 
     /**
-     * 获取红包信息
+     * 红包到期
      */
-    RedEnvelope getWithCache(Long id);
-
-    RedEnvelope getWithCache(Long uid, Long id);
-
-    /**
-     * 删除红包缓存
-     */
-    void deleteRedisCache(Long id);
+    void expireRed(LocalDateTime now);
 
     /**
      * 站外红包手动回退
      */
-    void back(Long uid, Long rid);
+    void backRed(Long uid, Long rid);
+
+    /**
+     * 获取红包信息
+     */
+    RedEnvelopeGetVO getInfoById(Long id);
+
+    RedEnvelope getWithCache(Long id);
+
+    RedEnvelope getWithCache(Long uid, Long id);
+
+    void deleteRedisCache(Long id);
+
+
 }
 
 

@@ -77,7 +77,6 @@ import static com.tianli.sso.service.SSOService.WALLET_NEWS_SERVER_URL;
  * @apiNote
  * @since 2022-10-17
  **/
-// TODO 1、抢红包任何阻塞性操作都改为sqs异步消费 2、如果缓存丢失，如何补偿缓存
 @Slf4j
 @Service
 public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEnvelope> implements RedEnvelopeService {
@@ -353,29 +352,6 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     }
 
     @Override
-    public RedEnvelopeExchangeCodeVO getExternCode(Long rid, String ipKey, String fingerprintKey) {
-        RedEnvelope redEnvelope = Optional.ofNullable(this.getWithCache(rid))
-                .orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
-
-        // 只支持站外红包
-        if (!RedEnvelopeChannel.EXTERN.equals(redEnvelope.getChannel())) {
-            ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
-        }
-
-        // 等待、失败、过期、结束
-        if (!RedEnvelopeStatus.valid(redEnvelope.getStatus())) {
-            return new RedEnvelopeExchangeCodeVO(redEnvelope.getStatus());
-        }
-
-        return redEnvelopeSpiltService.getExternOperationRedis(redEnvelope, ipKey, fingerprintKey);
-    }
-
-    @Override
-    public RedEnvelopeExchangeCodeVO getExternCode(String key) {
-        return redEnvelopeSpiltService.getInfo(key);
-    }
-
-    @Override
     public RedEnvelopeGetDetailsVO getDetails(Long uid, Long rid) {
         RedEnvelope redEnvelope = getWithCache(rid);
         List<RedEnvelopeSpiltGetRecordVO> recordVo = redEnvelopeSpiltGetRecordService.getRecordVos(redEnvelope);
@@ -491,7 +467,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
     @Override
     @Transactional
-    public void redEnvelopeExpiration(LocalDateTime now) {
+    public void expireRed(LocalDateTime now) {
         // 2022-10-10 13:00:00 创建 如果当前时间是 2022-10-11 14:00:00（-1  2022-10-10 14:00:00）
         // plusMinutes(1) 等待缓存过期，确保过期操作内不会有人拿红包
         LocalDateTime chatExpireDate = now.plusDays(-RedEnvelopeChannel.CHAT.getExpireDays()).plusMinutes(1);
@@ -691,7 +667,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
     @Override
     @Transactional
-    public void back(Long uid, Long rid) {
+    public void backRed(Long uid, Long rid) {
         RedEnvelope redEnvelope = getWithCache(uid, rid);
         // 只支持站外红包
         if (!RedEnvelopeChannel.EXTERN.equals(redEnvelope.getChannel())) {
@@ -734,7 +710,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         @Override
         public void verifier(Long uid, RedEnvelope redEnvelope) {
             RedEnvelopeChannel channel = redEnvelope.getChannel();
-            // todo 考虑有缓存的情况下 redEnvelope 的channel会为null,上线24h后可以修改
+
             if (Objects.nonNull(channel) && !RedEnvelopeChannel.CHAT.equals(channel)) {
                 return;
             }
@@ -811,7 +787,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         }
 
         ConfigService bean = ApplicationContextTool.getBean(ConfigService.class);
-        Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
+        bean = Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
         return bean
                 .getOrDefault(WALLET_NEWS_SERVER_URL, "https://wallet-news.giantdt.com")
                 + "/api/openapi/red/extern/get?content="
@@ -821,7 +797,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     public static void main(String[] args) {
 
         String s = PBE.encryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, "1757699208289090917");
-        System.out.println(s);
+        log.info(s);
     }
 
 

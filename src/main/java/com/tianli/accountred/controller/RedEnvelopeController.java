@@ -155,7 +155,7 @@ public class RedEnvelopeController {
     public Result<Void> back(@RequestBody IdsQuery idsQuery) {
         Long rid = idsQuery.getId();
         Long uid = requestInitService.uid();
-        redEnvelopeService.back(uid, rid);
+        redEnvelopeService.backRed(uid, rid);
         return new Result<>();
     }
 

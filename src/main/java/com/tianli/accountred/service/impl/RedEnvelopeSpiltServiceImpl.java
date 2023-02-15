@@ -9,6 +9,7 @@ import com.google.common.base.MoreObjects;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.accountred.convert.RedEnvelopeConvert;
+import com.tianli.accountred.dto.RedEnvelopStatusDTO;
 import com.tianli.accountred.dto.RedEnvelopeGetDTO;
 import com.tianli.accountred.dto.RedEnvelopeSpiltDTO;
 import com.tianli.accountred.entity.RedEnvelope;
@@ -192,8 +193,21 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     }
 
     @Override
-    public RedEnvelopeExchangeCodeVO getExternOperationRedis(RedEnvelope redEnvelope, String ipKey, String fingerprintKey) {
-        var rid = redEnvelope.getId();
+    public RedEnvelopeExchangeCodeVO getExchangeCode(Long rid, String ipKey, String fingerprintKey) {
+
+        RedEnvelope redEnvelope = Optional.ofNullable(redEnvelopeService.getWithCache(rid))
+                .orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
+
+        // 只支持站外红包
+        if (!RedEnvelopeChannel.EXTERN.equals(redEnvelope.getChannel())) {
+            ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
+        }
+
+        // 等待、失败、过期、结束
+        if (!RedEnvelopeStatus.valid(redEnvelope.getStatus())) {
+            return new RedEnvelopeExchangeCodeVO(redEnvelope.getStatus());
+        }
+
         UUID uuid = UUID.randomUUID();
         String externKey = RedisConstants.RED_EXTERN + rid; // 用于获取可领取code
         String exchangeCodeKey = RedisConstants.RED_EXTERN_CODE + uuid; // 设置缓存:验证码和红包信息对应
@@ -243,7 +257,8 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
             ErrorCodeEnum.throwException("站外红包ZSET不存在");
         }
         if ("FINISH".equals(result)) {
-            return getLatestExpireRedVO(externKey, now);
+            RedEnvelopStatusDTO dto = getLatestExpireDTO(externKey, now);
+            return new RedEnvelopeExchangeCodeVO(dto.getStatus(), dto.getLatestExpireTime());
         }
 
         RedEnvelopeSpilt redEnvelopeSpilt = JSONUtil.toBean(result, RedEnvelopeSpilt.class);
@@ -263,7 +278,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
 
     }
 
-    public RedEnvelopeExchangeCodeVO getRedVO(String externKey, long now) {
+    public RedEnvelopStatusDTO getNotExpireDTO(String externKey, long now) {
         var typedTuples =
                 stringRedisTemplate.opsForZSet()
                         .rangeByScoreWithScores(externKey, 0, now, 0, 1);
@@ -271,15 +286,31 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
             return null;
         }
 
-        return new RedEnvelopeExchangeCodeVO(RedEnvelopeStatus.PROCESS);
+        return new RedEnvelopStatusDTO(RedEnvelopeStatus.PROCESS);
     }
 
-    public RedEnvelopeExchangeCodeVO getLatestExpireRedVO(String externKey, long now) {
+    @Override
+    public RedEnvelopStatusDTO getIpOrFingerDTO(String ip, String fingerprint) {
+        String ipKey = RedisConstants.RED_ENVELOPE_LIMIT + ip;
+        String fingerprintKey = RedisConstants.RED_ENVELOPE_LIMIT + fingerprint;
+        // EXCHANGE WAIT_EXCHANGE
+        RedEnvelopeExchangeCodeVO vo;
+        if ((vo = this.getInfo(fingerprintKey)) != null
+                || (vo = this.getInfo(ipKey)) != null) {
+            RedEnvelopeSpilt redEnvelopeSpilt = this.getById(vo.getSpiltRid());
+            vo.setStatus(redEnvelopeSpilt.isReceive() ? RedEnvelopeStatus.EXCHANGE
+                    : RedEnvelopeStatus.WAIT_EXCHANGE);
+            return (RedEnvelopStatusDTO) vo;
+        }
+        return null;
+    }
+
+    public RedEnvelopStatusDTO getLatestExpireDTO(String externKey, long now) {
         var typedTuples =
                 stringRedisTemplate.opsForZSet()
                         .rangeByScoreWithScores(externKey, now, Double.MAX_VALUE, 0, 1);
         if (CollectionUtils.isEmpty(typedTuples)) {
-            return new RedEnvelopeExchangeCodeVO(RedEnvelopeStatus.FINISH);
+            return new RedEnvelopStatusDTO(RedEnvelopeStatus.FINISH);
         }
 
         var tuple = new ArrayList<>(typedTuples).get(0);
@@ -287,32 +318,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 Optional.ofNullable(tuple.getScore()).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
         LocalDateTime dateTime =
                 LocalDateTime.ofEpochSecond(score.longValue() / 1000, 0, ZoneOffset.ofHours(8));
-        return new RedEnvelopeExchangeCodeVO(RedEnvelopeStatus.FINISH_TEMP, dateTime);
-    }
-
-    @Override
-    public RedEnvelopeExchangeCodeVO getInfo(String key) {
-        String cache = stringRedisTemplate.opsForValue().get(key);
-        if (StringUtils.isBlank(cache)) {
-            return null;
-        }
-        Long timestamp = JSONUtil.parse(cache).getByPath("timestamp", Long.class);
-        String exchangeCode = JSONUtil.parse(cache).getByPath("exchangeCode", String.class);
-        RedEnvelopeSpiltDTO dto = JSONUtil.toBean(cache, RedEnvelopeSpiltDTO.class);
-        RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.valueOf(dto.getRid()));
-        CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
-        return RedEnvelopeExchangeCodeVO.builder()
-                .receiveAmount(dto.getAmount())
-                .exchangeCode(exchangeCode)
-                .coin(redEnvelope.getCoin())
-                .usdtRate(currencyService.huobiUsdtRate(redEnvelope.getCoin()))
-                .usdtCnyRate(BigDecimal.valueOf(digitalCurrencyExchange.usdtCnyPrice()))
-                .totalAmount(redEnvelope.getTotalAmount())
-                .flag(redEnvelope.getFlag())
-                .spiltRid(dto.getId())
-                .coinUrl(coinBase.getLogo())
-                .latestExpireTime(LocalDateTime.ofEpochSecond(timestamp / 1000, 0, ZoneOffset.ofHours(8)))
-                .build();
+        return new RedEnvelopStatusDTO(RedEnvelopeStatus.FINISH_TEMP, dateTime);
     }
 
     @Override
@@ -373,4 +379,27 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         return JSONUtil.toBean(cache, RedEnvelopeSpiltDTO.class);
     }
 
+    private RedEnvelopeExchangeCodeVO getInfo(String key) {
+        String cache = stringRedisTemplate.opsForValue().get(key);
+        if (StringUtils.isBlank(cache)) {
+            return null;
+        }
+        Long timestamp = JSONUtil.parse(cache).getByPath("timestamp", Long.class);
+        String exchangeCode = JSONUtil.parse(cache).getByPath("exchangeCode", String.class);
+        RedEnvelopeSpiltDTO dto = JSONUtil.toBean(cache, RedEnvelopeSpiltDTO.class);
+        RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.valueOf(dto.getRid()));
+        CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
+        return RedEnvelopeExchangeCodeVO.builder()
+                .receiveAmount(dto.getAmount())
+                .exchangeCode(exchangeCode)
+                .coin(redEnvelope.getCoin())
+                .usdtRate(currencyService.huobiUsdtRate(redEnvelope.getCoin()))
+                .usdtCnyRate(BigDecimal.valueOf(digitalCurrencyExchange.usdtCnyPrice()))
+                .totalAmount(redEnvelope.getTotalAmount())
+                .flag(redEnvelope.getFlag())
+                .spiltRid(dto.getId())
+                .coinUrl(coinBase.getLogo())
+                .latestExpireTime(LocalDateTime.ofEpochSecond(timestamp / 1000, 0, ZoneOffset.ofHours(8)))
+                .build();
+    }
 }

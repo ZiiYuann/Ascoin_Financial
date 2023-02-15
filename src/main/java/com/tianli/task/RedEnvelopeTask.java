@@ -31,7 +31,7 @@ public class RedEnvelopeTask {
         RLock lock = redissonClient.getLock(RedisLockConstants.RED_ENVELOPE_EXPIRATION + nowString);
         try {
             lock.lock();
-            redEnvelopeService.redEnvelopeExpiration(now);
+            redEnvelopeService.expireRed(now);
         } finally {
             lock.unlock();
         }

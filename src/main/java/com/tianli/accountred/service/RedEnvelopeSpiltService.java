@@ -1,6 +1,7 @@
 package com.tianli.accountred.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tianli.accountred.dto.RedEnvelopStatusDTO;
 import com.tianli.accountred.dto.RedEnvelopeGetDTO;
 import com.tianli.accountred.dto.RedEnvelopeSpiltDTO;
 import com.tianli.accountred.entity.RedEnvelope;
@@ -46,24 +47,22 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
     List<RedEnvelopeSpilt> getRedEnvelopeSpilt(Long rid, boolean receive);
 
     /**
-     * 领取站外子红包(未实领)
+     * 获取兑换码
      *
-     * @param redEnvelope 红包参数
      */
-    RedEnvelopeExchangeCodeVO getExternOperationRedis(RedEnvelope redEnvelope, String ipKey, String fingerprintKey);
+    RedEnvelopeExchangeCodeVO getExchangeCode(Long rid, String ipKey, String fingerprintKey);
 
     /**
-     * 获取最新一个过期时间的红包
+     * 获取临近当前时间最近的过期 时间信息
      */
-    RedEnvelopeExchangeCodeVO getLatestExpireRedVO(String externKey, long now);
+    RedEnvelopStatusDTO getLatestExpireDTO(String externKey, long now);
 
     /**
-     * 获取还未过期的一个红包
+     * 获取小于当前时间红包状态信息
      */
-    RedEnvelopeExchangeCodeVO getRedVO(String externKey, long now);
+    RedEnvelopStatusDTO getNotExpireDTO(String externKey, long now);
 
-    // 没必要的接口，前端不愿意加缓存非要后端加
-    RedEnvelopeExchangeCodeVO getInfo(String key);
+    RedEnvelopStatusDTO getIpOrFingerDTO(String ip, String fingerprint);
 
     /**
      * 获取红包领取记录VO（站外实未领取，分页50条一页）
