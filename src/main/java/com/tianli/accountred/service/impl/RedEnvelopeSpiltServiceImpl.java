@@ -227,7 +227,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 "redis.call('SET',ipKey,cjson.encode(spiltRed))\n" +
                 "redis.call('SET',fingerprintKey,cjson.encode(spiltRed))\n" +
                 "redis.call('EXPIRE',ipKey,termOfValidity)\n" +
-                "redis.call('EXPIRE',ipKey,termOfValidity)\n" +
+                "redis.call('EXPIRE',fingerprintKey,termOfValidity)\n" +
                 "return spiltReds[1]";
         DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
         redisScript.setResultType(String.class);
