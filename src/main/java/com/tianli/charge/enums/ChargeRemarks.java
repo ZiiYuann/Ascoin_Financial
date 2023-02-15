@@ -49,10 +49,10 @@ public enum ChargeRemarks {
     return_gas_success("Gas费已到账", "Gas Fee Received", ChargeType.return_gas, ChargeStatus.chain_success),
     airdrop_success("空投到账", "Airdrop Received", ChargeType.airdrop, ChargeStatus.chain_success),
     gold_exchange_success("金币兑换到账", "Gold Exchange Received", ChargeType.gold_exchange, ChargeStatus.chain_success),
-    points_sale_success("积分销售成功", "Points sale successful", ChargeType.points_sale, ChargeStatus.chain_success),
-    points_withdrawal_success(" 积分提现成功", "Points withdrawal successful", ChargeType.points_withdrawal, ChargeStatus.chain_success),
-    points_payment_success("积分购买成功", "Points payment successful", ChargeType.points_payment, ChargeStatus.chain_success),
-    points_return_success("积分返还成功", "Points return successful", ChargeType.points_return, ChargeStatus.chain_success),
+    user_credit_in_success("用户上分划入成功", "User credit in successful", ChargeType.user_credit_in, ChargeStatus.chain_success),
+    user_credit_out_success(" 用户下分划出成功", "User credit out successful", ChargeType.user_credit_out, ChargeStatus.chain_success),
+    credit_out_success("上分划出成功", "Credit out successful", ChargeType.credit_out, ChargeStatus.chain_success),
+    credit_in_success("下分划入成功", "Credit in successful", ChargeType.credit_in, ChargeStatus.chain_success),
     ;
 
     ChargeRemarks(String remarks, String remarksEn, ChargeType type, ChargeStatus status) {

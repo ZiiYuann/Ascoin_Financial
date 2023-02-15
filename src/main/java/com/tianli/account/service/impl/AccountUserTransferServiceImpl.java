@@ -53,17 +53,17 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
 
         String orderNo = null;
 
-        if (ChargeType.points_sale.equals(query.getChargeType())) {
+        if (ChargeType.user_credit_in.equals(query.getChargeType())) {
             orderNo = transferOperation(accountUserTransferId,
-                    query.getTransferUid(), ChargeType.points_payment,
-                    query.getReceiveUid(), ChargeType.points_sale,
+                    query.getTransferUid(), ChargeType.credit_out,
+                    query.getReceiveUid(), ChargeType.user_credit_in,
                     coin, amount);
         }
 
-        if (ChargeType.points_withdrawal.equals(query.getChargeType())) {
+        if (ChargeType.user_credit_out.equals(query.getChargeType())) {
             orderNo = transferOperation(accountUserTransferId,
-                    query.getTransferUid(), ChargeType.points_withdrawal,
-                    query.getReceiveUid(), ChargeType.points_return,
+                    query.getTransferUid(), ChargeType.user_credit_out,
+                    query.getReceiveUid(), ChargeType.credit_in,
                     coin, amount);
         }
 
