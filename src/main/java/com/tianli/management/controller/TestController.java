@@ -174,7 +174,7 @@ public class TestController {
         JSONObject jsonObject = JSONUtil.parseObj(str);
         String key = jsonObject.getStr("key");
         String value = jsonObject.getStr("value");
-        stringRedisTemplate.opsForValue().set(key, value, 100, TimeUnit.SECONDS);
+        stringRedisTemplate.opsForValue().set(key, value, 1, TimeUnit.DAYS);
         return Result.success();
     }
 
