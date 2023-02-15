@@ -55,10 +55,10 @@ public enum AccountChangeType {
     return_gas("RG"),
     airdrop("AIR"),
     gold_exchange("GE"),
-    points_sale("PS"),
-    points_withdrawal("PW"),
-    points_payment("PP"),
-    points_return("PR"),
+    user_credit_in("UCI"),
+    user_credit_out("UCO"),
+    credit_out("CO"),
+    credit_in("CI"),
     swap_reward("SR"),
     ;
 
