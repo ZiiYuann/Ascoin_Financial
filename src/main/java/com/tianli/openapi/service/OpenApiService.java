@@ -141,7 +141,8 @@ public class OpenApiService {
     public IdDto transfer(OpenapiOperationQuery query) {
         if (!ChargeType.transfer_increase.equals(query.getType())
                 && !ChargeType.transfer_reduce.equals(query.getType())
-                && !ChargeType.airdrop.equals(query.getType())) {
+                && !ChargeType.airdrop.equals(query.getType())
+                && !ChargeType.swap_reward.equals(query.getType())) {
             ErrorCodeEnum.throwException("当前接口交易类型不匹配");
         }
 
@@ -171,7 +172,8 @@ public class OpenApiService {
                 .build();
         orderService.save(newOrder);
 
-        if (ChargeType.transfer_increase.equals(query.getType()) || ChargeType.airdrop.equals(query.getType())) {
+        if (ChargeType.transfer_increase.equals(query.getType())
+                || ChargeType.airdrop.equals(query.getType()) || ChargeType.swap_reward.equals(query.getType())) {
             accountBalanceServiceImpl.increase(query.getUid(), query.getType(), query.getCoin()
                     , query.getAmount(), newOrder.getOrderNo(), query.getType().getNameZn());
         }
