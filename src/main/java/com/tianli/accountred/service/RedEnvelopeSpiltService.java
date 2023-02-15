@@ -52,6 +52,16 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
      */
     RedEnvelopeExchangeCodeVO getExternOperationRedis(RedEnvelope redEnvelope, String ipKey, String fingerprintKey);
 
+    /**
+     * 获取最新一个过期时间的红包
+     */
+    RedEnvelopeExchangeCodeVO getLatestExpireRedVO(String externKey, long now);
+
+    /**
+     * 获取还未过期的一个红包
+     */
+    RedEnvelopeExchangeCodeVO getRedVO(String externKey, long now);
+
     // 没必要的接口，前端不愿意加缓存非要后端加
     RedEnvelopeExchangeCodeVO getInfo(String key);
 
@@ -71,13 +81,5 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
      * @return 拆分红包信息
      */
     RedEnvelopeSpiltDTO getRedEnvelopeSpiltDTOCache(String exchangeCode);
-
-    /**
-     * 删除兑换码信息
-     *
-     * @param rid 兑换码
-     * @param uid 兑换码
-     */
-    void deleteExchangeCode(String exchangeCode, Long rid, Long uid);
 
 }

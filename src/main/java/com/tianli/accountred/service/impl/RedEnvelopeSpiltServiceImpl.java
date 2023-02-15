@@ -201,7 +201,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         String exchangeCodeExpireTime = "2";
         long now = System.currentTimeMillis();
         // 取出小于当前时间的红包，并且设置一个新的过期时间（当前时间 + 2小时）
-        String script = "local key = KEYS[1]\n" +
+        String script = "local externKey = KEYS[1]\n" +
                 "local key2 = KEYS[2]\n" +
                 "local key3 = KEYS[3]\n" +
                 "local ipKey = KEYS[4]\n" +
@@ -209,15 +209,15 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 "local currentMs = tonumber(ARGV[1]) \n" +
                 "local uuid = ARGV[2] \n" +
                 "local termOfValidity =  tonumber(ARGV[3]) * 60 * 60 \n" +
-                "if  redis.call('EXISTS', key) == 0 then\n" +
+                "if  redis.call('EXISTS', externKey) == 0 then\n" +
                 "    return 'NOT_EXIST'\n" +
                 "end\n" +
-                "local spiltReds = redis.call('ZRANGEBYSCORE',key,0,currentMs,'LIMIT',0,1)\n" +
+                "local spiltReds = redis.call('ZRANGEBYSCORE',externKey,0,currentMs,'LIMIT',0,1)\n" + //获取过期时间下（now）的记录
                 "if spiltReds[1] == nil then\n" +
                 "    return 'FINISH'\n" +
                 "end\n" +
                 "local score = currentMs + termOfValidity * 1000 \n" +
-                "redis.call('ZADD',key,score,spiltReds[1])\n" +
+                "redis.call('ZADD',externKey,score,spiltReds[1])\n" +  // 更新一下score
                 "redis.call('ZADD',key3,currentMs,spiltReds[1])\n" +
                 "local spiltRed = cjson.decode(spiltReds[1]) \n" +
                 "spiltRed.timestamp = score \n" +
@@ -243,20 +243,9 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
             ErrorCodeEnum.throwException("站外红包ZSET不存在");
         }
         if ("FINISH".equals(result)) {
-            var typedTuples =
-                    stringRedisTemplate.opsForZSet()
-                            .rangeByScoreWithScores(externKey, now, Double.MAX_VALUE, 0, 1);
-            if (CollectionUtils.isEmpty(typedTuples)) {
-                return new RedEnvelopeExchangeCodeVO(RedEnvelopeStatus.FINISH);
-            }
-
-            var tuple = new ArrayList<>(typedTuples).get(0);
-            Double score =
-                    Optional.ofNullable(tuple.getScore()).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
-            LocalDateTime dateTime =
-                    LocalDateTime.ofEpochSecond(score.longValue() / 1000, 0, ZoneOffset.ofHours(8));
-            return new RedEnvelopeExchangeCodeVO(RedEnvelopeStatus.FINISH_TEMP, dateTime);
+            return getLatestExpireRedVO(externKey, now);
         }
+
         RedEnvelopeSpilt redEnvelopeSpilt = JSONUtil.toBean(result, RedEnvelopeSpilt.class);
         CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
         return RedEnvelopeExchangeCodeVO.builder()
@@ -272,6 +261,33 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 .build();
 
 
+    }
+
+    public RedEnvelopeExchangeCodeVO getRedVO(String externKey, long now) {
+        var typedTuples =
+                stringRedisTemplate.opsForZSet()
+                        .rangeByScoreWithScores(externKey, 0, now, 0, 1);
+        if (CollectionUtils.isEmpty(typedTuples)) {
+            return null;
+        }
+
+        return new RedEnvelopeExchangeCodeVO(RedEnvelopeStatus.PROCESS);
+    }
+
+    public RedEnvelopeExchangeCodeVO getLatestExpireRedVO(String externKey, long now) {
+        var typedTuples =
+                stringRedisTemplate.opsForZSet()
+                        .rangeByScoreWithScores(externKey, now, Double.MAX_VALUE, 0, 1);
+        if (CollectionUtils.isEmpty(typedTuples)) {
+            return new RedEnvelopeExchangeCodeVO(RedEnvelopeStatus.FINISH);
+        }
+
+        var tuple = new ArrayList<>(typedTuples).get(0);
+        Double score =
+                Optional.ofNullable(tuple.getScore()).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
+        LocalDateTime dateTime =
+                LocalDateTime.ofEpochSecond(score.longValue() / 1000, 0, ZoneOffset.ofHours(8));
+        return new RedEnvelopeExchangeCodeVO(RedEnvelopeStatus.FINISH_TEMP, dateTime);
     }
 
     @Override
@@ -355,12 +371,6 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
             ErrorCodeEnum.RED_EXCHANGE_ERROR.throwException();
         }
         return JSONUtil.toBean(cache, RedEnvelopeSpiltDTO.class);
-    }
-
-    @Override
-    public void deleteExchangeCode(String exchangeCode, Long rid, Long uid) {
-        String exchangeCodeKey = RedisConstants.RED_EXTERN_CODE + exchangeCode;
-
     }
 
 }

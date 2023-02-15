@@ -81,7 +81,6 @@ public class OpenApiRedController {
             return new Result<>(vo);
         }
 
-
         vo = redEnvelopeService.getExternCode(Long.parseLong(id), ipKey, fingerprintKey);
         return new Result<>(vo);
     }
@@ -90,14 +89,24 @@ public class OpenApiRedController {
      * 没必要的接口，前端不愿意加缓存非要后端加
      */
     @GetMapping("/extern")
-    public Result<RedEnvelopeExchangeCodeVO> externRedGet(@RequestHeader("fingerprint") String fingerprint
-            , HttpServletRequest request) {
+    public Result<RedEnvelopeExchangeCodeVO> extern(@RequestHeader("fingerprint") String fingerprint
+            , HttpServletRequest request, OpenapiRedQuery query) {
+        String rid = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, query.getContext());
+        RedEnvelopeExchangeCodeVO vo;
+
+        RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.valueOf(rid));
+        if (!RedEnvelopeStatus.valid(redEnvelope.getStatus())) {
+            // FINISH OVERDUE
+            vo = new RedEnvelopeExchangeCodeVO(redEnvelope.getStatus());
+            return new Result<>(vo);
+        }
+
         String ip = IPUtils.getIpAddress(request);
 
         String ipKey = RedisConstants.RED_ENVELOPE_LIMIT + ip;
         String fingerprintKey = RedisConstants.RED_ENVELOPE_LIMIT + fingerprint;
 
-        RedEnvelopeExchangeCodeVO vo;
+        // EXCHANGE WAIT_EXCHANGE
         if ((vo = redEnvelopeService.getExternCode(fingerprintKey)) != null
                 || (vo = redEnvelopeService.getExternCode(ipKey)) != null) {
             RedEnvelopeSpilt redEnvelopeSpilt = redEnvelopeSpiltService.getById(vo.getSpiltRid());
@@ -106,6 +115,15 @@ public class OpenApiRedController {
             return new Result<>(vo);
         }
 
+        // PROCESS
+        String externKey = RedisConstants.RED_EXTERN + rid;
+        long now = System.currentTimeMillis();
+        if ((vo = redEnvelopeSpiltService.getRedVO(externKey, now)) != null) {
+            return new Result<>(vo);
+        }
+
+        // FINISH_TEMP
+        vo = redEnvelopeSpiltService.getLatestExpireRedVO(externKey, now);
         return new Result<>(vo);
     }
 
