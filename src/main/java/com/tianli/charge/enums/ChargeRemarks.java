@@ -53,6 +53,7 @@ public enum ChargeRemarks {
     points_withdrawal_success(" 积分提现成功", "Points withdrawal successful", ChargeType.points_withdrawal, ChargeStatus.chain_success),
     points_payment_success("积分购买成功", "Points payment successful", ChargeType.points_payment, ChargeStatus.chain_success),
     points_return_success("积分返还成功", "Points return successful", ChargeType.points_return, ChargeStatus.chain_success),
+    swap_reward_success("奖励到账", "Reward return successful", ChargeType.swap_reward, ChargeStatus.chain_success),
     ;
 
     ChargeRemarks(String remarks, String remarksEn, ChargeType type, ChargeStatus status) {
