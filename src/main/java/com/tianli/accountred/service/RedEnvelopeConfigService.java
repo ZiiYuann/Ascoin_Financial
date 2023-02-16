@@ -17,7 +17,8 @@ public interface RedEnvelopeConfigService extends IService<RedEnvelopeConfig> {
      *
      * @param query 请求参数
      */
-    void saveOrUpdate(RedEnvelopeConfigIoUQuery query);
+    void saveOrUpdate(String nickName,RedEnvelopeConfigIoUQuery query);
+
 
     /**
      * 通过币别和渠道获相对应的配置
