@@ -298,9 +298,12 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         if ((vo = this.getInfo(fingerprintKey)) != null
                 || (vo = this.getInfo(ipKey)) != null) {
             RedEnvelopeSpilt redEnvelopeSpilt = this.getById(vo.getSpiltRid());
-            vo.setStatus(redEnvelopeSpilt.isReceive() ? RedEnvelopeStatus.EXCHANGE
+
+            RedEnvelopStatusDTO redEnvelopStatusDTO = JSONUtil.parse(vo).toBean(RedEnvelopStatusDTO.class);
+
+            redEnvelopStatusDTO.setStatus(redEnvelopeSpilt.isReceive() ? RedEnvelopeStatus.EXCHANGE
                     : RedEnvelopeStatus.WAIT_EXCHANGE);
-            return (RedEnvelopStatusDTO) vo;
+            return redEnvelopStatusDTO;
         }
         return null;
     }

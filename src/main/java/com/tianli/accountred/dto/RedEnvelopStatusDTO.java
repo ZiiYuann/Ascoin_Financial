@@ -17,11 +17,15 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class RedEnvelopStatusDTO extends RedEnvelopeExchangeCodeVO {
 
-    private RedEnvelopeStatus status;
 
     private LocalDateTime latestExpireTime;
 
     public RedEnvelopStatusDTO(RedEnvelopeStatus status) {
-        this.status = status;
+        super.setStatus(status);
+    }
+
+    public RedEnvelopStatusDTO(RedEnvelopeStatus status, LocalDateTime latestExpireTime) {
+        this.latestExpireTime = latestExpireTime;
+        super.setStatus(status);
     }
 }
