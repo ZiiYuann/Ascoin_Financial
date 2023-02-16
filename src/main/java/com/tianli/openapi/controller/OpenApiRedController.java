@@ -2,7 +2,6 @@ package com.tianli.openapi.controller;
 
 import com.tianli.accountred.dto.RedEnvelopStatusDTO;
 import com.tianli.accountred.entity.RedEnvelope;
-import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.enums.RedEnvelopeStatus;
 import com.tianli.accountred.service.RedEnvelopeService;
@@ -14,6 +13,7 @@ import com.tianli.common.Constants;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisConstants;
 import com.tianli.exception.Result;
+import com.tianli.mconfig.ConfigService;
 import com.tianli.openapi.query.OpenapiRedQuery;
 import com.tianli.rpc.RpcService;
 import com.tianli.rpc.dto.UserInfoDTO;
@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Locale;
 
 /**
  * @author chenb
@@ -42,6 +43,8 @@ public class OpenApiRedController {
     private RedEnvelopeSpiltService redEnvelopeSpiltService;
     @Resource
     private RpcService rpcService;
+    @Resource
+    private ConfigService configService;
 
 
     /**
@@ -133,4 +136,23 @@ public class OpenApiRedController {
                 .build();
         return new Result<>(vo);
     }
+
+    @GetMapping("/redPackage")
+    public String redPackage(OpenapiRedQuery query) {
+        return this.openRedPackage(query);
+    }
+
+    @GetMapping("/openRedPackage")
+    public String openRedPackage(OpenapiRedQuery query) {
+        String rid = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, query.getContext());
+        RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.parseLong(rid));
+        UserInfoDTO userInfoDTO = rpcService.userInfoDTO(redEnvelope.getUid());
+        String url = configService.getOrDefault("telegram_red_share_url"
+                , "https://www.assurepro.io/AssureRedpacket/index.html");
+        String html = rpcService.html(url);
+        html = html.replace("$[username]", userInfoDTO.getNickname());
+        html = html.replace("$[shareMoney]", redEnvelope.getAmount().toPlainString() + redEnvelope.getCoin().toUpperCase(Locale.ROOT));
+        return html;
+    }
+
 }

@@ -20,6 +20,8 @@ public class CoinMapVO {
 
     private int withdrawDecimals;
 
+    private String coinUrl;
+
     private List<CoinVO> coins;
 
 }

@@ -60,4 +60,17 @@ public class RpcService {
         throw ErrorCodeEnum.NETWORK_ERROR.generalException();
     }
 
+    public String html(String url) {
+        CloseableHttpClient client = HttpClients.createDefault();
+        HttpGet httpGet = new HttpGet(url);
+        httpGet.setHeader("Content-Type", "application/json; charset=UTF-8");
+        try {
+            HttpResponse httpResponse = client.execute(httpGet);
+            return EntityUtils.toString(httpResponse.getEntity());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        throw ErrorCodeEnum.NETWORK_ERROR.generalException();
+    }
+
 }
