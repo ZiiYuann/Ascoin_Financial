@@ -36,10 +36,7 @@ import com.tianli.charge.vo.OrderBaseVO;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderRechargeDetailsVo;
 import com.tianli.charge.vo.OrderSettleRecordVO;
-import com.tianli.common.CommonFunction;
-import com.tianli.common.ConfigConstants;
-import com.tianli.common.RedisConstants;
-import com.tianli.common.RedisService;
+import com.tianli.common.*;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
@@ -60,10 +57,14 @@ import com.tianli.management.service.IWalletAgentService;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.openapi.service.OrderRewardRecordService;
 import com.tianli.sso.init.RequestInitService;
+import com.tianli.tool.ApplicationContextTool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -194,18 +195,17 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      *
      * @param str 提现信息
      */
-    @Transactional
     public void withdrawCallback(ChainType chainType, String str) {
         var jsonArray = JSONUtil.parseObj(str).getJSONArray("token");
         var standardCurrencyArray = JSONUtil.parseObj(str).getJSONArray("standardCurrency");
 
         List<TRONTokenReq> tokenReqs = JSONUtil.toList(jsonArray, TRONTokenReq.class);
         List<TRONTokenReq> mainTokenReqs = JSONUtil.toList(standardCurrencyArray, TRONTokenReq.class);
-        withdrawOperation(tokenReqs, chainType, false);
-        withdrawOperation(mainTokenReqs, chainType, true);
+        withdrawOperation(tokenReqs, chainType);
+        withdrawOperation(mainTokenReqs, chainType);
     }
 
-    private void withdrawOperation(List<TRONTokenReq> tronTokenReqs, ChainType chainType, boolean mainToken) {
+    private void withdrawOperation(List<TRONTokenReq> tronTokenReqs, ChainType chainType) {
         if (CollectionUtils.isEmpty(tronTokenReqs)) {
             return;
         }
@@ -222,14 +222,29 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
             Order order = Objects.isNull(address) ? orderService.getOrderByHash(req.getHash(), ChargeType.withdraw)
                     : orderService.getOrderByHashExcludeUid(address.getUid(), req.getHash(), ChargeType.withdraw);
-            orderReviewService.withdrawSuccess(order, orderChargeInfo);
+
+            RLock rLock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW + order.getUid() + ":" + order.getCoin()); // 提现回调锁
+
+            try {
+                boolean lock = rLock.tryLock(10, TimeUnit.SECONDS);
+                if (lock) {
+                    // 只有这步受到事务的限制
+                    orderReviewService.withdrawSuccess(order, orderChargeInfo);
+                }
+                webHookService.dingTalkSend("提现回调超时！！！！！" + orderChargeInfo.getTxid());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                webHookService.dingTalkSend("提现回调失败！！！！！" + orderChargeInfo.getTxid(), e);
+            } finally {
+                rLock.unlock();
+            }
+
         }
     }
 
     /**
      * 提现申请
      */
-    @Transactional
     public Long withdrawApply(Long uid, WithdrawQuery query) {
         Coin coin = coinService.getByNameAndNetwork(query.getCoin(), query.getNetwork());
 
@@ -295,7 +310,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .toAddress(query.getTo()) // 用户提现地址
                 .createTime(now)
                 .build();
-        orderService.insert(orderChargeInfo);
 
         //创建提现订单(提币申请)
         long id = CommonFunction.generalId();
@@ -309,11 +323,11 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         order.setCoin(coin.getName());
         order.setCreateTime(now);
         order.setRelatedId(orderChargeInfo.getId());
-        orderService.save(order);
 
-        //冻结提现数额
-        accountBalanceServiceImpl.freeze(uid, ChargeType.withdraw, coin.getName(), coin.getNetwork()
-                , withdrawAmount, order.getOrderNo(), CurrencyLogDes.提现.name());
+        ChargeService chargeService = ApplicationContextTool.getBean(ChargeService.class);
+        chargeService = Optional.ofNullable(chargeService).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
+        chargeService.commitWithdrawTransaction(uid, coin, withdrawAmount, orderChargeInfo, order);
+
 
         OrderReviewStrategy strategy = withdrawReviewStrategy.getStrategy(order, orderChargeInfo, true);
         if (!OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy)) {
@@ -337,31 +351,29 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         return order.getId();
     }
 
+
+    /**
+     * 提现操作订单和账号的事务提前提交，以免后续自动审核异常导致的回滚
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void commitWithdrawTransaction(Long uid, Coin coin, BigDecimal withdrawAmount, OrderChargeInfo orderChargeInfo, Order order) {
+        orderService.insert(orderChargeInfo);
+        orderService.save(order);
+        //冻结提现数额
+        accountBalanceServiceImpl.freeze(uid, ChargeType.withdraw, coin.getName(), coin.getNetwork()
+                , withdrawAmount, order.getOrderNo(), CurrencyLogDes.提现.name());
+    }
+
     /**
      * 提现上链
      */
     @Transactional
-    public void withdrawChain(Order order) {
-        if (Objects.isNull(order)) {
-            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException("订单为null");
-        }
-        if (!ChargeType.withdraw.equals(order.getType())) {
-            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException("仅有提现订单能操作");
-        }
-        if (!ChargeStatus.created.equals(order.getStatus())) {
-            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException("当前提现订单状态异常");
-        }
-        Long relatedId = order.getRelatedId();
-        OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(relatedId);
-        if (Objects.nonNull(orderChargeInfo.getTxid())) {
-            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException(String.format(
-                    "当前订单：[%s]已经在：[%s] 网络存在交易hash：[%s]", order.getOrderNo(), orderChargeInfo.getNetwork(), orderChargeInfo.getTxid()));
-        }
+    public String withdrawChain(Order order, OrderChargeInfo orderChargeInfo) {
 
         ContractOperation contractService = contractAdapter.getOne(orderChargeInfo.getNetwork());
         Coin coin = coinService.getByNameAndNetwork(orderChargeInfo.getCoin(), orderChargeInfo.getNetwork());
         BigInteger amount = TokenAdapter.restoreBigInteger(order.getAmount().subtract(order.getServiceAmount()), coin.getDecimals());
-        Result result = null;
+        Result<Object> result = null;
 
         /* 注册监听回调接口
          * {@link com.tianli.charge.controller.ChargeController#withdrawCallback(ChainType, String, String, String)}
@@ -374,18 +386,14 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         try {
             result = contractService.transfer(orderChargeInfo.getToAddress(), amount, coin);
         } catch (Exception e) {
-            log.info("上链失败");
-            e.printStackTrace();
-            ErrorCodeEnum.throwException("上链失败");
+            webHookService.dingTalkSend("上链失败", e);
+            return null;
         }
         if (Objects.isNull(result) || Objects.isNull(result.getData())) {
-            ErrorCodeEnum.throwException("上链失败");
+            return null;
         }
 
-
-        String txid = (String) result.getData();
-        orderChargeInfo.setTxid(txid);
-        orderChargeInfoService.updateById(orderChargeInfo);
+        return (String) result.getData();
     }
 
     /**
@@ -459,13 +467,13 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
 
-        FinancialRecord record = financialRecordService.selectById(order.getRelatedId(), uid);
-        OrderBaseVO orderBaseVO = getOrderBaseVO(order, record);
+        FinancialRecord financialRecord = financialRecordService.selectById(order.getRelatedId(), uid);
+        OrderBaseVO orderBaseVO = getOrderBaseVO(order, financialRecord);
         orderBaseVO.setChargeStatus(order.getStatus());
         orderBaseVO.setChargeType(order.getType());
         orderBaseVO.setOrderNo(order.getOrderNo());
         orderBaseVO.setAmount(order.getAmount());
-        orderBaseVO.setProductId(record.getProductId());
+        orderBaseVO.setProductId(financialRecord.getProductId());
 
         // 对于活期记录来说，因为持有是累加的，导致持有记录表中的申购时间是不对的，需要取订单表
         if (orderBaseVO instanceof OrderRechargeDetailsVo) {
@@ -475,26 +483,26 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         return orderBaseVO;
     }
 
-    private OrderBaseVO getOrderBaseVO(Order order, FinancialRecord record) {
-        FinancialProduct product = financialProductService.getById(record.getProductId());
+    private OrderBaseVO getOrderBaseVO(Order order, FinancialRecord financialRecord) {
+        FinancialProduct product = financialProductService.getById(financialRecord.getProductId());
         switch (order.getType()) {
             case purchase:
             case transfer:
-                var orderRechargeDetailsVo = chargeConverter.toOrderRechargeDetailsVo(record);
-                orderRechargeDetailsVo.setPurchaseTime(record.getPurchaseTime());
-                ExpectIncomeVO expectIncomeVO = financialProductService.expectIncome(record.getProductId(), order.getAmount());
+                var orderRechargeDetailsVo = chargeConverter.toOrderRechargeDetailsVo(financialRecord);
+                orderRechargeDetailsVo.setPurchaseTime(financialRecord.getPurchaseTime());
+                ExpectIncomeVO expectIncomeVO = financialProductService.expectIncome(financialRecord.getProductId(), order.getAmount());
                 orderRechargeDetailsVo.setExpectIncome(expectIncomeVO.getExpectIncome());
                 orderRechargeDetailsVo.setRateType(product.getRateType());
                 orderRechargeDetailsVo.setMaxRate(product.getMaxRate());
                 orderRechargeDetailsVo.setMinRate(product.getMinRate());
                 return orderRechargeDetailsVo;
             case redeem:
-                var orderRedeemDetailsVO = chargeConverter.toOrderRedeemDetailsVO(record);
+                var orderRedeemDetailsVO = chargeConverter.toOrderRedeemDetailsVO(financialRecord);
                 orderRedeemDetailsVO.setRedeemTime(order.getCreateTime());
                 orderRedeemDetailsVO.setRedeemEndTime(order.getCreateTime());
                 return orderRedeemDetailsVO;
             default:
-                return chargeConverter.toOrderBaseVO(record);
+                return chargeConverter.toOrderBaseVO(financialRecord);
         }
     }
 
@@ -647,9 +655,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             case bep20:
                 fromAddress = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
                 break;
-//            case btc:
-//                fromAddress = configService.get(ConfigConstants.BTC_MAIN_WALLET_ADDRESS);
-//                break;
             case erc20_arbitrum:
                 fromAddress = configService.get(ConfigConstants.ARBITRUM_MAIN_WALLET_ADDRESS);
                 break;
@@ -665,14 +670,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         if (fromAddress == null) ErrorCodeEnum.SYSTEM_ERROR.throwException();
         return fromAddress;
     }
-
-    /**
-     * 提现黑名单
-     */
-    public void withdrawBlack(Long uid) {
-
-    }
-
 
     @Resource
     private ConfigService configService;
@@ -720,4 +717,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     private WithdrawReviewStrategy withdrawReviewStrategy;
     @Resource
     private OccasionalAddressService occasionalAddressService;
+    @Resource
+    private RedissonClient redissonClient;
 }

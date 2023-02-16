@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.charge.entity.OrderChargeInfo;
 import com.tianli.charge.mapper.OrderChargeInfoMapper;
+import com.tianli.exception.ErrorCodeEnum;
 import org.springframework.stereotype.Service;
 
 /**
@@ -43,5 +44,12 @@ public class OrderChargeInfoService extends ServiceImpl<OrderChargeInfoMapper, O
         return this.baseMapper.selectOne(new LambdaQueryWrapper<OrderChargeInfo>()
                 .eq(OrderChargeInfo::getUid, uid)
                 .eq(OrderChargeInfo::getTxid, txid));
+    }
+
+    public void updateTxid(Long id, String txid) {
+        int i =this.baseMapper.updateTxid(id,txid);
+        if (i != 1) {
+            throw ErrorCodeEnum.TRADE_FAIL.generalException();
+        }
     }
 }

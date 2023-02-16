@@ -47,9 +47,9 @@ public class WebHookService {
     public void dingTalkSend(String msg, WebHookToken webHookToken) {
         String dev = configService._get("dev");
         if (StringUtils.isBlank(dev)) {
-            asyncService.async(() -> this.dingTalkSendOperation(MoreObjects.firstNonNull(dev, "") + msg, webHookToken));
+            asyncService.async(() -> this.sendOperation(MoreObjects.firstNonNull(dev, "") + msg, webHookToken));
         } else {
-            asyncService.async(() -> this.dingTalkSendOperation(MoreObjects.firstNonNull(dev, "") + msg, WebHookToken.BUG_PUSH));
+            asyncService.async(() -> this.sendOperation(MoreObjects.firstNonNull(dev, "") + msg, WebHookToken.BUG_PUSH));
         }
 
     }
@@ -64,9 +64,9 @@ public class WebHookService {
     public void fundSend(String msg) {
         String dev = configService._get("dev");
         if (StringUtils.isBlank(dev)) {
-            asyncService.async(() -> this.dingTalkSendOperation(msg, WebHookToken.FUND_PRODUCT));
+            asyncService.async(() -> this.sendOperation(msg, WebHookToken.FUND_PRODUCT));
         } else {
-            asyncService.async(() -> this.dingTalkSendOperation(msg, WebHookToken.BUG_PUSH));
+            asyncService.async(() -> this.sendOperation(msg, WebHookToken.BUG_PUSH));
         }
     }
 
@@ -87,19 +87,20 @@ public class WebHookService {
         jb.putOnce("title", MoreObjects.firstNonNull(dev, "") + (StringUtils.isBlank(msg) ? "异常信息" : msg));
         jb.putOnce("messageUrl", urlPre + "/api/errMmp/" + id);
         jb.putOnce("text", s);
-        DingDingUtil.linkType(jb, WebHookToken.BUG_PUSH.getToken(), WebHookToken.BUG_PUSH.getSecret());
+        this.sendOperation(jb, WebHookToken.BUG_PUSH);
     }
 
-    private void dingTalkSendOperation(String msg, WebHookToken webHookToken) {
+    private void sendOperation(Object msg, WebHookToken webHookToken) {
         boolean openWebHook = Boolean.parseBoolean(configService.getOrDefaultNoCache(ConfigConstants.OPEN_WEBHOOK_EXCEPTION_PUSH, "false"));
+        String dev = configService._get("dev");
+
+        if (StringUtils.isBlank(dev) && WebHookToken.BUG_PUSH.equals(webHookToken)) {
+            webHookToken = WebHookToken.PRO_BUG_PUSH;
+        }
         if (!openWebHook) {
             return;
         }
         DingDingUtil.textType(msg, webHookToken.getToken(), webHookToken.getSecret());
-    }
-
-    public static void send(String msg) {
-        DingDingUtil.textType(msg, WebHookToken.BUG_PUSH.getToken(), WebHookToken.BUG_PUSH.getSecret());
     }
 
 }
