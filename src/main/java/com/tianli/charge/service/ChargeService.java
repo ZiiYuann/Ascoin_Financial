@@ -230,8 +230,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 if (lock) {
                     // 只有这步受到事务的限制
                     orderReviewService.withdrawSuccess(order, orderChargeInfo);
+                } else {
+                    webHookService.dingTalkSend("提现回调超时！！！！！" + orderChargeInfo.getTxid());
                 }
-                webHookService.dingTalkSend("提现回调超时！！！！！" + orderChargeInfo.getTxid());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 webHookService.dingTalkSend("提现回调失败！！！！！" + orderChargeInfo.getTxid(), e);
