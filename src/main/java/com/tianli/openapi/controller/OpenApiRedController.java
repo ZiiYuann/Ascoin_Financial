@@ -76,7 +76,7 @@ public class OpenApiRedController {
         RedEnvelopStatusDTO redEnvelopStatusDTO;
         // EXCHANGE WAIT_EXCHANGE
         if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getIpOrFingerDTO(ip, fingerprint)) != null) {
-            return new Result<>(redEnvelopStatusDTO.getStatus());
+            return new Result<>(redEnvelopStatusDTO);
         }
 
         return new Result<>(redEnvelopeSpiltService.getExchangeCode(Long.parseLong(id), ipKey, fingerprintKey));
@@ -103,14 +103,14 @@ public class OpenApiRedController {
         RedEnvelopStatusDTO redEnvelopStatusDTO;
         // EXCHANGE WAIT_EXCHANGE
         if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getIpOrFingerDTO(ip, fingerprint)) != null) {
-            return new Result<>(redEnvelopStatusDTO.getStatus());
+            return new Result<>(redEnvelopStatusDTO);
         }
 
         // PROCESS
         String externKey = RedisConstants.RED_EXTERN + rid;
         long now = System.currentTimeMillis();
         if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getNotExpireDTO(externKey, now)) != null) {
-            return new Result<>(redEnvelopStatusDTO.getStatus());
+            return new Result<>(redEnvelopStatusDTO);
         }
 
         // FINISH_TEMP
