@@ -20,4 +20,6 @@ public class IdsQuery {
 
     private Long id;
 
+    private Long uid;
+
 }

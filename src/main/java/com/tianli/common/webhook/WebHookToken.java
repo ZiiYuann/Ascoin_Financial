@@ -11,7 +11,9 @@ public enum WebHookToken {
 
     // 异常通知 && 测试通知
     BUG_PUSH("1a1216a39f18e8022b6795014424a9fcf5d62a5f00d3666c11127b21841eb718"
-            ,"SEC52152f460aaf1c4c77592f46674aadf9592fcca6d99974b0b7fb74cd66f20be3")
+            ,"SEC52152f460aaf1c4c77592f46674aadf9592fcca6d99974b0b7fb74cd66f20be3"),
+    PRO_BUG_PUSH("4b8ddd72fc13cc7a929f9e77b138cd3a78b7898cf2648638ee11cc543b78c525"
+            ,"SECd98cf74417522963156c2489b5bf5c61449ccd8ec03bb07a6031d2c856f9c3bc")
     ;
 
     WebHookToken(String token, String secret) {

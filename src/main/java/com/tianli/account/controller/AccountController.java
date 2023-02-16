@@ -1,6 +1,5 @@
 package com.tianli.account.controller;
 
-import cn.hutool.json.JSONUtil;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.query.AccountDetailsQuery;
 import com.tianli.account.query.IdsQuery;
@@ -64,22 +63,19 @@ public class AccountController {
      * 激活钱包
      */
     @PostMapping("/activate/uid")
-    public Result activateWalletByUid(@RequestBody(required = false) String str) {
-        if (StringUtils.isBlank(str)) {
+    public Result activateWalletByUid(@RequestBody(required = false) IdsQuery idsQuery) {
+        if (Objects.isNull(idsQuery.getUid())) {
             ErrorCodeEnum.ACCOUNT_ACTIVATE_UID_NULL.throwException();
         }
-        Long uid = JSONUtil.parse(str).getByPath("uid", Long.class);
-        if (Objects.isNull(uid)) {
-            ErrorCodeEnum.ACCOUNT_ACTIVATE_UID_NULL.throwException();
-        }
-        return Result.success().setData(addressService.activityAccount(uid));
+
+        return Result.success().setData(addressService.activityAccount(idsQuery.getUid()));
     }
 
     /**
      * 激活钱包
      */
     @PostMapping("/activate/uids")
-    public Result activateWalletByUid(@RequestBody IdsQuery idsQuery) {
+    public Result activateWalletByUids(@RequestBody IdsQuery idsQuery) {
         try {
             addressService.activityAccount(idsQuery);
         } catch (Exception e) {
