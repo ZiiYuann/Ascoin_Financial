@@ -87,7 +87,7 @@ public class WebHookService {
         jb.putOnce("title", MoreObjects.firstNonNull(dev, "") + (StringUtils.isBlank(msg) ? "异常信息" : msg));
         jb.putOnce("messageUrl", urlPre + "/api/errMmp/" + id);
         jb.putOnce("text", s);
-        this.sendOperation(jb, WebHookToken.BUG_PUSH);
+        this.sendLinkOperation(jb, WebHookToken.BUG_PUSH);
     }
 
     private void sendOperation(Object msg, WebHookToken webHookToken) {
@@ -101,6 +101,19 @@ public class WebHookService {
             return;
         }
         DingDingUtil.textType(msg, webHookToken.getToken(), webHookToken.getSecret());
+    }
+
+    private void sendLinkOperation(Object msg, WebHookToken webHookToken) {
+        boolean openWebHook = Boolean.parseBoolean(configService.getOrDefaultNoCache(ConfigConstants.OPEN_WEBHOOK_EXCEPTION_PUSH, "false"));
+        String dev = configService._get("dev");
+
+        if (StringUtils.isBlank(dev) && WebHookToken.BUG_PUSH.equals(webHookToken)) {
+            webHookToken = WebHookToken.PRO_BUG_PUSH;
+        }
+        if (!openWebHook) {
+            return;
+        }
+        DingDingUtil.linkType(msg, webHookToken.getToken(), webHookToken.getSecret());
     }
 
 }
