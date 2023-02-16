@@ -223,7 +223,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             Order order = Objects.isNull(address) ? orderService.getOrderByHash(req.getHash(), ChargeType.withdraw)
                     : orderService.getOrderByHashExcludeUid(address.getUid(), req.getHash(), ChargeType.withdraw);
 
-            RLock rLock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW + order.getUid() + ":" + order.getCoin());
+            RLock rLock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW + order.getUid() + ":" + order.getCoin()); // 提现回调锁
 
             try {
                 boolean lock = rLock.tryLock(10, TimeUnit.SECONDS);
@@ -233,7 +233,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 }
                 webHookService.dingTalkSend("提现回调超时！！！！！" + orderChargeInfo.getTxid());
             } catch (InterruptedException e) {
-                e.printStackTrace();
                 Thread.currentThread().interrupt();
                 webHookService.dingTalkSend("提现回调失败！！！！！" + orderChargeInfo.getTxid(), e);
             } finally {
@@ -368,22 +367,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      * 提现上链
      */
     @Transactional
-    public String withdrawChain(Order order) {
-        if (Objects.isNull(order)) {
-            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException("订单为null");
-        }
-        if (!ChargeType.withdraw.equals(order.getType())) {
-            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException("仅有提现订单能操作");
-        }
-        if (!ChargeStatus.created.equals(order.getStatus())) {
-            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException("当前提现订单状态异常");
-        }
-        Long relatedId = order.getRelatedId();
-        OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(relatedId);
-        if (Objects.nonNull(orderChargeInfo.getTxid())) {
-            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException(String.format(
-                    "当前订单：[%s]已经在：[%s] 网络存在交易hash：[%s]", order.getOrderNo(), orderChargeInfo.getNetwork(), orderChargeInfo.getTxid()));
-        }
+    public String withdrawChain(Order order, OrderChargeInfo orderChargeInfo) {
 
         ContractOperation contractService = contractAdapter.getOne(orderChargeInfo.getNetwork());
         Coin coin = coinService.getByNameAndNetwork(orderChargeInfo.getCoin(), orderChargeInfo.getNetwork());
@@ -402,10 +386,10 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             result = contractService.transfer(orderChargeInfo.getToAddress(), amount, coin);
         } catch (Exception e) {
             webHookService.dingTalkSend("上链失败", e);
-            throw ErrorCodeEnum.UPLOAD_CHAIN_ERROR.generalException();
+            return null;
         }
         if (Objects.isNull(result) || Objects.isNull(result.getData())) {
-            throw ErrorCodeEnum.UPLOAD_CHAIN_ERROR.generalException();
+            return null;
         }
 
         return (String) result.getData();

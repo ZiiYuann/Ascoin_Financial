@@ -200,6 +200,20 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
     }
 
 
+    public void reviewOrder(String orderNo, Long orderReviewId) {
+        int i = orderMapper.reviewOrder(orderNo, orderReviewId);
+        if (i != 1) {
+            throw ErrorCodeEnum.TRADE_FAIL.generalException();
+        }
+    }
+
+    public void reviewOrderRollback(String orderNo) {
+        int i = orderMapper.reviewOrderRollback(orderNo);
+        if (i != 1) {
+            throw ErrorCodeEnum.TRADE_FAIL.generalException();
+        }
+    }
+
     @Resource
     private OrderMapper orderMapper;
     @Resource

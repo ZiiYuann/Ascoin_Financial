@@ -16,15 +16,18 @@ import com.tianli.charge.mapper.OrderReviewMapper;
 import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.vo.OrderReviewVO;
 import com.tianli.common.CommonFunction;
-import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.entity.HotWalletDetailed;
 import com.tianli.management.enums.HotWalletOperationType;
 import com.tianli.management.service.HotWalletDetailedService;
+import com.tianli.tool.ApplicationContextTool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -61,40 +64,24 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         return orderReviewVO;
     }
 
-    @Transactional
     public void review(OrderReviewQuery query) {
-        var orderNo = query.getOrderNo();
         Order order = orderService.getByOrderNo(query.getOrderNo());
-
-        validReviewOrder(orderNo, order);
-
-        // 订单详情
         OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
-        Coin coin = coinService.getByNameAndNetwork(orderChargeInfo.getCoin(), orderChargeInfo.getNetwork());
-        NetworkType network = orderChargeInfo.getNetwork();
 
-        // 判断热钱包余额是充足(如果不足则改成人工审核)
-        BigDecimal balance = contractAdapter.getBalance(network, coin);
-        if (Objects.isNull(query.getHash()) && query.isPass() && balance.compareTo(orderChargeInfo.getFee()) < 0) {
-            webHookService.dingTalkSend("热钱包余额不足：" + network.name() + ":" + coin.getName() + "钱包余额：" + balance.stripTrailingZeros().toPlainString() +
-                    " 提币金额：" + orderChargeInfo.getFee().stripTrailingZeros().toPlainString());
-            if (query.isAutoPass()) {
-                return;
-            } else {
-                throw ErrorCodeEnum.INSUFFICIENT_BALANCE.generalException();
-            }
+        this.validReviewOrder(order, orderChargeInfo);
+
+        Coin coin = coinService.getByNameAndNetwork(orderChargeInfo.getCoin(), orderChargeInfo.getNetwork());
+        if (!this.validHotWallet(query, coin, orderChargeInfo)) {
+            return;
         }
 
-
-        // 获取审核策略
+        // 获取审核策略(自动审核直接使用枚举，否则会增加提现次数)
         OrderReviewStrategy strategy = query.isAutoPass() ? OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER :
                 withdrawReviewStrategy.getStrategy(order, orderChargeInfo);
-        log.info("当前提现策略是 ： " + strategy.name());
-        // 人工审核人工打币判断
-        if (OrderReviewStrategy.MANUAL_REVIEW_MANUAL_TRANSFER.equals(strategy)
-                && StringUtils.isBlank(query.getHash()) && query.isPass()) {
-            ErrorCodeEnum.MANUAL_TRANSFER_HASH_NULL.throwException();
-        }
+        this.validWithdrawStrategy(query, strategy);
+
+        // 默认隔离级别取数据库 传播行为REQUIRED
+        TransactionStatus transactionStatus = platformTransactionManager.getTransaction(transactionDefinition);
 
         ChargeStatus status = query.isPass() ? ChargeStatus.chaining : ChargeStatus.review_fail;
         LocalDateTime now = LocalDateTime.now();
@@ -107,22 +94,28 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
                 .createTime(now).build();
         orderReviewMapper.insert(orderReview);
 
-        order.setReviewerId(orderReview.getId());
 
         // 审核通过需要上链 如果传入的hash值为空说明是自动转账
         if ((OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy) || OrderReviewStrategy.MANUAL_REVIEW_AUTO_TRANSFER.equals(strategy)) &&
                 query.isPass() && StringUtils.isBlank(query.getHash())) {
+            orderService.reviewOrder(order.getOrderNo(), orderReview.getId());
+            // 主动提交事务
+            platformTransactionManager.commit(transactionStatus);
+
+            // 可以接受充值操作失败，但是决定不允许提现多次
             // 最关键的提现操作 ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
-            // 最关键的提现操作 ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
-            String txid = chargeService.withdrawChain(order);
-            // 最关键的提现操作 ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+            String txid = chargeService.withdrawChain(order, orderChargeInfo);
             // 最关键的提现操作 ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
 
-            orderChargeInfo.setTxid(txid);
-            orderChargeInfoService.updateById(orderChargeInfo);
-            order.setStatus(ChargeStatus.chaining);
-            orderService.saveOrUpdate(order);
-            // 上链数据通过回调操作，直接返回
+            transactionStatus = platformTransactionManager.getTransaction(transactionDefinition);
+            if (Objects.isNull(txid)) {
+                orderService.reviewOrderRollback(order.getOrderNo());
+            }
+            if (Objects.nonNull(txid)) {
+                orderChargeInfoService.updateTxid(orderChargeInfo.getId(), txid);
+            }
+            platformTransactionManager.commit(transactionStatus);
+
             return;
         }
 
@@ -132,28 +125,41 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
             // 更新order相关链信息
             orderChargeInfo.setTxid(query.getHash());
             orderChargeInfoService.updateById(orderChargeInfo);
-            withdrawSuccess(order, orderChargeInfo);
+            var bean = ApplicationContextTool.getBean(OrderReviewService.class);
+            bean = Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
+            bean.withdrawSuccess(order, orderChargeInfo);
+            // 主动提交事务
+            platformTransactionManager.commit(transactionStatus);
             return;
         }
 
         // 审核不通过需要解冻金额
         if (!query.isPass()) {
-            accountBalanceServiceImpl.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), orderNo, "提现申请未通过");
+            accountBalanceServiceImpl.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount()
+                    , order.getOrderNo(), "提现申请未通过");
             order.setStatus(ChargeStatus.review_fail);
             order.setCompleteTime(LocalDateTime.now());
             orderService.saveOrUpdate(order);
+            // 主动提交事务
         }
-
+        platformTransactionManager.commit(transactionStatus);
     }
+
+    private void validWithdrawStrategy(OrderReviewQuery query, OrderReviewStrategy strategy) {
+        log.info("当前提现策略是 ： " + strategy.name());
+        // 人工审核人工打币判断
+        if (OrderReviewStrategy.MANUAL_REVIEW_MANUAL_TRANSFER.equals(strategy)
+                && StringUtils.isBlank(query.getHash()) && query.isPass()) {
+            ErrorCodeEnum.MANUAL_TRANSFER_HASH_NULL.throwException();
+        }
+    }
+
 
     /**
      * 提现审核做校验
      */
-    private void validReviewOrder(String orderNo, Order order) {
-        if (Objects.isNull(order)) {
-            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException("未找到对应的订单：" + orderNo);
-        }
-
+    private void validReviewOrder(Order order, OrderChargeInfo orderChargeInfo) {
+        String orderNo = order.getOrderNo();
         if (!ChargeType.withdraw.equals(order.getType())) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "仅限制提现订单能通过审核");
         }
@@ -163,7 +169,29 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         if (Objects.nonNull(order.getReviewerId()) || !ChargeStatus.created.equals(order.getStatus())) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwExtendMsgException(orderNo + "已存在审核记录，reviewId: " + order.getReviewerId());
         }
+
+        if (Objects.nonNull(orderChargeInfo.getTxid())) {
+            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException(String.format(
+                    "当前订单：[%s]已经在：[%s] 网络存在交易hash：[%s]", order.getOrderNo(), orderChargeInfo.getNetwork(), orderChargeInfo.getTxid()));
+        }
     }
+
+    private boolean validHotWallet(OrderReviewQuery query, Coin coin, OrderChargeInfo orderChargeInfo) {
+        // 判断热钱包余额是充足(如果不足则改成人工审核)
+        BigDecimal balance = contractAdapter.getBalance(coin.getNetwork(), coin);
+        if (Objects.isNull(query.getHash()) && query.isPass() && balance.compareTo(orderChargeInfo.getFee()) < 0) {
+            webHookService.dingTalkSend("热钱包余额不足：" + coin.getNetwork().name() + ":" + coin.getName() + "钱包余额：" + balance.stripTrailingZeros().toPlainString() +
+                    " 提币金额：" + orderChargeInfo.getFee().stripTrailingZeros().toPlainString());
+            if (query.isAutoPass()) {
+                // 余额不足则不能自动通过
+                return false;
+            } else {
+                throw ErrorCodeEnum.INSUFFICIENT_BALANCE.generalException();
+            }
+        }
+        return true;
+    }
+
 
     @Transactional
     public void withdrawSuccess(Order order, OrderChargeInfo orderChargeInfo) {
@@ -212,5 +240,9 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
     private CoinService coinService;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private PlatformTransactionManager platformTransactionManager;
+    @Resource
+    private TransactionDefinition transactionDefinition;
 
 }

@@ -151,7 +151,7 @@ public class ChargeController {
     @PostMapping("/withdraw/apply")
     public Result withdraw(@RequestBody @Valid WithdrawQuery withdrawDTO) {
         Long uid = requestInitService.uid();
-        RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW + uid + ":" + withdrawDTO.getCoin());
+        RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW + uid + ":" + withdrawDTO.getCoin()); // 提现申请锁
         try {
             lock.lock();
             chargeService.withdrawApply(uid, withdrawDTO);
@@ -174,7 +174,7 @@ public class ChargeController {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
 
-        RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW + uid + ":" + withdrawDTO.getCoin());
+        RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW + uid + ":" + withdrawDTO.getCoin());// // 提现申请验签锁
         try {
             lock.lock();
             chargeService.withdrawApply(uid, withdrawDTO);

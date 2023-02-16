@@ -11,10 +11,12 @@ import com.tianli.chain.service.ChainCallbackLogService;
 import com.tianli.chain.service.WalletImputationLogAppendixService;
 import com.tianli.chain.service.WalletImputationLogService;
 import com.tianli.chain.service.WalletImputationService;
+import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.service.OrderReviewService;
+import com.tianli.charge.service.OrderService;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
@@ -63,6 +65,8 @@ public class ManageWalletController {
     private RedissonClient redissonClient;
     @Resource
     private ServiceFeeService serviceFeeService;
+    @Resource
+    private OrderService orderService;
 
     /**
      * 【云钱包充值记录】列表
@@ -145,7 +149,9 @@ public class ManageWalletController {
         Long aid = AdminContent.get().getAid();
         query.setRid(aid);
         query.setReviewBy(nickname);
-        RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW_REVIEW + query.getOrderNo());
+
+        Order order = orderService.getByOrderNo(query.getOrderNo());
+        RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW + order.getUid() + ":" + order.getCoin()); // 提现审核锁
         try {
             lock.lock();
             orderReviewService.review(query);

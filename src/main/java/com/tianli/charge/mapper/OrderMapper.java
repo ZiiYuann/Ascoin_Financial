@@ -54,4 +54,12 @@ public interface OrderMapper extends BaseMapper<Order> {
 
     @Update("UPDATE  `order` SET  amount = amount + #{amount} WHERE id = #{id}")
     int addAmount(@Param("id") Long id, @Param("amount") BigDecimal amount);
+
+    @Update("UPDATE  `order` SET reviewer_id = #{orderReviewId} ,`status`  = 'chaining' " +
+            "WHERE  `order_no` = #{orderNo} AND `status` = 'created'")
+    int reviewOrder(@Param("orderNo") String orderNo, @Param("orderReviewId") Long orderReviewId);
+
+    @Update("UPDATE  `order` SET reviewer_id = null ,`status`  = 'created' " +
+            "WHERE  `order_no` = #{orderNo} AND `status` = 'chaining'")
+    int reviewOrderRollback(@Param("orderNo") String orderNo);
 }
