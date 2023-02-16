@@ -4,6 +4,9 @@ import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.common.query.IoUQuery;
 import lombok.*;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 /**
@@ -18,21 +21,25 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 public class RedEnvelopeConfigIoUQuery extends IoUQuery {
 
+    @NotEmpty(message = "币种不能为空")
     private String coin;
 
     /**
      * 渠道
      */
+    @NotNull(message = "红包类型不能为空")
     private RedEnvelopeChannel channel;
 
     /**
      * 个数
      */
+
     private Integer num;
 
     /**
      * 金额限制
      */
+    @Max(value = 100,message = "红包总额最大为100")
     private BigDecimal limitAmount;
 
     /**

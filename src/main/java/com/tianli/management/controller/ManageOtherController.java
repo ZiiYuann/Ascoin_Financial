@@ -53,7 +53,7 @@ public class ManageOtherController {
     @PostMapping("/red/config")
     @AdminPrivilege(and = Privilege.理财配置)
     public Result redConfig(@RequestBody RedEnvelopeConfigIoUQuery query) {
-        redEnvelopeConfigService.saveOrUpdate(query);
+        redEnvelopeConfigService.saveOrUpdate(null,query);
         return Result.success();
     }
 

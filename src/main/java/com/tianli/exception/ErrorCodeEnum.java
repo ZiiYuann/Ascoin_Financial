@@ -156,6 +156,7 @@ public enum ErrorCodeEnum {
     RED_STRATEGY_ERROR(3713, "红包策略暂不支持"),
     RED_EXTERN_LIMIT(3714, "站外红包领取限制"),
     RED_FLAG_NULL(3715, "flag不能为null"),
+    RED_NUM_CONFIAG_ERROR(3716, "红包配置数量不能超过1000"),
 
     /*** －－－－－－业务错误码-理财相关－－－－－－*/
     FINANCIAL_INCOME_REPEAT(3801, "理财利息当日利息已经计算"),
