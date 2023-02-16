@@ -460,6 +460,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         return page.convert(red -> {
             var vo = redEnvelopeConvert.toRedEnvelopeGiveRecordVO(red);
             vo.setExternUrl(this.getExternUrl(red.getChannel(), red.getId()));
+            vo.setCanBack(RedEnvelopeChannel.EXTERN.equals(red.getChannel())
+                    && LocalDateTime.now().compareTo(red.getCreateTime().plusDays(1)) >= 0);
             vo.setNotReceiveAmount(red.getTotalAmount().subtract(red.getReceiveAmount()));
             return vo;
         });

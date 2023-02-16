@@ -48,4 +48,5 @@ public class RedEnvelopeGiveRecordVO {
 
     private BigDecimal notReceiveAmount;
 
+    private boolean canBack;
 }
