@@ -584,8 +584,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         accountBalanceServiceImpl.increase(redEnvelope.getUid(), ChargeType.red_back, redEnvelope.getCoin(), rollbackAmount
                 , order.getOrderNo(), ChargeType.red_back.getNameZn());
 
-
-        this.statusProcess(status, redEnvelope.getReceiveNum(), now);
+        this.statusProcess(redEnvelope.getId(), status, redEnvelope.getReceiveNum(), now);
     }
 
 
@@ -632,8 +631,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
      * @param status     状态
      * @param receiveNum 已经领取数量
      */
-    private void statusProcess(RedEnvelopeStatus status, int receiveNum, LocalDateTime now) {
-        int i = this.getBaseMapper().statusProcess(status, receiveNum, now);
+    private void statusProcess(Long id, RedEnvelopeStatus status, int receiveNum, LocalDateTime now) {
+        int i = this.getBaseMapper().statusProcess(id, status, receiveNum, now);
         if (i == 0) {
             ErrorCodeEnum.RED_STATUS_ERROR.throwException();
         }
