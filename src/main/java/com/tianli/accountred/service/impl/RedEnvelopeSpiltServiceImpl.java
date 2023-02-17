@@ -158,11 +158,11 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         this.saveBatch(spiltRedEnvelopes);
 
         RedEnvelopeChannel channel = redEnvelope.getChannel();
-
+        int expireDays = redEnvelope.getChannel().getExpireDays();
         if (!RedEnvelopeChannel.EXTERN.equals(channel)) {
-            String key = RedisConstants.SPILT_RED_ENVELOPE + redEnvelope.getId();
+            String key = RedisConstants.RED_CHAT + redEnvelope.getId();
             redisTemplate.opsForSet().add(key, spiltRedEnvelopes.stream().map(RedEnvelopeSpilt::getId).toArray());
-            redisTemplate.expire(key, redEnvelope.getChannel().getExpireDays(), TimeUnit.DAYS);
+            redisTemplate.expire(key, expireDays, TimeUnit.DAYS);
         }
 
         // 如果是站外红包，设置 zset 缓存 （score 从0 开始）
@@ -178,10 +178,10 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
             }
 
             stringRedisTemplate.opsForZSet().add(externKey, typedTuples);
-            redisTemplate.expire(externKey, redEnvelope.getChannel().getExpireDays(), TimeUnit.DAYS);
+            redisTemplate.expire(externKey, expireDays, TimeUnit.DAYS);
 
             stringRedisTemplate.opsForZSet().add(externRecordKey, typedTuples);
-            redisTemplate.expire(externRecordKey, redEnvelope.getChannel().getExpireDays(), TimeUnit.DAYS);
+            redisTemplate.expire(externRecordKey, expireDays, TimeUnit.DAYS);
         }
     }
 

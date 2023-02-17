@@ -18,9 +18,9 @@ public class RedisConstants {
      * SPILT_RED_ENVELOPE_GET 领取记录 【STRING】 防止重复领取
      *
      */
-    public static String SPILT_RED_ENVELOPE = "red:spilt:";
     public static String SPILT_RED_ENVELOPE_GET = "red:spilt:get:";
     public static String RED_EXTERN_CODE = "red:extern:code:";
+    public static String RED_CHAT = "red:spilt:";
     // score 如果是时间搓代表兑换码过期时间
     public static String RED_EXTERN = "red:extern:";
     // score 如果是时间搓代表兑换码领取时间

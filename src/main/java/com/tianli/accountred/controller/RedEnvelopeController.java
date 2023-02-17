@@ -3,6 +3,7 @@ package com.tianli.accountred.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.query.IdsQuery;
+import com.tianli.accountred.dto.RedEnvelopeSpiltDTO;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
@@ -13,10 +14,15 @@ import com.tianli.accountred.query.RedEnvelopeGiveRecordQuery;
 import com.tianli.accountred.query.RedEnvelopeIoUQuery;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
+import com.tianli.accountred.service.RedEnvelopeSpiltService;
+import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO1;
 import com.tianli.accountred.vo.RedEnvelopeGiveVO;
 import com.tianli.accountred.vo.RedEnvelopeSpiltGetRecordVO;
+import com.tianli.chain.entity.CoinBase;
+import com.tianli.chain.service.CoinBaseService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.sso.init.RequestInitService;
@@ -45,6 +51,12 @@ public class RedEnvelopeController {
     private RedissonClient redissonClient;
     @Resource
     private RedEnvelopeSpiltGetRecordService redEnvelopeSpiltGetRecordService;
+    @Resource
+    private RedEnvelopeSpiltService redEnvelopeSpiltService;
+    @Resource
+    private CoinBaseService coinBaseService;
+    @Resource
+    private CurrencyService currencyService;
 
     /**
      * 发红包
@@ -158,5 +170,22 @@ public class RedEnvelopeController {
         redEnvelopeService.backRed(uid, rid);
         return new Result<>();
     }
+
+    @GetMapping("/exchange/{exchangeCode}")
+    public Result<RedEnvelopeSpiltDTO> redInfo(@PathVariable String exchangeCode) {
+        RedEnvelopeSpiltDTO redEnvelopeSpiltDTO =
+                redEnvelopeSpiltService.getRedEnvelopeSpiltDTOCache(exchangeCode);
+        String rid = redEnvelopeSpiltDTO.getRid();
+        RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.valueOf(rid));
+        CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
+        var result = RedEnvelopeExchangeCodeVO1.builder()
+                .coin(redEnvelope.getCoin())
+                .coinUrl(coinBase.getLogo())
+                .receiveAmount(redEnvelopeSpiltDTO.getAmount())
+                .usdtRate(currencyService.getDollarRate(redEnvelope.getCoin()))
+                .flag(redEnvelope.getFlag()).build();
+        return new Result<>(result);
+    }
+
 
 }

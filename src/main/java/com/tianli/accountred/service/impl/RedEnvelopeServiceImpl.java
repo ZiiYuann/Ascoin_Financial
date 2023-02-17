@@ -382,7 +382,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     private RedEnvelopeGetVO getByChatOperation(Long uid, Long shortUid, RedEnvelopeGetQuery query, RedEnvelope redEnvelope) {
 
         String receivedKey = RedisConstants.SPILT_RED_ENVELOPE_GET + query.getRid() + ":" + uid;
-        String spiltRedKey = RedisConstants.SPILT_RED_ENVELOPE + query.getRid();
+        String spiltRedKey = RedisConstants.RED_CHAT + query.getRid();
         // 此lua脚本的用处 1、判断用户是否已经抢过红包 2、判断拆分红包是否还有剩余
         String script =
                 "if redis.call('EXISTS', KEYS[1]) > 0 then\n" +
@@ -553,10 +553,13 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                 redEnvelopeSpiltService.getRedEnvelopeSpilt(redEnvelope.getId(), false);
 
         // 进入这个方法的红包应该存在红包未领取
-        if (RedEnvelopeStatus.OVERDUE.equals(status) || CollectionUtils.isEmpty(spiltRedEnvelopes)) {
+        if (RedEnvelopeStatus.OVERDUE.equals(status)
+                || RedEnvelopeChannel.CHAT.equals(redEnvelope.getChannel())
+                || CollectionUtils.isEmpty(spiltRedEnvelopes)) {
             webHookService.dingTalkSend("红包状态不为领取完，但是拆分红包不存在，请排查异常：" + redEnvelope.getId());
             return;
         }
+
         int noReceiveNum = redEnvelope.getNum() - redEnvelope.getReceiveNum();
         if (spiltRedEnvelopes.size() != noReceiveNum) {
             webHookService.dingTalkSend("未领取红包数量与回滚数量不一致：" + redEnvelope.getId());
