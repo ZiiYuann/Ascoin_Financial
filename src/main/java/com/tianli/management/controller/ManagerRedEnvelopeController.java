@@ -1,5 +1,7 @@
 package com.tianli.management.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.tianli.accountred.entity.RedEnvelopeConfig;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.service.RedEnvelopeConfigService;
 import com.tianli.exception.ErrorCodeEnum;
@@ -7,13 +9,12 @@ import com.tianli.exception.Result;
 import com.tianli.other.query.RedEnvelopeConfigIoUQuery;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.admin.AdminContent;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.util.Objects;
 
 /**
  * @author chenb
@@ -53,4 +54,21 @@ public class ManagerRedEnvelopeController {
         redEnvelopeConfigService.saveOrUpdate(nickname, redEnvelopeConfigQuery);
         return Result.success();
     }
+
+
+    /**
+     * 站外红包详情
+     *
+     * @param coin
+     * @return
+     */
+    @GetMapping("/details")
+    public Result details(@RequestParam("coin") String coin) {
+        RedEnvelopeConfig one = redEnvelopeConfigService.getDetails(coin,RedEnvelopeChannel.EXTERN);
+        if (Objects.isNull(one)){
+            return Result.fail("该币种红包配置信息不存在！");
+        }
+        return Result.success(one);
+    }
 }
+

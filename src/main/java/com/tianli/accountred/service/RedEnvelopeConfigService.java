@@ -27,5 +27,13 @@ public interface RedEnvelopeConfigService extends IService<RedEnvelopeConfig> {
      * @param channel 渠道
      */
     RedEnvelopeConfig getOne(String coin, RedEnvelopeChannel channel);
+
+    /**
+     * 通过币别和渠道获相对应的配置
+     * @param coin 币别
+     * @param channel 渠道
+     * @return
+     */
+    RedEnvelopeConfig getDetails(String coin,RedEnvelopeChannel channel);
 }
 

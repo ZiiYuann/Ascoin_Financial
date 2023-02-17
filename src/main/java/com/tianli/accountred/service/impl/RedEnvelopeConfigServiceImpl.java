@@ -54,4 +54,12 @@ public class RedEnvelopeConfigServiceImpl extends ServiceImpl<RedEnvelopeConfigM
                 .eq(RedEnvelopeConfig::getChannel, channel)))
                 .orElse(RedEnvelopeConfig.defaultConfig());
     }
+
+    @Override
+    public RedEnvelopeConfig getDetails(String coin, RedEnvelopeChannel channel) {
+        return  this.getOne(new LambdaQueryWrapper<RedEnvelopeConfig>()
+                .eq(RedEnvelopeConfig::getCoin, coin)
+                .eq(RedEnvelopeConfig::getChannel, channel))
+         ;
+    }
 }
