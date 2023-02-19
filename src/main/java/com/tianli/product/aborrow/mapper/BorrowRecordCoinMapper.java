@@ -12,16 +12,16 @@ import java.math.BigDecimal;
 public interface BorrowRecordCoinMapper extends BaseMapper<BorrowRecordCoin> {
 
     @Update(" UPDATE  borrow_record_coin SET amount = amount + #{increaseAmount}  WHERE" +
-            " uid =#{uid} AND coin =#{coin} and amount =#{originalAmount}")
-    int casIncrease(@Param("uid") Long uid,
+            " id =#{id} AND coin =#{coin} and amount =#{originalAmount}")
+    int casIncrease(@Param("id") Long id,
                     @Param("coin") String coin,
                     @Param("increaseAmount") BigDecimal increaseAmount,
                     @Param("originalAmount") BigDecimal originalAmount);
 
 
     @Update(" UPDATE  borrow_record_coin SET amount = amount - #{decreaseAmount}  WHERE" +
-            " uid =#{uid} AND coin =#{coin} and amount =#{originalAmount} AND amount >= #{decreaseAmount} ")
-    int casDecrease(@Param("uid") Long uid,
+            " id =#{id} AND coin =#{coin} and amount =#{originalAmount} AND amount >= #{decreaseAmount} ")
+    int casDecrease(@Param("id") Long id,
                     @Param("coin") String coin,
                     @Param("decreaseAmount") BigDecimal decreaseAmount,
                     @Param("originalAmount") BigDecimal originalAmount);

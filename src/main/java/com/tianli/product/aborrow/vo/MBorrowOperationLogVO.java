@@ -1,38 +1,45 @@
-package com.tianli.product.aborrow.entity;
+package com.tianli.product.aborrow.vo;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.tianli.charge.enums.ChargeType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
  * @author chenb
  * @apiNote
- * @since 2023-02-06
+ * @since 2023-02-15
  **/
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BorrowRecordSnapshot {
+public class MBorrowOperationLogVO {
 
-    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
-    private Long uid;
+    private String coin;
 
-    private Long bid;
+    private BigDecimal amount;
 
-    // JSON 数据 BorrowRecordSnapshotDto
-    private String data;
+    private ChargeType chargeType;
+
+    private String chargeTypeName;
+
+    private BigDecimal prePledgeRate;
+
+    private BigDecimal afterPledgeRate;
 
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
+    public String getChargeTypeName() {
+        return chargeType.getNameZn();
+    }
 }

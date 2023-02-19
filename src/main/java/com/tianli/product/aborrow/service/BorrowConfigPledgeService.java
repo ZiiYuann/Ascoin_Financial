@@ -27,5 +27,7 @@ public interface BorrowConfigPledgeService extends IService<BorrowConfigPledge> 
     void modifyStatus(String coin, BorrowStatus borrowStatus);
 
     List<BorrowConfigPledgeVO> getVOs();
+
+    BorrowConfigPledge getById(String coin);
 }
 

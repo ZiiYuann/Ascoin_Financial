@@ -29,6 +29,8 @@ public class BorrowRecordPledge {
 
     private PledgeType pledgeType;
 
+    private Long bid;
+
     private Long uid;
 
     private String coin;

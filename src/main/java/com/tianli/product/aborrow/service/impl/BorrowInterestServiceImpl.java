@@ -7,12 +7,12 @@ import com.tianli.product.aborrow.entity.BorrowInterestLog;
 import com.tianli.product.aborrow.mapper.BorrowInterestLogMapper;
 import com.tianli.product.aborrow.mapper.BorrowInterestMapper;
 import com.tianli.product.aborrow.service.BorrowInterestService;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -32,7 +32,7 @@ public class BorrowInterestServiceImpl implements BorrowInterestService {
     public void add(Long bid, Long uid, String coin, BigDecimal amount) {
         BorrowInterest borrowInterest = getAndInitBorrowInterest(bid, uid, coin);
 
-        if (interestMapper.casIncrease(uid, coin, amount, borrowInterest.getAmount()) != 1) {
+        if (interestMapper.casIncrease(borrowInterest.getId(), coin, amount, borrowInterest.getAmount()) != 1) {
             throw ErrorCodeEnum.BORROW_INTEREST_EXIST.generalException();
         }
 
@@ -44,6 +44,38 @@ public class BorrowInterestServiceImpl implements BorrowInterestService {
         interestLogMapper.insert(log);
     }
 
+    @Override
+    @Transactional
+    public void reduce(Long bid, Long uid, String coin, BigDecimal amount) {
+        BorrowInterest borrowInterest = getAndInitBorrowInterest(bid, uid, coin);
+
+        if (interestMapper.casDecrease(borrowInterest.getId(), coin, amount, borrowInterest.getAmount()) != 1) {
+            throw ErrorCodeEnum.BORROW_INTEREST_EXIST.generalException();
+        }
+    }
+
+    @Override
+    public boolean payOff(Long uid, Long bid) {
+        List<BorrowInterest> list = interestMapper.selectList(new LambdaQueryWrapper<BorrowInterest>()
+                .eq(BorrowInterest::getUid, uid)
+                .eq(BorrowInterest::getBid, bid));
+        return list.stream().filter(index -> index.getAmount().compareTo(BigDecimal.ZERO) > 0).findAny()
+                .isEmpty();
+    }
+
+    @Override
+    public List<BorrowInterest> list(Long uid) {
+        return interestMapper.selectList(new LambdaQueryWrapper<BorrowInterest>()
+                .eq(BorrowInterest::getUid, uid));
+    }
+
+    @Override
+    public BorrowInterest get(Long uid, Long bid, String coin) {
+        return interestMapper.selectOne(new LambdaQueryWrapper<BorrowInterest>()
+                .eq(BorrowInterest::getUid, uid)
+                .eq(BorrowInterest::getBid, bid)
+                .eq(BorrowInterest::getCoin, coin));
+    }
 
     public BorrowInterest getAndInitBorrowInterest(Long bid, Long uid, String coin) {
         BorrowInterest borrowInterest = interestMapper.selectOne(new LambdaQueryWrapper<BorrowInterest>()
@@ -52,26 +84,12 @@ public class BorrowInterestServiceImpl implements BorrowInterestService {
                 .eq(BorrowInterest::getCoin, coin)
         );
 
-
         if (Optional.ofNullable(borrowInterest).isEmpty()) {
-
-            var otherBorrowInterests = interestMapper.selectList(new LambdaQueryWrapper<BorrowInterest>()
-                    .ne(BorrowInterest::getBid, bid)
-                    .eq(BorrowInterest::getUid, uid)
-                    .eq(BorrowInterest::getCoin, coin)
-            );
-
-            if (CollectionUtils.isNotEmpty(otherBorrowInterests)) {
-                throw ErrorCodeEnum.BORROW_INTEREST_EXIST.generalException();
-            }
-
             borrowInterest = BorrowInterest.builder()
                     .bid(bid).uid(uid).coin(coin).amount(BigDecimal.ZERO).build();
             interestMapper.insert(borrowInterest);
         }
-
         return borrowInterest;
-
     }
 
 

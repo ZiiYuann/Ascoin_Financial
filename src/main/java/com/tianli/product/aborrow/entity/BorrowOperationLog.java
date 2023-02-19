@@ -37,6 +37,12 @@ public class BorrowOperationLog {
 
     private ChargeType chargeType;
 
+    private boolean display;
+
+    private BigDecimal prePledgeRate;
+
+    private BigDecimal afterPledgeRate;
+
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
@@ -44,7 +50,8 @@ public class BorrowOperationLog {
         return BorrowOperationLog.builder()
                 .bid(bid)
                 .uid(uid)
-                .coin(coin).amount(amount).chargeType(chargeType).build();
+                .coin(coin)
+                .amount(amount).chargeType(chargeType).build();
     }
 
 }

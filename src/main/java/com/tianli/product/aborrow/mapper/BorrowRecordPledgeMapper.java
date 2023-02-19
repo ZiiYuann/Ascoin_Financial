@@ -18,19 +18,19 @@ import java.math.BigDecimal;
 public interface BorrowRecordPledgeMapper extends BaseMapper<BorrowRecordPledge> {
 
 
-    @Update(" UPDATE  borrow_record_pledge SET amount = amount + #{increaseAmount}  WHERE" +
-            " uid =#{uid} AND coin =#{coin} and amount =#{originalAmount} and pledge_type=#{pledgeType}")
-    int casIncrease(@Param("uid") Long uid,
+    @Update(" UPDATE  borrow_record_pledge SET `amount` = `amount` + #{increaseAmount}  WHERE" +
+            " `id` =#{id} AND `coin` =#{coin} and `amount` =#{originalAmount} and `pledge_type`=#{pledgeType}")
+    int casIncrease(@Param("id") Long id,
                     @Param("coin") String coin,
                     @Param("increaseAmount") BigDecimal increaseAmount,
                     @Param("originalAmount") BigDecimal originalAmount,
                     @Param("pledgeType") PledgeType pledgeType);
 
 
-    @Update(" UPDATE  borrow_record_pledge SET amount = amount - #{decreaseAmount}  WHERE" +
-            " uid =#{uid} AND coin =#{coin} and amount =#{originalAmount} AND amount >= #{decreaseAmount}" +
-            "and pledge_type=#{pledgeType} ")
-    int casDecrease(@Param("uid") Long uid,
+    @Update(" UPDATE  borrow_record_pledge SET `amount` = `amount` - #{decreaseAmount}  WHERE" +
+            " id =#{id} AND `coin` =#{coin} and `amount` =#{originalAmount} AND `amount` >= #{decreaseAmount}" +
+            "and `pledge_type`=#{pledgeType} ")
+    int casDecrease(@Param("id") Long id,
                     @Param("coin") String coin,
                     @Param("decreaseAmount") BigDecimal decreaseAmount,
                     @Param("originalAmount") BigDecimal originalAmount,

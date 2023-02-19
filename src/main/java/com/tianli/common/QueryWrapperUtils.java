@@ -47,6 +47,11 @@ public class QueryWrapperUtils {
                     Boolean desc = (Boolean) param;
                     result = desc ? result.orderByDesc(fieldName) : result.orderByAsc(fieldName);
                     break;
+                case LE:
+                    result = result.le(fieldName, param);
+                    break;
+                case GE:
+                    result = result.ge(fieldName, param);
                 default:
                     break;
             }

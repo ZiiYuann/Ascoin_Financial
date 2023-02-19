@@ -1,28 +1,22 @@
-package com.tianli.product.aborrow.entity;
+package com.tianli.product.aborrow.vo;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.tianli.product.aborrow.enums.PledgeStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
  * @author chenb
  * @apiNote
- * @since 2023-02-06
+ * @since 2023-02-15
  **/
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BorrowRecord {
-
-    private Long id;
+public class MBorrowUserVO {
 
     private Long uid;
 
@@ -50,15 +44,4 @@ public class BorrowRecord {
 
     private boolean finish;
 
-    private PledgeStatus pledgeStatus;
-
-    // 借款时间
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
-
-    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
-
-    // 结束时间
-    private LocalDateTime finishTime;
 }

@@ -19,24 +19,28 @@ import java.math.BigDecimal;
 public class PledgeRateDto {
 
     // 质押总金额
-    private BigDecimal pledgeAmount;
+    private BigDecimal pledgeFee = BigDecimal.ZERO;
 
     // 强平可借
-    private BigDecimal LqAmount;
+    private BigDecimal LqFee = BigDecimal.ZERO;
 
-    private BigDecimal lqPledgeRate;
+    private BigDecimal lqPledgeRate = BigDecimal.ZERO;
 
-    private BigDecimal warnAmount;
+    private BigDecimal warnFee = BigDecimal.ZERO;
 
-    private BigDecimal warnPledgeRate;
+    private BigDecimal warnPledgeRate = BigDecimal.ZERO;
 
-    private BigDecimal assureLqAmount;
+    private BigDecimal assureLqFee = BigDecimal.ZERO;
 
-    private BigDecimal assureLqPledgeRate;
+    private BigDecimal assureLqPledgeRate = BigDecimal.ZERO;
 
-    private BigDecimal borrowAmount;
+    private BigDecimal borrowFee = BigDecimal.ZERO;
 
-    private BigDecimal currencyPledgeRate;
+    private BigDecimal currencyPledgeRate = BigDecimal.ZERO;
+
+    private BigDecimal interestFee = BigDecimal.ZERO;
+
+    private BigDecimal initFee = BigDecimal.ZERO;
 
 
 }

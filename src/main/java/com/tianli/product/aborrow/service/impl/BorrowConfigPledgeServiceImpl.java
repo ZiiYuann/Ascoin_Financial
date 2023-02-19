@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -71,6 +72,14 @@ public class BorrowConfigPledgeServiceImpl extends ServiceImpl<BorrowConfigPledg
                 .stream()
                 .map(borrowConvert::toBorrowConfigPledgeVO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public BorrowConfigPledge getById(String coin) {
+        BorrowConfigPledge borrowConfigPledge = baseMapper.selectOne(new LambdaQueryWrapper<BorrowConfigPledge>()
+                .eq(BorrowConfigPledge::getStatus, 1)
+                .eq(BorrowConfigPledge::getCoin, coin));
+       return Optional.ofNullable(borrowConfigPledge).orElseThrow(ErrorCodeEnum.BORROW_CONFIG_PLEDGE_NOT_OPEN :: generalException);
     }
 
 

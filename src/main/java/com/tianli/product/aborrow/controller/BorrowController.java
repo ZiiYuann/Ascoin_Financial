@@ -6,6 +6,8 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.product.aborrow.query.BorrowCoinQuery;
 import com.tianli.product.aborrow.query.CalPledgeQuery;
+import com.tianli.product.aborrow.query.ModifyPledgeContextQuery;
+import com.tianli.product.aborrow.query.RepayCoinQuery;
 import com.tianli.product.aborrow.service.BorrowConfigCoinService;
 import com.tianli.product.aborrow.service.BorrowConfigPledgeService;
 import com.tianli.product.aborrow.service.BorrowService;
@@ -25,7 +27,7 @@ import java.util.List;
  * @since 2023-02-09
  **/
 @RestController
-@RequestMapping("/borrow")
+@RequestMapping("/loan")
 public class BorrowController {
 
     @Resource
@@ -42,12 +44,38 @@ public class BorrowController {
     /**
      * 借币
      */
-    @PostMapping("/coin")
-    public Result<Void> coin(@RequestBody @Valid BorrowCoinQuery query) {
+    @PostMapping("/borrow")
+    public Result<Void> borrow(@RequestBody @Valid BorrowCoinQuery query) {
         Long uid = requestInitService.uid();
-        String key = RedisLockConstants.LOCK_BORROW_COIN + uid;
+        String key = RedisLockConstants.LOCK_BORROW + uid;
 
         redissonClientTool.tryLock(key, () -> borrowService.borrowCoin(uid, query), ErrorCodeEnum.BORROW_COIN_ERROR);
+
+        return new Result<>();
+    }
+
+    /**
+     * 还币
+     */
+    @PostMapping("/repay")
+    public Result<Void> repay(@RequestBody @Valid RepayCoinQuery query) {
+        Long uid = requestInitService.uid();
+        String key = RedisLockConstants.LOCK_BORROW + uid;
+
+        redissonClientTool.tryLock(key, () -> borrowService.repayCoin(uid, query), ErrorCodeEnum.BORROW_COIN_ERROR);
+
+        return new Result<>();
+    }
+
+    /**
+     * 增减质押物
+     */
+    @PostMapping("/pledgeContext")
+    public Result<Void> repay(@RequestBody @Valid ModifyPledgeContextQuery query) {
+        Long uid = requestInitService.uid();
+        String key = RedisLockConstants.LOCK_BORROW + uid;
+
+        redissonClientTool.tryLock(key, () -> borrowService.modifyPledgeContext(uid, query), ErrorCodeEnum.BORROW_COIN_ERROR);
 
         return new Result<>();
     }

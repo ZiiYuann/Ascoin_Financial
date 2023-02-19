@@ -86,7 +86,7 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
      */
     public FinancialRecord selectById(Long recordId, Long uid) {
         if (Objects.isNull(recordId) || Objects.isNull(uid)) {
-            ErrorCodeEnum.CURRENCY_NOT_SUPPORT.throwException();
+            ErrorCodeEnum.BORROW_RECORD_PLEDGE_ERROR.throwException();
         }
 
         LambdaQueryWrapper<FinancialRecord> query = new LambdaQueryWrapper<FinancialRecord>()

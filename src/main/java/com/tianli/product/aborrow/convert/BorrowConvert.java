@@ -1,15 +1,10 @@
 package com.tianli.product.aborrow.convert;
 
 import com.tianli.product.aborrow.dto.BorrowRecordPledgeDto;
-import com.tianli.product.aborrow.entity.BorrowConfigCoin;
-import com.tianli.product.aborrow.entity.BorrowConfigPledge;
-import com.tianli.product.aborrow.entity.BorrowRecordPledge;
+import com.tianli.product.aborrow.entity.*;
 import com.tianli.product.aborrow.query.BorrowConfigCoinIoUQuery;
 import com.tianli.product.aborrow.query.BorrowConfigPledgeIoUQuery;
-import com.tianli.product.aborrow.vo.BorrowConfigCoinVO;
-import com.tianli.product.aborrow.vo.BorrowConfigPledgeVO;
-import com.tianli.product.aborrow.vo.MBorrowConfigCoinVO;
-import com.tianli.product.aborrow.vo.MBorrowConfigPledgeVO;
+import com.tianli.product.aborrow.vo.*;
 import org.mapstruct.Mapper;
 
 /**
@@ -34,6 +29,9 @@ public interface BorrowConvert {
 
     BorrowRecordPledgeDto toBorrowRecordPledgeDto(BorrowRecordPledge borrowRecordPledge);
 
+    MBorrowUserVO toMBorrowUserVO(BorrowRecord borrowRecord);
+
+    MBorrowOperationLogVO toMBorrowOperationLogVO(BorrowOperationLog borrowOperationLog);
 
 
 }

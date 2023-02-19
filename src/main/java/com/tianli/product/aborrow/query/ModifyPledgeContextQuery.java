@@ -1,41 +1,29 @@
 package com.tianli.product.aborrow.query;
 
+import com.tianli.product.aborrow.enums.ModifyPledgeContextType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
  * @author chenb
  * @apiNote
- * @since 2023-02-10
+ * @since 2023-02-16
  **/
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CalPledgeQuery {
+public class ModifyPledgeContextQuery {
 
     @NotNull
     private List<PledgeContextQuery> pledgeContext;
 
     @NotNull
-    private String borrowCoin;
+    private ModifyPledgeContextType type;
 
-    @NotNull
-    private BigDecimal borrowAmount;
-
-    @NotNull
-    private Boolean borrow;
-
-    public BigDecimal getBorrowAmount() {
-        if (borrow) {
-            return borrowAmount;
-        }
-        return borrowAmount.multiply(new BigDecimal(-1L));
-    }
 }

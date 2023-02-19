@@ -28,6 +28,8 @@ public class BorrowRecordCoin {
 
     private Long uid;
 
+    private Long bid;
+
     private String coin;
 
     private BigDecimal amount;

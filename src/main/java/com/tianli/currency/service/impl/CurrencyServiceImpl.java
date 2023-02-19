@@ -87,4 +87,11 @@ public class CurrencyServiceImpl implements CurrencyService {
         coins.forEach(coin -> coinRates.put(coin, this.getDollarRate(coin)));
         return coinRates;
     }
+
+    @Override
+    public HashMap<String, BigDecimal> rateMap(Collection<String> coins) {
+        final var coinRates = new HashMap<String, BigDecimal>();
+        coins.stream().distinct().forEach(coin -> coinRates.put(coin, this.getDollarRate(coin)));
+        return coinRates;
+    }
 }

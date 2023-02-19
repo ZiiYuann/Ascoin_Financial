@@ -1,4 +1,4 @@
-package com.tianli.product.aborrow.query;
+package com.tianli.product.aborrow.vo;
 
 import com.tianli.product.aborrow.enums.PledgeType;
 import lombok.AllArgsConstructor;
@@ -6,27 +6,23 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 /**
  * @author chenb
  * @apiNote
- * @since 2023-02-09
+ * @since 2023-02-15
  **/
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PledgeContextQuery {
-
-    @NotNull
-    private PledgeType pledgeType;
-
-    private Long recordId;
+public class MBorrowRecordVO {
 
     private String coin;
 
-    private BigDecimal pledgeAmount;
+    private BigDecimal amount;
+
+    private PledgeType pledgeType;
 
 }
