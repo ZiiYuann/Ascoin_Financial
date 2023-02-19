@@ -193,7 +193,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     }
 
     @Override
-    public RedEnvelopeExchangeCodeVO getExchangeCode(Long rid, String ipKey, String fingerprintKey) {
+    public RedEnvelopeExchangeCodeVO getExchangeCode(Long rid, String ip, String fingerprint) {
 
         RedEnvelope redEnvelope = Optional.ofNullable(redEnvelopeService.getWithCache(rid))
                 .orElseThrow(ErrorCodeEnum.RED_NOT_EXIST::generalException);
@@ -212,45 +212,60 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         String externKey = RedisConstants.RED_EXTERN + rid; // 用于获取可领取code
         String exchangeCodeKey = RedisConstants.RED_EXTERN_CODE + uuid; // 设置缓存:验证码和红包信息对应
         String externRecordKey = RedisConstants.RED_EXTERN_RECORD + redEnvelope.getId(); //修改缓存 领取兑换码时更新信息
+        String ipKey = RedisConstants.RED_ENVELOPE_LIMIT + ip; // 设置缓存
+        String fingerprintKey = RedisConstants.RED_ENVELOPE_LIMIT + fingerprint; // 设置缓存
         String exchangeCodeExpireTime = "2";
         long now = System.currentTimeMillis();
         // 取出小于当前时间的红包，并且设置一个新的过期时间（当前时间 + 2小时）
-        String script = "local externKey = KEYS[1]\n" +
-                "local key2 = KEYS[2]\n" +
-                "local key3 = KEYS[3]\n" +
-                "local ipKey = KEYS[4]\n" +
-                "local fingerprintKey = KEYS[5]\n" +
-                "local currentMs = tonumber(ARGV[1]) \n" +
-                "local uuid = ARGV[2] \n" +
-                "local termOfValidity =  tonumber(ARGV[3]) * 60 * 60 \n" +
-                "if  redis.call('EXISTS', externKey) == 0 then\n" +
-                "    return 'NOT_EXIST'\n" +
-                "end\n" +
-                "local spiltReds = redis.call('ZRANGEBYSCORE',externKey,0,currentMs,'LIMIT',0,1)\n" + //获取过期时间下（now）的记录
-                "if spiltReds[1] == nil then\n" +
-                "    return 'FINISH'\n" +
-                "end\n" +
-                "local score = currentMs + termOfValidity * 1000 \n" +
-                "redis.call('ZADD',externKey,score,spiltReds[1])\n" +  // 更新一下score
-                "redis.call('ZADD',key3,currentMs,spiltReds[1])\n" +
-                "local spiltRed = cjson.decode(spiltReds[1]) \n" +
-                "spiltRed.timestamp = score \n" +
-                "spiltRed.exchangeCode = uuid \n" +
-                "redis.call('SET',key2,cjson.encode(spiltRed))\n" +
-                "redis.call('EXPIRE',key2,termOfValidity)\n" +
-                "redis.call('SET',ipKey,cjson.encode(spiltRed))\n" +
-                "redis.call('SET',fingerprintKey,cjson.encode(spiltRed))\n" +
-                "redis.call('EXPIRE',ipKey,termOfValidity)\n" +
-                "redis.call('EXPIRE',fingerprintKey,termOfValidity)\n" +
-                "return spiltReds[1]";
+        String script =
+                "local rid = KEYS[6]\n" +
+                        "local ipKey = KEYS[4]..':'..rid \n" +
+                        "if redis.call('EXISTS',ipKey) ~= 0 then \n" +
+                        "    local ipGetCount =  tonumber(redis.call('GET',ipKey)) \n" +
+                        "    if ipGetCount >= 5 then \n" +
+                        "        return 'IP_LIMIT' \n" +
+                        "    end\n" +
+                        "else \n" +
+                        "    redis.call('SET',ipKey,tonumber(0)) \n" +
+                        "    redis.call('EXPIRE',ipKey,30 * 24 * 60 * 60)\n" +
+                        "end \n" +
+                        "local externKey = KEYS[1]\n" +
+                        "local exchangeCodeKey = KEYS[2]\n" +
+                        "local externRecordKey = KEYS[3]\n" +
+                        "local fingerprintKey = KEYS[5]..':'..rid \n" +
+                        "local currentMs = tonumber(ARGV[1]) \n" +
+                        "local uuid = ARGV[2] \n" +
+                        "local termOfValidity =  tonumber(ARGV[3]) * 60 * 60 \n" +
+                        "if  redis.call('EXISTS', externKey) == 0 then\n" +
+                        "    return 'NOT_EXIST'\n" +
+                        "end\n" +
+                        "local spiltReds = redis.call('ZRANGEBYSCORE',externKey,0,currentMs,'LIMIT',0,1)\n" + //获取过期时间下（now）的记录
+                        "if spiltReds[1] == nil then\n" +
+                        "    return 'FINISH'\n" +
+                        "end\n" +
+                        "local score = currentMs + termOfValidity * 1000 \n" +
+                        "redis.call('ZADD',externKey,score,spiltReds[1])\n" +  // 更新一下score
+                        "redis.call('ZADD',externRecordKey,currentMs,spiltReds[1])\n" +
+                        "local spiltRed = cjson.decode(spiltReds[1]) \n" +
+                        "spiltRed.timestamp = score \n" +
+                        "spiltRed.exchangeCode = uuid \n" +
+                        "redis.call('SET',exchangeCodeKey,cjson.encode(spiltRed))\n" +
+                        "redis.call('EXPIRE',exchangeCodeKey,termOfValidity)\n" +
+                        "redis.call('SET',fingerprintKey,cjson.encode(spiltRed))\n" +
+                        "redis.call('INCRBY',ipKey,tonumber(1))\n" +
+                        "redis.call('EXPIRE',fingerprintKey,termOfValidity)\n" +
+                        "return spiltReds[1]";
         DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
         redisScript.setResultType(String.class);
         redisScript.setScriptText(script);
         String result = stringRedisTemplate.opsForValue().getOperations()
-                .execute(redisScript, List.of(externKey, exchangeCodeKey, externRecordKey, ipKey, fingerprintKey)
+                .execute(redisScript, List.of(externKey, exchangeCodeKey, externRecordKey, ipKey, fingerprintKey, rid + "")
                         , String.valueOf(now), uuid.toString(), exchangeCodeExpireTime);
         if (StringUtils.isBlank(result)) {
             ErrorCodeEnum.SYSTEM_ERROR.throwException();
+        }
+        if ("IP_LIMIT".equals(result)) {
+            throw ErrorCodeEnum.RED_IP_LIMIT.generalException();
         }
         if ("NOT_EXIST".equals(result)) {
             log.error("站外红包ZSET不存在:" + rid);
@@ -290,13 +305,11 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     }
 
     @Override
-    public RedEnvelopStatusDTO getIpOrFingerDTO(String ip, String fingerprint, Long id) {
-        String ipKey = RedisConstants.RED_ENVELOPE_LIMIT + ip + ":" + id;
+    public RedEnvelopStatusDTO getIpOrFingerDTO(String fingerprint, Long id) {
         String fingerprintKey = RedisConstants.RED_ENVELOPE_LIMIT + fingerprint + ":" + id;
         // EXCHANGE WAIT_EXCHANGE
         RedEnvelopeExchangeCodeVO vo;
-        if ((vo = this.getInfo(fingerprintKey)) != null
-                || (vo = this.getInfo(ipKey)) != null) {
+        if ((vo = this.getInfo(fingerprintKey)) != null) {
             RedEnvelopeSpilt redEnvelopeSpilt = this.getById(vo.getSpiltRid());
 
             RedEnvelopStatusDTO redEnvelopStatusDTO = JSONUtil.parse(vo).toBean(RedEnvelopStatusDTO.class);

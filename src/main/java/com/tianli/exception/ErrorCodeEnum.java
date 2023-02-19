@@ -152,11 +152,12 @@ public enum ErrorCodeEnum {
     RED_NUM_ERROR(3709, "红包数量异常"),
     RED_AMOUNT_ERROR(3710, "红包金额异常"),
     RED_EXCHANGE_ERROR(3711, "红包兑换码无效"),
-    RED_HAVE_RECEIVED(3712,"红包已领取"),
+    RED_HAVE_RECEIVED(3712, "红包已领取"),
     RED_STRATEGY_ERROR(3713, "红包策略暂不支持"),
     RED_EXTERN_LIMIT(3714, "站外红包领取限制"),
     RED_FLAG_NULL(3715, "flag不能为null"),
-    RED_NUM_CONFIAG_ERROR(3716, "红包配置数量不能超过1000"),
+    RED_NUM_CONFIG_ERROR(3716, "红包配置数量不能超过1000"),
+    RED_IP_LIMIT(3717, "红包ip限制领取数量5次"),
 
     /*** －－－－－－业务错误码-理财相关－－－－－－*/
     FINANCIAL_INCOME_REPEAT(3801, "理财利息当日利息已经计算"),

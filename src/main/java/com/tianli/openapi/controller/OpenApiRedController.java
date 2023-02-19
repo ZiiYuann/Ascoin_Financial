@@ -70,19 +70,15 @@ public class OpenApiRedController {
     @GetMapping("/extern/get")
     public Result<RedEnvelopeExchangeCodeVO> externRedGet(@RequestHeader("fingerprint") String fingerprint
             , HttpServletRequest request, OpenapiRedQuery query) {
-        String ip = IPUtils.getIpAddress(request);
         String id = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, query.getContext());
-
-        String ipKey = RedisConstants.RED_ENVELOPE_LIMIT + ip + ":" + id;
-        String fingerprintKey = RedisConstants.RED_ENVELOPE_LIMIT + fingerprint + ":" + id;
-
+        String ip = IPUtils.getIpAddress(request);
         RedEnvelopStatusDTO redEnvelopStatusDTO;
         // EXCHANGE WAIT_EXCHANGE
-        if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getIpOrFingerDTO(ip, fingerprint, Long.valueOf(id))) != null) {
+        if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getIpOrFingerDTO(fingerprint, Long.valueOf(id))) != null) {
             return new Result<>(redEnvelopStatusDTO);
         }
 
-        return new Result<>(redEnvelopeSpiltService.getExchangeCode(Long.parseLong(id), ipKey, fingerprintKey));
+        return new Result<>(redEnvelopeSpiltService.getExchangeCode(Long.parseLong(id), ip, fingerprint));
     }
 
     /**
@@ -90,10 +86,8 @@ public class OpenApiRedController {
      */
     @GetMapping("/extern")
     public Result<RedEnvelopeExchangeCodeVO> extern(@RequestHeader("fingerprint") String fingerprint
-            , HttpServletRequest request, OpenapiRedQuery query) {
+            , OpenapiRedQuery query) {
         String rid = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, query.getContext());
-        String ip = IPUtils.getIpAddress(request);
-
         RedEnvelopeExchangeCodeVO vo;
 
         RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.valueOf(rid));
@@ -105,7 +99,7 @@ public class OpenApiRedController {
 
         RedEnvelopStatusDTO redEnvelopStatusDTO;
         // EXCHANGE WAIT_EXCHANGE
-        if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getIpOrFingerDTO(ip, fingerprint, redEnvelope.getId())) != null) {
+        if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getIpOrFingerDTO(fingerprint, redEnvelope.getId())) != null) {
             return new Result<>(redEnvelopStatusDTO);
         }
 

@@ -48,9 +48,8 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
 
     /**
      * 获取兑换码
-     *
      */
-    RedEnvelopeExchangeCodeVO getExchangeCode(Long rid, String ipKey, String fingerprintKey);
+    RedEnvelopeExchangeCodeVO getExchangeCode(Long rid, String ip, String fingerprint);
 
     /**
      * 获取临近当前时间最近的过期 时间信息
@@ -62,7 +61,7 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
      */
     RedEnvelopStatusDTO getNotExpireDTO(String externKey, long now);
 
-    RedEnvelopStatusDTO getIpOrFingerDTO(String ip, String fingerprint,Long rid);
+    RedEnvelopStatusDTO getIpOrFingerDTO(String fingerprint, Long rid);
 
     /**
      * 获取红包领取记录VO（站外实未领取，分页50条一页）

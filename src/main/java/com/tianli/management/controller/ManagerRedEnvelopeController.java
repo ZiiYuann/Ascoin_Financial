@@ -1,6 +1,5 @@
 package com.tianli.management.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tianli.accountred.entity.RedEnvelopeConfig;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.service.RedEnvelopeConfigService;
@@ -43,7 +42,7 @@ public class ManagerRedEnvelopeController {
         //站外红包配置最大数默认1000，聊天红包无配置
         if (channel.equals(RedEnvelopeChannel.EXTERN)) {
             if (redEnvelopeConfigQuery.getNum() > 1000 || redEnvelopeConfigQuery.getNum() < 0) {
-                return Result.fail(ErrorCodeEnum.RED_NUM_CONFIAG_ERROR);
+                return Result.fail(ErrorCodeEnum.RED_NUM_CONFIG_ERROR);
             }
         }
         BigDecimal minAmount = redEnvelopeConfigQuery.getMinAmount();
