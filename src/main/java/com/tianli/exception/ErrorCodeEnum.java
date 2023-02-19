@@ -157,7 +157,7 @@ public enum ErrorCodeEnum {
     RED_EXTERN_LIMIT(3714, "站外红包领取限制"),
     RED_FLAG_NULL(3715, "flag不能为null"),
     RED_NUM_CONFIG_ERROR(3716, "红包配置数量不能超过1000"),
-    RED_IP_LIMIT(3717, "红包ip限制领取数量5次"),
+    RED_IP_LIMIT(3717, "该IP领取超限"),
 
     /*** －－－－－－业务错误码-理财相关－－－－－－*/
     FINANCIAL_INCOME_REPEAT(3801, "理财利息当日利息已经计算"),
