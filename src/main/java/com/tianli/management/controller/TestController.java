@@ -207,11 +207,11 @@ public class TestController {
      */
     @GetMapping("/red/extern")
     public Result<RedEnvelopeExchangeCodeVO> externRedGet(String fingerprint, String ip, String id) {
-        String ipKey = RedisConstants.RED_ENVELOPE_LIMIT + ip;
-        String fingerprintKey = RedisConstants.RED_ENVELOPE_LIMIT + fingerprint;
+        String ipKey = RedisConstants.RED_ENVELOPE_LIMIT + ip + ":" + id;
+        String fingerprintKey = RedisConstants.RED_ENVELOPE_LIMIT + fingerprint + ":" + id;
 
         RedEnvelopStatusDTO redEnvelopStatusDTO;
-        if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getIpOrFingerDTO(ip, fingerprint)) != null) {
+        if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getIpOrFingerDTO(ip, fingerprint, Long.valueOf(id))) != null) {
             return new Result<>(redEnvelopStatusDTO);
         }
         return new Result<>(redEnvelopeSpiltService.getExchangeCode(Long.parseLong(id), ipKey, fingerprintKey));

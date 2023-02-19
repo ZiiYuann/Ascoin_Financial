@@ -70,7 +70,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static com.tianli.sso.service.SSOService.WALLET_NEWS_SERVER_URL;
+import static com.tianli.common.ConfigConstants.SYSTEM_URL_PATH_PREFIX;
 
 /**
  * @author chenb
@@ -348,6 +348,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         redEnvelopeGetVO.setUReceiveAmount(currencyService.getDollarRate(redEnvelope.getCoin()).multiply(redEnvelopeSpiltDTO.getAmount()));
         redEnvelopeGetVO.setUid(redEnvelope.getUid());
         redEnvelopeGetVO.setShortUid(redEnvelope.getShortUid());
+        redEnvelopeGetVO.setRemarks(redEnvelope.getRemarks());
         return redEnvelopeGetVO;
     }
 
@@ -461,7 +462,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             var vo = redEnvelopeConvert.toRedEnvelopeGiveRecordVO(red);
             vo.setExternUrl(this.getExternUrl(red.getChannel(), red.getId()));
             vo.setCanBack(RedEnvelopeChannel.EXTERN.equals(red.getChannel())
-                    && LocalDateTime.now().compareTo(red.getCreateTime().plusDays(1)) >= 0);
+                    && LocalDateTime.now().compareTo(red.getCreateTime().plusDays(1)) >= 0
+                    && RedEnvelopeStatus.PROCESS.equals(red.getStatus()));
             vo.setNotReceiveAmount(red.getTotalAmount().subtract(red.getReceiveAmount()));
             return vo;
         });
@@ -793,10 +795,11 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         ConfigService bean = ApplicationContextTool.getBean(ConfigService.class);
         bean = Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
         return bean
-                .getOrDefault(WALLET_NEWS_SERVER_URL, "https://wallet-news.giantdt.com")
-                + "/api/openapi/red/extern/get?content="
+                .getOrDefault(SYSTEM_URL_PATH_PREFIX, "https://wallet-news.giantdt.com")
+                + "/packet/openapi/red/redPackage?context="
                 + PBE.encryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, id + "").replace("+", "%2B");
     }
+
 
     public static void main(String[] args) {
 

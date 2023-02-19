@@ -14,6 +14,7 @@ import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.mapper.RedEnvelopeMapper;
 import com.tianli.accountred.mapper.RedEnvelopeSpiltGetRecordMapper;
+import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
 import com.tianli.accountred.vo.RedEnvelopeSpiltGetRecordVO;
 import com.tianli.common.CommonFunction;
@@ -50,7 +51,7 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
     @Resource
     private RedEnvelopeConvert redEnvelopeConvert;
     @Resource
-    private RedEnvelopeMapper redEnvelopeMapper;
+    private RedEnvelopeService redEnvelopeService;
 
     @Override
     public RedEnvelopeSpiltGetRecord getRecords(Long rid, Long uid) {
@@ -108,7 +109,7 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
 
     @Override
     public List<RedEnvelopeSpiltGetRecord> getRecords(Long rid) {
-        RedEnvelope redEnvelope = redEnvelopeMapper.selectById(rid);
+        RedEnvelope redEnvelope = redEnvelopeService.getById(rid);
         return this.getRecords(redEnvelope);
     }
 
@@ -157,7 +158,12 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
         }
 
         return this.getBaseMapper().selectPage(pageQuery.page(), queryWrapper)
-                .convert(redEnvelopeConvert::toRedEnvelopeSpiltGetRecordVO);
+                .convert(index ->{
+                    var vo = redEnvelopeConvert.toRedEnvelopeSpiltGetRecordVO(index);
+                    RedEnvelope redEnvelope = redEnvelopeService.getById(index.getRid());
+                    vo.setRemarks(redEnvelope.getRemarks());
+                    return vo;
+                });
     }
 
     @Override

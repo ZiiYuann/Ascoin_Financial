@@ -290,9 +290,9 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     }
 
     @Override
-    public RedEnvelopStatusDTO getIpOrFingerDTO(String ip, String fingerprint) {
-        String ipKey = RedisConstants.RED_ENVELOPE_LIMIT + ip;
-        String fingerprintKey = RedisConstants.RED_ENVELOPE_LIMIT + fingerprint;
+    public RedEnvelopStatusDTO getIpOrFingerDTO(String ip, String fingerprint, Long id) {
+        String ipKey = RedisConstants.RED_ENVELOPE_LIMIT + ip + ":" + id;
+        String fingerprintKey = RedisConstants.RED_ENVELOPE_LIMIT + fingerprint + ":" + id;
         // EXCHANGE WAIT_EXCHANGE
         RedEnvelopeExchangeCodeVO vo;
         if ((vo = this.getInfo(fingerprintKey)) != null

@@ -73,12 +73,12 @@ public class OpenApiRedController {
         String ip = IPUtils.getIpAddress(request);
         String id = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, query.getContext());
 
-        String ipKey = RedisConstants.RED_ENVELOPE_LIMIT + ip;
-        String fingerprintKey = RedisConstants.RED_ENVELOPE_LIMIT + fingerprint;
+        String ipKey = RedisConstants.RED_ENVELOPE_LIMIT + ip + ":" + id;
+        String fingerprintKey = RedisConstants.RED_ENVELOPE_LIMIT + fingerprint + ":" + id;
 
         RedEnvelopStatusDTO redEnvelopStatusDTO;
         // EXCHANGE WAIT_EXCHANGE
-        if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getIpOrFingerDTO(ip, fingerprint)) != null) {
+        if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getIpOrFingerDTO(ip, fingerprint, Long.valueOf(id))) != null) {
             return new Result<>(redEnvelopStatusDTO);
         }
 
@@ -105,7 +105,7 @@ public class OpenApiRedController {
 
         RedEnvelopStatusDTO redEnvelopStatusDTO;
         // EXCHANGE WAIT_EXCHANGE
-        if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getIpOrFingerDTO(ip, fingerprint)) != null) {
+        if ((redEnvelopStatusDTO = redEnvelopeSpiltService.getIpOrFingerDTO(ip, fingerprint, redEnvelope.getId())) != null) {
             return new Result<>(redEnvelopStatusDTO);
         }
 

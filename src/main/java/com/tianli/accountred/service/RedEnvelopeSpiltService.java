@@ -62,7 +62,7 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
      */
     RedEnvelopStatusDTO getNotExpireDTO(String externKey, long now);
 
-    RedEnvelopStatusDTO getIpOrFingerDTO(String ip, String fingerprint);
+    RedEnvelopStatusDTO getIpOrFingerDTO(String ip, String fingerprint,Long rid);
 
     /**
      * 获取红包领取记录VO（站外实未领取，分页50条一页）

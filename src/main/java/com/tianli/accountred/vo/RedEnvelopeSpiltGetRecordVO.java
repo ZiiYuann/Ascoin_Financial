@@ -35,4 +35,6 @@ public class RedEnvelopeSpiltGetRecordVO {
 
     private RedEnvelopeType type;
 
+    private String remarks;
+
 }
