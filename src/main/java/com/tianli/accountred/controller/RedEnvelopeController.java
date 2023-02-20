@@ -202,7 +202,7 @@ public class RedEnvelopeController {
      */
     @GetMapping("/configs")
     public Result<List<RedEnvelopeConfigVO>> configs(@RequestParam("channel") String channel
-            , @RequestParam("coin") String coin) {
+            , @RequestParam(value = "coin", required = false) String coin) {
         return new Result<>(redEnvelopeConfigService.getList(channel, coin));
     }
 }
