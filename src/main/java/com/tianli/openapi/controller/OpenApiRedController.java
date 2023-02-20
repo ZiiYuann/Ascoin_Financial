@@ -2,11 +2,15 @@ package com.tianli.openapi.controller;
 
 import com.tianli.accountred.dto.RedEnvelopStatusDTO;
 import com.tianli.accountred.entity.RedEnvelope;
+import com.tianli.accountred.entity.RedEnvelopeConfig;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
+import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.enums.RedEnvelopeStatus;
+import com.tianli.accountred.service.RedEnvelopeConfigService;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltService;
 import com.tianli.accountred.vo.ORedEnvelopVO;
+import com.tianli.accountred.vo.RedEnvelopeConfigVO;
 import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO;
 import com.tianli.accountred.vo.RedEnvelopeExternGetDetailsVO;
 import com.tianli.common.Constants;
@@ -45,6 +49,8 @@ public class OpenApiRedController {
     private RpcService rpcService;
     @Resource
     private ConfigService configService;
+    @Resource
+    private RedEnvelopeConfigService redEnvelopeConfigService;
 
 
     /**
@@ -123,10 +129,12 @@ public class OpenApiRedController {
         String rid = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, query.getContext());
         RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.parseLong(rid));
         UserInfoDTO userInfoDTO = rpcService.userInfoDTO(redEnvelope.getUid());
+        RedEnvelopeConfig redEnvelopeConfig = redEnvelopeConfigService.getOne(redEnvelope.getCoin(), RedEnvelopeChannel.EXTERN);
         ORedEnvelopVO vo = ORedEnvelopVO.builder()
                 .coin(redEnvelope.getCoin())
                 .nickname(userInfoDTO.getNickname())
                 .remarks(redEnvelope.getRemarks())
+                .scale(redEnvelopeConfig.getScale())
                 .build();
         return new Result<>(vo);
     }

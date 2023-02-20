@@ -3,6 +3,7 @@ package com.tianli.accountred.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.accountred.entity.RedEnvelopeConfig;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
+import com.tianli.accountred.vo.RedEnvelopeConfigVO;
 import com.tianli.other.query.RedEnvelopeConfigIoUQuery;
 
 import java.util.List;
@@ -43,6 +44,6 @@ public interface RedEnvelopeConfigService extends IService<RedEnvelopeConfig> {
      * @param channel
      * @return
      */
-    List<RedEnvelopeConfig> getList(String channel);
+    List<RedEnvelopeConfigVO> getList(String channel, String coin);
 }
 

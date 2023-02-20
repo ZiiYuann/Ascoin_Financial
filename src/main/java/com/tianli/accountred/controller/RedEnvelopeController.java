@@ -17,6 +17,7 @@ import com.tianli.accountred.service.RedEnvelopeConfigService;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
 import com.tianli.accountred.service.RedEnvelopeSpiltService;
+import com.tianli.accountred.vo.RedEnvelopeConfigVO;
 import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO1;
 import com.tianli.accountred.vo.RedEnvelopeGiveVO;
 import com.tianli.accountred.vo.RedEnvelopeSpiltGetRecordVO;
@@ -200,8 +201,8 @@ public class RedEnvelopeController {
      * 红包配置列表
      */
     @GetMapping("/configs")
-    public Result<List<RedEnvelopeConfig>> configs(@RequestParam("channel") String channel) {
-        List<RedEnvelopeConfig> list = redEnvelopeConfigService.getList(channel);
-        return Result.success(list);
+    public Result<List<RedEnvelopeConfigVO>> configs(@RequestParam("channel") String channel
+            , @RequestParam("coin") String coin) {
+        return new Result<>(redEnvelopeConfigService.getList(channel, coin));
     }
 }

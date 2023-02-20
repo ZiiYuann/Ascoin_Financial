@@ -5,22 +5,26 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 /**
  * @author chenb
  * @apiNote
- * @since 2023-02-13
+ * @since 2023-02-20
  **/
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ORedEnvelopVO {
-
-    private String nickname;
+public class RedEnvelopeConfigVO {
 
     private String coin;
 
-    private String remarks;
-
     private int scale;
+
+    private BigDecimal limitAmount;
+
+    private BigDecimal minAmount;
+
+    private int num;
 }

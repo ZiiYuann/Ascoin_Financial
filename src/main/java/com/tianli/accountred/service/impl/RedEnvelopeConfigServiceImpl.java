@@ -6,6 +6,7 @@ import com.tianli.accountred.entity.RedEnvelopeConfig;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.mapper.RedEnvelopeConfigMapper;
 import com.tianli.accountred.service.RedEnvelopeConfigService;
+import com.tianli.accountred.vo.RedEnvelopeConfigVO;
 import com.tianli.other.query.RedEnvelopeConfigIoUQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -36,7 +38,7 @@ public class RedEnvelopeConfigServiceImpl extends ServiceImpl<RedEnvelopeConfigM
                 .channel(query.getChannel())
                 .num(query.getNum() == null ? 1000 : query.getNum())
                 .limitAmount(query.getLimitAmount() == null ? new BigDecimal(100) : query.getLimitAmount())
-                .minAmount(query.getMinAmount() == null ? new BigDecimal(0.000001) : query.getMinAmount()).build();
+                .minAmount(query.getMinAmount() == null ? new BigDecimal("0.000001") : query.getMinAmount()).build();
         if (Objects.isNull(redEnvelopeConfig)) {
             config.setCreateBy(nickName);
             config.setCreateTime(LocalDateTime.now());
@@ -74,10 +76,18 @@ public class RedEnvelopeConfigServiceImpl extends ServiceImpl<RedEnvelopeConfigM
     }
 
     @Override
-    public List<RedEnvelopeConfig> getList(String channel) {
+    public List<RedEnvelopeConfigVO> getList(String channel, String coin) {
         LambdaQueryWrapper<RedEnvelopeConfig> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(RedEnvelopeConfig::getChannel, channel);
-        List<RedEnvelopeConfig> list = this.list(wrapper);
-        return list;
+        if (Objects.nonNull(channel)) {
+            wrapper = wrapper.eq(RedEnvelopeConfig::getCoin, coin);
+        }
+        return this.list(wrapper).stream()
+                .map(config -> RedEnvelopeConfigVO.builder()
+                        .coin(config.getCoin())
+                        .limitAmount(config.getLimitAmount())
+                        .num(config.getNum())
+                        .minAmount(config.getMinAmount())
+                        .scale(config.getScale()).build()).collect(Collectors.toList());
     }
 }
