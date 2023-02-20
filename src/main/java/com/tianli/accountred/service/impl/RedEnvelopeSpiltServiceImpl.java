@@ -208,7 +208,9 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
             return new RedEnvelopeExchangeCodeVO(redEnvelope.getStatus());
         }
 
-        UUID uuid = UUID.randomUUID();
+        UUID uuidStr = UUID.randomUUID();
+        String[] idd = uuidStr.toString().split("-");
+        String uuid = (idd[0] + idd[1]).toUpperCase(Locale.ROOT);
         String externKey = RedisConstants.RED_EXTERN + rid; // 用于获取可领取code
         String exchangeCodeKey = RedisConstants.RED_EXTERN_CODE + uuid; // 设置缓存:验证码和红包信息对应
         String externRecordKey = RedisConstants.RED_EXTERN_RECORD + redEnvelope.getId(); //修改缓存 领取兑换码时更新信息
