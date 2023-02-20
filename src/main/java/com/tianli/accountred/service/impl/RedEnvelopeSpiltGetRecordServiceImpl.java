@@ -156,6 +156,9 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
         if (RedEnvelopeChannel.EXTERN.equals(channel)) {
             queryWrapper = queryWrapper.isNotNull(RedEnvelopeSpiltGetRecord::getExchangeCode);
         }
+        if (RedEnvelopeChannel.CHAT.equals(channel)) {
+            queryWrapper = queryWrapper.isNull(RedEnvelopeSpiltGetRecord::getExchangeCode);
+        }
 
         return this.getBaseMapper().selectPage(pageQuery.page(), queryWrapper)
                 .convert(index ->{

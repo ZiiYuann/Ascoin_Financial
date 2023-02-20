@@ -165,7 +165,7 @@ public class RedEnvelopeController {
     public Result<IPage<RedEnvelopeSpiltGetRecordVO>> getRecord(PageQuery<RedEnvelopeSpiltGetRecord> pageQuery
             , RedEnvelopeChannel channel) {
         Long uid = requestInitService.uid();
-        channel = MoreObjects.firstNonNull(channel, RedEnvelopeChannel.EXTERN);
+        channel = MoreObjects.firstNonNull(channel, RedEnvelopeChannel.CHAT);
         return new Result<>(redEnvelopeSpiltGetRecordService.getRecords(uid, channel, pageQuery));
     }
 

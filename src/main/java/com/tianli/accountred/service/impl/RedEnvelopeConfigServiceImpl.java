@@ -79,7 +79,7 @@ public class RedEnvelopeConfigServiceImpl extends ServiceImpl<RedEnvelopeConfigM
     public List<RedEnvelopeConfigVO> getList(String channel, String coin) {
         LambdaQueryWrapper<RedEnvelopeConfig> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(RedEnvelopeConfig::getChannel, channel);
-        if (Objects.nonNull(channel)) {
+        if (Objects.nonNull(coin)) {
             wrapper = wrapper.eq(RedEnvelopeConfig::getCoin, coin);
         }
         return this.list(wrapper).stream()
