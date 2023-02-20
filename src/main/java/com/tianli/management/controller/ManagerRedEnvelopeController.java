@@ -8,6 +8,7 @@ import com.tianli.exception.Result;
 import com.tianli.other.query.RedEnvelopeConfigIoUQuery;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.admin.AdminContent;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -31,26 +32,20 @@ public class ManagerRedEnvelopeController {
     /**
      * 新增或更新红包配置信息
      *
-     * @param redEnvelopeConfigQuery
+     * @param query
      * @return
      */
     @RequestMapping("/save")
     @AdminPrivilege
-    public Result save(@RequestBody @Valid RedEnvelopeConfigIoUQuery redEnvelopeConfigQuery) {
+    public Result save(@RequestBody @Valid RedEnvelopeConfigIoUQuery query) {
         String nickname = AdminContent.get().getNickname();
-        RedEnvelopeChannel channel = redEnvelopeConfigQuery.getChannel();
-        //站外红包配置最大数默认1000，聊天红包无配置
-        if (channel.equals(RedEnvelopeChannel.EXTERN)) {
-            if (redEnvelopeConfigQuery.getNum() > 1000 || redEnvelopeConfigQuery.getNum() < 0) {
-                return Result.fail(ErrorCodeEnum.RED_NUM_CONFIG_ERROR);
-            }
-        }
-        BigDecimal minAmount = redEnvelopeConfigQuery.getMinAmount();
-        BigDecimal limitAmount = new BigDecimal("0.000001");
-        if (limitAmount.compareTo(minAmount) > 0) {
-            return Result.fail(ErrorCodeEnum.RED_LIMIT_AMOUNT);
-        }
-        redEnvelopeConfigService.saveOrUpdate(nickname, redEnvelopeConfigQuery);
+      if (Objects.nonNull(query.getLimitAmount())&&Objects.nonNull(query.getNum())){
+          BigDecimal divide = query.getLimitAmount().divide(new BigDecimal(query.getNum()));
+          if (divide.compareTo(query.getMinAmount())<0){
+              return Result.fail("编辑不合规");
+          }
+      }
+        redEnvelopeConfigService.saveOrUpdate(nickname, query);
         return Result.success();
     }
 

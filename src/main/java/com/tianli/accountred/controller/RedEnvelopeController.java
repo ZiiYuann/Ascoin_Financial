@@ -5,6 +5,7 @@ import com.google.common.base.MoreObjects;
 import com.tianli.account.query.IdsQuery;
 import com.tianli.accountred.dto.RedEnvelopeSpiltDTO;
 import com.tianli.accountred.entity.RedEnvelope;
+import com.tianli.accountred.entity.RedEnvelopeConfig;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.query.RedEnvelopeChainQuery;
@@ -12,6 +13,7 @@ import com.tianli.accountred.query.RedEnvelopeExchangeCodeQuery;
 import com.tianli.accountred.query.RedEnvelopeGetQuery;
 import com.tianli.accountred.query.RedEnvelopeGiveRecordQuery;
 import com.tianli.accountred.query.RedEnvelopeIoUQuery;
+import com.tianli.accountred.service.RedEnvelopeConfigService;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
 import com.tianli.accountred.service.RedEnvelopeSpiltService;
@@ -25,6 +27,7 @@ import com.tianli.common.RedisLockConstants;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.other.query.RedEnvelopeConfigIoUQuery;
 import com.tianli.sso.init.RequestInitService;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -32,6 +35,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
@@ -58,6 +62,8 @@ public class RedEnvelopeController {
     @Resource
     private CurrencyService currencyService;
 
+    @Resource
+    private RedEnvelopeConfigService redEnvelopeConfigService;
     /**
      * 发红包
      */
@@ -188,4 +194,36 @@ public class RedEnvelopeController {
     }
 
 
+    /**
+     * 客户端红包配置接口
+     * @param query
+     * @return
+     */
+    @RequestMapping("/save")
+    public Result save(@RequestBody @Valid RedEnvelopeConfigIoUQuery query) {
+        Long uid = requestInitService.uid();
+        if (Objects.nonNull(query.getLimitAmount())&&Objects.nonNull(query.getNum())){
+            BigDecimal divide = query.getLimitAmount().divide(new BigDecimal(query.getNum()));
+            if (divide.compareTo(query.getMinAmount())<0){
+                return Result.fail("编辑不合规");
+            }
+        }
+        redEnvelopeConfigService.saveOrUpdate(uid.toString(), query);
+        return Result.success();
+    }
+
+    /**
+     * 站外红包详情
+     *
+     * @param coin
+     * @return
+     */
+    @GetMapping("/details")
+    public Result details(@RequestParam("coin") String coin) {
+        RedEnvelopeConfig one = redEnvelopeConfigService.getDetails(coin,RedEnvelopeChannel.EXTERN);
+        if (Objects.isNull(one)){
+            return Result.fail("该币种红包配置信息不存在！");
+        }
+        return Result.success(one);
+    }
 }

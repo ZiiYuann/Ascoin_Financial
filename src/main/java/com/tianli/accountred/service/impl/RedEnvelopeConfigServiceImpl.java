@@ -6,12 +6,12 @@ import com.tianli.accountred.entity.RedEnvelopeConfig;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.mapper.RedEnvelopeConfigMapper;
 import com.tianli.accountred.service.RedEnvelopeConfigService;
-import com.tianli.chain.entity.CoinBase;
 import com.tianli.other.query.RedEnvelopeConfigIoUQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
@@ -33,9 +33,9 @@ public class RedEnvelopeConfigServiceImpl extends ServiceImpl<RedEnvelopeConfigM
         RedEnvelopeConfig config = RedEnvelopeConfig.builder()
                 .coin(query.getCoin())
                 .channel(query.getChannel())
-                .num(query.getNum())
-                .limitAmount(query.getLimitAmount())
-                .minAmount(query.getMinAmount()).build();
+                .num(query.getNum()==null?1000: query.getNum())
+                .limitAmount(query.getLimitAmount()==null?new BigDecimal(100):query.getLimitAmount())
+                .minAmount(query.getMinAmount()==null?new BigDecimal(0.000001):query.getMinAmount()).build();
         if (Objects.isNull(redEnvelopeConfig)) {
             config.setCreateBy(nickName);
             config.setCreateTime(LocalDateTime.now());

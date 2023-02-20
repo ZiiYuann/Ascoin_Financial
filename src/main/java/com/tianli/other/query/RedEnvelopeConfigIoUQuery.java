@@ -39,7 +39,6 @@ public class RedEnvelopeConfigIoUQuery extends IoUQuery {
     /**
      * 金额限制
      */
-    @Max(value = 100,message = "红包总额最大为100")
     private BigDecimal limitAmount;
 
     /**
