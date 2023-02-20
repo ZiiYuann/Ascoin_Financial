@@ -198,11 +198,9 @@ public class RedEnvelopeController {
 
     /**
      * 红包配置列表
-     *
-     * @return
      */
-    @GetMapping("/redConfiglist")
-    public Result redConfiglist(@RequestParam("channel") String channel) {
+    @GetMapping("/configs")
+    public Result<List<RedEnvelopeConfig>> configs(@RequestParam("channel") String channel) {
         List<RedEnvelopeConfig> list = redEnvelopeConfigService.getList(channel);
         return Result.success(list);
     }
