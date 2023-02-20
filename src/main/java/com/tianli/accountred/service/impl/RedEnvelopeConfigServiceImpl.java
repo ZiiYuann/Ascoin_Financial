@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -28,38 +29,54 @@ public class RedEnvelopeConfigServiceImpl extends ServiceImpl<RedEnvelopeConfigM
 
     @Override
     @Transactional
-    public void saveOrUpdate(String nickName,RedEnvelopeConfigIoUQuery query) {
+    public void saveOrUpdate(String nickName, RedEnvelopeConfigIoUQuery query) {
         RedEnvelopeConfig redEnvelopeConfig = baseMapper.selectByName(query.getCoin());
         RedEnvelopeConfig config = RedEnvelopeConfig.builder()
                 .coin(query.getCoin())
                 .channel(query.getChannel())
-                .num(query.getNum()==null?1000: query.getNum())
-                .limitAmount(query.getLimitAmount()==null?new BigDecimal(100):query.getLimitAmount())
-                .minAmount(query.getMinAmount()==null?new BigDecimal(0.000001):query.getMinAmount()).build();
+                .num(query.getNum() == null ? 1000 : query.getNum())
+                .limitAmount(query.getLimitAmount() == null ? new BigDecimal(100) : query.getLimitAmount())
+                .minAmount(query.getMinAmount() == null ? new BigDecimal(0.000001) : query.getMinAmount()).build();
         if (Objects.isNull(redEnvelopeConfig)) {
             config.setCreateBy(nickName);
             config.setCreateTime(LocalDateTime.now());
             baseMapper.insert(config);
-        }else {
+        } else {
             config.setUpdateBy(nickName);
             config.setUpdateTime(LocalDateTime.now());
-            baseMapper.update(config,new LambdaQueryWrapper<RedEnvelopeConfig>().eq(RedEnvelopeConfig::getCoin,query.getCoin()));
+            baseMapper.update(config, new LambdaQueryWrapper<RedEnvelopeConfig>().eq(RedEnvelopeConfig::getCoin, query.getCoin()));
         }
     }
 
     @Override
     public RedEnvelopeConfig getOne(String coin, RedEnvelopeChannel channel) {
         return Optional.ofNullable(this.getOne(new LambdaQueryWrapper<RedEnvelopeConfig>()
-                .eq(RedEnvelopeConfig::getCoin, coin)
-                .eq(RedEnvelopeConfig::getChannel, channel)))
+                        .eq(RedEnvelopeConfig::getCoin, coin)
+                        .eq(RedEnvelopeConfig::getChannel, channel)))
                 .orElse(RedEnvelopeConfig.defaultConfig());
     }
 
     @Override
     public RedEnvelopeConfig getDetails(String coin, RedEnvelopeChannel channel) {
-        return  this.getOne(new LambdaQueryWrapper<RedEnvelopeConfig>()
+        RedEnvelopeConfig one = this.getOne(new LambdaQueryWrapper<RedEnvelopeConfig>()
                 .eq(RedEnvelopeConfig::getCoin, coin)
-                .eq(RedEnvelopeConfig::getChannel, channel))
-         ;
+                .eq(RedEnvelopeConfig::getChannel, channel));
+        if (Objects.isNull(one)) {
+            one = new RedEnvelopeConfig() {{
+                setCoin(coin);
+                setLimitAmount(new BigDecimal(100));
+                setMinAmount(new BigDecimal(0.000001));
+                setChannel(RedEnvelopeChannel.EXTERN);
+            }};
+        }
+        return one;
+    }
+
+    @Override
+    public List<RedEnvelopeConfig> getList(String channel) {
+        LambdaQueryWrapper<RedEnvelopeConfig> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(RedEnvelopeConfig::getChannel, channel);
+        List<RedEnvelopeConfig> list = this.list(wrapper);
+        return list;
     }
 }

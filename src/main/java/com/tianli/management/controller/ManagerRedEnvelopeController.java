@@ -39,12 +39,12 @@ public class ManagerRedEnvelopeController {
     @AdminPrivilege
     public Result save(@RequestBody @Valid RedEnvelopeConfigIoUQuery query) {
         String nickname = AdminContent.get().getNickname();
-      if (Objects.nonNull(query.getLimitAmount())&&Objects.nonNull(query.getNum())){
-          BigDecimal divide = query.getLimitAmount().divide(new BigDecimal(query.getNum()));
-          if (divide.compareTo(query.getMinAmount())<0){
-              return Result.fail("编辑不合规");
-          }
-      }
+        if (Objects.nonNull(query.getLimitAmount()) && Objects.nonNull(query.getNum())) {
+            BigDecimal divide = query.getLimitAmount().divide(new BigDecimal(query.getNum()));
+            if (divide.compareTo(query.getMinAmount()) < 0) {
+                return Result.fail("编辑不合规");
+            }
+        }
         redEnvelopeConfigService.saveOrUpdate(nickname, query);
         return Result.success();
     }
@@ -53,15 +53,12 @@ public class ManagerRedEnvelopeController {
     /**
      * 站外红包详情
      *
-     * @param coin
+     * @param coin 币种
      * @return
      */
     @GetMapping("/details")
     public Result details(@RequestParam("coin") String coin) {
-        RedEnvelopeConfig one = redEnvelopeConfigService.getDetails(coin,RedEnvelopeChannel.EXTERN);
-        if (Objects.isNull(one)){
-            return Result.fail("该币种红包配置信息不存在！");
-        }
+        RedEnvelopeConfig one = redEnvelopeConfigService.getDetails(coin, RedEnvelopeChannel.EXTERN);
         return Result.success(one);
     }
 }

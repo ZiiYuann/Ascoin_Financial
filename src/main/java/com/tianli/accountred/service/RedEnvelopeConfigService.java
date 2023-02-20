@@ -5,6 +5,8 @@ import com.tianli.accountred.entity.RedEnvelopeConfig;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.other.query.RedEnvelopeConfigIoUQuery;
 
+import java.util.List;
+
 /**
  * @author chenb
  * @apiNote
@@ -35,5 +37,12 @@ public interface RedEnvelopeConfigService extends IService<RedEnvelopeConfig> {
      * @return
      */
     RedEnvelopeConfig getDetails(String coin,RedEnvelopeChannel channel);
+
+    /**
+     * 获取红包配置列表
+     * @param channel
+     * @return
+     */
+    List<RedEnvelopeConfig> getList(String channel);
 }
 

@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -64,6 +65,7 @@ public class RedEnvelopeController {
 
     @Resource
     private RedEnvelopeConfigService redEnvelopeConfigService;
+
     /**
      * 发红包
      */
@@ -195,35 +197,13 @@ public class RedEnvelopeController {
 
 
     /**
-     * 客户端红包配置接口
-     * @param query
-     * @return
-     */
-    @RequestMapping("/save")
-    public Result save(@RequestBody @Valid RedEnvelopeConfigIoUQuery query) {
-        Long uid = requestInitService.uid();
-        if (Objects.nonNull(query.getLimitAmount())&&Objects.nonNull(query.getNum())){
-            BigDecimal divide = query.getLimitAmount().divide(new BigDecimal(query.getNum()));
-            if (divide.compareTo(query.getMinAmount())<0){
-                return Result.fail("编辑不合规");
-            }
-        }
-        redEnvelopeConfigService.saveOrUpdate(uid.toString(), query);
-        return Result.success();
-    }
-
-    /**
-     * 站外红包详情
+     * 红包配置列表
      *
-     * @param coin
      * @return
      */
-    @GetMapping("/details")
-    public Result details(@RequestParam("coin") String coin) {
-        RedEnvelopeConfig one = redEnvelopeConfigService.getDetails(coin,RedEnvelopeChannel.EXTERN);
-        if (Objects.isNull(one)){
-            return Result.fail("该币种红包配置信息不存在！");
-        }
-        return Result.success(one);
+    @GetMapping("/redConfiglist")
+    public Result redConfiglist(@RequestParam("channel") String channel) {
+        List<RedEnvelopeConfig> list = redEnvelopeConfigService.getList(channel);
+        return Result.success(list);
     }
 }
