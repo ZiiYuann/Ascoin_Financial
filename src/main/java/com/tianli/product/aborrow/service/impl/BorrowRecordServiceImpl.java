@@ -72,6 +72,13 @@ public class BorrowRecordServiceImpl extends ServiceImpl<BorrowRecordMapper, Bor
     }
 
     @Override
+    public BorrowRecord get(Long uid) {
+        return this.getOne(new LambdaQueryWrapper<BorrowRecord>()
+                .eq(BorrowRecord::getUid, uid)
+                .eq(BorrowRecord::isFinish, false));
+    }
+
+    @Override
     public IPage<MBorrowUserVO> pledgeUsers(Page<BorrowRecord> page, BorrowUserQuery query) {
         QueryWrapper<BorrowRecord> generate = QueryWrapperUtils.generate(BorrowRecord.class, query);
         return this.page(page, generate)

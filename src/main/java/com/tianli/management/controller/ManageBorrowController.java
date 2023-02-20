@@ -105,7 +105,8 @@ public class ManageBorrowController {
     @AdminPrivilege
     @GetMapping("/user/coin/{uid}")
     public Result<List<MBorrowRecordVO>> userBorrow(@PathVariable Long uid) {
-        var result = borrowRecordCoinService.listByUid(uid)
+        BorrowRecord borrowRecord = borrowRecordService.getValid(uid);
+        var result = borrowRecordCoinService.listByUid(uid, borrowRecord.getId())
                 .stream().map(coin -> MBorrowRecordVO.builder()
                         .amount(coin.getAmount())
                         .coin(coin.getCoin()).build()).collect(Collectors.toList());

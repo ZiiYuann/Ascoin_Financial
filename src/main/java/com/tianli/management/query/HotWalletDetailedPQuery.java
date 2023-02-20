@@ -1,11 +1,9 @@
 package com.tianli.management.query;
 
 import com.tianli.chain.enums.ChainType;
-import com.tianli.common.query.PQuery;
 import com.tianli.management.enums.HotWalletOperationType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -19,8 +17,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class HotWalletDetailedPQuery extends PQuery {
+public class HotWalletDetailedPQuery {
 
     private String hash;
 

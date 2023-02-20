@@ -1,5 +1,6 @@
 package com.tianli.product.aborrow.dto;
 
+import com.tianli.management.dto.AmountDto;
 import com.tianli.product.aborrow.entity.BorrowRecordCoin;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,9 +20,9 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BorrowRecordSnapshotDto {
+public class BorrowRecordSnapshotDTO {
 
-    private HashMap<String, BigDecimal> coinRates;
+    private List<AmountDto> coinRates;
 
     private List<BorrowRecordCoin> borrowRecordCoins;
 

@@ -7,6 +7,7 @@ import com.tianli.product.aborrow.enums.BorrowStatus;
 import com.tianli.product.aborrow.query.BorrowCoinQuery;
 import com.tianli.product.aborrow.query.BorrowConfigCoinIoUQuery;
 import com.tianli.product.aborrow.query.BorrowQuery;
+import com.tianli.product.aborrow.vo.AccountBorrowVO;
 import com.tianli.product.aborrow.vo.BorrowConfigCoinVO;
 import com.tianli.product.aborrow.vo.MBorrowConfigCoinVO;
 
@@ -28,4 +29,7 @@ public interface BorrowConfigCoinService extends IService<BorrowConfigCoin> {
     void check(Long uid, BorrowCoinQuery query);
 
     List<BorrowConfigCoinVO> getVOs();
+
+    List<AccountBorrowVO> getAccountBorrowVOs(Long uid);
 }
+

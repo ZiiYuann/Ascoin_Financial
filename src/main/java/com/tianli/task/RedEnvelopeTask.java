@@ -2,8 +2,8 @@ package com.tianli.task;
 
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.common.RedisLockConstants;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
+import com.tianli.common.lock.RedissonClientTool;
+import com.tianli.exception.ErrorCodeEnum;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +20,7 @@ import java.time.format.DateTimeFormatter;
 public class RedEnvelopeTask {
 
     @Resource
-    private RedissonClient redissonClient;
+    private RedissonClientTool redissonClientTool;
     @Resource
     private RedEnvelopeService redEnvelopeService;
 
@@ -28,12 +28,8 @@ public class RedEnvelopeTask {
     public void redEnvelopeExpiration() {
         LocalDateTime now = LocalDateTime.now();
         String nowString = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        RLock lock = redissonClient.getLock(RedisLockConstants.RED_ENVELOPE_EXPIRATION + nowString);
-        try {
-            lock.lock();
-            redEnvelopeService.redEnvelopeExpiration(now);
-        } finally {
-            lock.unlock();
-        }
+
+        redissonClientTool.tryLock(RedisLockConstants.RED_ENVELOPE_EXPIRATION + nowString
+                , () -> redEnvelopeService.redEnvelopeExpiration(now), ErrorCodeEnum.SYSTEM_ERROR);
     }
 }

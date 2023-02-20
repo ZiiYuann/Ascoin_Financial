@@ -46,8 +46,8 @@ public enum ChargeType {
     // 借贷
     borrow("Borrow", "借币",AccountChangeType.borrow),
     repay("Repay", "还币",AccountChangeType.recharge),
-    pledge("Collateral", "锁定质押",AccountChangeType.borrow_pledge),
-    release("Release Pledge", "释放质押",AccountChangeType.release),
+    pledge("Collateral", "锁定质押物",AccountChangeType.borrow_pledge),
+    release("Release Pledge", "释放质押物",AccountChangeType.release),
     forced_closeout("Forced Closeout","强制平仓",AccountChangeType.forced_closeout),
     auto_re("Automatic replenishment","自动补仓",AccountChangeType.auto_re)
 

@@ -11,16 +11,16 @@ import com.tianli.charge.service.OrderAdvanceService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.blockchain.NetworkType;
+import com.tianli.common.lock.RedissonClientTool;
 import com.tianli.common.webhook.WebHookService;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.product.afinancial.entity.FinancialProduct;
 import com.tianli.product.afinancial.enums.ProductType;
-import com.tianli.product.service.FinancialProductService;
 import com.tianli.product.afund.contant.FundTransactionStatus;
 import com.tianli.product.afund.entity.FundTransactionRecord;
 import com.tianli.product.afund.service.IFundTransactionRecordService;
+import com.tianli.product.service.FinancialProductService;
 import org.apache.commons.lang3.StringUtils;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +31,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author chenb
@@ -54,25 +53,18 @@ public class OrderTask {
     @Resource
     private IFundTransactionRecordService fundTransactionRecordService;
     @Resource
-    private RedissonClient redissonClient;
+    private RedissonClientTool redissonClientTool;
 
     @Scheduled(cron = "0 0/15 * * * ?")
     public void advanceTask() {
-        RLock lock = redissonClient.getLock(RedisLockConstants.ORDER_ADVANCE);
-        try {
-            if (lock.tryLock(1, TimeUnit.MINUTES)) {
-                List<Order> advanceOrders = Optional.ofNullable(orderService.list(new LambdaQueryWrapper<Order>()
-                        .eq(Order::getStatus, ChargeStatus.chaining)
-                        .likeRight(Order::getOrderNo, AccountChangeType.advance_purchase.getPrefix()))).orElse(new ArrayList<>());
-                advanceOrders.forEach(this::scanChainOperation);
-            }
-        } catch (InterruptedException e) {
-            // Restore interrupted state...
-            Thread.currentThread().interrupt();
-        } finally {
-            lock.unlock();
-        }
-
+        redissonClientTool.tryLock(RedisLockConstants.ORDER_ADVANCE
+                , () -> {
+                    List<Order> advanceOrders = Optional.ofNullable(orderService.list(new LambdaQueryWrapper<Order>()
+                            .eq(Order::getStatus, ChargeStatus.chaining)
+                            .likeRight(Order::getOrderNo, AccountChangeType.advance_purchase.getPrefix()))).orElse(new ArrayList<>());
+                    advanceOrders.forEach(this::scanChainOperation);
+                }
+                , ErrorCodeEnum.SYSTEM_ERROR);
     }
 
     @Transactional

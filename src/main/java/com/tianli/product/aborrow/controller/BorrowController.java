@@ -1,19 +1,18 @@
 package com.tianli.product.aborrow.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedissonClientTool;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
-import com.tianli.product.aborrow.query.BorrowCoinQuery;
-import com.tianli.product.aborrow.query.CalPledgeQuery;
-import com.tianli.product.aborrow.query.ModifyPledgeContextQuery;
-import com.tianli.product.aborrow.query.RepayCoinQuery;
+import com.tianli.product.aborrow.entity.BorrowOperationLog;
+import com.tianli.product.aborrow.query.*;
 import com.tianli.product.aborrow.service.BorrowConfigCoinService;
 import com.tianli.product.aborrow.service.BorrowConfigPledgeService;
+import com.tianli.product.aborrow.service.BorrowOperationLogService;
 import com.tianli.product.aborrow.service.BorrowService;
-import com.tianli.product.aborrow.vo.BorrowConfigCoinVO;
-import com.tianli.product.aborrow.vo.BorrowConfigPledgeVO;
-import com.tianli.product.aborrow.vo.CalPledgeVO;
+import com.tianli.product.aborrow.vo.*;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,6 +39,8 @@ public class BorrowController {
     private BorrowConfigPledgeService borrowConfigPledgeService;
     @Resource
     private BorrowConfigCoinService borrowConfigCoinService;
+    @Resource
+    private BorrowOperationLogService borrowOperationLogService;
 
     /**
      * 借币
@@ -70,7 +71,7 @@ public class BorrowController {
     /**
      * 增减质押物
      */
-    @PostMapping("/pledgeContext")
+    @PostMapping("/pledge/context")
     public Result<Void> repay(@RequestBody @Valid ModifyPledgeContextQuery query) {
         Long uid = requestInitService.uid();
         String key = RedisLockConstants.LOCK_BORROW + uid;
@@ -97,6 +98,24 @@ public class BorrowController {
         return new Result<>(borrowConfigPledgeService.getVOs());
     }
 
+    @GetMapping("/borrow/account")
+    public Result<List<AccountBorrowVO>> borrowAccount() {
+        Long uid = requestInitService.uid();
+        return new Result<>(borrowConfigCoinService.getAccountBorrowVOs(uid));
+    }
+
+    @GetMapping("/pledge/account")
+    public Result<List<AccountPledgeVO>> pledgeAccount() {
+        Long uid = requestInitService.uid();
+        return new Result<>(borrowConfigPledgeService.getAccountPledgeVOs(uid));
+    }
+
+    @GetMapping("/pledge/product")
+    public Result<List<ProductPledgeVO>> pledgeProduct() {
+        Long uid = requestInitService.uid();
+        return new Result<>(borrowConfigPledgeService.getProductPledgeVOs(uid));
+    }
+
     /**
      * 借币配置
      */
@@ -104,5 +123,24 @@ public class BorrowController {
     public Result<List<BorrowConfigCoinVO>> coinConfig() {
         return new Result<>(borrowConfigCoinService.getVOs());
     }
+
+    /**
+     * 借币详情
+     */
+    @GetMapping("/details")
+    public Result<BorrowRecordSnapshotVO> details() {
+        Long uid = requestInitService.uid();
+        return new Result<>(borrowService.newestSnapshot(uid));
+    }
+
+    @GetMapping("/logs")
+    public Result<IPage<BorrowOperationLogVO>> logs(PageQuery<BorrowOperationLog> pageQuery, BorrowOperationLogQuery query) {
+        Long uid = requestInitService.uid();
+        query.setUid(uid);
+        return new Result<>(borrowOperationLogService.logs(pageQuery.page(), query));
+    }
+
+
+
 
 }

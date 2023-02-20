@@ -1,31 +1,23 @@
 package com.tianli.product.aborrow.vo;
 
+import com.tianli.product.aborrow.dto.BorrowRecordSnapshotDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-
 /**
  * @author chenb
  * @apiNote
- * @since 2023-02-10
+ * @since 2023-02-20
  **/
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BorrowConfigCoinVO {
+public class BorrowRecordSnapshotVO {
 
-    private String coin;
+    private BorrowRecordSnapshotDTO borrowRecordSnapshotDTO;
 
-    private String logo;
-
-    private BigDecimal minAmount;
-
-    private BigDecimal maxAmount;
-
-    private BigDecimal hourRate;
-
+    private BorrowRecordVO borrowRecordVO;
 }

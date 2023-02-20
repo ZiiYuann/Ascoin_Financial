@@ -19,6 +19,8 @@ public interface BorrowRecordService extends IService<BorrowRecord> {
 
     BorrowRecord getValid(Long uid);
 
+    BorrowRecord get(Long uid);
+
     IPage<MBorrowUserVO> pledgeUsers(Page<BorrowRecord> page, BorrowUserQuery query);
 
     void finish(Long uid,Long bid);

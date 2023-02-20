@@ -3,11 +3,15 @@ package com.tianli.product.aborrow.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.account.entity.AccountBalance;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.chain.service.CoinBaseService;
 import com.tianli.common.QueryWrapperUtils;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.product.aborrow.convert.BorrowConvert;
 import com.tianli.product.aborrow.entity.BorrowConfigCoin;
+import com.tianli.product.aborrow.entity.BorrowRecord;
 import com.tianli.product.aborrow.entity.BorrowRecordCoin;
 import com.tianli.product.aborrow.enums.BorrowStatus;
 import com.tianli.product.aborrow.mapper.BorrowConfigCoinMapper;
@@ -16,6 +20,8 @@ import com.tianli.product.aborrow.query.BorrowConfigCoinIoUQuery;
 import com.tianli.product.aborrow.query.BorrowQuery;
 import com.tianli.product.aborrow.service.BorrowConfigCoinService;
 import com.tianli.product.aborrow.service.BorrowRecordCoinService;
+import com.tianli.product.aborrow.service.BorrowRecordService;
+import com.tianli.product.aborrow.vo.AccountBorrowVO;
 import com.tianli.product.aborrow.vo.BorrowConfigCoinVO;
 import com.tianli.product.aborrow.vo.MBorrowConfigCoinVO;
 import org.springframework.stereotype.Service;
@@ -23,7 +29,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -42,6 +50,12 @@ public class BorrowConfigCoinServiceImpl extends ServiceImpl<BorrowConfigCoinMap
     private CoinBaseService coinBaseService;
     @Resource
     private BorrowRecordCoinService borrowRecordCoinService;
+    @Resource
+    private BorrowRecordService borrowRecordService;
+    @Resource
+    private AccountBalanceService accountBalanceService;
+    @Resource
+    private CurrencyService currencyService;
 
     @Override
     @Transactional
@@ -98,6 +112,35 @@ public class BorrowConfigCoinServiceImpl extends ServiceImpl<BorrowConfigCoinMap
                         .eq(BorrowConfigCoin::getStatus, 1))
                 .stream().map(borrowConvert::toBorrowConfigCoinVO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AccountBorrowVO> getAccountBorrowVOs(Long uid) {
+        List<BorrowConfigCoinVO> coins = getVOs();
+
+        BorrowRecord borrowRecord = borrowRecordService.get(uid);
+        return coins.stream().map(index -> {
+            String coin = index.getCoin();
+            AccountBorrowVO accountBorrowVO = borrowConvert.toAccountBorrowVO(index);
+            AccountBalance accountBalance = accountBalanceService.getAndInit(uid, index.getCoin());
+            accountBorrowVO.setRemain(accountBalance.getRemain());
+            accountBorrowVO.setRate(currencyService.getDollarRate(index.getCoin()));
+
+            if (Objects.nonNull(borrowRecord)) {
+                BigDecimal dollarRate = currencyService.getDollarRate(coin);
+                var borrowRecordCoinMap = borrowRecordCoinService.listByUid(uid, borrowRecord.getId())
+                        .stream().collect(Collectors.toMap(BorrowRecordCoin::getCoin, o -> o));
+
+                BorrowRecordCoin borrowRecordCoin = borrowRecordCoinMap.get(coin);
+                accountBorrowVO.setBorrowAmount(Objects.isNull(borrowRecordCoin) ? BigDecimal.ZERO
+                        : borrowRecordCoin.getAmount());
+                accountBorrowVO.setRate(dollarRate);
+                accountBorrowVO.setBorrowProportion(accountBorrowVO.getBorrowAmount().multiply(dollarRate)
+                        .divide(borrowRecord.getBorrowFee(), 4, RoundingMode.DOWN));
+                accountBorrowVO.setHold(Objects.nonNull(borrowRecordCoin));
+            }
+            return accountBorrowVO;
+        }).collect(Collectors.toList());
     }
 
 }

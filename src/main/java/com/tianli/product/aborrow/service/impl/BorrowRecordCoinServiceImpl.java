@@ -10,6 +10,7 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.product.aborrow.entity.BorrowConfigCoin;
 import com.tianli.product.aborrow.entity.BorrowInterest;
 import com.tianli.product.aborrow.entity.BorrowRecordCoin;
+import com.tianli.product.aborrow.enums.InterestType;
 import com.tianli.product.aborrow.mapper.BorrowRecordCoinMapper;
 import com.tianli.product.aborrow.query.BorrowCoinQuery;
 import com.tianli.product.aborrow.query.RepayCoinQuery;
@@ -110,9 +111,24 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
     }
 
     @Override
-    public List<BorrowRecordCoin> listByUid(Long uid) {
+    @Transactional
+    public void calInterest(Long uid, Long bid) {
+        List<BorrowRecordCoin> recordCoins = this.list(new LambdaQueryWrapper<BorrowRecordCoin>()
+                .eq(BorrowRecordCoin::getUid, uid)
+                .eq(BorrowRecordCoin::getBid, bid));
+        recordCoins.forEach(recordCoin -> {
+            String coin = recordCoin.getCoin();
+            var hourRate = borrowConfigCoinService.getById(coin).getHourRate();
+            BigDecimal amount = recordCoin.getAmount();
+            borrowInterestService.add(bid, uid, coin, amount.subtract(hourRate), InterestType.HOUR);
+        });
+    }
+
+    @Override
+    public List<BorrowRecordCoin> listByUid(Long uid,Long bid) {
         return this.list(new LambdaQueryWrapper<BorrowRecordCoin>()
-                .eq(BorrowRecordCoin::getUid, uid));
+                .eq(BorrowRecordCoin::getUid, uid)
+                .eq(BorrowRecordCoin :: getBid,bid));
     }
 
     @Override

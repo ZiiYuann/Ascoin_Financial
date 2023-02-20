@@ -9,7 +9,6 @@ import com.tianli.management.entity.FinancialBoardProduct;
 import com.tianli.management.entity.FinancialBoardWallet;
 import com.tianli.management.service.FinancialBoardProductService;
 import com.tianli.management.service.FinancialBoardWalletService;
-import com.tianli.management.service.HotWalletDetailedService;
 import com.tianli.management.service.ServiceFeeService;
 import com.tianli.tool.ApplicationContextTool;
 import lombok.extern.slf4j.Slf4j;
@@ -41,9 +40,6 @@ public class FinancialBoardTask {
     private FinancialBoardProductService financialBoardProductService;
     @Resource
     private FinancialBoardWalletService financialBoardWalletService;
-    @Resource
-    private HotWalletDetailedService hotWalletDetailedService;
-
 
     @Scheduled(cron = "0 0 0 1/1 * ? ")
     public void task() {

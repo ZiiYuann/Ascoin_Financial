@@ -9,6 +9,7 @@ import com.tianli.product.aborrow.query.BorrowCoinQuery;
 import com.tianli.product.aborrow.query.CalPledgeQuery;
 import com.tianli.product.aborrow.query.ModifyPledgeContextQuery;
 import com.tianli.product.aborrow.query.RepayCoinQuery;
+import com.tianli.product.aborrow.vo.BorrowRecordSnapshotVO;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -24,6 +25,8 @@ public interface BorrowService {
 
     BorrowRecord calPledgeRate(BorrowRecord borrowRecord, Long uid, Boolean autoReplenishment);
 
+    BorrowRecord calPledgeRate(BorrowRecord borrowRecord);
+
     PledgeRateDto preCalPledgeRate(Long uid, CalPledgeQuery borrowCoinQuery);
 
     PledgeRateDto calPledgeRate(HashMap<String, BigDecimal> rateMap
@@ -31,4 +34,6 @@ public interface BorrowService {
             , List<BorrowRecordCoin> borrowRecordCoins
             , List<BorrowInterest> borrowInterests
             , boolean borrow);
+
+    BorrowRecordSnapshotVO newestSnapshot(Long uid);
 }

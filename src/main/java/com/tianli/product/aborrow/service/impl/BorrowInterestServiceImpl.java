@@ -4,14 +4,17 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.product.aborrow.entity.BorrowInterest;
 import com.tianli.product.aborrow.entity.BorrowInterestLog;
+import com.tianli.product.aborrow.enums.InterestType;
 import com.tianli.product.aborrow.mapper.BorrowInterestLogMapper;
 import com.tianli.product.aborrow.mapper.BorrowInterestMapper;
 import com.tianli.product.aborrow.service.BorrowInterestService;
+import com.tianli.tool.time.TimeTool;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,13 +33,20 @@ public class BorrowInterestServiceImpl implements BorrowInterestService {
     @Override
     @Transactional
     public void add(Long bid, Long uid, String coin, BigDecimal amount) {
+        add(uid, bid, coin, amount, InterestType.BORROW);
+    }
+
+    @Override
+    public void add(Long bid, Long uid, String coin, BigDecimal amount, InterestType interestType) {
         BorrowInterest borrowInterest = getAndInitBorrowInterest(bid, uid, coin);
 
         if (interestMapper.casIncrease(borrowInterest.getId(), coin, amount, borrowInterest.getAmount()) != 1) {
             throw ErrorCodeEnum.BORROW_INTEREST_EXIST.generalException();
         }
-
+        LocalDateTime now = LocalDateTime.now();
         var log = BorrowInterestLog.builder()
+                .interestType(interestType)
+                .interestTime(InterestType.BORROW.equals(interestType) ? now : TimeTool.hour(now))
                 .amount(amount)
                 .uid(uid)
                 .bid(bid)

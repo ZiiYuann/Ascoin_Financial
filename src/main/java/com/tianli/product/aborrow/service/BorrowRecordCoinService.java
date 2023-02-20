@@ -18,12 +18,14 @@ public interface BorrowRecordCoinService extends IService<BorrowRecordCoin> {
 
     void save(Long uid, Long bid, BorrowCoinQuery query);
 
-    List<BorrowRecordCoin> listByUid(Long uid);
+    List<BorrowRecordCoin> listByUid(Long uid, Long bid);
 
     BorrowRecordCoin getOne(Long uid, String coin);
 
     void repay(Long uid, Long bid, RepayCoinQuery repayCoinQuery);
 
-    boolean payOff(Long uid,Long bid);
+    boolean payOff(Long uid, Long bid);
+
+    void calInterest(Long uid, Long bid);
 
 }

@@ -10,13 +10,13 @@ import java.math.BigDecimal;
 /**
  * @author chenb
  * @apiNote
- * @since 2023-02-10
+ * @since 2023-02-20
  **/
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BorrowConfigCoinVO {
+public class AccountBorrowVO {
 
     private String coin;
 
@@ -27,5 +27,15 @@ public class BorrowConfigCoinVO {
     private BigDecimal maxAmount;
 
     private BigDecimal hourRate;
+
+    private BigDecimal remain;
+
+    private BigDecimal rate;
+
+    private BigDecimal borrowAmount;
+
+    private BigDecimal borrowProportion;
+
+    private boolean hold;
 
 }

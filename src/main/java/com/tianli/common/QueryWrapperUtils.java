@@ -3,10 +3,15 @@ package com.tianli.common;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.enums.SqlKeyword;
 import com.tianli.common.annotation.QueryWrapperGenerator;
+import com.tianli.common.query.SelectQuery;
 import lombok.SneakyThrows;
 import org.apache.poi.ss.formula.functions.T;
+import org.tron.tronj.abi.datatypes.Array;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -20,8 +25,12 @@ public class QueryWrapperUtils {
     public static <T> QueryWrapper<T> generate(Class<T> tClass, Object o) {
         QueryWrapper<T> result = new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<T>();
 
-        Field[] fields = o.getClass().getDeclaredFields();
+        var fields = new ArrayList<>(Arrays.asList(o.getClass().getDeclaredFields()));
 
+        if (o instanceof SelectQuery) {
+            Class<?> superclass = o.getClass().getSuperclass();
+            fields.addAll(Arrays.asList(superclass.getDeclaredFields()));
+        }
         for (Field field : fields) {
             field.setAccessible(true);
             Object param = field.get(o);

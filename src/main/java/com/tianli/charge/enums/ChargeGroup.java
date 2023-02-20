@@ -20,7 +20,12 @@ public enum ChargeGroup {
     // 支出
     pay(List.of(ChargeType.withdraw, ChargeType.purchase, ChargeType.transfer, ChargeType.repay
             , ChargeType.pledge, ChargeType.fund_purchase, ChargeType.agent_fund_redeem, ChargeType.agent_fund_interest
-            , ChargeType.red_give, ChargeType.transfer_reduce, ChargeType.points_payment, ChargeType.points_withdrawal));
+            , ChargeType.red_give, ChargeType.transfer_reduce, ChargeType.points_payment, ChargeType.points_withdrawal
+            , ChargeType.forced_closeout, ChargeType.auto_re)),
+
+    // 借币
+    loan(List.of(ChargeType.borrow, ChargeType.repay, ChargeType.release, ChargeType.pledge, ChargeType.forced_closeout, ChargeType.auto_re)),
+    ;
 
     ChargeGroup(List<ChargeType> chargeTypes) {
         this.name = name();
@@ -29,6 +34,9 @@ public enum ChargeGroup {
 
     public static ChargeGroup getInstance(ChargeType chargeType) {
         for (ChargeGroup chargeGroup : ChargeGroup.values()) {
+            if (loan.equals(chargeGroup)) {
+                continue;
+            }
             if (chargeGroup.chargeTypes.contains(chargeType)) {
                 return chargeGroup;
             }

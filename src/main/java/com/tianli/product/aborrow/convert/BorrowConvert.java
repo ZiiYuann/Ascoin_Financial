@@ -5,6 +5,7 @@ import com.tianli.product.aborrow.entity.*;
 import com.tianli.product.aborrow.query.BorrowConfigCoinIoUQuery;
 import com.tianli.product.aborrow.query.BorrowConfigPledgeIoUQuery;
 import com.tianli.product.aborrow.vo.*;
+import com.tianli.product.afinancial.entity.FinancialRecord;
 import org.mapstruct.Mapper;
 
 /**
@@ -33,5 +34,11 @@ public interface BorrowConvert {
 
     MBorrowOperationLogVO toMBorrowOperationLogVO(BorrowOperationLog borrowOperationLog);
 
+    BorrowRecordVO toBorrowRecordVO(BorrowRecord borrowRecord);
 
+    BorrowOperationLogVO toBorrowOperationLogVO(BorrowOperationLog borrowOperationLog);
+
+    ProductPledgeVO toProductPledgeVO(FinancialRecord financialRecord);
+
+    AccountBorrowVO toAccountBorrowVO(BorrowConfigCoinVO borrowConfigCoin);
 }
