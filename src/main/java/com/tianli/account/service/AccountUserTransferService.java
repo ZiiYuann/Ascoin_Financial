@@ -12,6 +12,8 @@ import com.tianli.openapi.query.UserTransferQuery;
  **/
 public interface AccountUserTransferService extends IService<AccountUserTransfer> {
 
+    AccountUserTransfer getByExternalPk(String externalPk);
+
     AccountUserTransfer transfer(UserTransferQuery query);
 
     AccountUserTransferVO getVO(Long transferId);

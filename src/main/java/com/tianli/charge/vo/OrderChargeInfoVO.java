@@ -111,6 +111,8 @@ public class OrderChargeInfoVO {
 
     private LocalDateTime updateTime;
 
+    private OrderOtherInfoVo orderOtherInfoVo;
+
     public String getTypeName() {
         return type.getNameZn();
     }

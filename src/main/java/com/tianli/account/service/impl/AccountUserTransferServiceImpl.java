@@ -39,6 +39,12 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
     @Resource
     private AccountConverter accountConverter;
 
+    public AccountUserTransfer getByExternalPk(String orderNo) {
+        return this.getOne(new LambdaQueryWrapper<AccountUserTransfer>()
+                .eq(AccountUserTransfer::getTransferOrderNo, orderNo));
+
+    }
+
     @Override
     @Transactional
     public AccountUserTransfer transfer(UserTransferQuery query) {
