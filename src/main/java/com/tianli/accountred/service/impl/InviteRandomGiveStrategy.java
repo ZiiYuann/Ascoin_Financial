@@ -31,7 +31,8 @@ public class InviteRandomGiveStrategy extends RandomGiveStrategy implements Init
         int scale = config.getScale();
         BigDecimal averageValue70Percent =
                 RedEnvelopeGiveStrategy.getAverageValue70Percent(redEnvelope.getTotalAmount(), redEnvelope.getNum(), scale);
-        return super.spiltRedEnvelopeOperation(redEnvelope.getId(), redEnvelope.getNum(), redEnvelope.getTotalAmount(), averageValue70Percent);
+        return super.spiltRedEnvelopeOperation(redEnvelope.getId(), redEnvelope.getNum()
+                , redEnvelope.getTotalAmount(), averageValue70Percent, scale);
     }
 
     @Override

@@ -21,6 +21,9 @@ public class RandomGiveStrategy extends RedEnvelopeGiveStrategy {
 
     private static final BigDecimal LIMIT_AMOUNT = BigDecimal.valueOf(0.000001);
 
+    protected List<RedEnvelopeSpilt> spiltRedEnvelopeOperation(Long rid, int count, BigDecimal amount, BigDecimal limitAmount) {
+        return this.spiltRedEnvelopeOperation(rid, count, amount, limitAmount, 6);
+    }
 
     /**
      * 随机红包拆分操作
@@ -31,7 +34,7 @@ public class RandomGiveStrategy extends RedEnvelopeGiveStrategy {
      * @param limitAmount 最低红包金额
      * @return 拆分红包
      */
-    protected List<RedEnvelopeSpilt> spiltRedEnvelopeOperation(Long rid, int count, BigDecimal amount, BigDecimal limitAmount) {
+    protected List<RedEnvelopeSpilt> spiltRedEnvelopeOperation(Long rid, int count, BigDecimal amount, BigDecimal limitAmount, int scale) {
         BigDecimal num = new BigDecimal(count);
         List<RedEnvelopeSpilt> redEnvelopes = new ArrayList<>();
         // 最小金额
@@ -48,8 +51,8 @@ public class RandomGiveStrategy extends RedEnvelopeGiveStrategy {
                 singleAmount = remain;
             } else {
                 singleAmount = new BigDecimal(nextInt).multiply(remain.multiply(two)
-                                .divide(num.subtract(new BigDecimal(i)), 6, RoundingMode.CEILING))
-                        .divide(hundred, 6, RoundingMode.FLOOR);
+                                .divide(num.subtract(new BigDecimal(i)), scale, RoundingMode.CEILING))
+                        .divide(hundred, scale, RoundingMode.FLOOR);
             }
 
 
