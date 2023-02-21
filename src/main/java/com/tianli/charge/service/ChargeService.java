@@ -639,11 +639,13 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             if (ChargeType.user_credit_in.equals(type) || ChargeType.user_credit_out.equals(type) ||
                     ChargeType.credit_out.equals(type) || ChargeType.credit_in.equals(type)) {
                 AccountUserTransfer accountUserTransfer =
-                        accountUserTransferService.getByExternalPk(orderChargeInfoVO.getOrderNo());
+                        accountUserTransferService.getByExternalPk(charge.getRelatedId());
+
                 Optional.ofNullable(accountUserTransfer)
                         .ifPresent(a -> orderChargeInfoVO.setOrderOtherInfoVo(OrderOtherInfoVo.builder()
                                 .transferExternalPk(a.getExternalPk())
                                 .build()));
+
             }
             return orderChargeInfoVO;
         });
