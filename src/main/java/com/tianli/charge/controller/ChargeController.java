@@ -165,7 +165,7 @@ public class ChargeController {
      * 提现申请
      */
     @PostMapping("/withdraw/apply/sign")
-    public Result withdrawWithSign(@RequestBody @Valid WithdrawQuery withdrawDTO, @RequestHeader("sign") String sign) {
+    public Result<Long> withdrawWithSign(@RequestBody @Valid WithdrawQuery withdrawDTO, @RequestHeader("sign") String sign) {
         Long uid = requestInitService.uid();
 
         String addressStr = AddressVerifyUtils.ethSignedToAddress(sign, JSONUtil.toJsonStr(withdrawDTO));
@@ -177,8 +177,7 @@ public class ChargeController {
         RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_WITHDRAW + uid + ":" + withdrawDTO.getCoin());// // 提现申请验签锁
         try {
             lock.lock();
-            chargeService.withdrawApply(uid, withdrawDTO);
-            return Result.instance();
+            return new Result<>(chargeService.withdrawApply(uid, withdrawDTO));
         } finally {
             lock.unlock();
         }
