@@ -282,6 +282,7 @@ public class OpenApiService {
             data.setSubBalance(allUserAssetsVO.getBalanceAmount());
             data.setSubPurchaseAmount(allUserAssetsVO.getPurchaseAmount());
             data.setSubRedeemAmount(subRedeemAmount);
+            data.setUid(uid);
         }
 
         return data;
