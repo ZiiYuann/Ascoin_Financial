@@ -24,12 +24,12 @@ public class RedEnvelopeTask {
     @Resource
     private RedEnvelopeService redEnvelopeService;
 
-//    @Scheduled(cron = "0 0/1 * * * ? ")
+        @Scheduled(cron = "0 0/1 * * * ? ")
     public void redEnvelopeExpiration() {
         LocalDateTime now = LocalDateTime.now();
         String nowString = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         redissonClientTool.tryLock(RedisLockConstants.RED_ENVELOPE_EXPIRATION + nowString
-                , () -> redEnvelopeService.redEnvelopeExpiration(now), ErrorCodeEnum.SYSTEM_ERROR);
+                , () -> redEnvelopeService.redEnvelopeExpiration(now), ErrorCodeEnum.SYSTEM_ERROR, false);
     }
 }

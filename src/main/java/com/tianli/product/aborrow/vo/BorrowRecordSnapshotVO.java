@@ -1,10 +1,13 @@
 package com.tianli.product.aborrow.vo;
 
-import com.tianli.product.aborrow.dto.BorrowRecordSnapshotDTO;
+import com.tianli.management.dto.AmountDto;
+import com.tianli.product.aborrow.dto.PledgeRateDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * @author chenb
@@ -17,7 +20,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class BorrowRecordSnapshotVO {
 
-    private BorrowRecordSnapshotDTO borrowRecordSnapshotDTO;
+    private List<AmountDto> coinRates;
+
+    private List<HoldBorrowingVO> holdBorrowingVOS;
+
+    private List<HoldPledgingVO> holdPledgingVOS;
+
+    private PledgeRateDto pledgeRateDto;
 
     private BorrowRecordVO borrowRecordVO;
 }

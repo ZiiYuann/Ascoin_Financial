@@ -31,6 +31,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author chenb
@@ -64,7 +65,7 @@ public class OrderTask {
                             .likeRight(Order::getOrderNo, AccountChangeType.advance_purchase.getPrefix()))).orElse(new ArrayList<>());
                     advanceOrders.forEach(this::scanChainOperation);
                 }
-                , ErrorCodeEnum.SYSTEM_ERROR);
+                , ErrorCodeEnum.SYSTEM_BUSY, 1, TimeUnit.MINUTES, false);
     }
 
     @Transactional

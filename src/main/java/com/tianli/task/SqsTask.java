@@ -17,7 +17,7 @@ public class SqsTask {
     @Resource
     private SqsService sqsService;
 
-//    @Scheduled(cron = "0/1 * * * * ? ")
+    @Scheduled(cron = "0/1 * * * * ? ")
     public void pushAddressTask() {
         sqsService.receiveAndDelete(null,5);
     }

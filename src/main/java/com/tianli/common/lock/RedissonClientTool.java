@@ -1,7 +1,7 @@
 package com.tianli.common.lock;
 
-import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
@@ -15,32 +15,39 @@ import java.util.concurrent.TimeUnit;
  * @since 2023-02-09
  **/
 @Component
-
+@Slf4j
 public class RedissonClientTool {
 
     @Resource
     private RedissonClient redissonClient;
-    @Resource
-    private WebHookService webHookService;
 
     public void tryLock(String key, VoidHandler handler, ErrorCodeEnum errorCodeEnum) {
-        tryLock(key, handler, errorCodeEnum, 3L, TimeUnit.SECONDS);
+        tryLock(key, handler, errorCodeEnum, 3L, TimeUnit.SECONDS, true);
+    }
+
+    public void tryLock(String key, VoidHandler handler, ErrorCodeEnum errorCodeEnum, boolean throwException) {
+        tryLock(key, handler, errorCodeEnum, 3L, TimeUnit.SECONDS, throwException);
     }
 
     public <T> T tryLock(String key, ReturnHandler<T> handler, ErrorCodeEnum errorCodeEnum) {
-        return tryLock(key, handler, errorCodeEnum, 3L, TimeUnit.SECONDS);
+        return tryLock(key, handler, errorCodeEnum, 3L, TimeUnit.SECONDS, true);
     }
 
-    public <T> T tryLock(String key, ReturnHandler<T> handler, ErrorCodeEnum errorCodeEnum, long time, TimeUnit unit) {
+    public <T> T tryLock(String key, ReturnHandler<T> handler, ErrorCodeEnum errorCodeEnum
+            , long time, TimeUnit unit, boolean throwException) {
         RLock rLock = redissonClient.getLock(key);
         try {
             boolean lock = rLock.tryLock(time, unit);
             if (lock) {
                 return handler.execute();
             }
-            webHookService.dingTalkSend("获取锁超时:" + key);
-            throw errorCodeEnum.generalException();
-        } catch (InterruptedException e) {
+
+            if (throwException) {
+                log.info("获取锁超时:{}", key);
+                throw ErrorCodeEnum.SYSTEM_BUSY.generalException();
+            }
+            return null;
+        } catch (Exception e) {
             e.printStackTrace();
             throw errorCodeEnum.generalException();
         } finally {
@@ -48,15 +55,20 @@ public class RedissonClientTool {
         }
     }
 
-    public void tryLock(String key, VoidHandler handler, ErrorCodeEnum errorCodeEnum, long time, TimeUnit unit) {
+    public void tryLock(String key, VoidHandler handler, ErrorCodeEnum errorCodeEnum
+            , long time, TimeUnit unit, boolean throwException) {
         RLock rLock = redissonClient.getLock(key);
         try {
             boolean lock = rLock.tryLock(time, unit);
             if (lock) {
                 handler.execute();
+                return;
             }
-            webHookService.dingTalkSend("获取锁超时:" + key);
-        } catch (InterruptedException e) {
+            if (throwException) {
+                log.info("获取锁超时:{}", key);
+                throw ErrorCodeEnum.SYSTEM_BUSY.generalException();
+            }
+        } catch (Exception e) {
             e.printStackTrace();
             throw errorCodeEnum.generalException();
         } finally {

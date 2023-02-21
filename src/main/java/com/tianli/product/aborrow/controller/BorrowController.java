@@ -50,7 +50,8 @@ public class BorrowController {
         Long uid = requestInitService.uid();
         String key = RedisLockConstants.LOCK_BORROW + uid;
 
-        redissonClientTool.tryLock(key, () -> borrowService.borrowCoin(uid, query), ErrorCodeEnum.BORROW_COIN_ERROR);
+        redissonClientTool.tryLock(key, () -> borrowService.borrowCoin(uid, query)
+                , ErrorCodeEnum.BORROW_COIN_ERROR, true);
 
         return new Result<>();
     }
@@ -63,7 +64,8 @@ public class BorrowController {
         Long uid = requestInitService.uid();
         String key = RedisLockConstants.LOCK_BORROW + uid;
 
-        redissonClientTool.tryLock(key, () -> borrowService.repayCoin(uid, query), ErrorCodeEnum.BORROW_COIN_ERROR);
+        redissonClientTool.tryLock(key, () -> borrowService.repayCoin(uid, query)
+                , ErrorCodeEnum.BORROW_COIN_ERROR, true);
 
         return new Result<>();
     }
@@ -76,7 +78,8 @@ public class BorrowController {
         Long uid = requestInitService.uid();
         String key = RedisLockConstants.LOCK_BORROW + uid;
 
-        redissonClientTool.tryLock(key, () -> borrowService.modifyPledgeContext(uid, query), ErrorCodeEnum.BORROW_COIN_ERROR);
+        redissonClientTool.tryLock(key, () -> borrowService.modifyPledgeContext(uid, query)
+                , ErrorCodeEnum.BORROW_COIN_ERROR);
 
         return new Result<>();
     }
@@ -139,8 +142,6 @@ public class BorrowController {
         query.setUid(uid);
         return new Result<>(borrowOperationLogService.logs(pageQuery.page(), query));
     }
-
-
 
 
 }

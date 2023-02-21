@@ -69,7 +69,7 @@ public class FundIncomeTask {
         var fundIncomeTask = Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
 
         records.forEach(fundRecord -> redissonClientTool.tryLock(RedisLockConstants.FUND_UPDATE_LOCK + fundRecord.getId(),
-                () -> fundIncomeTask.calculateIncome(fundRecord, now), ErrorCodeEnum.SYSTEM_ERROR));
+                () -> fundIncomeTask.calculateIncome(fundRecord, now), ErrorCodeEnum.SYSTEM_ERROR, false));
     }
 
     @Transactional

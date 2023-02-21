@@ -1,6 +1,7 @@
 package com.tianli.product.aborrow.service.impl;
 
 import cn.hutool.json.JSONUtil;
+import com.tianli.chain.service.CoinBaseService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
@@ -19,6 +20,8 @@ import com.tianli.product.aborrow.query.RepayCoinQuery;
 import com.tianli.product.aborrow.service.*;
 import com.tianli.product.aborrow.vo.BorrowRecordSnapshotVO;
 import com.tianli.product.aborrow.vo.BorrowRecordVO;
+import com.tianli.product.aborrow.vo.HoldBorrowingVO;
+import com.tianli.product.aborrow.vo.HoldPledgingVO;
 import com.tianli.product.afinancial.entity.FinancialRecord;
 import com.tianli.product.afinancial.service.FinancialRecordService;
 import org.apache.commons.lang3.StringUtils;
@@ -61,6 +64,8 @@ public class BorrowServiceImpl implements BorrowService {
     private BorrowInterestService borrowInterestService;
     @Resource
     private BorrowConvert borrowConvert;
+    @Resource
+    private CoinBaseService coinBaseService;
 
     @Override
     @Transactional
@@ -296,9 +301,23 @@ public class BorrowServiceImpl implements BorrowService {
                 JSONUtil.toBean(borrowRecordSnapshot.getData(), BorrowRecordSnapshotDTO.class);
         BorrowRecordVO borrowRecordVO = borrowConvert.toBorrowRecordVO(borrowRecord);
 
+        List<HoldBorrowingVO> holdBorrowingVOS = borrowRecordSnapshotDTO.getBorrowRecordCoins().stream()
+                .map(record -> HoldBorrowingVO.builder()
+                        .id(record.getId()).amount(record.getAmount()).coin(record.getCoin())
+                        .coinLogo(coinBaseService.getByName(record.getCoin()).getLogo())
+                        .hourRate(borrowConfigCoinService.getById(record.getCoin()).getHourRate())
+                        .build()).collect(Collectors.toList());
+        List<HoldPledgingVO> holdPledgingVOS = borrowRecordSnapshotDTO.getBorrowRecordPledgeDtos().stream()
+                .map(record -> HoldPledgingVO.builder()
+                        .id(record.getId()).amount(record.getAmount()).coin(record.getCoin())
+                        .coinLogo(coinBaseService.getByName(record.getCoin()).getLogo())
+                        .build()).collect(Collectors.toList());
+
         return BorrowRecordSnapshotVO.builder()
-                .borrowRecordSnapshotDTO(borrowRecordSnapshotDTO)
+                .holdBorrowingVOS(holdBorrowingVOS)
+                .holdPledgingVOS(holdPledgingVOS)
                 .borrowRecordVO(borrowRecordVO)
+                .pledgeRateDto(borrowRecordSnapshotDTO.getPledgeRateDto())
                 .build();
     }
 
