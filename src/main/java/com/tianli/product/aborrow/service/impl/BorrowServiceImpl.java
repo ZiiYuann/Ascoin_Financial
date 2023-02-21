@@ -306,12 +306,17 @@ public class BorrowServiceImpl implements BorrowService {
                         .id(record.getId()).amount(record.getAmount()).coin(record.getCoin())
                         .coinLogo(coinBaseService.getByName(record.getCoin()).getLogo())
                         .hourRate(borrowConfigCoinService.getById(record.getCoin()).getHourRate())
-                        .build()).collect(Collectors.toList());
+                        .build())
+                .sorted((e1, e2) -> e2.getAmount().subtract(currencyService.getDollarRate(e2.getCoin()))
+                        .compareTo(e1.getAmount().subtract(currencyService.getDollarRate(e1.getCoin())))).collect(Collectors.toList());
         List<HoldPledgingVO> holdPledgingVOS = borrowRecordSnapshotDTO.getBorrowRecordPledgeDtos().stream()
                 .map(record -> HoldPledgingVO.builder()
                         .id(record.getId()).amount(record.getAmount()).coin(record.getCoin())
                         .coinLogo(coinBaseService.getByName(record.getCoin()).getLogo())
-                        .build()).collect(Collectors.toList());
+                        .build())
+                .sorted((e1, e2) -> e2.getAmount().subtract(currencyService.getDollarRate(e2.getCoin()))
+                        .compareTo(e1.getAmount().subtract(currencyService.getDollarRate(e1.getCoin()))))
+                .collect(Collectors.toList());
 
         return BorrowRecordSnapshotVO.builder()
                 .holdBorrowingVOS(holdBorrowingVOS)

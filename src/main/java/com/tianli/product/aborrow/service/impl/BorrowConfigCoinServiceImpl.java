@@ -31,7 +31,6 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -72,7 +71,12 @@ public class BorrowConfigCoinServiceImpl extends ServiceImpl<BorrowConfigCoinMap
     @Override
     public IPage<MBorrowConfigCoinVO> MBorrowConfigCoinVOPage(IPage<BorrowConfigCoin> page, BorrowQuery borrowQuery) {
         return this.page(page, QueryWrapperUtils.generate(BorrowConfigCoin.class, borrowQuery))
-                .convert(record -> borrowConvert.toMBorrowConfigCoinVO(record));
+                .convert(record -> {
+                            MBorrowConfigCoinVO mBorrowConfigCoinVO = borrowConvert.toMBorrowConfigCoinVO(record);
+                            mBorrowConfigCoinVO.setLogo(coinBaseService.getByName(mBorrowConfigCoinVO.getCoin()).getLogo());
+                            return mBorrowConfigCoinVO;
+                        }
+                );
     }
 
     @Override

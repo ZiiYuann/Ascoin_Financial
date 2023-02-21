@@ -26,8 +26,6 @@ public class BorrowConfigCoin {
     @TableId
     private String coin;
 
-    private String logo;
-
     private BigDecimal minAmount;
 
     @TableField(updateStrategy = FieldStrategy.IGNORED)
