@@ -24,5 +24,5 @@ public class AccountPledgeVO {
 
     private BigDecimal rate;
 
-    private String coinLogo;
+    private String logo;
 }

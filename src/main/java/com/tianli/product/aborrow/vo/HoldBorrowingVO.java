@@ -24,7 +24,7 @@ public class HoldBorrowingVO {
 
     private BigDecimal amount;
 
-    private String coinLogo;
+    private String logo;
 
     private BigDecimal hourRate;
 }

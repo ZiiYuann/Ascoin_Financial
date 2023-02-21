@@ -27,6 +27,6 @@ public class HoldPledgingVO {
 
     private BigDecimal amount;
 
-    private String coinLogo;
+    private String logo;
 
 }
