@@ -640,7 +640,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                     ChargeType.credit_out.equals(type) || ChargeType.credit_in.equals(type)) {
                 AccountUserTransfer accountUserTransfer =
                         accountUserTransferService.getByExternalPk(orderChargeInfoVO.getOrderNo());
-                Optional.of(accountUserTransfer)
+                Optional.ofNullable(accountUserTransfer)
                         .ifPresent(a -> orderChargeInfoVO.setOrderOtherInfoVo(OrderOtherInfoVo.builder()
                                 .transferExternalPk(a.getExternalPk())
                                 .build()));
