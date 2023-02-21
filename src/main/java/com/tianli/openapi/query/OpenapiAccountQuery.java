@@ -19,6 +19,8 @@ public class OpenapiAccountQuery {
 
     private Long chatId;
 
+    private Long uid;
+
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startTime;
 

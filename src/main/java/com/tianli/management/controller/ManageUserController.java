@@ -103,8 +103,8 @@ public class ManageUserController {
      */
     @GetMapping("/account/sub")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result statisticsData(Long chatId, PageQuery<StatisticsDataDto> pageQuery) {
-        return Result.success(openApiService.accountSubData(chatId, pageQuery));
+    public Result statisticsData(Long chatId, Long uid,PageQuery<StatisticsDataDto>pageQuery) {
+        return Result.success(openApiService.accountSubData(chatId,uid, pageQuery));
     }
 
     @Resource

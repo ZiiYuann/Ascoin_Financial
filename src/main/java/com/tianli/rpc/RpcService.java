@@ -1,14 +1,11 @@
 package com.tianli.rpc;
 
-import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.rpc.dto.InviteDTO;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -30,9 +27,9 @@ public class RpcService {
     @Resource
     private ConfigService configService;
 
-    public InviteDTO inviteRpc(Long chatId) {
+    public InviteDTO inviteRpc(Long chatId, Long uid) {
         String walletNewsServerUrl = configService.getOrDefault(WALLET_NEWS_SERVER_URL
-                , "https://wallet-news.giantdt.com") + "/api/agent/invite/uids?chatId=" + chatId;
+                , "https://wallet-news.giantdt.com") + "/api/agent/invite/uids?chatId=" + chatId + "&uid=" + uid;
         CloseableHttpClient client = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(walletNewsServerUrl);
         httpGet.setHeader("Content-Type", "application/json; charset=UTF-8");
