@@ -4,6 +4,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.common.RedisConstants;
+import com.tianli.common.webhook.WebHookService;
 import com.tianli.sqs.*;
 import com.tianli.sqs.context.RedEnvelopeContext;
 import com.tianli.sqs.context.RedisDeleteContext;
@@ -26,13 +27,19 @@ public class RedEnvelopeHandler extends AbstractSqsReceiveHandler {
     private RedEnvelopeService redEnvelopeService;
     @Resource
     private SqsService sqsService;
+    @Resource
+    private WebHookService webHookService;
 
     @Override
     @SuppressWarnings("unchecked")
     public void handlerOperation(Message message) {
         SqsContext<JSONObject> sqsContext = JSONUtil.toBean(message.body(), SqsContext.class);
         var redEnvelopeContext = JSONUtil.toBean(sqsContext.getContext(), RedEnvelopeContext.class);
-        redEnvelopeService.asynGet(redEnvelopeContext);
+        try {
+            redEnvelopeService.asynGet(redEnvelopeContext);
+        }catch (Exception e){
+            webHookService.dingTalkSend("红包异步转账异常:" + JSONUtil.toJsonStr(redEnvelopeContext));
+        }
         // 删除红包缓存
         redEnvelopeService.deleteRedisCache(redEnvelopeContext.getRid());
         // 延时间删除(通过消息队列保证消费)

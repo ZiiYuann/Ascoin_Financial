@@ -1,5 +1,6 @@
 package com.tianli.accountred.service.impl;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -289,14 +290,14 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         }
 
         Long rid = Long.valueOf(redEnvelopeSpiltDTO.getRid());
-        RedEnvelope redEnvelope = this.getWithCache(rid);
-        CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
-
+        RedEnvelope redEnvelope = this.getById(rid);
 
         // 不是站外红包不支持此领取方式
         if (!RedEnvelopeChannel.EXTERN.equals(redEnvelope.getChannel())) {
             ErrorCodeEnum.RED_RECEIVE_NOT_ALLOW.throwException();
         }
+
+        CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
 
         RedEnvelopeStatus status = redEnvelope.getStatus();
         // 等待、失败、过期、结束
@@ -541,6 +542,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         int i = this.getBaseMapper().increaseReceive(query.getRid(), redEnvelopeSpilt.getAmount());
         if (i == 0) {
             ErrorCodeEnum.RED_STATUS_ERROR.throwException();
+            return;
         }
         // 如果红包领取完毕则修改红包状态
         redEnvelope = this.getById(query.getRid());
@@ -588,6 +590,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
         accountBalanceServiceImpl.increase(redEnvelope.getUid(), ChargeType.red_back, redEnvelope.getCoin(), rollbackAmount
                 , order.getOrderNo(), ChargeType.red_back.getNameZn());
+
 
         this.statusProcess(redEnvelope.getId(), status, redEnvelope.getReceiveNum(), now);
     }
