@@ -177,6 +177,7 @@ public enum ErrorCodeEnum {
     BORROW_CONFIG_PLEDGE_NOT_OPEN(3912, "质押配置未开放"),
     BORROW_REPAY_AMOUNT_ERROR(3913, "还币金额异常"),
     BORROW_RECORD_CANNOT_FINISH(3914, "借贷记录结束异常"),
+    BORROW_M_LOCK_ERROR(3915, "质押配置被使用中，请稍后修改配置"),
 
     ;
     private int errorNo;

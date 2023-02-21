@@ -3,6 +3,9 @@ package com.tianli.management.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.common.PageQuery;
+import com.tianli.common.RedisConstants;
+import com.tianli.common.RedisLockConstants;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.product.aborrow.convert.BorrowConvert;
 import com.tianli.product.aborrow.entity.BorrowConfigCoin;
@@ -16,11 +19,14 @@ import com.tianli.product.aborrow.query.BorrowUserQuery;
 import com.tianli.product.aborrow.service.*;
 import com.tianli.product.aborrow.vo.*;
 import com.tianli.sso.permission.AdminPrivilege;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +52,8 @@ public class ManageBorrowController {
     private BorrowOperationLogService borrowOperationLogService;
     @Resource
     private BorrowConvert borrowConvert;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     // 新增或者修改借币配置
     @AdminPrivilege
@@ -73,7 +81,12 @@ public class ManageBorrowController {
     // 新增或者修改质押币配置
     @AdminPrivilege
     @PostMapping("/config/pledge")
-    public Result<Void> configCoin(@RequestBody @Valid BorrowConfigPledgeIoUQuery query) {
+    public Result<Void> configCoin(@RequestHeader(value = "force", required = false) boolean force,
+                                   @RequestBody @Valid BorrowConfigPledgeIoUQuery query) {
+        Set<String> keys = stringRedisTemplate.keys(RedisLockConstants.LOCK_BORROW + "*");
+        if (!force && CollectionUtils.isNotEmpty(keys)) {
+            ErrorCodeEnum.BORROW_M_LOCK_ERROR.throwException();
+        }
         borrowConfigPledgeService.insertOrUpdate(query);
         return new Result<>();
     }
@@ -117,7 +130,8 @@ public class ManageBorrowController {
     @AdminPrivilege
     @GetMapping("/user/pledge/{uid}")
     public Result<List<MBorrowRecordVO>> userPledge(@PathVariable Long uid) {
-        var result = borrowRecordPledgeService.listByUid(uid)
+        BorrowRecord borrowRecord = borrowRecordService.getValid(uid);
+        var result = borrowRecordPledgeService.listByUid(uid, borrowRecord.getId())
                 .stream().map(coin -> MBorrowRecordVO.builder()
                         .amount(coin.getAmount())
                         .coin(coin.getCoin()).build()).collect(Collectors.toList());

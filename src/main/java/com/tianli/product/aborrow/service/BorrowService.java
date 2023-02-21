@@ -36,4 +36,6 @@ public interface BorrowService {
             , boolean borrow);
 
     BorrowRecordSnapshotVO newestSnapshot(Long uid);
+
+    void autoReplenishment(BorrowRecord borrowRecord);
 }

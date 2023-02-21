@@ -186,9 +186,10 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
     }
 
     @Override
-    public List<BorrowRecordPledge> listByUid(Long uid) {
+    public List<BorrowRecordPledge> listByUid(Long uid, Long bid) {
         return this.list(new LambdaQueryWrapper<BorrowRecordPledge>()
-                .eq(BorrowRecordPledge::getUid, uid));
+                .eq(BorrowRecordPledge::getUid, uid)
+                .eq(BorrowRecordPledge::getBid, bid));
     }
 
     @Override

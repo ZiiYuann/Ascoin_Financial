@@ -3,7 +3,10 @@ package com.tianli.task;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.common.RedisConstants;
+import com.tianli.common.RedisLockConstants;
+import com.tianli.common.lock.RedissonClientTool;
 import com.tianli.common.webhook.WebHookService;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.product.aborrow.entity.BorrowRecord;
 import com.tianli.product.aborrow.enums.PledgeStatus;
 import com.tianli.product.aborrow.service.BorrowRecordCoinService;
@@ -19,6 +22,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author chenb
@@ -35,6 +39,8 @@ public class BorrowTask {
     private BorrowService borrowService;
     @Resource
     private BorrowRecordCoinService borrowRecordCoinService;
+    @Resource
+    private RedissonClientTool redissonClientTool;
 
     @Scheduled(cron = "0 0 0 1/1 * ? ")
     public void task() {
@@ -51,9 +57,24 @@ public class BorrowTask {
                 if (CollectionUtils.isEmpty(borrowRecords)) {
                     break;
                 }
-                borrowRecords.forEach(borrowService::calPledgeRate);
+                borrowRecords.forEach(borrowRecord -> {
+                    borrowService.calPledgeRate(borrowRecord);
 
-                // todo 警告，自动补仓等
+                    if (borrowRecord.getCurrencyPledgeRate().compareTo(borrowRecord.getWarnPledgeRate()) < 0) {
+                        return;
+                    }
+
+                    // todo 通知用户
+
+                    if (!borrowRecord.isAutoReplenishment()) {
+                        return;
+                    }
+
+                    String lockKey = RedisLockConstants.LOCK_BORROW + borrowRecord.getUid();
+                    redissonClientTool.tryLock(lockKey, () -> borrowService.autoReplenishment(borrowRecord)
+                            , ErrorCodeEnum.SYSTEM_BUSY, 30, TimeUnit.SECONDS, true);
+                });
+
             } catch (Exception e) {
                 // 防止异常导致部分记录未计算
                 WebHookService.send("借贷定时任务异常：" + key + "  page：" + pagePre);

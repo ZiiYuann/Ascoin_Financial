@@ -26,7 +26,7 @@ public interface BorrowRecordPledgeService extends IService<BorrowRecordPledge> 
 
     List<BorrowRecordPledgeDto> dtoListByUid(Long uid);
 
-    List<BorrowRecordPledge> listByUid(Long uid);
+    List<BorrowRecordPledge> listByUid(Long uid,Long bid);
 
     boolean releaseCompleted(Long uid,Long bid);
 

@@ -1,5 +1,6 @@
 package com.tianli.product.afinancial.vo;
 
+import com.tianli.product.afinancial.enums.BusinessType;
 import com.tianli.product.afinancial.enums.ProductType;
 import com.tianli.product.afinancial.enums.PurchaseTerm;
 import lombok.Data;
@@ -76,6 +77,8 @@ public class HoldProductVo {
     private long incomeDays;
 
     private boolean pledge;
+
+    private BusinessType businessType;
 
 
 }

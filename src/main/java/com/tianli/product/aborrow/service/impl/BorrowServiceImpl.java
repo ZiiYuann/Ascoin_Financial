@@ -1,8 +1,12 @@
 package com.tianli.product.aborrow.service.impl;
 
 import cn.hutool.json.JSONUtil;
+import com.tianli.account.entity.AccountBalance;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.chain.service.CoinBaseService;
+import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.service.OrderService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.ErrorCodeEnum;
@@ -14,10 +18,7 @@ import com.tianli.product.aborrow.dto.PledgeRateDto;
 import com.tianli.product.aborrow.entity.*;
 import com.tianli.product.aborrow.enums.ModifyPledgeContextType;
 import com.tianli.product.aborrow.enums.PledgeType;
-import com.tianli.product.aborrow.query.BorrowCoinQuery;
-import com.tianli.product.aborrow.query.CalPledgeQuery;
-import com.tianli.product.aborrow.query.ModifyPledgeContextQuery;
-import com.tianli.product.aborrow.query.RepayCoinQuery;
+import com.tianli.product.aborrow.query.*;
 import com.tianli.product.aborrow.service.*;
 import com.tianli.product.aborrow.vo.BorrowRecordSnapshotVO;
 import com.tianli.product.aborrow.vo.BorrowRecordVO;
@@ -26,6 +27,7 @@ import com.tianli.product.aborrow.vo.HoldPledgingVO;
 import com.tianli.product.afinancial.entity.FinancialRecord;
 import com.tianli.product.afinancial.service.FinancialRecordService;
 import com.tianli.product.vo.RateVo;
+import com.tianli.tool.ApplicationContextTool;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,6 +72,10 @@ public class BorrowServiceImpl implements BorrowService {
     private CoinBaseService coinBaseService;
     @Resource
     private DigitalCurrencyExchange digitalCurrencyExchange;
+    @Resource
+    private AccountBalanceService accountBalanceService;
+    @Resource
+    private OrderService orderService;
 
     @Override
     @Transactional
@@ -133,10 +139,10 @@ public class BorrowServiceImpl implements BorrowService {
         final Set<String> borrowCoins = borrowRecordCoins.stream().map(BorrowRecordCoin::getCoin).collect(Collectors.toSet());
         final Set<String> pledgeCoins = borrowRecordPledges.stream().map(BorrowRecordPledgeDto::getCoin).collect(Collectors.toSet());
 
-        var coinRates = currencyService.rateMap(new ArrayList<>() {{
-            addAll(borrowCoins);
-            addAll(pledgeCoins);
-        }});
+        List<String> coins = new ArrayList<>();
+        coins.addAll(borrowCoins);
+        coins.addAll(pledgeCoins);
+        var coinRates = currencyService.rateMap(coins);
 
         PledgeRateDto pledgeRateDto = this.calPledgeRate(coinRates, borrowRecordPledges, borrowRecordCoins, borrowInterests, true);
         borrowRecord.setLqPledgeRate(pledgeRateDto.getLqPledgeRate());
@@ -160,7 +166,9 @@ public class BorrowServiceImpl implements BorrowService {
 
     @Override
     public BorrowRecord calPledgeRate(BorrowRecord borrowRecord) {
-        return calPledgeRate(borrowRecord, borrowRecord.getUid(), borrowRecord.isAutoReplenishment());
+        BorrowServiceImpl bean = ApplicationContextTool.getBean(BorrowServiceImpl.class);
+        bean = Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
+        return bean.calPledgeRate(borrowRecord, borrowRecord.getUid(), borrowRecord.isAutoReplenishment());
     }
 
     @Override
@@ -219,11 +227,10 @@ public class BorrowServiceImpl implements BorrowService {
         if (Objects.isNull(rateMap)) {
             final Set<String> borrowCoins = borrowRecordCoins.stream().map(BorrowRecordCoin::getCoin).collect(Collectors.toSet());
             final Set<String> pledgeCoins = borrowRecordPledgeDtos.stream().map(BorrowRecordPledgeDto::getCoin).collect(Collectors.toSet());
-
-            rateMap = currencyService.rateMap(new ArrayList<>() {{
-                addAll(borrowCoins);
-                addAll(pledgeCoins);
-            }});
+            List<String> coins = new ArrayList<>();
+            coins.addAll(borrowCoins);
+            coins.addAll(pledgeCoins);
+            rateMap = currencyService.rateMap(coins);
         }
 
         final var rateMapFinal = rateMap;
@@ -308,17 +315,17 @@ public class BorrowServiceImpl implements BorrowService {
                 .collect(Collectors.toMap(AmountDto::getCoin, AmountDto::getAmount));
 
         List<HoldBorrowingVO> holdBorrowingVOS = borrowRecordSnapshotDTO.getBorrowRecordCoins().stream()
-                .map(record -> HoldBorrowingVO.builder()
-                        .id(record.getId()).amount(record.getAmount()).coin(record.getCoin())
-                        .logo(coinBaseService.getByName(record.getCoin()).getLogo())
-                        .hourRate(borrowConfigCoinService.getById(record.getCoin()).getHourRate())
+                .map(index -> HoldBorrowingVO.builder()
+                        .id(index.getId()).amount(index.getAmount()).coin(index.getCoin())
+                        .logo(coinBaseService.getByName(index.getCoin()).getLogo())
+                        .hourRate(borrowConfigCoinService.getById(index.getCoin()).getHourRate())
                         .build())
                 .sorted((e1, e2) -> e2.getAmount().multiply(rateMap.get(e2.getCoin()))
                         .compareTo(e1.getAmount().multiply(rateMap.get(e1.getCoin())))).collect(Collectors.toList());
         List<HoldPledgingVO> holdPledgingVOS = borrowRecordSnapshotDTO.getBorrowRecordPledgeDtos().stream()
-                .map(record -> HoldPledgingVO.builder()
-                        .id(record.getId()).amount(record.getAmount()).coin(record.getCoin())
-                        .logo(coinBaseService.getByName(record.getCoin()).getLogo())
+                .map(index -> HoldPledgingVO.builder()
+                        .id(index.getId()).amount(index.getAmount()).coin(index.getCoin())
+                        .logo(coinBaseService.getByName(index.getCoin()).getLogo())
                         .build())
                 .sorted((e1, e2) -> e2.getAmount().multiply(rateMap.get(e2.getCoin()))
                         .compareTo(e1.getAmount().multiply(rateMap.get(e1.getCoin()))))
@@ -333,6 +340,80 @@ public class BorrowServiceImpl implements BorrowService {
                         .map(dto -> new RateVo(dto.getCoin(), dto.getAmount(), usdtCnyRate))
                         .collect(Collectors.toList()))
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void autoReplenishment(BorrowRecord borrowRecord) {
+
+        Long uid = borrowRecord.getUid();
+        Long bid = borrowRecord.getId();
+
+        var recordPledges = borrowRecordPledgeService.listByUid(uid, bid);
+        var recordCoins = borrowRecordCoinService.listByUid(uid, bid);
+
+        final Set<String> borrowCoins = recordCoins.stream().map(BorrowRecordCoin::getCoin).collect(Collectors.toSet());
+        final Set<String> pledgeCoins = recordPledges.stream().map(BorrowRecordPledge::getCoin).collect(Collectors.toSet());
+
+        List<String> coins = new ArrayList<>();
+        coins.addAll(borrowCoins);
+        coins.addAll(pledgeCoins);
+        var rateMap = currencyService.rateMap(coins);
+
+        List<AccountBalance> accountBalances = new ArrayList<>();
+        var recordPledgeMap = recordPledges.stream()
+                .filter(index -> PledgeType.WALLET.equals(index.getPledgeType()))
+                .peek(index -> accountBalances.add(accountBalanceService.getAndInit(uid, index.getCoin())))
+                .collect(Collectors.toMap(BorrowRecordPledge::getCoin, o -> o));
+
+        // sort
+        accountBalances.sort((e1, e2) -> e2.getRemain().multiply(rateMap.get(e2.getCoin()))
+                .compareTo(e1.getRemain().multiply(rateMap.get(e1.getCoin()))));
+
+        var configPledgeMap = borrowConfigPledgeService.listByIds(borrowCoins).stream()
+                .collect(Collectors.toMap(BorrowConfigPledge::getCoin, o -> o));
+
+        BigDecimal borrowFee = recordCoins.stream().map(borrow -> borrow.getAmount().multiply(rateMap.get(borrow.getCoin())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal initFee = recordPledges.stream().map(pledge ->
+                        pledge.getAmount().multiply(rateMap.get(pledge.getCoin()))
+                                .multiply(configPledgeMap.get(pledge.getCoin()).getInitPledgeRate()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        for (AccountBalance accountBalance : accountBalances) {
+            String coin = accountBalance.getCoin();
+            BorrowConfigPledge configPledge = configPledgeMap.get(coin);
+            BigDecimal currentPledgeFee = recordPledgeMap.get(coin).getAmount().multiply(rateMap.get(coin));
+            BigDecimal otherInitFee =
+                    initFee.subtract(currentPledgeFee.multiply(configPledge.getInitPledgeRate()));
+
+            BigDecimal replenishmentAmount = borrowFee.subtract(otherInitFee)
+                    .divide(configPledge.getInitPledgeRate(), RoundingMode.UP)
+                    .subtract(currentPledgeFee)
+                    .divide(rateMap.get(coin), RoundingMode.UP).setScale(8, RoundingMode.UP);
+
+
+            if (accountBalance.getRemain().compareTo(replenishmentAmount) >= 0) {
+
+                this.modifyPledgeContext(uid, ModifyPledgeContextQuery.builder()
+                        .type(ModifyPledgeContextType.ADD)
+                        .pledgeContext(List.of(PledgeContextQuery.builder()
+                                .pledgeType(PledgeType.WALLET)
+                                .coin(coin)
+                                .pledgeAmount(replenishmentAmount).build())).build());
+
+                Order order = Order.success(uid, ChargeType.auto_re, coin, replenishmentAmount, bid);
+                orderService.save(order);
+
+                this.insertOperationLog(borrowRecord.getId(), ChargeType.auto_re
+                        , uid, coin, replenishmentAmount);
+                return;
+            }
+        }
+
+        // todo 手动
+
     }
 
     private void insertOperationLog(Long bid, ChargeType chargeType
@@ -370,4 +451,5 @@ public class BorrowServiceImpl implements BorrowService {
         borrowRecordSnapshotService.save(borrowRecordSnapshot);
         return borrowRecordSnapshot;
     }
+
 }

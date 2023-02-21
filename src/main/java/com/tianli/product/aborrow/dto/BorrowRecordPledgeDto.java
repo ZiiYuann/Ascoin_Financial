@@ -1,5 +1,6 @@
 package com.tianli.product.aborrow.dto;
 
+import com.tianli.product.aborrow.entity.BorrowConfigPledge;
 import com.tianli.product.aborrow.enums.PledgeType;
 import com.tianli.product.afinancial.entity.FinancialRecord;
 import lombok.AllArgsConstructor;
@@ -38,4 +39,6 @@ public class BorrowRecordPledgeDto {
     private LocalDateTime updateTime;
 
     private FinancialRecord financialRecord;
+
+    private BorrowConfigPledge borrowConfigPledge;
 }
