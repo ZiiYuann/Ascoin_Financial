@@ -300,6 +300,8 @@ public class BorrowServiceImpl implements BorrowService {
         BorrowRecordSnapshotDTO borrowRecordSnapshotDTO =
                 JSONUtil.toBean(borrowRecordSnapshot.getData(), BorrowRecordSnapshotDTO.class);
         BorrowRecordVO borrowRecordVO = borrowConvert.toBorrowRecordVO(borrowRecord);
+        Map<String, BigDecimal> rateMap = borrowRecordSnapshotDTO.getCoinRates().stream()
+                .collect(Collectors.toMap(AmountDto::getCoin, AmountDto::getAmount));
 
         List<HoldBorrowingVO> holdBorrowingVOS = borrowRecordSnapshotDTO.getBorrowRecordCoins().stream()
                 .map(record -> HoldBorrowingVO.builder()
@@ -307,15 +309,15 @@ public class BorrowServiceImpl implements BorrowService {
                         .logo(coinBaseService.getByName(record.getCoin()).getLogo())
                         .hourRate(borrowConfigCoinService.getById(record.getCoin()).getHourRate())
                         .build())
-                .sorted((e1, e2) -> e2.getAmount().subtract(currencyService.getDollarRate(e2.getCoin()))
-                        .compareTo(e1.getAmount().subtract(currencyService.getDollarRate(e1.getCoin())))).collect(Collectors.toList());
+                .sorted((e1, e2) -> e2.getAmount().multiply(rateMap.get(e2.getCoin()))
+                        .compareTo(e1.getAmount().multiply(rateMap.get(e1.getCoin())))).collect(Collectors.toList());
         List<HoldPledgingVO> holdPledgingVOS = borrowRecordSnapshotDTO.getBorrowRecordPledgeDtos().stream()
                 .map(record -> HoldPledgingVO.builder()
                         .id(record.getId()).amount(record.getAmount()).coin(record.getCoin())
                         .logo(coinBaseService.getByName(record.getCoin()).getLogo())
                         .build())
-                .sorted((e1, e2) -> e2.getAmount().subtract(currencyService.getDollarRate(e2.getCoin()))
-                        .compareTo(e1.getAmount().subtract(currencyService.getDollarRate(e1.getCoin()))))
+                .sorted((e1, e2) -> e2.getAmount().multiply(rateMap.get(e2.getCoin()))
+                        .compareTo(e1.getAmount().multiply(rateMap.get(e1.getCoin()))))
                 .collect(Collectors.toList());
 
         return BorrowRecordSnapshotVO.builder()
@@ -323,6 +325,7 @@ public class BorrowServiceImpl implements BorrowService {
                 .holdPledgingVOS(holdPledgingVOS)
                 .borrowRecordVO(borrowRecordVO)
                 .pledgeRateDto(borrowRecordSnapshotDTO.getPledgeRateDto())
+                .coinRates(borrowRecordSnapshotDTO.getCoinRates())
                 .build();
     }
 
