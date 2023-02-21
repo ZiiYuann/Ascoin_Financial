@@ -217,7 +217,7 @@ public class OpenApiService {
      * @return 统计数据
      */
     public StatisticsDataDto accountData(OpenapiAccountQuery query) {
-        InviteDTO user = rpcService.inviteRpc(query.getChatId(), query.getChatId());
+        InviteDTO user = rpcService.inviteRpc(query.getChatId(), query.getUid());
         var subUids = user.getList().stream().map(InviteDTO::getUid).collect(Collectors.toList());
         Long uid = user.getUid();
 
