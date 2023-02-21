@@ -19,7 +19,8 @@
             product_id,
             hold_amount,
             create_time AS purchase_time,
-            cumulative_income_amount AS accrue_income_amount
+            cumulative_income_amount AS accrue_income_amount,
+            false as pledge
             FROM fund_record
             WHERE `status` = 'PROCESS'
             <if test="query.uid != null">
@@ -40,7 +41,8 @@
             r.product_id,
             r.hold_amount,
             r.purchase_time AS purchase_time,
-            i.income_amount AS accrue_income_amount
+            i.income_amount AS accrue_income_amount,
+            r.pledge as pledge
             FROM financial_record r
             LEFT JOIN financial_income_accrue i on r.uid = i.uid and r.id = i.record_id
             WHERE r.`status` = 'PROCESS'

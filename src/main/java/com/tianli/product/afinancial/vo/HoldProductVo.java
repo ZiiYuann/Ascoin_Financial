@@ -75,5 +75,7 @@ public class HoldProductVo {
      */
     private long incomeDays;
 
+    private boolean pledge;
+
 
 }

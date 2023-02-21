@@ -138,4 +138,5 @@ public interface FinancialService {
      * @return 产品信息
      */
     ProductInfoVO productExtraInfo(Long uid, Long productId);
+
 }

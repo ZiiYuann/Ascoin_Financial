@@ -72,4 +72,7 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
     List<ProductSummaryDataDto> listProductSummaryDataDto(@Param("productIds") List<Long> productIds);
 
     List<Map<String, Object>> firstProcessRecordMap(@Param("productIds") List<Long> productIds, @Param("uid") Long uid);
+
+    @Select("SELECT `product_id` FROM financial_record WHERE `status` = 'PROCESS' ")
+    List<Long> holdProductIds(@Param("uid") Long uid);
 }

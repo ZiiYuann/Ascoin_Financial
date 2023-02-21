@@ -22,9 +22,6 @@ public class BorrowConfigPledgeIoUQuery extends IoUQuery {
     @NotBlank
     private String coin;
 
-    @NotBlank
-    private String logo;
-
     /**
      * 初始质押
      */

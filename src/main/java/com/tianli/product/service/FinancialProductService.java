@@ -368,6 +368,11 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
         }
     }
 
+    @Override
+    public List<Long> holdProductIds(Long uid) {
+        return financialRecordService.getBaseMapper().holdProductIds(uid);
+    }
+
     /**
      * 预计收益接口
      */

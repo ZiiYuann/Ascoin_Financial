@@ -86,4 +86,5 @@ public interface IFundRecordService extends IService<FundRecord> {
     Map<Long, BigDecimal> accrueIncomeAmount(List<Long> uids);
 
 
+    List<Long> holdProductIds(Long uid);
 }

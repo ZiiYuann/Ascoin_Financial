@@ -4,6 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.tianli.chain.service.CoinBaseService;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.currency.service.CurrencyService;
+import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.product.aborrow.convert.BorrowConvert;
@@ -24,6 +25,7 @@ import com.tianli.product.aborrow.vo.HoldBorrowingVO;
 import com.tianli.product.aborrow.vo.HoldPledgingVO;
 import com.tianli.product.afinancial.entity.FinancialRecord;
 import com.tianli.product.afinancial.service.FinancialRecordService;
+import com.tianli.product.vo.RateVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,6 +68,8 @@ public class BorrowServiceImpl implements BorrowService {
     private BorrowConvert borrowConvert;
     @Resource
     private CoinBaseService coinBaseService;
+    @Resource
+    private DigitalCurrencyExchange digitalCurrencyExchange;
 
     @Override
     @Transactional
@@ -319,13 +323,15 @@ public class BorrowServiceImpl implements BorrowService {
                 .sorted((e1, e2) -> e2.getAmount().multiply(rateMap.get(e2.getCoin()))
                         .compareTo(e1.getAmount().multiply(rateMap.get(e1.getCoin()))))
                 .collect(Collectors.toList());
-
+        var usdtCnyRate = BigDecimal.valueOf(digitalCurrencyExchange.usdtCnyPrice());
         return BorrowRecordSnapshotVO.builder()
                 .holdBorrowingVOS(holdBorrowingVOS)
                 .holdPledgingVOS(holdPledgingVOS)
                 .borrowRecordVO(borrowRecordVO)
                 .pledgeRateDto(borrowRecordSnapshotDTO.getPledgeRateDto())
-                .coinRates(borrowRecordSnapshotDTO.getCoinRates())
+                .coinRates(borrowRecordSnapshotDTO.getCoinRates().stream()
+                        .map(dto -> new RateVo(dto.getCoin(), dto.getAmount(), usdtCnyRate))
+                        .collect(Collectors.toList()))
                 .build();
     }
 

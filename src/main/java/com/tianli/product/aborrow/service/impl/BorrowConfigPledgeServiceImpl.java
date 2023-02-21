@@ -64,7 +64,11 @@ public class BorrowConfigPledgeServiceImpl extends ServiceImpl<BorrowConfigPledg
     @Override
     public IPage<MBorrowConfigPledgeVO> MBorrowConfigCoinVOPage(IPage<BorrowConfigPledge> page, BorrowQuery borrowQuery) {
         return this.page(page, QueryWrapperUtils.generate(BorrowConfigPledge.class, borrowQuery))
-                .convert(record -> borrowConvert.toMBorrowConfigPledgeVO(record));
+                .convert(record -> {
+                    MBorrowConfigPledgeVO mBorrowConfigPledgeVO = borrowConvert.toMBorrowConfigPledgeVO(record);
+                    mBorrowConfigPledgeVO.setLogo(coinBaseService.getByName(mBorrowConfigPledgeVO.getCoin()).getLogo());
+                    return mBorrowConfigPledgeVO;
+                });
     }
 
     @Override

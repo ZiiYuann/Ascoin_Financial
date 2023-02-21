@@ -12,6 +12,7 @@ import com.tianli.product.afinancial.query.PurchaseQuery;
 import com.tianli.product.afinancial.vo.ExpectIncomeVO;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public interface ProductOperation<T> extends IService<T> {
 
@@ -81,4 +82,6 @@ public interface ProductOperation<T> extends IService<T> {
      * @param amount 申购金额
      */
     void validPurchaseAmount(Long uid, FinancialProduct product, BigDecimal amount);
+
+    List<Long> holdProductIds(Long uid);
 }

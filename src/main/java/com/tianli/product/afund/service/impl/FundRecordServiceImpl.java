@@ -404,4 +404,9 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
         return result;
     }
 
+    @Override
+    public List<Long> holdProductIds(Long uid) {
+        return getBaseMapper().holdProductIds(uid);
+    }
+
 }

@@ -13,6 +13,7 @@ import com.tianli.product.afinancial.vo.ExpectIncomeVO;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * @author chenb
@@ -48,6 +49,11 @@ public class ProductService extends AbstractProductOperation<FinancialProductMap
 
     @Override
     public void validPurchaseAmount(Long uid, FinancialProduct product, BigDecimal amount) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<Long> holdProductIds(Long uid) {
         throw new UnsupportedOperationException();
     }
 }

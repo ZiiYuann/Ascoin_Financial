@@ -25,8 +25,6 @@ public class BorrowConfigPledge {
     @TableId
     private String coin;
 
-    private String logo;
-
     /**
      * 初始质押
      */
