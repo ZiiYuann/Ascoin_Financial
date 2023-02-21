@@ -353,7 +353,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 0L);
 
         Set<ZSetOperations.TypedTuple<String>> recordsCache =
-                Optional.ofNullable(stringRedisTemplate.opsForZSet().rangeByScoreWithScores(externRecordKey
+                Optional.ofNullable(stringRedisTemplate.opsForZSet().reverseRangeByScoreWithScores(externRecordKey
                                 , TIME_BEGIN, Double.MAX_VALUE, pageQuery.getOffset(), pageQuery.getPageSize()))
                         .orElse(SetUtils.EMPTY_SORTED_SET);
 
