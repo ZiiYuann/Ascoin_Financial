@@ -8,8 +8,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.QueryWrapperUtils;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.product.aborrow.convert.BorrowConvert;
-import com.tianli.product.aborrow.entity.BorrowConfigCoin;
-import com.tianli.product.aborrow.entity.BorrowConfigPledge;
 import com.tianli.product.aborrow.entity.BorrowRecord;
 import com.tianli.product.aborrow.enums.PledgeStatus;
 import com.tianli.product.aborrow.mapper.BorrowRecordMapper;
@@ -88,7 +86,7 @@ public class BorrowRecordServiceImpl extends ServiceImpl<BorrowRecordMapper, Bor
     @Override
     public void finish(Long uid, Long bid) {
         if (!borrowInterestService.payOff(uid, bid)
-                || !borrowRecordCoinService.payOff(uid,bid)
+                || borrowRecordCoinService.payOff(uid, bid)
                 || !borrowRecordPledgeService.releaseCompleted(uid,bid)) {
             throw ErrorCodeEnum.BORROW_RECORD_CANNOT_FINISH.generalException();
         }

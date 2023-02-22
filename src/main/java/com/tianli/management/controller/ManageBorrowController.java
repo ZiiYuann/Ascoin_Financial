@@ -134,6 +134,7 @@ public class ManageBorrowController {
         var result = borrowRecordPledgeService.listByUid(uid, borrowRecord.getId())
                 .stream().map(coin -> MBorrowRecordVO.builder()
                         .amount(coin.getAmount())
+                        .pledgeType(coin.getPledgeType())
                         .coin(coin.getCoin()).build()).collect(Collectors.toList());
         return new Result<>(result);
     }

@@ -84,8 +84,8 @@ public class BorrowServiceImpl implements BorrowService {
 
         this.preCalPledgeRate(uid, CalPledgeQuery.builder()
                 .pledgeContext(query.getPledgeContext())
-                .borrowCoin(query.getBorrowCoin())
-                .borrowAmount(query.getBorrowAmount())
+                .coin(query.getBorrowCoin())
+                .amount(query.getBorrowAmount())
                 .borrow(true).build());
 
 
@@ -179,14 +179,14 @@ public class BorrowServiceImpl implements BorrowService {
         var borrowRecordPledges = borrowRecordPledgeService.dtoListByUid(uid, borrowRecord.getId());
         List<BorrowInterest> borrowInterests = borrowInterestService.list(uid);
 
-        BorrowConfigCoin borrowConfigCoin = borrowConfigCoinService.getById(calPledgeQuery.getBorrowCoin());
+        BorrowConfigCoin borrowConfigCoin = borrowConfigCoinService.getById(calPledgeQuery.getCoin());
         if (Objects.isNull(borrowConfigCoin)) {
             throw ErrorCodeEnum.BORROW_COIN_NOT_OPEN.generalException();
         }
 
         BorrowRecordCoin borrowRecordCoin = BorrowRecordCoin.builder()
-                .amount(calPledgeQuery.getBorrowAmount())
-                .coin(calPledgeQuery.getBorrowCoin()).build();
+                .amount(calPledgeQuery.getAmount())
+                .coin(calPledgeQuery.getCoin()).build();
 
         borrowRecordCoins.add(borrowRecordCoin);
 

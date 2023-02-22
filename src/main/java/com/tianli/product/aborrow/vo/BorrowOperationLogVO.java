@@ -37,6 +37,8 @@ public class BorrowOperationLogVO {
 
     private LocalDateTime createTime;
 
+    private String logo;
+
     public String getChargeTypeNameEn() {
         return chargeType.getNameEn();
 

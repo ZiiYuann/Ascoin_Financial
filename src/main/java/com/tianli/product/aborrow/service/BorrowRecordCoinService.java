@@ -4,9 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.product.aborrow.entity.BorrowRecordCoin;
 import com.tianli.product.aborrow.query.BorrowCoinQuery;
 import com.tianli.product.aborrow.query.RepayCoinQuery;
-import com.tianli.product.aborrow.vo.MBorrowRecordVO;
+import com.tianli.product.aborrow.vo.BorrowRecordCoinVO;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -19,6 +18,8 @@ public interface BorrowRecordCoinService extends IService<BorrowRecordCoin> {
     void save(Long uid, Long bid, BorrowCoinQuery query);
 
     List<BorrowRecordCoin> listByUid(Long uid, Long bid);
+
+    List<BorrowRecordCoinVO> vos(Long uid, Long bid);
 
     BorrowRecordCoin getOne(Long uid, String coin);
 

@@ -24,18 +24,18 @@ public class CalPledgeQuery {
     private List<PledgeContextQuery> pledgeContext;
 
     @NotNull
-    private String borrowCoin;
+    private String coin;
 
     @NotNull
-    private BigDecimal borrowAmount;
+    private BigDecimal amount;
 
     @NotNull
     private Boolean borrow;
 
-    public BigDecimal getBorrowAmount() {
+    public BigDecimal getAmount() {
         if (borrow) {
-            return borrowAmount;
+            return amount;
         }
-        return borrowAmount.multiply(new BigDecimal(-1L));
+        return amount.multiply(new BigDecimal(-1L));
     }
 }

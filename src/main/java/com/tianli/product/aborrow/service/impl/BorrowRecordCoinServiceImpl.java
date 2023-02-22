@@ -3,6 +3,7 @@ package com.tianli.product.aborrow.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.service.AccountBalanceService;
+import com.tianli.chain.service.CoinBaseService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
@@ -15,6 +16,7 @@ import com.tianli.product.aborrow.mapper.BorrowRecordCoinMapper;
 import com.tianli.product.aborrow.query.BorrowCoinQuery;
 import com.tianli.product.aborrow.query.RepayCoinQuery;
 import com.tianli.product.aborrow.service.*;
+import com.tianli.product.aborrow.vo.BorrowRecordCoinVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -45,6 +48,9 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
     private BorrowRecordPledgeService borrowRecordPledgeService;
     @Resource
     private BorrowRecordService borrowRecordService;
+    @Resource
+    private CoinBaseService coinBaseService;
+
 
     @Override
     @Transactional
@@ -107,7 +113,7 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
                 .filter(borrowRecordCoin -> borrowRecordCoin.getAmount().compareTo(BigDecimal.ZERO) > 0)
                 .findAny();
 
-        return any.isEmpty();
+        return any.isPresent();
     }
 
     @Override
@@ -125,10 +131,21 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
     }
 
     @Override
-    public List<BorrowRecordCoin> listByUid(Long uid,Long bid) {
+    public List<BorrowRecordCoin> listByUid(Long uid, Long bid) {
         return this.list(new LambdaQueryWrapper<BorrowRecordCoin>()
                 .eq(BorrowRecordCoin::getUid, uid)
-                .eq(BorrowRecordCoin :: getBid,bid));
+                .eq(BorrowRecordCoin::getBid, bid));
+    }
+
+    @Override
+    public List<BorrowRecordCoinVO> vos(Long uid, Long bid) {
+        List<BorrowRecordCoin> recordCoins = this.listByUid(uid, bid);
+        return recordCoins.stream().map(recordCoin -> BorrowRecordCoinVO.builder()
+                .coin(recordCoin.getCoin())
+                .amount(recordCoin.getAmount())
+                .logo(coinBaseService.getByName(recordCoin.getCoin()).getLogo())
+                .interestAmount(borrowInterestService.get(uid, bid, recordCoin.getCoin()).getAmount())
+                .build()).collect(Collectors.toList());
     }
 
     @Override

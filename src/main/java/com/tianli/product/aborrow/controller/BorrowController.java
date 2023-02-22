@@ -6,7 +6,6 @@ import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedissonClientTool;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
-import com.tianli.product.aborrow.dto.BorrowRecordPledgeDto;
 import com.tianli.product.aborrow.entity.BorrowOperationLog;
 import com.tianli.product.aborrow.entity.BorrowRecord;
 import com.tianli.product.aborrow.enums.PledgeType;
@@ -19,9 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -48,6 +44,8 @@ public class BorrowController {
     private BorrowRecordPledgeService borrowRecordPledgeService;
     @Resource
     private BorrowRecordService borrowRecordService;
+    @Resource
+    private BorrowRecordCoinService borrowRecordCoinService;
 
     /**
      * 借币
@@ -126,6 +124,13 @@ public class BorrowController {
         Long uid = requestInitService.uid();
         BorrowRecord borrowRecord = borrowRecordService.getValid(uid);
         return new Result<>(borrowRecordPledgeService.vos(uid, borrowRecord.getId(), pledgeType));
+    }
+
+    @GetMapping("/borrow/record")
+    public Result<List<BorrowRecordPledgeVO>> borrowRecord() {
+        Long uid = requestInitService.uid();
+        BorrowRecord borrowRecord = borrowRecordService.getValid(uid);
+        return new Result<>(borrowRecordCoinService.vos(uid, borrowRecord.getId()));
     }
 
     @GetMapping("/pledge/product")

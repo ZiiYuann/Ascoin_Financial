@@ -156,7 +156,7 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
                 return;
             }
 
-            if (PledgeType.FINANCIAL.equals(pledgeType) && !borrowRecordCoinService.payOff(uid, bid)) {
+            if (PledgeType.FINANCIAL.equals(pledgeType) && borrowRecordCoinService.payOff(uid, bid)) {
                 ErrorCodeEnum.BORROW_PRODUCT_CAN_NOT_REPAY.throwException();
             }
             Long recordId = recordPledge.getRecordId();
