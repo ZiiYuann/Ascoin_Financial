@@ -760,6 +760,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
             // 数量为0 或者 大于配置金额
             if (num == 0 || num > redEnvelopeConfig.getNum()) {
+//                throw new ErrCodeException(ErrorCodeEnum.RED_NUM_LIMIT.getErrorMsg() + redEnvelopeConfig.getNum() + "个", ErrorCodeEnum.RED_NUM_LIMIT.getErrorNo());
                 ErrorCodeEnum.RED_NUM_ERROR.throwException();
             }
 
@@ -769,8 +770,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             if (totalAmount.compareTo(redEnvelopeConfig.getLimitAmount()) > 0
                     || totalAmount.compareTo(BigDecimal.ZERO) == 0
                     || totalAmount.compareTo(totalMinAmount) < 0) {
-                throw new ErrCodeException(redEnvelopeConfig.getCoin()+ErrorCodeEnum.RED_AMOUNT_LIMIT.getErrorMsg()+redEnvelopeConfig.getLimitAmount()
-                        .stripTrailingZeros().toPlainString(),ErrorCodeEnum.RED_AMOUNT_LIMIT.getErrorNo());
+                throw new ErrCodeException(ErrorCodeEnum.RED_TOTAL_AMOUNT_LIMIT.getErrorMsg() + redEnvelopeConfig.getLimitAmount()
+                        .stripTrailingZeros().toPlainString(), ErrorCodeEnum.RED_TOTAL_AMOUNT_LIMIT.getErrorNo());
 //                ErrorCodeEnum.RED_AMOUNT_ERROR.throwException();
             }
 
