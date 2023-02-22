@@ -159,6 +159,7 @@ public enum ErrorCodeEnum {
     RED_NUM_CONFIG_ERROR(3716, "红包配置数量不能超过1000"),
     RED_IP_LIMIT(3717, "该IP领取超限"),
     RED_AMOUNT_LIMIT(3718,"红包总额不得超过"),
+    RED_OVERDUE(3719,"红包已过期"),
 
 
     /*** －－－－－－业务错误码-理财相关－－－－－－*/

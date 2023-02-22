@@ -303,7 +303,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         RedEnvelopeStatus status = redEnvelope.getStatus();
         // 等待、失败、过期、结束
         if (!RedEnvelopeStatus.valid(status)) {
-            return new RedEnvelopeGetVO(status, coinBase);
+            ErrorCodeEnum.RED_OVERDUE.throwException();
         }
 
         String receivedKey = RedisConstants.SPILT_RED_ENVELOPE_GET + rid + ":" + uid;
