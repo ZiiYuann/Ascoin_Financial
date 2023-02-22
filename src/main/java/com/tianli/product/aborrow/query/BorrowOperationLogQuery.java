@@ -4,9 +4,7 @@ import com.baomidou.mybatisplus.core.enums.SqlKeyword;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.annotation.QueryWrapperGenerator;
 import com.tianli.common.query.SelectQuery;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
@@ -16,6 +14,8 @@ import java.time.LocalDateTime;
  * @apiNote
  * @since 2023-02-20
  **/
+@EqualsAndHashCode(callSuper = true)
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
