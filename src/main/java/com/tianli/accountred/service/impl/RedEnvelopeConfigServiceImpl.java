@@ -55,7 +55,7 @@ public class RedEnvelopeConfigServiceImpl extends ServiceImpl<RedEnvelopeConfigM
         return Optional.ofNullable(this.getOne(new LambdaQueryWrapper<RedEnvelopeConfig>()
                         .eq(RedEnvelopeConfig::getCoin, coin)
                         .eq(RedEnvelopeConfig::getChannel, channel)))
-                .orElse(RedEnvelopeConfig.defaultConfig());
+                .orElse(RedEnvelopeConfig.externDefaultConfig());
     }
 
     @Override

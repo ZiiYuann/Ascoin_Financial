@@ -753,7 +753,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                 return;
             }
             RedEnvelopeConfig redEnvelopeConfig = redEnvelopeConfigService.getOne(redEnvelope.getCoin(), redEnvelope.getChannel());
-            redEnvelopeConfig = MoreObjects.firstNonNull(redEnvelopeConfig, RedEnvelopeConfig.defaultConfig());
+            redEnvelopeConfig = MoreObjects.firstNonNull(redEnvelopeConfig, RedEnvelopeConfig.externDefaultConfig());
 
             BigDecimal totalAmount = redEnvelope.getTotalAmount();
             int num = redEnvelope.getNum();

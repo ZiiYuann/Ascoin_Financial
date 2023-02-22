@@ -64,6 +64,14 @@ public class RedEnvelopeConfig {
                 .build();
     }
 
+    public static RedEnvelopeConfig externDefaultConfig() {
+        return RedEnvelopeConfig.builder()
+                .num(1000)
+                .limitAmount(BigDecimal.valueOf(100L))
+                .minAmount(BigDecimal.valueOf(0.000001))
+                .build();
+    }
+
     public int getScale() {
         String minAmountStr = this.getMinAmount().stripTrailingZeros().toPlainString();
         int scale = 0;
