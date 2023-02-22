@@ -38,4 +38,6 @@ public interface BorrowService {
     BorrowRecordSnapshotVO newestSnapshot(Long uid);
 
     void autoReplenishment(BorrowRecord borrowRecord);
+
+    void forcedCloseout(BorrowRecord borrowRecord);
 }

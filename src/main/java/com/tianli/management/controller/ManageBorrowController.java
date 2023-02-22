@@ -140,8 +140,9 @@ public class ManageBorrowController {
 
     // 操作
     @AdminPrivilege
-    @GetMapping("/user/operation/{uid}")
-    public Result<IPage<MBorrowOperationLogVO>> userOperation(PageQuery<BorrowOperationLog> page, @PathVariable Long uid) {
+    @GetMapping("/user/operation")
+    public Result<IPage<MBorrowOperationLogVO>> userOperation(PageQuery<BorrowOperationLog> page
+            , @RequestParam("uid") Long uid) {
         IPage<MBorrowOperationLogVO> result = borrowOperationLogService.page(page.page()
                         , new LambdaQueryWrapper<BorrowOperationLog>()
                                 .eq(BorrowOperationLog::getUid, uid)

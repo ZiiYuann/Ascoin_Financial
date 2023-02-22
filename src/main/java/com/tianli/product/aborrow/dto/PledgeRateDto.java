@@ -42,5 +42,14 @@ public class PledgeRateDto {
 
     private BigDecimal initFee = BigDecimal.ZERO;
 
+    private BigDecimal canBorrowFee;
+
+    public BigDecimal getCanBorrowFee() {
+        BigDecimal amount = interestFee.add(borrowFee);
+        if (amount.compareTo(initFee) < 0) {
+            return initFee.subtract(amount);
+        }
+        return BigDecimal.ZERO;
+    }
 
 }

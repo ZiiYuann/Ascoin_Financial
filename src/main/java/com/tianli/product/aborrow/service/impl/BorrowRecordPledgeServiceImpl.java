@@ -3,6 +3,7 @@ package com.tianli.product.aborrow.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.service.AccountBalanceService;
+import com.tianli.chain.service.CoinBaseService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
@@ -18,6 +19,7 @@ import com.tianli.product.aborrow.query.PledgeContextQuery;
 import com.tianli.product.aborrow.service.BorrowOperationLogService;
 import com.tianli.product.aborrow.service.BorrowRecordCoinService;
 import com.tianli.product.aborrow.service.BorrowRecordPledgeService;
+import com.tianli.product.aborrow.vo.BorrowRecordPledgeVO;
 import com.tianli.product.afinancial.entity.FinancialRecord;
 import com.tianli.product.afinancial.enums.ProductType;
 import com.tianli.product.afinancial.service.FinancialRecordService;
@@ -51,6 +53,8 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
     private AccountBalanceService accountBalanceService;
     @Resource
     private BorrowRecordCoinService borrowRecordCoinService;
+    @Resource
+    private CoinBaseService coinBaseService;
 
     @Override
     @Transactional
@@ -170,9 +174,10 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
     }
 
     @Override
-    public List<BorrowRecordPledgeDto> dtoListByUid(Long uid) {
+    public List<BorrowRecordPledgeDto> dtoListByUid(Long uid, Long bid) {
         return this.list(new LambdaQueryWrapper<BorrowRecordPledge>()
-                        .eq(BorrowRecordPledge::getUid, uid))
+                        .eq(BorrowRecordPledge::getUid, uid)
+                        .eq(BorrowRecordPledge::getBid, bid))
                 .stream().map(index -> {
                     BorrowRecordPledgeDto borrowRecordPledgeDto = borrowConvert.toBorrowRecordPledgeDto(index);
 
@@ -183,6 +188,23 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
                     }
                     return borrowRecordPledgeDto;
                 }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BorrowRecordPledgeVO> vos(Long uid, Long bid, PledgeType pledgeType) {
+        List<BorrowRecordPledgeDto> recordPledgeDtos = this.dtoListByUid(uid, bid);
+
+        if (Objects.nonNull(pledgeType)) {
+            recordPledgeDtos = recordPledgeDtos.stream().filter(r -> pledgeType.equals(r.getPledgeType()))
+                    .collect(Collectors.toList());
+        }
+
+        return recordPledgeDtos.stream().map(dto -> BorrowRecordPledgeVO.builder()
+                .coin(dto.getCoin())
+                .logo(coinBaseService.getByName(dto.getCoin()).getLogo())
+                .amount(dto.getAmount())
+                .recordId(dto.getRecordId())
+                .build()).collect(Collectors.toList());
     }
 
     @Override
@@ -210,6 +232,11 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
         List<FinancialRecord> financialRecords = financialRecordService.listByIds(recordIds);
         boolean empty1 = financialRecords.stream().filter(FinancialRecord::isPledge).findAny().isEmpty();
         return empty1 && empty;
+    }
+
+    @Override
+    public void forcedCloseout(Long uid, Long bid, PledgeContextQuery query) {
+
     }
 
     private void casIncrease(Long id, String coin, BigDecimal increaseAmount, BigDecimal originalAmount, PledgeType pledgeType) {

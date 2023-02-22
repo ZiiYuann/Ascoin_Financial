@@ -133,7 +133,7 @@ public class BorrowServiceImpl implements BorrowService {
         }
         Long bid = borrowRecord.getId();
         List<BorrowRecordCoin> borrowRecordCoins = borrowRecordCoinService.listByUid(uid, bid);
-        var borrowRecordPledges = borrowRecordPledgeService.dtoListByUid(uid);
+        var borrowRecordPledges = borrowRecordPledgeService.dtoListByUid(uid, bid);
         List<BorrowInterest> borrowInterests = borrowInterestService.list(uid);
 
         final Set<String> borrowCoins = borrowRecordCoins.stream().map(BorrowRecordCoin::getCoin).collect(Collectors.toSet());
@@ -176,7 +176,7 @@ public class BorrowServiceImpl implements BorrowService {
         BorrowRecord borrowRecord = borrowRecordService.get(uid);
         List<BorrowRecordCoin> borrowRecordCoins =
                 borrowRecordCoinService.listByUid(uid, Objects.isNull(borrowRecord) ? null : borrowRecord.getId());
-        var borrowRecordPledges = borrowRecordPledgeService.dtoListByUid(uid);
+        var borrowRecordPledges = borrowRecordPledgeService.dtoListByUid(uid, borrowRecord.getId());
         List<BorrowInterest> borrowInterests = borrowInterestService.list(uid);
 
         BorrowConfigCoin borrowConfigCoin = borrowConfigCoinService.getById(calPledgeQuery.getBorrowCoin());
@@ -324,8 +324,12 @@ public class BorrowServiceImpl implements BorrowService {
                         .compareTo(e1.getAmount().multiply(rateMap.get(e1.getCoin())))).collect(Collectors.toList());
         List<HoldPledgingVO> holdPledgingVOS = borrowRecordSnapshotDTO.getBorrowRecordPledgeDtos().stream()
                 .map(index -> HoldPledgingVO.builder()
-                        .id(index.getId()).amount(index.getAmount()).coin(index.getCoin())
+                        .id(index.getId())
+                        .amount(index.getAmount())
+                        .coin(index.getCoin())
                         .logo(coinBaseService.getByName(index.getCoin()).getLogo())
+                        .pledgeType(index.getPledgeType())
+                        .fee(index.getAmount().multiply(rateMap.get(index.getCoin())))
                         .build())
                 .sorted((e1, e2) -> e2.getAmount().multiply(rateMap.get(e2.getCoin()))
                         .compareTo(e1.getAmount().multiply(rateMap.get(e1.getCoin()))))
@@ -408,12 +412,22 @@ public class BorrowServiceImpl implements BorrowService {
 
                 this.insertOperationLog(borrowRecord.getId(), ChargeType.auto_re
                         , uid, coin, replenishmentAmount);
+                // todo 补仓成功
                 return;
             }
         }
 
         // todo 手动
 
+    }
+
+    @Override
+    @Transactional
+    public void forcedCloseout(BorrowRecord borrowRecord) {
+        Long bid = borrowRecord.getId();
+        Long uid = borrowRecord.getUid();
+        var recordPledgeDtos = borrowRecordPledgeService.dtoListByUid(uid, bid);
+        var recordCoins = borrowRecordCoinService.listByUid(uid, bid);
     }
 
     private void insertOperationLog(Long bid, ChargeType chargeType

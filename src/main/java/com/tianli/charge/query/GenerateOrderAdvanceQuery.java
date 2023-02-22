@@ -1,5 +1,6 @@
 package com.tianli.charge.query;
 
+import com.tianli.charge.enums.AdvanceType;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.product.afinancial.enums.PurchaseTerm;
 import lombok.AllArgsConstructor;
@@ -35,4 +36,6 @@ public class GenerateOrderAdvanceQuery {
     private NetworkType network;
 
     private String referralCode;
+
+    private AdvanceType advanceType = AdvanceType.PURCHASE;
 }

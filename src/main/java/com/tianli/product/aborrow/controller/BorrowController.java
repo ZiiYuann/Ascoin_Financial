@@ -6,12 +6,12 @@ import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedissonClientTool;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.product.aborrow.dto.BorrowRecordPledgeDto;
 import com.tianli.product.aborrow.entity.BorrowOperationLog;
+import com.tianli.product.aborrow.entity.BorrowRecord;
+import com.tianli.product.aborrow.enums.PledgeType;
 import com.tianli.product.aborrow.query.*;
-import com.tianli.product.aborrow.service.BorrowConfigCoinService;
-import com.tianli.product.aborrow.service.BorrowConfigPledgeService;
-import com.tianli.product.aborrow.service.BorrowOperationLogService;
-import com.tianli.product.aborrow.service.BorrowService;
+import com.tianli.product.aborrow.service.*;
 import com.tianli.product.aborrow.vo.*;
 import com.tianli.sso.init.RequestInitService;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +19,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -41,6 +44,10 @@ public class BorrowController {
     private BorrowConfigCoinService borrowConfigCoinService;
     @Resource
     private BorrowOperationLogService borrowOperationLogService;
+    @Resource
+    private BorrowRecordPledgeService borrowRecordPledgeService;
+    @Resource
+    private BorrowRecordService borrowRecordService;
 
     /**
      * 借币
@@ -111,6 +118,14 @@ public class BorrowController {
     public Result<List<AccountPledgeVO>> pledgeAccount() {
         Long uid = requestInitService.uid();
         return new Result<>(borrowConfigPledgeService.getAccountPledgeVOs(uid));
+    }
+
+    @GetMapping("/pledge/record")
+    public Result<List<BorrowRecordPledgeVO>> pledgeRecord(
+            @RequestParam(value = "pledgeType", required = false) PledgeType pledgeType) {
+        Long uid = requestInitService.uid();
+        BorrowRecord borrowRecord = borrowRecordService.getValid(uid);
+        return new Result<>(borrowRecordPledgeService.vos(uid, borrowRecord.getId(), pledgeType));
     }
 
     @GetMapping("/pledge/product")

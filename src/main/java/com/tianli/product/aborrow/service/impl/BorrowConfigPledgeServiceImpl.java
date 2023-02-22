@@ -99,6 +99,7 @@ public class BorrowConfigPledgeServiceImpl extends ServiceImpl<BorrowConfigPledg
             return AccountPledgeVO.builder()
                     .coin(coin.getCoin())
                     .remain(accountBalance.getRemain())
+
                     .rate(currencyService.getDollarRate(coin.getCoin()))
                     .logo(coinBase.getLogo()).build();
         }).collect(Collectors.toList());

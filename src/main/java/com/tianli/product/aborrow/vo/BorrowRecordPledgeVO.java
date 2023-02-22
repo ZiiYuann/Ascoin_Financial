@@ -1,6 +1,5 @@
 package com.tianli.product.aborrow.vo;
 
-import com.tianli.product.aborrow.enums.PledgeType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,23 +10,20 @@ import java.math.BigDecimal;
 /**
  * @author chenb
  * @apiNote
- * @since 2023-02-21
+ * @since 2023-02-22
  **/
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class HoldPledgingVO {
-
-    private Long id;
-
-    private PledgeType pledgeType;
+public class BorrowRecordPledgeVO {
 
     private String coin;
 
-    private BigDecimal amount;
-
     private String logo;
 
-    private BigDecimal fee;
+    private BigDecimal amount;
+
+    private Long recordId;
+
 }

@@ -18,6 +18,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -58,21 +59,27 @@ public class BorrowTask {
                     break;
                 }
                 borrowRecords.forEach(borrowRecord -> {
-                    borrowService.calPledgeRate(borrowRecord);
+                    final BorrowRecord newRecord = borrowService.calPledgeRate(borrowRecord);
 
-                    if (borrowRecord.getCurrencyPledgeRate().compareTo(borrowRecord.getWarnPledgeRate()) < 0) {
+                    BigDecimal currencyPledgeRate = newRecord.getCurrencyPledgeRate();
+                    BigDecimal warnPledgeRate = newRecord.getWarnPledgeRate();
+                    BigDecimal lqPledgeRate = newRecord.getLqPledgeRate();
+                    if (currencyPledgeRate.compareTo(warnPledgeRate) < 0) {
                         return;
                     }
-
                     // todo 通知用户
-
                     if (!borrowRecord.isAutoReplenishment()) {
                         return;
                     }
-
-                    String lockKey = RedisLockConstants.LOCK_BORROW + borrowRecord.getUid();
-                    redissonClientTool.tryLock(lockKey, () -> borrowService.autoReplenishment(borrowRecord)
+                    String lockKey = RedisLockConstants.LOCK_BORROW + newRecord.getUid();
+                    if (currencyPledgeRate.compareTo(lqPledgeRate) < 0) {
+                        redissonClientTool.tryLock(lockKey, () -> borrowService.autoReplenishment(newRecord)
+                                , ErrorCodeEnum.SYSTEM_BUSY, 30, TimeUnit.SECONDS, true);
+                        return;
+                    }
+                    redissonClientTool.tryLock(lockKey, () -> borrowService.autoReplenishment(newRecord)
                             , ErrorCodeEnum.SYSTEM_BUSY, 30, TimeUnit.SECONDS, true);
+
                 });
 
             } catch (Exception e) {

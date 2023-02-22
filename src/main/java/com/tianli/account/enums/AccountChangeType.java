@@ -60,7 +60,10 @@ public enum AccountChangeType {
     points_payment("PP"),
     points_return("PR"),
     auto_re("AUR"),
-    forced_closeout("FC")
+    forced_closeout("FC"),
+    advance_borrow("ABO"),
+    //还币
+    advance_repay("ARP"),
     ;
 
     AccountChangeType(String prefix) {
