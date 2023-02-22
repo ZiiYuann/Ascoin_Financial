@@ -10,7 +10,8 @@
         pro.coin,
         pro.logo,
         pro.type as productType,
-        pro.term
+        pro.term,
+        pro.rate_type,pro.max_rate,pro.min_rate
         FROM (
 
         <if test="query.type != 'fixed' and query.type != 'current' ">
