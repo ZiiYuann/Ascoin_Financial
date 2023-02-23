@@ -391,7 +391,7 @@ public class NameUtil {
      */
     public static String getNickName(Long id) {
         int headNameIndex = (int) (id % headerNameArray.length);
-        int foodNameIndex = (int) (id % headerNameArray.length);
+        int foodNameIndex = (int) (id % foodNameArray.length);
         return headerNameArray[headNameIndex] + foodNameArray[foodNameIndex];
     }
 
