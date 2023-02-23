@@ -3,7 +3,6 @@ package com.tianli.management.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.common.PageQuery;
-import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
@@ -115,10 +114,10 @@ public class ManageBorrowController {
 
     // 借币
     @AdminPrivilege
-    @GetMapping("/user/coin/{uid}")
-    public Result<List<MBorrowRecordVO>> userBorrow(@PathVariable Long uid) {
-        BorrowRecord borrowRecord = borrowRecordService.getValid(uid);
-        var result = borrowRecordCoinService.listByUid(uid, borrowRecord.getId())
+    @GetMapping("/user/coin")
+    public Result<List<MBorrowRecordVO>> userBorrow(@RequestParam("uid") Long uid,
+                                                    @RequestParam("bid") Long bid) {
+        var result = borrowRecordCoinService.listByUid(uid, bid)
                 .stream().map(coin -> MBorrowRecordVO.builder()
                         .amount(coin.getAmount())
                         .coin(coin.getCoin()).build()).collect(Collectors.toList());
@@ -127,10 +126,10 @@ public class ManageBorrowController {
 
     // 质押币
     @AdminPrivilege
-    @GetMapping("/user/pledge/{uid}")
-    public Result<List<MBorrowRecordVO>> userPledge(@PathVariable Long uid) {
-        BorrowRecord borrowRecord = borrowRecordService.getValid(uid);
-        var result = borrowRecordPledgeService.listByUid(uid, borrowRecord.getId())
+    @GetMapping("/user/pledge")
+    public Result<List<MBorrowRecordVO>> userPledge(@RequestParam("uid") Long uid,
+                                                    @RequestParam("bid") Long bid) {
+        var result = borrowRecordPledgeService.listByUid(uid, bid)
                 .stream().map(coin -> MBorrowRecordVO.builder()
                         .amount(coin.getAmount())
                         .pledgeType(coin.getPledgeType())

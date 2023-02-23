@@ -19,6 +19,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class MBorrowUserVO {
 
+    private Long id;
+
     private Long uid;
 
     private BigDecimal currencyPledgeRate;
