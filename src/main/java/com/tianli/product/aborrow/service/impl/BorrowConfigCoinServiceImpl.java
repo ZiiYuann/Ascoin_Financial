@@ -71,8 +71,8 @@ public class BorrowConfigCoinServiceImpl extends ServiceImpl<BorrowConfigCoinMap
     @Override
     public IPage<MBorrowConfigCoinVO> MBorrowConfigCoinVOPage(IPage<BorrowConfigCoin> page, BorrowQuery borrowQuery) {
         return this.page(page, QueryWrapperUtils.generate(BorrowConfigCoin.class, borrowQuery))
-                .convert(record -> {
-                            MBorrowConfigCoinVO mBorrowConfigCoinVO = borrowConvert.toMBorrowConfigCoinVO(record);
+                .convert(index -> {
+                            MBorrowConfigCoinVO mBorrowConfigCoinVO = borrowConvert.toMBorrowConfigCoinVO(index);
                             mBorrowConfigCoinVO.setLogo(coinBaseService.getByName(mBorrowConfigCoinVO.getCoin()).getLogo());
                             return mBorrowConfigCoinVO;
                         }
@@ -90,14 +90,14 @@ public class BorrowConfigCoinServiceImpl extends ServiceImpl<BorrowConfigCoinMap
     }
 
     @Override
-    public void check(Long uid, BorrowCoinQuery query) {
+    public void check(Long uid, Long bid, BorrowCoinQuery query) {
         BorrowConfigCoin borrowConfigCoin = this.getById(query.getBorrowCoin());
 
         if (borrowConfigCoin.getStatus() != 1) {
             throw ErrorCodeEnum.BORROW_COIN_NOT_OPEN.generalException();
         }
 
-        BorrowRecordCoin borrowRecordCoin = borrowRecordCoinService.getOne(uid, query.getBorrowCoin());
+        BorrowRecordCoin borrowRecordCoin = borrowRecordCoinService.getOne(uid, bid, query.getBorrowCoin());
         BigDecimal borrowAmount = borrowRecordCoin != null ? borrowRecordCoin.getAmount() : BigDecimal.ZERO;
 
         BigDecimal totalBorrowAmount = borrowAmount.add(query.getBorrowAmount());

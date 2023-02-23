@@ -48,6 +48,7 @@ public class BorrowRecordServiceImpl extends ServiceImpl<BorrowRecordMapper, Bor
     public BorrowRecord getAndInit(Long uid, Boolean autoReplenishment) {
         BorrowRecord borrowRecord = this.getOne(new LambdaQueryWrapper<BorrowRecord>()
                 .eq(BorrowRecord::getUid, uid)
+                .eq(BorrowRecord::getPledgeStatus, PledgeStatus.PROCESS)
                 .eq(BorrowRecord::isFinish, false));
 
         if (Objects.isNull(borrowRecord)) {
@@ -65,6 +66,7 @@ public class BorrowRecordServiceImpl extends ServiceImpl<BorrowRecordMapper, Bor
     public BorrowRecord getValid(Long uid) {
         BorrowRecord borrowRecord = this.getOne(new LambdaQueryWrapper<BorrowRecord>()
                 .eq(BorrowRecord::getUid, uid)
+                .eq(BorrowRecord::getPledgeStatus, PledgeStatus.PROCESS)
                 .eq(BorrowRecord::isFinish, false));
         return Optional.ofNullable(borrowRecord).orElseThrow(ErrorCodeEnum.BORROW_RECORD_NOT_EXIST::generalException);
     }
@@ -87,7 +89,7 @@ public class BorrowRecordServiceImpl extends ServiceImpl<BorrowRecordMapper, Bor
     public void finish(Long uid, Long bid) {
         if (!borrowInterestService.payOff(uid, bid)
                 || borrowRecordCoinService.payOff(uid, bid)
-                || !borrowRecordPledgeService.releaseCompleted(uid,bid)) {
+                || !borrowRecordPledgeService.releaseCompleted(uid, bid)) {
             throw ErrorCodeEnum.BORROW_RECORD_CANNOT_FINISH.generalException();
         }
         baseMapper.finish(bid, uid, LocalDateTime.now());

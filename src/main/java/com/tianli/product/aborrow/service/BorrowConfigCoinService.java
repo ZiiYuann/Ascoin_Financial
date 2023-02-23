@@ -26,7 +26,7 @@ public interface BorrowConfigCoinService extends IService<BorrowConfigCoin> {
 
     void modifyStatus(String coin, BorrowStatus borrowStatus);
 
-    void check(Long uid, BorrowCoinQuery query);
+    void check(Long uid, Long bid, BorrowCoinQuery query);
 
     List<BorrowConfigCoinVO> getVOs();
 

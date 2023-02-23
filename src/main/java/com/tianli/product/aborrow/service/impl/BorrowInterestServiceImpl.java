@@ -33,7 +33,7 @@ public class BorrowInterestServiceImpl implements BorrowInterestService {
     @Override
     @Transactional
     public void add(Long bid, Long uid, String coin, BigDecimal amount) {
-        add(uid, bid, coin, amount, InterestType.BORROW);
+        add(bid, uid, coin, amount, InterestType.BORROW);
     }
 
     @Override

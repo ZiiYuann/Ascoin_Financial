@@ -82,9 +82,11 @@ public class BorrowServiceImpl implements BorrowService {
     @Override
     @Transactional
     public void borrowCoin(Long uid, BorrowCoinQuery query) {
-        borrowConfigCoinService.check(uid, query);
-
         BorrowRecord borrowRecord = borrowRecordService.getAndInit(uid, query.getAutoReplenishment());
+        Long bid = borrowRecord.getId();
+
+        borrowConfigCoinService.check(uid, bid, query);
+
         this.preCalPledgeRate(uid, CalPledgeQuery.builder()
                 .pledgeContext(query.getPledgeContext())
                 .pledgeContextType(ModifyPledgeContextType.ADD)
@@ -92,7 +94,6 @@ public class BorrowServiceImpl implements BorrowService {
                 .amount(query.getBorrowAmount())
                 .borrow(true).build(), true);
 
-        Long bid = borrowRecord.getId();
 
         query.getPledgeContext().forEach(context -> borrowRecordPledgeService.save(uid, bid, context));
         borrowRecordCoinService.save(uid, bid, query);

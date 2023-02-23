@@ -173,9 +173,10 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
     }
 
     @Override
-    public BorrowRecordCoin getOne(Long uid, String coin) {
+    public BorrowRecordCoin getOne(Long uid, Long bid, String coin) {
         return this.getOne(new LambdaQueryWrapper<BorrowRecordCoin>()
                 .eq(BorrowRecordCoin::getUid, uid)
+                .eq(BorrowRecordCoin::getBid, bid)
                 .eq(BorrowRecordCoin::getCoin, coin));
     }
 

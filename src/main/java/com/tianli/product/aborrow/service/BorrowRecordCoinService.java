@@ -22,7 +22,7 @@ public interface BorrowRecordCoinService extends IService<BorrowRecordCoin> {
 
     List<BorrowRecordCoinVO> vos(Long uid, Long bid);
 
-    BorrowRecordCoin getOne(Long uid, String coin);
+    BorrowRecordCoin getOne(Long uid, Long bid, String coin);
 
     void repay(Long uid, Long bid, RepayCoinQuery repayCoinQuery);
 
