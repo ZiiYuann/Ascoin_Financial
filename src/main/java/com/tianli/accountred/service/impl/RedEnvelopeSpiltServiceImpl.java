@@ -163,8 +163,9 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         int expireDays = redEnvelope.getChannel().getExpireDays();
         if (!RedEnvelopeChannel.EXTERN.equals(channel)) {
             String key = RedisConstants.RED_CHAT + redEnvelope.getId();
-            redisTemplate.opsForSet().add(key, spiltRedEnvelopes.stream().map(RedEnvelopeSpilt::getId).toArray());
-            redisTemplate.expire(key, expireDays, TimeUnit.DAYS);
+            stringRedisTemplate.opsForSet().add(key, spiltRedEnvelopes.stream().map(RedEnvelopeSpilt::getId)
+                    .toArray(String[]::new));
+            stringRedisTemplate.expire(key, expireDays, TimeUnit.DAYS);
         }
 
         // 如果是站外红包，设置 zset 缓存 （score 从0 开始）

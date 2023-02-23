@@ -34,7 +34,10 @@ import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
-import com.tianli.common.*;
+import com.tianli.common.CommonFunction;
+import com.tianli.common.Constants;
+import com.tianli.common.PageQuery;
+import com.tianli.common.RedisConstants;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrCodeException;
@@ -68,6 +71,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.tianli.common.ConfigConstants.SYSTEM_URL_PATH_PREFIX;
 
@@ -92,8 +96,6 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     private RedEnvelopeSpiltGetRecordService redEnvelopeSpiltGetRecordService;
     @Resource
     private OrderService orderService;
-    @Resource
-    private RedisService redisService;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
     @Resource
@@ -121,6 +123,14 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     public void initBloomFilter() {
         // 布隆过滤器，防止缓存击穿
         final RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConstants.RED_ENVELOPE + BLOOM);
+
+        // 修改红包序列化
+        List<RedEnvelope> redEnvelopes = redEnvelopeMapper.selectList(new LambdaQueryWrapper<RedEnvelope>()
+                .select(RedEnvelope::getId)
+                .ge(RedEnvelope::getCreateTime, LocalDateTime.now().plusHours(-25)));
+        List<String> deleteKeys = redEnvelopes.stream().map(redEnvelope -> RedisConstants.RED_ENVELOPE + redEnvelope.getId())
+                .collect(Collectors.toList());
+        stringRedisTemplate.delete(deleteKeys);
 
         if (bloomFilter.isExists()) {
             return;
@@ -559,7 +569,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     public void redEnvelopeRollback(RedEnvelope redEnvelope, RedEnvelopeStatus status) {
         String semaphore = RedisConstants.RED_SEMAPHORE + redEnvelope.getId();
         Set<String> keys = stringRedisTemplate.keys(semaphore + "*");
-        if (CollectionUtils.isNotEmpty(keys)){
+        if (CollectionUtils.isNotEmpty(keys)) {
             ErrorCodeEnum.RED_TRANSFER_ING.throwException();
         }
 
@@ -623,7 +633,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             ErrorCodeEnum.RED_NOT_EXIST_BLOOM.throwException();
         }
 
-        Object cache = redisService.get(RedisConstants.RED_ENVELOPE + id); // 获取缓存
+        var cache = stringRedisTemplate.opsForValue().get(RedisConstants.RED_ENVELOPE + id); // 获取缓存
         if (Objects.isNull(cache)) {
             RedEnvelope redEnvelope = this.getById(id);
             if (Objects.isNull(redEnvelope)) {
@@ -632,7 +642,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             setRedisCache(redEnvelope);
             return redEnvelope;
         }
-        return (RedEnvelope) cache;
+        return JSONUtil.toBean(cache, RedEnvelope.class);
     }
 
     @Override
@@ -715,7 +725,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
      */
     private void setRedisCache(RedEnvelope redEnvelope) {
         String key = RedisConstants.RED_ENVELOPE + redEnvelope.getId(); // 设置缓存
-        redisService.set(key, redEnvelope, 1L, TimeUnit.DAYS);
+        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(redEnvelope), 1L, TimeUnit.DAYS);
     }
 
     /**
