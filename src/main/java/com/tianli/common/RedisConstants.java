@@ -27,6 +27,8 @@ public class RedisConstants {
     public static String RED_EXTERN_RECORD = "red:extern:record:";
     public static String RED_ENVELOPE = "red:";
     public static String RED_ENVELOPE_LIMIT = "red:limit:";
+    // 信号量，由于异步转账导致，未到账时，回退和过期会有问题
+    public static String RED_SEMAPHORE = "red:semaphore:";
 
     public static String RECOMMEND_PRODUCT = "recommend:list";
 

@@ -66,10 +66,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.tianli.common.ConfigConstants.SYSTEM_URL_PATH_PREFIX;
@@ -308,6 +305,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
         String receivedKey = RedisConstants.SPILT_RED_ENVELOPE_GET + rid + ":" + uid;
         String exchangeCodeKey = RedisConstants.RED_EXTERN_CODE + query.getExchangeCode();
+        String semaphore = RedisConstants.RED_SEMAPHORE + rid + ":" + uid;
         String script =
                 "if redis.call('EXISTS', KEYS[1]) > 0 then\n" +
                         "    return 'RECEIVED'\n" +
@@ -317,13 +315,15 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                         "    redis.call('SET',KEYS[1],'')\n" +
                         "    redis.call('EXPIRE',KEYS[1],2592000)\n" +
                         "    redis.call('DEL',KEYS[2])\n" +
+                        "    redis.call('SET',KEYS[3])\n" +
                         "end";
         DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
         redisScript.setResultType(String.class);
         redisScript.setScriptText(script);
         String result;
         try {
-            result = stringRedisTemplate.opsForValue().getOperations().execute(redisScript, List.of(receivedKey, exchangeCodeKey));
+            result = stringRedisTemplate.opsForValue().getOperations().execute(redisScript
+                    , List.of(receivedKey, exchangeCodeKey, semaphore));
         } catch (Exception e) {
             // 防止由于网络波动导致的红包异常 暂时做通知处理，如果情况比较多，后续进行补偿
             webHookService.dingTalkSend("兑换红包状态异常，请及时处理，红包id：" + rid + " uid：" + uid, e);
@@ -343,7 +343,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                 .deviceNumber(query.getDeviceNumber())
                 .exchangeCode(query.getExchangeCode())
                 .build();
-        sqsService.send(new SqsContext<>(SqsTypeEnum.RED_ENVELOP, redEnvelopeContext));
+        sqsService.send(new SqsContext<>(SqsTypeEnum.RED_ENVELOP, redEnvelopeContext)); // 站外红包异步
 
         RedEnvelopeGetVO redEnvelopeGetVO = new RedEnvelopeGetVO(RedEnvelopeStatus.SUCCESS, coinBase);
         redEnvelopeGetVO.setReceiveAmount(redEnvelopeSpiltDTO.getAmount());
@@ -386,6 +386,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
         String receivedKey = RedisConstants.SPILT_RED_ENVELOPE_GET + query.getRid() + ":" + uid;
         String spiltRedKey = RedisConstants.RED_CHAT + query.getRid();
+        String semaphore = RedisConstants.RED_SEMAPHORE + query.getRid() + ":" + uid;
         // 此lua脚本的用处 1、判断用户是否已经抢过红包 2、判断拆分红包是否还有剩余
         String script =
                 "if redis.call('EXISTS', KEYS[1]) > 0 then\n" +
@@ -396,13 +397,15 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                         "    redis.call('SET',KEYS[1],'')\n" +
                         "    redis.call('EXPIRE',KEYS[1],86400)\n" +
                         "    return redis.call('SPOP', KEYS[2])\n" +
+                        "    redis.call('SET',KEYS[3])\n" +
                         "end";
         DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
         redisScript.setResultType(String.class);
         redisScript.setScriptText(script);
         String result;
         try {
-            result = stringRedisTemplate.opsForValue().getOperations().execute(redisScript, List.of(receivedKey, spiltRedKey));
+            result = stringRedisTemplate.opsForValue().getOperations().execute(redisScript
+                    , List.of(receivedKey, spiltRedKey, semaphore));
         } catch (Exception e) {
             // 防止由于网络波动导致的红包异常 暂时做通知处理，如果情况比较多，后续进行补偿
             webHookService.dingTalkSend("领取红包状态异常，请及时处理，红包id：" + query.getRid() + " uid：" + uid, e);
@@ -424,7 +427,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                 .shortUid(shortUid)
                 .deviceNumber(query.getDeviceNumber())
                 .build();
-        sqsService.send(new SqsContext<>(SqsTypeEnum.RED_ENVELOP, redEnvelopeContext));
+        sqsService.send(new SqsContext<>(SqsTypeEnum.RED_ENVELOP, redEnvelopeContext)); // 聊天红包异步
 
         var redEnvelopeSpilt = redEnvelopeSpiltService.getById(result);
         RedEnvelopeGetVO redEnvelopeGetVO = new RedEnvelopeGetVO(RedEnvelopeStatus.SUCCESS, coinBase);
@@ -554,13 +557,19 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void redEnvelopeRollback(RedEnvelope redEnvelope, RedEnvelopeStatus status) {
+        String semaphore = RedisConstants.RED_SEMAPHORE + redEnvelope.getId();
+        Set<String> keys = stringRedisTemplate.keys(semaphore + "*");
+        if (CollectionUtils.isNotEmpty(keys)){
+            ErrorCodeEnum.RED_TRANSFER_ING.throwException();
+        }
+
         List<RedEnvelopeSpilt> spiltRedEnvelopes =
                 redEnvelopeSpiltService.getRedEnvelopeSpilt(redEnvelope.getId(), false);
 
         // 进入这个方法的红包应该存在红包未领取
         if (RedEnvelopeStatus.OVERDUE.equals(status)
-                || RedEnvelopeChannel.CHAT.equals(redEnvelope.getChannel())
-                || CollectionUtils.isEmpty(spiltRedEnvelopes)) {
+                && RedEnvelopeChannel.CHAT.equals(redEnvelope.getChannel())
+                && CollectionUtils.isEmpty(spiltRedEnvelopes)) {
             webHookService.dingTalkSend("红包状态不为领取完，但是拆分红包不存在，请排查异常：" + redEnvelope.getId());
             return;
         }
@@ -688,6 +697,11 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         if (Objects.isNull(bean)) {
             throw ErrorCodeEnum.SYSTEM_ERROR.generalException();
         }
+
+        // 如果不进行此操作，还可以继续领取验证码
+        String externKey = RedisConstants.RED_EXTERN + redEnvelope.getId(); //删除缓存 用于减少可领取兑换码缓存
+        stringRedisTemplate.delete(externKey);
+
         bean.redEnvelopeRollback(redEnvelope, RedEnvelopeStatus.BACK);
     }
 

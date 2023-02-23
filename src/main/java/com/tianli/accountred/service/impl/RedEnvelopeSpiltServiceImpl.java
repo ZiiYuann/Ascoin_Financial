@@ -134,6 +134,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
 
             String externKey = RedisConstants.RED_EXTERN + redEnvelope.getId(); //删除缓存 用于减少可领取兑换码缓存
             String externRecordKey = RedisConstants.RED_EXTERN_RECORD + redEnvelope.getId(); //修改缓存 用于更新领取信息
+            String semaphore = RedisConstants.RED_SEMAPHORE + redEnvelope.getId() + ":" + uid;
 
             stringRedisTemplate.opsForZSet().getOperations().executePipelined(new SessionCallback<>() {
                 @Override
@@ -144,6 +145,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
 
                     zSetOperation.remove(externRecordKey, oldMember);
                     zSetOperation.add(externRecordKey, newMember, receiveTime.toInstant(ZoneOffset.ofHours(8)).toEpochMilli());
+                    operations.delete((K) semaphore);
                     return null;
                 }
             });

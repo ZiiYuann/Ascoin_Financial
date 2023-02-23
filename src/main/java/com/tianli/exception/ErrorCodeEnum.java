@@ -160,7 +160,7 @@ public enum ErrorCodeEnum {
     RED_IP_LIMIT(3717, "该IP领取超限"),
     RED_TOTAL_AMOUNT_LIMIT(3718,"红包价值不得超过"),
     RED_OVERDUE(3719,"红包已过期"),
-
+    RED_TRANSFER_ING(3720,"红包异步转账未完成"),
 
     /*** －－－－－－业务错误码-理财相关－－－－－－*/
     FINANCIAL_INCOME_REPEAT(3801, "理财利息当日利息已经计算"),
