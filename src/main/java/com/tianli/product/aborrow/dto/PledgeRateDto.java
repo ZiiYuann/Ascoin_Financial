@@ -42,6 +42,8 @@ public class PledgeRateDto {
 
     private BigDecimal initFee = BigDecimal.ZERO;
 
+    private BigDecimal initPledgeRate = BigDecimal.ZERO;
+
     private BigDecimal canBorrowFee;
 
     public BigDecimal getCanBorrowFee() {

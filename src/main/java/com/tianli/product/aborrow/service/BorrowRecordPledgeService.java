@@ -35,6 +35,6 @@ public interface BorrowRecordPledgeService extends IService<BorrowRecordPledge> 
 
     boolean releaseCompleted(Long uid, Long bid);
 
-    void forcedCloseout(Long uid, Long bid, PledgeContextQuery query);
+    void forcedCloseout(Long uid, Long bid, PledgeContextQuery query,boolean all);
 
 }

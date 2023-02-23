@@ -11,7 +11,7 @@
         pro.logo,
         pro.type as productType,
         pro.term,
-        pro.rate_type,pro.max_rate,pro.min_rate
+        pro.rate_type,pro.max_rate,pro.min_rate,pro.rate
         FROM (
 
         <if test="query.type != 'fixed' and query.type != 'current' ">

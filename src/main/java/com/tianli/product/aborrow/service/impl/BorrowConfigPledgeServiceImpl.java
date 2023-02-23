@@ -86,7 +86,13 @@ public class BorrowConfigPledgeServiceImpl extends ServiceImpl<BorrowConfigPledg
         return this.list(new LambdaQueryWrapper<BorrowConfigPledge>()
                         .eq(BorrowConfigPledge::getStatus, 1))
                 .stream()
-                .map(borrowConvert::toBorrowConfigPledgeVO)
+                .map(
+                        index -> {
+                            BorrowConfigPledgeVO borrowConfigPledgeVO = borrowConvert.toBorrowConfigPledgeVO(index);
+                            borrowConfigPledgeVO.setLogo(coinBaseService.getByName(index.getCoin()).getLogo());
+                            return borrowConfigPledgeVO;
+                        }
+                )
                 .collect(Collectors.toList());
     }
 
@@ -99,7 +105,6 @@ public class BorrowConfigPledgeServiceImpl extends ServiceImpl<BorrowConfigPledg
             return AccountPledgeVO.builder()
                     .coin(coin.getCoin())
                     .remain(accountBalance.getRemain())
-
                     .rate(currencyService.getDollarRate(coin.getCoin()))
                     .logo(coinBase.getLogo()).build();
         }).collect(Collectors.toList());

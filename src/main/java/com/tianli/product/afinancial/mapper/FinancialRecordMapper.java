@@ -58,6 +58,13 @@ public interface FinancialRecordMapper extends BaseMapper<FinancialRecord> {
                      @Param("originalAmount") BigDecimal originalAmount,
                      @Param("pledge") boolean pledge);
 
+    @Update("UPDATE financial_record SET pledge = #{pledge},hold_amount= hold_amount -#{reduceAmount} WHERE uid = #{uid} AND id =#{id} and hold_amount = #{originalAmount}")
+    int updatePledgeAndReduce(@Param("uid") Long uid,
+                              @Param("id") Long id,
+                              @Param("originalAmount") BigDecimal originalAmount,
+                              @Param("pledge") boolean pledge,
+                              @Param("reduceAmount") BigDecimal reduceAmount);
+
     /**
      * 用户还持用产品的数量
      */

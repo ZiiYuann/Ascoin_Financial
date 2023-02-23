@@ -9,5 +9,6 @@ public enum PledgeStatus {
     // PROCESS 进行中 FINISH 完成 LQ 已经强平
     PROCESS,
     FINISH,
+    WAIT,
     LQ
 }

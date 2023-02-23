@@ -37,6 +37,9 @@ public interface AccountBalanceService {
      */
     void pledgeUnfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des);
 
+
+    void pledgeReduce(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des);
+
     /**
      * 获取并且不存在的话会初始化
      */

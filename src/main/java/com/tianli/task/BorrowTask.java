@@ -77,7 +77,7 @@ public class BorrowTask {
                                 , ErrorCodeEnum.SYSTEM_BUSY, 30, TimeUnit.SECONDS, true);
                         return;
                     }
-                    redissonClientTool.tryLock(lockKey, () -> borrowService.autoReplenishment(newRecord)
+                    redissonClientTool.tryLock(lockKey, () -> borrowService.forcedCloseout(newRecord)
                             , ErrorCodeEnum.SYSTEM_BUSY, 30, TimeUnit.SECONDS, true);
 
                 });

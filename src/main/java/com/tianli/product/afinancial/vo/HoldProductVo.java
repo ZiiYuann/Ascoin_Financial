@@ -87,4 +87,6 @@ public class HoldProductVo {
 
     private BigDecimal minRate;
 
+    private BigDecimal rate;
+
 }

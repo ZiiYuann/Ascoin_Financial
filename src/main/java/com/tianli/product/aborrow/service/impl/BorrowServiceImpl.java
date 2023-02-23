@@ -17,6 +17,7 @@ import com.tianli.product.aborrow.dto.BorrowRecordSnapshotDTO;
 import com.tianli.product.aborrow.dto.PledgeRateDto;
 import com.tianli.product.aborrow.entity.*;
 import com.tianli.product.aborrow.enums.ModifyPledgeContextType;
+import com.tianli.product.aborrow.enums.PledgeStatus;
 import com.tianli.product.aborrow.enums.PledgeType;
 import com.tianli.product.aborrow.query.*;
 import com.tianli.product.aborrow.service.*;
@@ -28,6 +29,7 @@ import com.tianli.product.afinancial.entity.FinancialRecord;
 import com.tianli.product.afinancial.service.FinancialRecordService;
 import com.tianli.product.vo.RateVo;
 import com.tianli.tool.ApplicationContextTool;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -179,37 +181,62 @@ public class BorrowServiceImpl implements BorrowService {
         var borrowRecordPledges = borrowRecordPledgeService.dtoListByUid(uid, borrowRecord.getId());
         List<BorrowInterest> borrowInterests = borrowInterestService.list(uid);
 
-        BorrowConfigCoin borrowConfigCoin = borrowConfigCoinService.getById(calPledgeQuery.getCoin());
-        if (Objects.isNull(borrowConfigCoin)) {
-            throw ErrorCodeEnum.BORROW_COIN_NOT_OPEN.generalException();
+        // 单借还币
+        if (Objects.nonNull(calPledgeQuery.getBorrow()) && Objects.nonNull(calPledgeQuery.getCoin())) {
+            Optional.ofNullable(borrowConfigCoinService.getById(calPledgeQuery.getCoin()))
+                    .orElseThrow(ErrorCodeEnum.BORROW_COIN_NOT_OPEN::generalException);
+
+            BorrowRecordCoin borrowRecordCoin = BorrowRecordCoin.builder()
+                    .amount(calPledgeQuery.getAmount())
+                    .coin(calPledgeQuery.getCoin()).build();
+            borrowRecordCoins.add(borrowRecordCoin);
         }
 
-        BorrowRecordCoin borrowRecordCoin = BorrowRecordCoin.builder()
-                .amount(calPledgeQuery.getAmount())
-                .coin(calPledgeQuery.getCoin()).build();
+        // 多借还币
+        if (CollectionUtils.isNotEmpty(calPledgeQuery.getBorrowContext())) {
 
-        borrowRecordCoins.add(borrowRecordCoin);
+            calPledgeQuery.getBorrowContext().forEach(context -> {
+                Optional.ofNullable(borrowConfigCoinService.getById(calPledgeQuery.getCoin()))
+                        .orElseThrow(ErrorCodeEnum.BORROW_COIN_NOT_OPEN::generalException);
+                BorrowRecordCoin borrowRecordCoin = BorrowRecordCoin.builder()
+                        .amount(context.getAmount())
+                        .coin(context.getCoin()).build();
+                borrowRecordCoins.add(borrowRecordCoin);
+            });
 
-        calPledgeQuery.getPledgeContext().forEach(context -> {
-            if (PledgeType.FINANCIAL.equals(context.getPledgeType())) {
-                Long recordId = context.getRecordId();
-                FinancialRecord financialRecord = financialRecordService.selectById(recordId, uid);
-                BorrowRecordPledgeDto pledgeDto = BorrowRecordPledgeDto.builder()
-                        .coin(financialRecord.getCoin())
-                        .amount(financialRecord.getHoldAmount())
-                        .build();
-                borrowRecordPledges.add(pledgeDto);
-            }
+            BorrowRecordCoin borrowRecordCoin = BorrowRecordCoin.builder()
+                    .amount(calPledgeQuery.getAmount())
+                    .coin(calPledgeQuery.getCoin()).build();
+            borrowRecordCoins.add(borrowRecordCoin);
+        }
 
-            if (PledgeType.WALLET.equals(context.getPledgeType())) {
-                BorrowRecordPledgeDto pledgeDto = BorrowRecordPledgeDto.builder()
-                        .coin(context.getCoin())
-                        .amount(context.getPledgeAmount())
-                        .build();
-                borrowRecordPledges.add(pledgeDto);
-            }
+        // 质押物调整
+        if (CollectionUtils.isNotEmpty(calPledgeQuery.getPledgeContext())) {
+            BigDecimal character = ModifyPledgeContextType.ADD.equals(calPledgeQuery.getPledgeContextType()) ?
+                    BigDecimal.ONE : BigDecimal.valueOf(-1L);
 
-        });
+            calPledgeQuery.getPledgeContext().forEach(context -> {
+                Optional.ofNullable(borrowConfigPledgeService.getById(context.getCoin()))
+                        .orElseThrow(ErrorCodeEnum.BORROW_COIN_NOT_OPEN::generalException);
+                if (PledgeType.FINANCIAL.equals(context.getPledgeType())) {
+                    Long recordId = context.getRecordId();
+                    FinancialRecord financialRecord = financialRecordService.selectById(recordId, uid);
+                    BorrowRecordPledgeDto pledgeDto = BorrowRecordPledgeDto.builder()
+                            .coin(financialRecord.getCoin())
+                            .amount(financialRecord.getHoldAmount().multiply(character))
+                            .build();
+                    borrowRecordPledges.add(pledgeDto);
+                }
+
+                if (PledgeType.WALLET.equals(context.getPledgeType())) {
+                    BorrowRecordPledgeDto pledgeDto = BorrowRecordPledgeDto.builder()
+                            .coin(context.getCoin())
+                            .amount(context.getPledgeAmount().multiply(character))
+                            .build();
+                    borrowRecordPledges.add(pledgeDto);
+                }
+            });
+        }
 
         return calPledgeRate(null, borrowRecordPledges, borrowRecordCoins, borrowInterests, false);
 
@@ -283,6 +310,7 @@ public class BorrowServiceImpl implements BorrowService {
         var lqPledgeRate = lqFee.divide(pledgeFee, 8, RoundingMode.UP);
         var warnPledgeRate = warnFee.divide(pledgeFee, 8, RoundingMode.UP);
         var assureLqPledgeRate = warnFee.divide(pledgeFee, 8, RoundingMode.UP);
+        var initPledgeRate = initFee.divide(pledgeFee, 8, RoundingMode.UP);
 
         return PledgeRateDto.builder()
                 .pledgeFee(pledgeFee)
@@ -296,6 +324,7 @@ public class BorrowServiceImpl implements BorrowService {
                 .currencyPledgeRate(currencyPledgeRate)
                 .interestFee(interestFee)
                 .initFee(initFee)
+                .initPledgeRate(initPledgeRate)
                 .build();
     }
 
@@ -419,6 +448,7 @@ public class BorrowServiceImpl implements BorrowService {
 
         // todo 手动
 
+
     }
 
     @Override
@@ -428,7 +458,53 @@ public class BorrowServiceImpl implements BorrowService {
         Long uid = borrowRecord.getUid();
         var recordPledgeDtos = borrowRecordPledgeService.dtoListByUid(uid, bid);
         var recordCoins = borrowRecordCoinService.listByUid(uid, bid);
+
+
+        BigDecimal leveRate = BigDecimal.valueOf(0.5f);
+        BigDecimal onePointFive = BigDecimal.valueOf(1.5f);
+        while (true) {
+            final var factLeveRate = leveRate;
+            List<PledgeContextQuery> pledgeContext = recordPledgeDtos.stream().map(dto -> PledgeContextQuery.builder()
+                    .recordId(dto.getRecordId())
+                    .pledgeType(dto.getPledgeType())
+                    .coin(dto.getCoin())
+                    .pledgeAmount(dto.getAmount().multiply(factLeveRate))
+                    .build()).collect(Collectors.toList());
+
+
+            List<BorrowContextQuery> borrowContext = recordCoins.stream().map(dto -> BorrowContextQuery.builder()
+                    .coin(dto.getCoin())
+                    .amount(dto.getAmount().multiply(factLeveRate))
+                    .build()).collect(Collectors.toList());
+
+            CalPledgeQuery calPledgeQuery = CalPledgeQuery.builder()
+                    .borrow(false)
+                    .pledgeContextType(ModifyPledgeContextType.REDUCE)
+                    .pledgeContext(pledgeContext)
+                    .borrowContext(borrowContext)
+                    .build();
+
+            PledgeRateDto pledgeRateDto = preCalPledgeRate(uid, calPledgeQuery);
+            if (pledgeRateDto.getCurrencyPledgeRate().compareTo(pledgeRateDto.getInitPledgeRate()) <= 0) {
+                // 去减仓
+                pledgeContext.forEach(context -> borrowRecordPledgeService.forcedCloseout(uid, bid, context,false));
+                borrowContext.forEach(context -> borrowRecordCoinService.forcedCloseout(uid, bid, context,false));
+                return;
+            }
+
+            if (pledgeRateDto.getBorrowFee().compareTo(BigDecimal.valueOf(200)) <= 0) {
+                // 强平
+                borrowRecordPledgeService.forcedCloseout(uid, bid, null,true);
+                borrowRecordCoinService.forcedCloseout(uid, bid, null,true);
+                borrowRecord.setPledgeStatus(PledgeStatus.WAIT);
+                borrowRecord.setFinish(true);
+                borrowRecordService.updateById(borrowRecord);
+                return;
+            }
+            leveRate = leveRate.multiply(onePointFive);
+        }
     }
+
 
     private void insertOperationLog(Long bid, ChargeType chargeType
             , Long uid, String coin, BigDecimal amount) {

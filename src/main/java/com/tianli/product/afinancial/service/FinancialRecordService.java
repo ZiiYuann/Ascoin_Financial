@@ -359,8 +359,15 @@ public class FinancialRecordService extends ServiceImpl<FinancialRecordMapper, F
         financialRecordMapper.updateRateByProductId(productId, rate);
     }
 
-    public void updatePledge(Long uid, Long recordId,BigDecimal originalAmount, boolean pledge) {
-        int i = financialRecordMapper.updatePledge(uid, recordId, originalAmount,pledge);
+    public void updatePledge(Long uid, Long recordId, BigDecimal originalAmount, boolean pledge) {
+        int i = financialRecordMapper.updatePledge(uid, recordId, originalAmount, pledge);
+        if (i <= 0) {
+            ErrorCodeEnum.throwException("锁定质押产品失败");
+        }
+    }
+
+    public void updatePledgeAndReduce(Long uid, Long recordId, BigDecimal originalAmount, boolean pledge, BigDecimal reduceAmount) {
+        int i = financialRecordMapper.updatePledgeAndReduce(uid, recordId, originalAmount, pledge, reduceAmount);
         if (i <= 0) {
             ErrorCodeEnum.throwException("锁定质押产品失败");
         }

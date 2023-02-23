@@ -114,7 +114,11 @@ public class BorrowConfigCoinServiceImpl extends ServiceImpl<BorrowConfigCoinMap
     public List<BorrowConfigCoinVO> getVOs() {
         return this.list(new LambdaQueryWrapper<BorrowConfigCoin>()
                         .eq(BorrowConfigCoin::getStatus, 1))
-                .stream().map(borrowConvert::toBorrowConfigCoinVO)
+                .stream().map(index -> {
+                    BorrowConfigCoinVO borrowConfigCoinVO = borrowConvert.toBorrowConfigCoinVO(index);
+                    borrowConfigCoinVO.setLogo(coinBaseService.getByName(index.getCoin()).getLogo());
+                    return borrowConfigCoinVO;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -129,6 +133,7 @@ public class BorrowConfigCoinServiceImpl extends ServiceImpl<BorrowConfigCoinMap
             AccountBalance accountBalance = accountBalanceService.getAndInit(uid, index.getCoin());
             accountBorrowVO.setRemain(accountBalance.getRemain());
             accountBorrowVO.setRate(currencyService.getDollarRate(index.getCoin()));
+            accountBorrowVO.setLogo(coinBaseService.getByName(coin).getLogo());
 
             if (Objects.nonNull(borrowRecord)) {
                 BigDecimal dollarRate = currencyService.getDollarRate(coin);

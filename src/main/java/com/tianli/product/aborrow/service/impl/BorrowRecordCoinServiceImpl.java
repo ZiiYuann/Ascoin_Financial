@@ -14,6 +14,7 @@ import com.tianli.product.aborrow.entity.BorrowRecordCoin;
 import com.tianli.product.aborrow.enums.InterestType;
 import com.tianli.product.aborrow.mapper.BorrowRecordCoinMapper;
 import com.tianli.product.aborrow.query.BorrowCoinQuery;
+import com.tianli.product.aborrow.query.BorrowContextQuery;
 import com.tianli.product.aborrow.query.RepayCoinQuery;
 import com.tianli.product.aborrow.service.*;
 import com.tianli.product.aborrow.vo.BorrowRecordCoinVO;
@@ -128,6 +129,11 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
             BigDecimal amount = recordCoin.getAmount();
             borrowInterestService.add(bid, uid, coin, amount.subtract(hourRate), InterestType.HOUR);
         });
+    }
+
+    @Override
+    public void forcedCloseout(Long uid, Long bid, BorrowContextQuery query, boolean forced) {
+
     }
 
     @Override

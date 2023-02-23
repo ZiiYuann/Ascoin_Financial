@@ -217,12 +217,31 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.pledge_unfreeze, amount, sn, des);
     }
 
+    @Transactional
+    public void pledgeReduce(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+        getAndInit(uid, coin);
+
+        if (accountBalanceMapper.pledgeReduce(uid, amount, coin) <= 0L) {
+            ErrorCodeEnum.CREDIT_LACK.throwException();
+        }
+
+        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.pledge_reduce, amount, sn, des);
+    }
+
+    @Transactional
     public void unfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
         unfreeze(uid, type, coin, null, amount, sn, des);
     }
 
+    @Transactional
     public void pledgeUnfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
         pledgeUnfreeze(uid, type, coin, null, amount, sn, des);
+    }
+
+    @Override
+    public void pledgeReduce(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
+        pledgeReduce(uid, type, coin, null, amount, sn, des);
     }
 
     @Transactional

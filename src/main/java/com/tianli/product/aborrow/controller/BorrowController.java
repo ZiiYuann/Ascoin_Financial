@@ -92,7 +92,7 @@ public class BorrowController {
     /**
      * 质押计算
      */
-    @PostMapping("/pledge/cal")
+    @PostMapping("/pre/cal")
     public Result<CalPledgeVO> pledge(@RequestBody @Valid CalPledgeQuery query) {
         Long uid = requestInitService.uid();
         return new Result<>(new CalPledgeVO(borrowService.preCalPledgeRate(uid, query)));
