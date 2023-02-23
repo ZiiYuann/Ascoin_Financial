@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.product.aborrow.entity.BorrowRecordCoin;
 import com.tianli.product.aborrow.query.BorrowCoinQuery;
 import com.tianli.product.aborrow.query.BorrowContextQuery;
-import com.tianli.product.aborrow.query.PledgeContextQuery;
 import com.tianli.product.aborrow.query.RepayCoinQuery;
 import com.tianli.product.aborrow.vo.BorrowRecordCoinVO;
 
@@ -31,6 +30,6 @@ public interface BorrowRecordCoinService extends IService<BorrowRecordCoin> {
 
     void calInterest(Long uid, Long bid);
 
-    void forcedCloseout(Long uid, Long bid, BorrowContextQuery query, boolean forced);
+    void reduce(Long uid, Long bid, BorrowContextQuery query);
 
 }

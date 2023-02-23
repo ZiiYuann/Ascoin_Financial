@@ -84,14 +84,14 @@ public class BorrowServiceImpl implements BorrowService {
     public void borrowCoin(Long uid, BorrowCoinQuery query) {
         borrowConfigCoinService.check(uid, query);
 
+        BorrowRecord borrowRecord = borrowRecordService.getAndInit(uid, query.getAutoReplenishment());
         this.preCalPledgeRate(uid, CalPledgeQuery.builder()
                 .pledgeContext(query.getPledgeContext())
+                .pledgeContextType(ModifyPledgeContextType.ADD)
                 .coin(query.getBorrowCoin())
                 .amount(query.getBorrowAmount())
-                .borrow(true).build());
+                .borrow(true).build(), true);
 
-
-        BorrowRecord borrowRecord = borrowRecordService.getAndInit(uid, query.getAutoReplenishment());
         Long bid = borrowRecord.getId();
 
         query.getPledgeContext().forEach(context -> borrowRecordPledgeService.save(uid, bid, context));
@@ -129,14 +129,15 @@ public class BorrowServiceImpl implements BorrowService {
 
     @Override
     @Transactional
-    public BorrowRecord calPledgeRate(BorrowRecord borrowRecord, Long uid, Boolean autoReplenishment) {
+    public BorrowRecord calPledgeRate(BorrowRecord borrowRecord, Long uid
+            , Boolean autoReplenishment, boolean borrow) {
         if (!autoReplenishment.equals(borrowRecord.isAutoReplenishment())) {
             borrowRecord.setAutoReplenishment(autoReplenishment);
         }
         Long bid = borrowRecord.getId();
         List<BorrowRecordCoin> borrowRecordCoins = borrowRecordCoinService.listByUid(uid, bid);
         var borrowRecordPledges = borrowRecordPledgeService.dtoListByUid(uid, bid);
-        List<BorrowInterest> borrowInterests = borrowInterestService.list(uid);
+        List<BorrowInterest> borrowInterests = borrowInterestService.list(uid, bid);
 
         final Set<String> borrowCoins = borrowRecordCoins.stream().map(BorrowRecordCoin::getCoin).collect(Collectors.toSet());
         final Set<String> pledgeCoins = borrowRecordPledges.stream().map(BorrowRecordPledgeDto::getCoin).collect(Collectors.toSet());
@@ -146,7 +147,8 @@ public class BorrowServiceImpl implements BorrowService {
         coins.addAll(pledgeCoins);
         var coinRates = currencyService.rateMap(coins);
 
-        PledgeRateDto pledgeRateDto = this.calPledgeRate(coinRates, borrowRecordPledges, borrowRecordCoins, borrowInterests, true);
+        PledgeRateDto pledgeRateDto = this.calPledgeRate(coinRates, borrowRecordPledges, borrowRecordCoins
+                , borrowInterests, borrow);
         borrowRecord.setLqPledgeRate(pledgeRateDto.getLqPledgeRate());
         borrowRecord.setCurrencyPledgeRate(pledgeRateDto.getCurrencyPledgeRate());
         borrowRecord.setAssureLqPledgeRate(pledgeRateDto.getAssureLqPledgeRate());
@@ -167,19 +169,19 @@ public class BorrowServiceImpl implements BorrowService {
     }
 
     @Override
-    public BorrowRecord calPledgeRate(BorrowRecord borrowRecord) {
+    public BorrowRecord calPledgeRate(BorrowRecord borrowRecord, boolean borrow) {
         BorrowServiceImpl bean = ApplicationContextTool.getBean(BorrowServiceImpl.class);
         bean = Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
-        return bean.calPledgeRate(borrowRecord, borrowRecord.getUid(), borrowRecord.isAutoReplenishment());
+        return bean.calPledgeRate(borrowRecord, borrowRecord.getUid(), borrowRecord.isAutoReplenishment(), borrow);
     }
 
     @Override
-    public PledgeRateDto preCalPledgeRate(Long uid, CalPledgeQuery calPledgeQuery) {
+    public PledgeRateDto preCalPledgeRate(Long uid, CalPledgeQuery calPledgeQuery, boolean borrowOperation) {
         BorrowRecord borrowRecord = borrowRecordService.get(uid);
         List<BorrowRecordCoin> borrowRecordCoins =
                 borrowRecordCoinService.listByUid(uid, Objects.isNull(borrowRecord) ? null : borrowRecord.getId());
         var borrowRecordPledges = borrowRecordPledgeService.dtoListByUid(uid, borrowRecord.getId());
-        List<BorrowInterest> borrowInterests = borrowInterestService.list(uid);
+        List<BorrowInterest> borrowInterests = borrowInterestService.list(uid, borrowRecord.getId());
 
         // 单借还币
         if (Objects.nonNull(calPledgeQuery.getBorrow()) && Objects.nonNull(calPledgeQuery.getCoin())) {
@@ -196,18 +198,13 @@ public class BorrowServiceImpl implements BorrowService {
         if (CollectionUtils.isNotEmpty(calPledgeQuery.getBorrowContext())) {
 
             calPledgeQuery.getBorrowContext().forEach(context -> {
-                Optional.ofNullable(borrowConfigCoinService.getById(calPledgeQuery.getCoin()))
+                Optional.ofNullable(borrowConfigCoinService.getById(context.getCoin()))
                         .orElseThrow(ErrorCodeEnum.BORROW_COIN_NOT_OPEN::generalException);
                 BorrowRecordCoin borrowRecordCoin = BorrowRecordCoin.builder()
                         .amount(context.getAmount())
                         .coin(context.getCoin()).build();
                 borrowRecordCoins.add(borrowRecordCoin);
             });
-
-            BorrowRecordCoin borrowRecordCoin = BorrowRecordCoin.builder()
-                    .amount(calPledgeQuery.getAmount())
-                    .coin(calPledgeQuery.getCoin()).build();
-            borrowRecordCoins.add(borrowRecordCoin);
         }
 
         // 质押物调整
@@ -216,8 +213,7 @@ public class BorrowServiceImpl implements BorrowService {
                     BigDecimal.ONE : BigDecimal.valueOf(-1L);
 
             calPledgeQuery.getPledgeContext().forEach(context -> {
-                Optional.ofNullable(borrowConfigPledgeService.getById(context.getCoin()))
-                        .orElseThrow(ErrorCodeEnum.BORROW_COIN_NOT_OPEN::generalException);
+                String coin = context.getCoin();
                 if (PledgeType.FINANCIAL.equals(context.getPledgeType())) {
                     Long recordId = context.getRecordId();
                     FinancialRecord financialRecord = financialRecordService.selectById(recordId, uid);
@@ -226,6 +222,7 @@ public class BorrowServiceImpl implements BorrowService {
                             .amount(financialRecord.getHoldAmount().multiply(character))
                             .build();
                     borrowRecordPledges.add(pledgeDto);
+                    coin = financialRecord.getCoin();
                 }
 
                 if (PledgeType.WALLET.equals(context.getPledgeType())) {
@@ -235,10 +232,12 @@ public class BorrowServiceImpl implements BorrowService {
                             .build();
                     borrowRecordPledges.add(pledgeDto);
                 }
+                Optional.ofNullable(borrowConfigPledgeService.getById(coin))
+                        .orElseThrow(ErrorCodeEnum.BORROW_COIN_NOT_OPEN::generalException);
             });
         }
 
-        return calPledgeRate(null, borrowRecordPledges, borrowRecordCoins, borrowInterests, false);
+        return calPledgeRate(null, borrowRecordPledges, borrowRecordCoins, borrowInterests, borrowOperation);
 
     }
 
@@ -249,7 +248,15 @@ public class BorrowServiceImpl implements BorrowService {
             , List<BorrowInterest> borrowInterests
             , boolean borrow
     ) {
+        return this.calPledgeRate(rateMap, borrowRecordPledgeDtos, borrowRecordCoins, borrowInterests, borrow, BigDecimal.ONE);
+    }
 
+    @Override
+    public PledgeRateDto calPledgeRate(HashMap<String, BigDecimal> rateMap
+            , List<BorrowRecordPledgeDto> borrowRecordPledgeDtos
+            , List<BorrowRecordCoin> borrowRecordCoins
+            , List<BorrowInterest> borrowInterests
+            , boolean borrow, BigDecimal rate) {
 
         if (Objects.isNull(rateMap)) {
             final Set<String> borrowCoins = borrowRecordCoins.stream().map(BorrowRecordCoin::getCoin).collect(Collectors.toSet());
@@ -270,7 +277,9 @@ public class BorrowServiceImpl implements BorrowService {
         BigDecimal interestFee = BigDecimal.ZERO;
 
         for (BorrowInterest borrowInterest : borrowInterests) {
-            interestFee = interestFee.add(borrowInterest.getAmount().multiply(rateMapFinal.get(borrowInterest.getCoin())));
+            interestFee = interestFee.add(borrowInterest.getAmount()
+                    .multiply(rate)
+                    .multiply(rateMapFinal.get(borrowInterest.getCoin())));
         }
 
         List<AmountDto> pledgeDtos = borrowRecordPledgeDtos.stream()
@@ -287,7 +296,7 @@ public class BorrowServiceImpl implements BorrowService {
         for (AmountDto dto : pledgeDtos) {
             var borrowConfigPledge = borrowConfigPledgeService.getById(dto.getCoin());
             // 质押金额
-            BigDecimal userPledgeFee = dto.getAmount().multiply(rateMapFinal.get(dto.getCoin()));
+            BigDecimal userPledgeFee = dto.getAmount().multiply(rateMapFinal.get(dto.getCoin())).multiply(rate);
             pledgeFee = pledgeFee.add(userPledgeFee);
             lqFee = lqFee.add(userPledgeFee.multiply(borrowConfigPledge.getLqPledgeRate()));
             warnFee = warnFee.add(userPledgeFee.multiply(borrowConfigPledge.getWarnPledgeRate()));
@@ -300,7 +309,7 @@ public class BorrowServiceImpl implements BorrowService {
         }
 
         BigDecimal borrowAmount = borrowRecordCoins.stream()
-                .map(index -> index.getAmount().multiply(rateMapFinal.get(index.getCoin())))
+                .map(index -> index.getAmount().multiply(rateMapFinal.get(index.getCoin())).multiply(rate))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         if (borrow && borrowAmount.compareTo(initFee) > 0) {
@@ -458,53 +467,57 @@ public class BorrowServiceImpl implements BorrowService {
         Long uid = borrowRecord.getUid();
         var recordPledgeDtos = borrowRecordPledgeService.dtoListByUid(uid, bid);
         var recordCoins = borrowRecordCoinService.listByUid(uid, bid);
+        var recordInterests = borrowInterestService.list(uid, bid);
 
 
         BigDecimal leveRate = BigDecimal.valueOf(0.5f);
-        BigDecimal onePointFive = BigDecimal.valueOf(1.5f);
+        BigDecimal onePointFive = BigDecimal.valueOf(0.5f);
         while (true) {
             final var factLeveRate = leveRate;
+
+            PledgeRateDto pledgeRateDto = calPledgeRate(null, recordPledgeDtos, recordCoins, recordInterests
+                    , false, factLeveRate);
+
+            if (pledgeRateDto.getCurrencyPledgeRate().compareTo(pledgeRateDto.getInitPledgeRate()) > 0
+                    && pledgeRateDto.getBorrowFee().compareTo(BigDecimal.valueOf(200)) > 0) {
+                leveRate = leveRate.multiply(onePointFive);
+                continue;
+            }
+
+            final var finalRete = BigDecimal.ONE.subtract(factLeveRate);
             List<PledgeContextQuery> pledgeContext = recordPledgeDtos.stream().map(dto -> PledgeContextQuery.builder()
                     .recordId(dto.getRecordId())
                     .pledgeType(dto.getPledgeType())
                     .coin(dto.getCoin())
-                    .pledgeAmount(dto.getAmount().multiply(factLeveRate))
+                    .pledgeAmount(dto.getAmount().multiply(finalRete))
                     .build()).collect(Collectors.toList());
-
-
             List<BorrowContextQuery> borrowContext = recordCoins.stream().map(dto -> BorrowContextQuery.builder()
                     .coin(dto.getCoin())
-                    .amount(dto.getAmount().multiply(factLeveRate))
+                    .amount(dto.getAmount().multiply(finalRete))
                     .build()).collect(Collectors.toList());
 
-            CalPledgeQuery calPledgeQuery = CalPledgeQuery.builder()
-                    .borrow(false)
-                    .pledgeContextType(ModifyPledgeContextType.REDUCE)
-                    .pledgeContext(pledgeContext)
-                    .borrowContext(borrowContext)
-                    .build();
-
-            PledgeRateDto pledgeRateDto = preCalPledgeRate(uid, calPledgeQuery);
             if (pledgeRateDto.getCurrencyPledgeRate().compareTo(pledgeRateDto.getInitPledgeRate()) <= 0) {
                 // 去减仓
-                pledgeContext.forEach(context -> borrowRecordPledgeService.forcedCloseout(uid, bid, context,false));
-                borrowContext.forEach(context -> borrowRecordCoinService.forcedCloseout(uid, bid, context,false));
+                pledgeContext.forEach(context -> borrowRecordPledgeService.reduce(uid, bid, context, false));
+                borrowContext.forEach(context -> borrowRecordCoinService.reduce(uid, bid, context));
+                recordInterests.forEach(interest -> borrowInterestService.reduce(uid, bid, interest.getCoin()
+                        , interest.getAmount().multiply(finalRete)));
                 return;
             }
 
             if (pledgeRateDto.getBorrowFee().compareTo(BigDecimal.valueOf(200)) <= 0) {
                 // 强平
-                borrowRecordPledgeService.forcedCloseout(uid, bid, null,true);
-                borrowRecordCoinService.forcedCloseout(uid, bid, null,true);
+                borrowRecordPledgeService.reduce(uid, bid, null, true);
+                borrowRecordCoinService.reduce(uid, bid, null);
+
                 borrowRecord.setPledgeStatus(PledgeStatus.WAIT);
                 borrowRecord.setFinish(true);
                 borrowRecordService.updateById(borrowRecord);
+                recordInterests.forEach(interest -> borrowInterestService.reduceAll(uid, bid, interest.getCoin()));
                 return;
             }
-            leveRate = leveRate.multiply(onePointFive);
         }
     }
-
 
     private void insertOperationLog(Long bid, ChargeType chargeType
             , Long uid, String coin, BigDecimal amount) {
@@ -513,7 +526,7 @@ public class BorrowServiceImpl implements BorrowService {
         BorrowOperationLog operationLog = BorrowOperationLog.log(chargeType, borrowRecord.getId(), uid, coin, amount);
         operationLog.setPrePledgeRate(borrowRecord.getCurrencyPledgeRate());
 
-        borrowRecord = this.calPledgeRate(borrowRecord, uid, borrowRecord.isAutoReplenishment());
+        borrowRecord = this.calPledgeRate(borrowRecord, uid, borrowRecord.isAutoReplenishment(), false);
 
         operationLog.setDisplay(true);
         operationLog.setAfterPledgeRate(borrowRecord.getCurrencyPledgeRate());

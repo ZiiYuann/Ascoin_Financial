@@ -102,6 +102,7 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
     }
 
     @Override
+    @Transactional
     public void save(Long uid, Long bid, PledgeContextQuery query, ModifyPledgeContextType type) {
 
         if (ModifyPledgeContextType.ADD.equals(type)) {
@@ -236,7 +237,7 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
 
     @Override
     @Transactional
-    public void forcedCloseout(Long uid, Long bid, PledgeContextQuery query, boolean all) {
+    public void reduce(Long uid, Long bid, PledgeContextQuery query, boolean forced) {
         // 强平所有
         if (Objects.isNull(query)) {
             var recordPledgeDtos = this.dtoListByUid(uid, bid);
@@ -248,8 +249,10 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
                         .coin(dto.getCoin())
                         .pledgeAmount(dto.getAmount())
                         .build();
-                this.forcedCloseout(uid, bid, pledgeContextQuery, all);
+                this.reduce(uid, bid, pledgeContextQuery, forced);
             });
+
+            return;
         }
 
         PledgeType pledgeType = query.getPledgeType();
@@ -259,47 +262,43 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
         String coin = recordPledge.getCoin();
         BigDecimal decreaseAmount = query.getPledgeAmount();
 
+        BorrowOperationLog operationLog = null;
+        Order order = null;
         if (PledgeType.WALLET.equals(pledgeType)) {
 
-            if (all && decreaseAmount.compareTo(recordPledge.getAmount()) != 0) {
-                ErrorCodeEnum.SYSTEM_ERROR.throwException();
-            }
-
-            if (!all){
+            if (!forced) {
                 this.casDecrease(recordPledge.getId(), coin, decreaseAmount, originalAmount, pledgeType);
             }
 
-            Order order = Order.success(uid, chargeType, recordPledge.getCoin(), decreaseAmount, bid);
-            orderService.save(order);
+            order = Order.success(uid, chargeType, recordPledge.getCoin(), decreaseAmount, bid);
 
             accountBalanceService.pledgeReduce(uid, chargeType, coin, decreaseAmount
                     , order.getOrderNo(), chargeType.getNameZn());
 
             // 此日志只做插入不做显示
-            BorrowOperationLog operationLog = BorrowOperationLog.log(chargeType, bid, uid, coin, decreaseAmount);
-            borrowOperationLogService.save(operationLog);
-            return;
+            operationLog = BorrowOperationLog.log(chargeType, bid, uid, coin, decreaseAmount);
         }
 
-        Long recordId = recordPledge.getRecordId();
-        FinancialRecord financialRecord = financialRecordService.selectById(recordId, uid);
-        if (all && decreaseAmount.compareTo(financialRecord.getHoldAmount()) != 0) {
-            ErrorCodeEnum.SYSTEM_ERROR.throwException();
+        if (PledgeType.FINANCIAL.equals(pledgeType)) {
+            Long recordId = recordPledge.getRecordId();
+            FinancialRecord financialRecord = financialRecordService.selectById(recordId, uid);
+
+            if (forced) {
+                BorrowRecordPledge borrowRecordPledge = getAndInit(uid, bid, coin, PledgeType.WALLET, null);
+                this.casIncrease(borrowRecordPledge.getId(), coin, decreaseAmount, borrowRecordPledge.getAmount(), PledgeType.WALLET);
+            }
+
+            financialRecordService.updatePledgeAndReduce(uid, recordId, financialRecord.getHoldAmount(), !forced, decreaseAmount);
+
+            order = Order.success(uid, chargeType, financialRecord.getCoin(), decreaseAmount, bid);
+            // 此日志只做插入不做显示
+            operationLog = BorrowOperationLog.log(chargeType, bid, uid, financialRecord.getCoin()
+                    , decreaseAmount);
         }
 
-        if (all){
-            BorrowRecordPledge borrowRecordPledge = getAndInit(uid, bid, coin, PledgeType.WALLET, null);
-            this.casIncrease(borrowRecordPledge.getId(),coin,decreaseAmount,borrowRecordPledge.getAmount(),PledgeType.WALLET);
-        }
-
-        financialRecordService.updatePledgeAndReduce(uid, recordId, financialRecord.getHoldAmount(), !all, decreaseAmount);
-
-        Order order = Order.success(uid, chargeType, financialRecord.getCoin(), decreaseAmount, bid);
-        // 此日志只做插入不做显示
-        BorrowOperationLog operationLog = BorrowOperationLog.log(chargeType, bid, uid, financialRecord.getCoin()
-                , decreaseAmount);
-        borrowOperationLogService.save(operationLog);
         orderService.save(order);
+        borrowOperationLogService.save(operationLog);
+
     }
 
     private void casIncrease(Long id, String coin, BigDecimal increaseAmount, BigDecimal originalAmount, PledgeType pledgeType) {

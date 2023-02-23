@@ -47,9 +47,10 @@ public class BorrowUserQuery {
     private LocalDateTime endTime;
 
     @QueryWrapperGenerator(field = "finish")
-    private Boolean finish = Boolean.FALSE;
+    private Boolean finish;
 
     @QueryWrapperGenerator(field = "pledge_status")
     private PledgeStatus pledgeStatus;
+
 
 }

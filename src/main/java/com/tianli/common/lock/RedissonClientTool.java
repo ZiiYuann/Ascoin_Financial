@@ -47,9 +47,12 @@ public class RedissonClientTool {
                 throw ErrorCodeEnum.SYSTEM_BUSY.generalException();
             }
             return null;
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             e.printStackTrace();
+            Thread.currentThread().interrupt();
             throw errorCodeEnum.generalException();
+        } catch (Exception e) {
+            throw e;
         } finally {
             rLock.unlock();
         }
@@ -66,11 +69,13 @@ public class RedissonClientTool {
             }
             if (throwException) {
                 log.info("获取锁超时:{}", key);
-                throw ErrorCodeEnum.SYSTEM_BUSY.generalException();
+                throw errorCodeEnum.generalException();
             }
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             e.printStackTrace();
-            throw errorCodeEnum.generalException();
+        } catch (Exception e) {
+            throw e;
         } finally {
             rLock.unlock();
         }

@@ -15,6 +15,7 @@ import com.tianli.product.aborrow.enums.InterestType;
 import com.tianli.product.aborrow.mapper.BorrowRecordCoinMapper;
 import com.tianli.product.aborrow.query.BorrowCoinQuery;
 import com.tianli.product.aborrow.query.BorrowContextQuery;
+import com.tianli.product.aborrow.query.PledgeContextQuery;
 import com.tianli.product.aborrow.query.RepayCoinQuery;
 import com.tianli.product.aborrow.service.*;
 import com.tianli.product.aborrow.vo.BorrowRecordCoinVO;
@@ -90,7 +91,7 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
         if (Objects.nonNull(borrowInterest) && borrowInterest.getAmount().compareTo(BigDecimal.ZERO) > 0) {
             var reduceInterestAmount = repayAmount.compareTo(borrowInterest.getAmount()) >= 0
                     ? borrowInterest.getAmount() : repayAmount;
-            borrowInterestService.reduce(bid, uid, query.getCoin(), reduceInterestAmount);
+            borrowInterestService.reduce(uid, bid, query.getCoin(), reduceInterestAmount);
             repayAmount = repayAmount.subtract(reduceInterestAmount);
         }
 
@@ -127,12 +128,29 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
             String coin = recordCoin.getCoin();
             var hourRate = borrowConfigCoinService.getById(coin).getHourRate();
             BigDecimal amount = recordCoin.getAmount();
-            borrowInterestService.add(bid, uid, coin, amount.subtract(hourRate), InterestType.HOUR);
+            borrowInterestService.add(bid, uid, coin, amount.multiply(hourRate), InterestType.HOUR);
         });
     }
 
     @Override
-    public void forcedCloseout(Long uid, Long bid, BorrowContextQuery query, boolean forced) {
+    @Transactional
+    public void reduce(Long uid, Long bid, BorrowContextQuery query) {
+        // 强平所有
+        if (Objects.isNull(query)) {
+            var borrowRecordCoins = this.listByUid(uid, bid);
+            borrowRecordCoins.forEach(index ->
+            {
+                BorrowContextQuery borrowContextQuery = BorrowContextQuery.builder()
+                        .coin(index.getCoin())
+                        .amount(index.getAmount())
+                        .build();
+                this.reduce(uid, bid, borrowContextQuery);
+            });
+            return;
+        }
+
+        BorrowRecordCoin borrowRecord = getValid(uid, bid, query.getCoin());
+        this.casDecrease(borrowRecord.getId(), query.getCoin(), query.getAmount(), borrowRecord.getAmount());
 
     }
 

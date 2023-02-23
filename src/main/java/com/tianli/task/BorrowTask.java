@@ -9,6 +9,7 @@ import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.product.aborrow.entity.BorrowRecord;
 import com.tianli.product.aborrow.enums.PledgeStatus;
+import com.tianli.product.aborrow.query.CalPledgeQuery;
 import com.tianli.product.aborrow.service.BorrowRecordCoinService;
 import com.tianli.product.aborrow.service.BorrowRecordService;
 import com.tianli.product.aborrow.service.BorrowService;
@@ -16,6 +17,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.redisson.api.RAtomicLong;
 import org.redisson.api.RedissonClient;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -30,6 +32,7 @@ import java.util.concurrent.TimeUnit;
  * @apiNote
  * @since 2023-02-20
  **/
+@Component
 public class BorrowTask {
 
     @Resource
@@ -43,23 +46,28 @@ public class BorrowTask {
     @Resource
     private RedissonClientTool redissonClientTool;
 
-    @Scheduled(cron = "0 0 0 1/1 * ? ")
+    //    @Scheduled(cron = "0 0 0 1/1 * ? ")  // 1min
+    @Scheduled(cron = "0/1 * * * * ? ") // 1s
     public void task() {
         String key = RedisConstants.BORROW_TASK + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
         RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
-        atomicLong.expireIfNotSet(Duration.ofMinutes(1));
         long pagePre = atomicLong.get();
+        atomicLong.expire(Duration.ofSeconds(30));
         while (true) {
             try {
-                long page = atomicLong.getAndDecrement();
+                long page = atomicLong.getAndIncrement();
                 var borrowRecords = borrowRecordService.page(new Page<>(page, 10)
-                        , new LambdaQueryWrapper<BorrowRecord>()
-                                .in(BorrowRecord::getPledgeStatus, List.of(PledgeStatus.PROCESS))).getRecords();
+                                , new LambdaQueryWrapper<BorrowRecord>()
+                                        .in(BorrowRecord::getPledgeStatus, List.of(PledgeStatus.PROCESS))
+                                        .eq(BorrowRecord::getUid, 1752243555481419778L)
+                        )
+                        .getRecords();
                 if (CollectionUtils.isEmpty(borrowRecords)) {
                     break;
                 }
                 borrowRecords.forEach(borrowRecord -> {
-                    final BorrowRecord newRecord = borrowService.calPledgeRate(borrowRecord);
+                    final var newRecord = borrowService.calPledgeRate(borrowRecord, borrowRecord.getUid()
+                            , borrowRecord.isAutoReplenishment(), false);
 
                     BigDecimal currencyPledgeRate = newRecord.getCurrencyPledgeRate();
                     BigDecimal warnPledgeRate = newRecord.getWarnPledgeRate();
@@ -68,22 +76,23 @@ public class BorrowTask {
                         return;
                     }
                     // todo 通知用户
-                    if (!borrowRecord.isAutoReplenishment()) {
+                    if (!borrowRecord.isAutoReplenishment() && currencyPledgeRate.compareTo(lqPledgeRate) < 0) {
                         return;
                     }
-                    String lockKey = RedisLockConstants.LOCK_BORROW + newRecord.getUid();
+                    String lockKey = RedisLockConstants.LOCK_BORROW + borrowRecord.getUid();
                     if (currencyPledgeRate.compareTo(lqPledgeRate) < 0) {
-                        redissonClientTool.tryLock(lockKey, () -> borrowService.autoReplenishment(newRecord)
+                        redissonClientTool.tryLock(lockKey, () -> borrowService.autoReplenishment(borrowRecord)
                                 , ErrorCodeEnum.SYSTEM_BUSY, 30, TimeUnit.SECONDS, true);
                         return;
                     }
-                    redissonClientTool.tryLock(lockKey, () -> borrowService.forcedCloseout(newRecord)
+                    redissonClientTool.tryLock(lockKey, () -> borrowService.forcedCloseout(borrowRecord)
                             , ErrorCodeEnum.SYSTEM_BUSY, 30, TimeUnit.SECONDS, true);
 
                 });
 
             } catch (Exception e) {
                 // 防止异常导致部分记录未计算
+                e.printStackTrace();
                 WebHookService.send("借贷定时任务异常：" + key + "  page：" + pagePre);
             }
         }
@@ -92,10 +101,10 @@ public class BorrowTask {
     @Scheduled(cron = "0 0 1/1 * * ?")
     public void interestTask() {
         LocalDateTime now = LocalDateTime.now();
-        String key = RedisConstants.BORROW_TASK_INTEREST + now.format(DateTimeFormatter.ofPattern("yyyyMMddHH"));
+        String key = RedisConstants.BORROW_TASK_INTEREST + now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
         RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
-        atomicLong.expireIfNotSet(Duration.ofMinutes(1));
         long pagePre = atomicLong.get();
+        atomicLong.expire(Duration.ofSeconds(30));
         while (true) {
             try {
                 long page = atomicLong.getAndDecrement();

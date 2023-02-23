@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * @author chenb
@@ -43,5 +44,9 @@ public class MBorrowUserVO {
     private Long newestSnapshotId;
 
     private boolean finish;
+
+    private LocalDateTime updateTime;
+
+    private LocalDateTime createTime;
 
 }

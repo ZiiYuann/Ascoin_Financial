@@ -2,7 +2,6 @@ package com.tianli.product.aborrow.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.product.aborrow.dto.BorrowRecordPledgeDto;
-import com.tianli.product.aborrow.entity.BorrowRecord;
 import com.tianli.product.aborrow.entity.BorrowRecordPledge;
 import com.tianli.product.aborrow.enums.ModifyPledgeContextType;
 import com.tianli.product.aborrow.enums.PledgeType;
@@ -35,6 +34,6 @@ public interface BorrowRecordPledgeService extends IService<BorrowRecordPledge> 
 
     boolean releaseCompleted(Long uid, Long bid);
 
-    void forcedCloseout(Long uid, Long bid, PledgeContextQuery query,boolean all);
+    void reduce(Long uid, Long bid, PledgeContextQuery query, boolean forced);
 
 }

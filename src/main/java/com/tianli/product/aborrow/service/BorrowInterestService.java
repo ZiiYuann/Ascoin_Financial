@@ -17,11 +17,13 @@ public interface BorrowInterestService {
 
     void add(Long bid, Long uid, String coin, BigDecimal amount, InterestType interestType);
 
-    List<BorrowInterest> list(Long uid);
+    List<BorrowInterest> list(Long uid,Long bid);
 
     BorrowInterest get(Long uid, Long bid, String coin);
 
-    void reduce(Long bid, Long uid, String coin, BigDecimal amount);
+    void reduce(Long uid, Long bid, String coin, BigDecimal amount);
+
+    void reduceAll(Long uid, Long bid, String coin);
 
     boolean payOff(Long uid, Long bid);
 

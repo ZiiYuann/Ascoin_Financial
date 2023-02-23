@@ -56,10 +56,19 @@ public class BorrowInterestServiceImpl implements BorrowInterestService {
 
     @Override
     @Transactional
-    public void reduce(Long bid, Long uid, String coin, BigDecimal amount) {
+    public void reduce(Long uid, Long bid, String coin, BigDecimal amount) {
         BorrowInterest borrowInterest = getAndInitBorrowInterest(bid, uid, coin);
 
         if (interestMapper.casDecrease(borrowInterest.getId(), coin, amount, borrowInterest.getAmount()) != 1) {
+            throw ErrorCodeEnum.BORROW_INTEREST_EXIST.generalException();
+        }
+    }
+
+    @Override
+    public void reduceAll(Long uid, Long bid, String coin) {
+        BorrowInterest borrowInterest = getAndInitBorrowInterest(bid, uid, coin);
+
+        if (interestMapper.casDecrease(borrowInterest.getId(), coin, borrowInterest.getAmount(), borrowInterest.getAmount()) != 1) {
             throw ErrorCodeEnum.BORROW_INTEREST_EXIST.generalException();
         }
     }
@@ -74,9 +83,10 @@ public class BorrowInterestServiceImpl implements BorrowInterestService {
     }
 
     @Override
-    public List<BorrowInterest> list(Long uid) {
+    public List<BorrowInterest> list(Long uid, Long bid) {
         return interestMapper.selectList(new LambdaQueryWrapper<BorrowInterest>()
-                .eq(BorrowInterest::getUid, uid));
+                .eq(BorrowInterest::getUid, uid)
+                .eq(BorrowInterest::getBid, bid));
     }
 
     @Override

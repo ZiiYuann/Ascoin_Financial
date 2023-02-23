@@ -23,17 +23,23 @@ public interface BorrowService {
 
     void modifyPledgeContext(Long uid, ModifyPledgeContextQuery query);
 
-    BorrowRecord calPledgeRate(BorrowRecord borrowRecord, Long uid, Boolean autoReplenishment);
+    BorrowRecord calPledgeRate(BorrowRecord borrowRecord, Long uid, Boolean autoReplenishment, boolean borrow);
 
-    BorrowRecord calPledgeRate(BorrowRecord borrowRecord);
+    BorrowRecord calPledgeRate(BorrowRecord borrowRecord, boolean borrow);
 
-    PledgeRateDto preCalPledgeRate(Long uid, CalPledgeQuery borrowCoinQuery);
+    PledgeRateDto preCalPledgeRate(Long uid, CalPledgeQuery borrowCoinQuery, boolean borrowOperation);
 
     PledgeRateDto calPledgeRate(HashMap<String, BigDecimal> rateMap
             , List<BorrowRecordPledgeDto> borrowRecordPledgeDtos
             , List<BorrowRecordCoin> borrowRecordCoins
             , List<BorrowInterest> borrowInterests
             , boolean borrow);
+
+    PledgeRateDto calPledgeRate(HashMap<String, BigDecimal> rateMap
+            , List<BorrowRecordPledgeDto> borrowRecordPledgeDtos
+            , List<BorrowRecordCoin> borrowRecordCoins
+            , List<BorrowInterest> borrowInterests
+            , boolean borrow, BigDecimal rate);
 
     BorrowRecordSnapshotVO newestSnapshot(Long uid);
 

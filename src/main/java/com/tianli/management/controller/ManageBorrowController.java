@@ -106,10 +106,9 @@ public class ManageBorrowController {
         return new Result<>();
     }
 
-    // 借贷用户管理
     @AdminPrivilege
-    @GetMapping("/user")
-    public Result<IPage<MBorrowUserVO>> user(PageQuery<BorrowRecord> page, BorrowUserQuery query) {
+    @GetMapping("/orders")
+    public Result<IPage<MBorrowUserVO>> order(PageQuery<BorrowRecord> page, BorrowUserQuery query) {
         IPage<MBorrowUserVO> result = borrowRecordService.pledgeUsers(page.page(), query);
         return new Result<>(result);
     }
