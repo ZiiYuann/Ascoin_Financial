@@ -603,6 +603,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
 
         this.statusProcess(redEnvelope.getId(), status, redEnvelope.getReceiveNum(), now);
+
+        this.deleteRedisCache(redEnvelope.getId());
     }
 
 
