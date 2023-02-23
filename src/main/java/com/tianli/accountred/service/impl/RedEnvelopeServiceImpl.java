@@ -315,7 +315,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                         "    redis.call('SET',KEYS[1],'')\n" +
                         "    redis.call('EXPIRE',KEYS[1],2592000)\n" +
                         "    redis.call('DEL',KEYS[2])\n" +
-                        "    redis.call('SET',KEYS[3])\n" +
+                        "    redis.call('SET',KEYS[3],'')\n" +
                         "end";
         DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
         redisScript.setResultType(String.class);
@@ -397,7 +397,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                         "    redis.call('SET',KEYS[1],'')\n" +
                         "    redis.call('EXPIRE',KEYS[1],86400)\n" +
                         "    return redis.call('SPOP', KEYS[2])\n" +
-                        "    redis.call('SET',KEYS[3])\n" +
+                        "    redis.call('SET',KEYS[3],'')\n" +
                         "end";
         DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
         redisScript.setResultType(String.class);
