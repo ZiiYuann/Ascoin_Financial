@@ -27,4 +27,6 @@ public class MBorrowRecordVO {
 
     private PledgeType pledgeType;
 
+    private BigDecimal rate;
+
 }

@@ -5,14 +5,12 @@ import com.baomidou.mybatisplus.core.enums.SqlKeyword;
 import com.tianli.common.annotation.QueryWrapperGenerator;
 import com.tianli.common.query.SelectQuery;
 import lombok.SneakyThrows;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.poi.ss.formula.functions.T;
 import org.tron.tronj.abi.datatypes.Array;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author chenb
@@ -61,6 +59,11 @@ public class QueryWrapperUtils {
                     break;
                 case GE:
                     result = result.ge(fieldName, param);
+                case IN:
+                    if (CollectionUtils.isNotEmpty((Collection<?>) param)) {
+                        result = result.in(fieldName, param);
+
+                    }
                 default:
                     break;
             }

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.management.query.BorrowHedgeEntrustIoUQuery;
@@ -51,6 +52,8 @@ public class ManageBorrowController {
     private StringRedisTemplate stringRedisTemplate;
     @Resource
     private BorrowHedgeEntrustService borrowHedgeEntrustService;
+    @Resource
+    private CurrencyService currencyService;
 
     // 新增或者修改借币配置
     @AdminPrivilege
@@ -132,6 +135,7 @@ public class ManageBorrowController {
                 .stream().map(coin -> MBorrowRecordVO.builder()
                         .amount(coin.getAmount())
                         .pledgeType(coin.getPledgeType())
+                        .rate(currencyService.getDollarRate(coin.getCoin()))
                         .coin(coin.getCoin()).build()).collect(Collectors.toList());
         return new Result<>(result);
     }
@@ -153,7 +157,7 @@ public class ManageBorrowController {
 
     @AdminPrivilege
     @PostMapping("/hedge")
-    public Result<Void> hedge(BorrowHedgeEntrustIoUQuery query) {
+    public Result<Void> hedge(@RequestBody BorrowHedgeEntrustIoUQuery query) {
         borrowHedgeEntrustService.manual(query);
         return new Result<>();
     }

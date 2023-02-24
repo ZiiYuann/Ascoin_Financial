@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.common.QueryWrapperUtils;
+import com.tianli.currency.service.CurrencyService;
 import com.tianli.management.query.BorrowHedgeEntrustIoUQuery;
 import com.tianli.product.aborrow.convert.BorrowConvert;
 import com.tianli.product.aborrow.entity.BorrowConfigPledge;
@@ -35,6 +36,8 @@ public class BorrowHedgeEntrustServiceImpl extends ServiceImpl<BorrowHedgeEntrus
     private BorrowRecordCoinService borrowRecordCoinService;
     @Resource
     private BorrowConvert borrowConvert;
+    @Resource
+    private CurrencyService currencyService;
 
     @Override
     public void manual(BorrowHedgeEntrustIoUQuery query) {
@@ -46,6 +49,7 @@ public class BorrowHedgeEntrustServiceImpl extends ServiceImpl<BorrowHedgeEntrus
         BorrowHedgeEntrust borrowHedgeEntrust = BorrowHedgeEntrust.builder()
                 .bid(borrowRecordCoin.getBid())
                 .brId(brId)
+                .createRate(currencyService.getDollarRate(borrowRecordCoin.getCoin()))
                 .coin(borrowRecordCoin.getCoin())
                 .hedgeCoin(query.getHedgeCoin())
                 .amount(borrowRecordCoin.getAmount())

@@ -2,6 +2,7 @@ package com.tianli.product.aborrow.query;
 
 import com.baomidou.mybatisplus.core.enums.SqlKeyword;
 import com.tianli.common.annotation.QueryWrapperGenerator;
+import com.tianli.product.aborrow.enums.HedgeStatus;
 import com.tianli.product.aborrow.enums.HedgeType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,6 +34,9 @@ public class MBorrowHedgeQuery {
 
     @QueryWrapperGenerator(field = "hedge_coin")
     private String hedgeCoin;
+
+    @QueryWrapperGenerator(field = "hedge_status")
+    private HedgeStatus hedgeStatus;
 
     @QueryWrapperGenerator(field = "hedge_type")
     private HedgeType hedgeType;

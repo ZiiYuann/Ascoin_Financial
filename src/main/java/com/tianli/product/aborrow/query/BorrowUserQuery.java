@@ -11,6 +11,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author chenb
@@ -49,8 +50,7 @@ public class BorrowUserQuery {
     @QueryWrapperGenerator(field = "finish")
     private Boolean finish;
 
-    @QueryWrapperGenerator(field = "pledge_status")
-    private PledgeStatus pledgeStatus;
-
+    @QueryWrapperGenerator(field = "pledge_status",op = SqlKeyword.IN)
+    private List<PledgeStatus> pledgeStatus;
 
 }

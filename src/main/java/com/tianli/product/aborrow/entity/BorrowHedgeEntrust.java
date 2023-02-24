@@ -41,6 +41,8 @@ public class BorrowHedgeEntrust{
 
     private BigDecimal amount;
 
+    private BigDecimal hedgeAmount;
+
     // 创建汇率 接管价
     private BigDecimal createRate;
 
