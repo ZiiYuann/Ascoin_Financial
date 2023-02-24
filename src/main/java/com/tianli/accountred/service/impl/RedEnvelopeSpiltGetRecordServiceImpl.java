@@ -93,7 +93,7 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
         long now = System.currentTimeMillis();
         Set<String> recordsCache = stringRedisTemplate.opsForZSet().rangeByScore(getRecordsKey
                 , 0, now
-                , pageQuery.getOffset(), pageQuery.getPageSize());
+                , pageQuery.getPage(), pageQuery.getPageSize());
 
         Long count = stringRedisTemplate.opsForZSet().count(getRecordsKey, 0, now);
 
