@@ -25,4 +25,6 @@ public class BorrowRecordCoinVO {
     private BigDecimal amount;
 
     private BigDecimal interestAmount;
+
+    private BigDecimal minAmount;
 }

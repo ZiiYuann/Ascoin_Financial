@@ -13,6 +13,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.mapper.OrderAdvanceMapper;
 import com.tianli.charge.query.GenerateOrderAdvanceQuery;
 import com.tianli.charge.service.ChargeService;
+import com.tianli.charge.service.OrderAdvanceProcessor;
 import com.tianli.charge.service.OrderService;
 import com.tianli.charge.vo.OrderBaseVO;
 import com.tianli.charge.vo.OrderFundTransactionVO;
@@ -48,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -79,7 +81,17 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
     private FundProductService fundProductService;
     @Resource
     private IFundTransactionRecordService fundTransactionRecordService;
+    @Resource
+    private List<OrderAdvanceProcessor> orderAdvanceProcessors;
 
+    private OrderAdvanceProcessor getOrderAdvanceProcessor(AdvanceType advanceType) {
+        for (OrderAdvanceProcessor processor : orderAdvanceProcessors) {
+            if (advanceType.equals(processor.getType())) {
+                return processor;
+            }
+        }
+        throw ErrorCodeEnum.SYSTEM_ERROR.generalException();
+    }
 
     /**
      * 生成预订单
@@ -91,29 +103,19 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
 
         Long uid = requestInitService.uid();
 
-        var builder = OrderAdvance.builder()
+        var orderAdvance = OrderAdvance.builder()
                 .id(CommonFunction.generalId())
                 .amount(query.getAmount())
                 .uid(uid)
                 .createTime(LocalDateTime.now())
-                .advanceType(query.getAdvanceType());
+                .advanceType(query.getAdvanceType()).build();
 
-        FinancialProduct product = financialProductService.getById(query.getProductId());
-        if (AdvanceType.PURCHASE.equals(query.getAdvanceType()) && ProductType.fund.equals(product.getType())) {
-            WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(product.getId());
-            if (!walletAgentProduct.getReferralCode().equals(query.getReferralCode())) {
-                ErrorCodeEnum.REFERRAL_CODE_ERROR.throwException();
-            }
-            builder = builder
-                    .productId(query.getProductId())
-                    .coin(product.getCoin())
-                    .term(product.getTerm())
-                    .autoCurrent(query.isAutoCurrent());
-        }
+        OrderAdvanceProcessor orderAdvanceProcessor = getOrderAdvanceProcessor(query.getAdvanceType());
+        orderAdvanceProcessor.verifier(query);
+        orderAdvanceProcessor.preInsertProcess(query, orderAdvance);
 
-        OrderAdvance orderAdvance = builder.build();
+
         baseMapper.insert(orderAdvance);
-
         return orderAdvance.getId();
     }
 
@@ -348,5 +350,6 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
     public void addTryTimes(Long id) {
         baseMapper.addTryTimes(id);
     }
+
 
 }

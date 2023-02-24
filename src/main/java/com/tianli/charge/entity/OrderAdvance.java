@@ -51,4 +51,6 @@ public class OrderAdvance {
 
     private AdvanceType advanceType;
 
+    private String query;
+
 }

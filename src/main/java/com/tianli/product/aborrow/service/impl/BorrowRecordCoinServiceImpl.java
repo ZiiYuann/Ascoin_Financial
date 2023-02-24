@@ -15,7 +15,6 @@ import com.tianli.product.aborrow.enums.InterestType;
 import com.tianli.product.aborrow.mapper.BorrowRecordCoinMapper;
 import com.tianli.product.aborrow.query.BorrowCoinQuery;
 import com.tianli.product.aborrow.query.BorrowContextQuery;
-import com.tianli.product.aborrow.query.PledgeContextQuery;
 import com.tianli.product.aborrow.query.RepayCoinQuery;
 import com.tianli.product.aborrow.service.*;
 import com.tianli.product.aborrow.vo.BorrowRecordCoinVO;
@@ -167,6 +166,7 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
         return recordCoins.stream().map(recordCoin -> BorrowRecordCoinVO.builder()
                 .coin(recordCoin.getCoin())
                 .amount(recordCoin.getAmount())
+                .minAmount(borrowConfigCoinService.getById(recordCoin.getCoin()).getMinAmount())
                 .logo(coinBaseService.getByName(recordCoin.getCoin()).getLogo())
                 .interestAmount(borrowInterestService.get(uid, bid, recordCoin.getCoin()).getAmount())
                 .build()).collect(Collectors.toList());

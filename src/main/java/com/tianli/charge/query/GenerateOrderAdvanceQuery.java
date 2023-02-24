@@ -2,6 +2,9 @@ package com.tianli.charge.query;
 
 import com.tianli.charge.enums.AdvanceType;
 import com.tianli.common.blockchain.NetworkType;
+import com.tianli.product.aborrow.query.BorrowCoinQuery;
+import com.tianli.product.aborrow.query.ModifyPledgeContextQuery;
+import com.tianli.product.aborrow.query.RepayCoinQuery;
 import com.tianli.product.afinancial.enums.PurchaseTerm;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -38,4 +41,15 @@ public class GenerateOrderAdvanceQuery {
     private String referralCode;
 
     private AdvanceType advanceType = AdvanceType.PURCHASE;
+
+    // 借币
+    private BorrowCoinQuery borrowCoinQuery;
+    // 还币
+    private RepayCoinQuery repayCoinQuery;
+    // 调整质押物 增加质押物
+    private ModifyPledgeContextQuery modifyPledgeContextQuery;
+
+
+
+
 }
