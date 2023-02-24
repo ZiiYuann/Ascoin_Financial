@@ -6,15 +6,11 @@ import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.management.query.BorrowHedgeEntrustIoUQuery;
 import com.tianli.product.aborrow.convert.BorrowConvert;
-import com.tianli.product.aborrow.entity.BorrowConfigCoin;
-import com.tianli.product.aborrow.entity.BorrowConfigPledge;
-import com.tianli.product.aborrow.entity.BorrowOperationLog;
-import com.tianli.product.aborrow.entity.BorrowRecord;
-import com.tianli.product.aborrow.query.BorrowConfigCoinIoUQuery;
-import com.tianli.product.aborrow.query.BorrowConfigPledgeIoUQuery;
-import com.tianli.product.aborrow.query.BorrowQuery;
-import com.tianli.product.aborrow.query.BorrowUserQuery;
+import com.tianli.product.aborrow.entity.*;
+import com.tianli.product.aborrow.enums.HedgeStatus;
+import com.tianli.product.aborrow.query.*;
 import com.tianli.product.aborrow.service.*;
 import com.tianli.product.aborrow.vo.*;
 import com.tianli.sso.permission.AdminPrivilege;
@@ -53,6 +49,8 @@ public class ManageBorrowController {
     private BorrowConvert borrowConvert;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private BorrowHedgeEntrustService borrowHedgeEntrustService;
 
     // 新增或者修改借币配置
     @AdminPrivilege
@@ -119,6 +117,7 @@ public class ManageBorrowController {
                                                     @RequestParam("bid") Long bid) {
         var result = borrowRecordCoinService.listByUid(uid, bid)
                 .stream().map(coin -> MBorrowRecordVO.builder()
+                        .brId(coin.getId())
                         .amount(coin.getAmount())
                         .coin(coin.getCoin()).build()).collect(Collectors.toList());
         return new Result<>(result);
@@ -150,5 +149,21 @@ public class ManageBorrowController {
                 .convert(borrowConvert::toMBorrowOperationLogVO);
         return new Result<>(result);
     }
+
+
+    @AdminPrivilege
+    @PostMapping("/hedge")
+    public Result<Void> hedge(BorrowHedgeEntrustIoUQuery query) {
+        borrowHedgeEntrustService.manual(query);
+        return new Result<>();
+    }
+
+    @AdminPrivilege
+    @GetMapping("/hedges")
+    public Result<IPage<MBorrowHedgeEntrustVO>> hedges(PageQuery<BorrowHedgeEntrust> page, MBorrowHedgeQuery query) {
+        IPage<MBorrowHedgeEntrustVO> result = borrowHedgeEntrustService.vos(page.page(), query);
+        return new Result<>(result);
+    }
+
 
 }

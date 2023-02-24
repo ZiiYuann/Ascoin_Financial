@@ -19,6 +19,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class MBorrowRecordVO {
 
+    private Long brId;
+
     private String coin;
 
     private BigDecimal amount;
