@@ -797,7 +797,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             if (totalAmount.compareTo(redEnvelopeConfig.getLimitAmount()) > 0
                     || totalAmount.compareTo(BigDecimal.ZERO) == 0
                     || totalAmount.compareTo(totalMinAmount) < 0) {
-                throw new CustomException(ErrorCodeEnum.RED_TOTAL_AMOUNT_LIMIT.getErrorNo(),ErrorCodeEnum.RED_TOTAL_AMOUNT_LIMIT.getErrorMsg() + redEnvelopeConfig.getLimitAmount()
+                throw new CustomException(ErrorCodeEnum.RED_TOTAL_AMOUNT_LIMIT.getErrorNo(),redEnvelope.getCoin()+ErrorCodeEnum.RED_TOTAL_AMOUNT_LIMIT.getErrorMsg() + redEnvelopeConfig.getLimitAmount()
                         .stripTrailingZeros().toPlainString()+redEnvelope.getCoin());
             }
 
