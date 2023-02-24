@@ -37,11 +37,12 @@ public class RedEnvelopeHandler extends AbstractSqsReceiveHandler {
         var redEnvelopeContext = JSONUtil.toBean(sqsContext.getContext(), RedEnvelopeContext.class);
         try {
             redEnvelopeService.asynGet(redEnvelopeContext);
-        }catch (Exception e){
+            // 删除红包缓存
+            redEnvelopeService.deleteRedisCache(redEnvelopeContext.getRid());
+        } catch (Exception e) {
             webHookService.dingTalkSend("红包异步转账异常:" + JSONUtil.toJsonStr(redEnvelopeContext));
+            throw e;
         }
-        // 删除红包缓存
-        redEnvelopeService.deleteRedisCache(redEnvelopeContext.getRid());
         // 延时间删除(通过消息队列保证消费)
         String key = RedisConstants.RED_ENVELOPE + redEnvelopeContext.getRid();
         sqsService.send(new SqsContext<>(SqsTypeEnum.RDS_DELETE, new RedisDeleteContext(key)));
