@@ -15,6 +15,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by wangqiyun on 2018/1/18.
@@ -74,6 +76,25 @@ public class HandleExceptionController {
             }
         }
         return Result.fail(ErrorCodeEnum.ARGUEMENT_ERROR);
+    }
+
+
+    @ExceptionHandler(value = CustomException.class)
+    public Result customExceptionHandler(CustomException e){
+        Result result = Result.instance();
+        String message = e.getMessage();
+        String regEx = "[^0-9]";
+        Pattern p = Pattern.compile(regEx);
+        Matcher matcher = p.matcher(message);
+        String trim = matcher.replaceAll("").trim();
+        String[] num = {trim};
+        String s = num[0];
+        String substring = message.substring(0, message.indexOf(s));
+        String transMsg = getEnMsg(substring);
+        result.setCode(e.getCode().toString());
+        result.setMsg(e.getMessage());
+        result.setEnMsg(transMsg+""+message.substring(message.indexOf(s)));
+        return result;
     }
 
     private String getEnMsg(String msg) {

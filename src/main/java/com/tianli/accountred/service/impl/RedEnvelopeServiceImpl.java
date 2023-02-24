@@ -40,6 +40,7 @@ import com.tianli.common.PageQuery;
 import com.tianli.common.RedisConstants;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
+import com.tianli.exception.CustomException;
 import com.tianli.exception.ErrCodeException;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
@@ -796,9 +797,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             if (totalAmount.compareTo(redEnvelopeConfig.getLimitAmount()) > 0
                     || totalAmount.compareTo(BigDecimal.ZERO) == 0
                     || totalAmount.compareTo(totalMinAmount) < 0) {
-                throw new ErrCodeException(ErrorCodeEnum.RED_TOTAL_AMOUNT_LIMIT.getErrorMsg() + redEnvelopeConfig.getLimitAmount()
-                        .stripTrailingZeros().toPlainString(), ErrorCodeEnum.RED_TOTAL_AMOUNT_LIMIT.getErrorNo());
-//                ErrorCodeEnum.RED_AMOUNT_ERROR.throwException();
+                throw new CustomException(ErrorCodeEnum.RED_TOTAL_AMOUNT_LIMIT.getErrorNo(),ErrorCodeEnum.RED_TOTAL_AMOUNT_LIMIT.getErrorMsg() + redEnvelopeConfig.getLimitAmount()
+                        .stripTrailingZeros().toPlainString()+redEnvelope.getCoin());
             }
 
             // 获取配置项目小数点位数
