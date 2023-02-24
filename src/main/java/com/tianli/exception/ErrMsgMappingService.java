@@ -25,23 +25,9 @@ public class ErrMsgMappingService {
     public String getTransMsg(String type, String msg) {
         switch (type) {
             case "en":
-               return getTransMsg(msg);
-//                return EN_ERR_MSG_PAIRS.get(msg);
+                return EN_ERR_MSG_PAIRS.get(msg);
         }
         return null;
-    }
-
-    public String getTransMsg(String msg){
-        String enMsg = EN_ERR_MSG_PAIRS.get(msg);
-        if (StringUtils.isBlank(enMsg)){
-            enMsg = GoogleTranslator.translate(msg);
-            if (StringUtils.isNotBlank(enMsg)){
-                EN_ERR_MSG_PAIRS.put(msg, enMsg);
-            }else{
-                enMsg = "System error";
-            }
-        }
-        return enMsg;
     }
 
 
