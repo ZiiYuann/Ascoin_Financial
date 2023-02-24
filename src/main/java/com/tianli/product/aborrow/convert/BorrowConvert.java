@@ -41,4 +41,8 @@ public interface BorrowConvert {
     ProductPledgeVO toProductPledgeVO(FinancialRecord financialRecord);
 
     AccountBorrowVO toAccountBorrowVO(BorrowConfigCoinVO borrowConfigCoin);
+
+    MBorrowHedgeEntrustVO toMBorrowHedgeEntrustVO(BorrowHedgeEntrust borrowHedgeEntrust);
+
+
 }
