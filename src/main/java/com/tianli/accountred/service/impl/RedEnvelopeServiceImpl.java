@@ -345,7 +345,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                         "    redis.call('SET',KEYS[3],'')\n" +
                         "    redis.call('ZREM',externKey,oldMember)\n" +
                         "    redis.call('ZREM',externRecordKey,oldMember)\n" +
-                        "    redis.call('ZADD',externRecordKey,newMember)\n" +
+                        "    redis.call('ZADD',externRecordKey,newMemberScore,newMember)\n" +
                         "end";
         DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
         redisScript.setResultType(String.class);
@@ -399,6 +399,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
         RedEnvelopeGetDetailsVO redEnvelopeGetDetailsVO = redEnvelopeConvert.toRedEnvelopeGetDetailsVO(redEnvelope);
         redEnvelopeGetDetailsVO.setRecords(recordVo);
+        redEnvelopeGetDetailsVO.setNum(recordVo.size());
 
         RedEnvelopeSpiltGetRecord getRecord = redEnvelopeSpiltGetRecordService.getRecord(rid, uid);
         redEnvelopeGetDetailsVO.setReceiveAmount(Objects.isNull(getRecord) ? null : getRecord.getAmount());
