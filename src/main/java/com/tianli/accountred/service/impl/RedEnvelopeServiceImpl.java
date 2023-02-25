@@ -399,7 +399,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
         RedEnvelopeGetDetailsVO redEnvelopeGetDetailsVO = redEnvelopeConvert.toRedEnvelopeGetDetailsVO(redEnvelope);
         redEnvelopeGetDetailsVO.setRecords(recordVo);
-        redEnvelopeGetDetailsVO.setNum(recordVo.size());
+        redEnvelopeGetDetailsVO.setReceiveNum(recordVo.size());
 
         RedEnvelopeSpiltGetRecord getRecord = redEnvelopeSpiltGetRecordService.getRecord(rid, uid);
         redEnvelopeGetDetailsVO.setReceiveAmount(Objects.isNull(getRecord) ? null : getRecord.getAmount());
