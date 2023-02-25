@@ -368,7 +368,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         RedEnvelopeGetDTO dto = RedEnvelopeGetDTO.builder().deviceNumber(query.getDeviceNumber())
                 .redEnvelope(redEnvelope)
                 .rid(redEnvelope.getId())
-                .exchangeCode(null)
+                .exchangeCode(query.getExchangeCode())
                 .build();
         redEnvelopeSpiltService.generateRecord(uid, shortUid, redEnvelopeSpiltDTO.getId(), dto);
 
