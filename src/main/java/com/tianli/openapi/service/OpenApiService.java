@@ -216,8 +216,7 @@ public class OpenApiService {
      * @return 统计数据
      */
     public StatisticsDataDto accountData(OpenapiAccountQuery query) {
-
-        InviteDTO user = rpcService.inviteRpc(query.getChatId());
+        InviteDTO user = rpcService.inviteRpc(query.getChatId(), query.getUid());
         var subUids = user.getList().stream().map(InviteDTO::getUid).collect(Collectors.toList());
         Long uid = user.getUid();
 
@@ -282,13 +281,14 @@ public class OpenApiService {
             data.setSubBalance(allUserAssetsVO.getBalanceAmount());
             data.setSubPurchaseAmount(allUserAssetsVO.getPurchaseAmount());
             data.setSubRedeemAmount(subRedeemAmount);
+            data.setUid(uid);
         }
 
         return data;
     }
 
-    public IPage<StatisticsDataDto> accountSubData(Long chatId, PageQuery<StatisticsDataDto> pageQuery) {
-        InviteDTO user = rpcService.inviteRpc(chatId);
+    public IPage<StatisticsDataDto> accountSubData(Long chatId, Long uid, PageQuery<StatisticsDataDto> pageQuery) {
+        InviteDTO user = rpcService.inviteRpc(chatId, uid);
         List<InviteDTO> list = Optional.ofNullable(user.getList()).orElse(new ArrayList<>());
 
         int start = (pageQuery.getPage() - 1) * pageQuery.getPageSize();

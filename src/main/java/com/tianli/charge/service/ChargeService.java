@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.account.entity.AccountUserTransfer;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.query.AccountDetailsQuery;
+import com.tianli.account.service.AccountUserTransferService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.TransactionGroupTypeVO;
 import com.tianli.account.vo.TransactionTypeVO;
@@ -32,10 +34,7 @@ import com.tianli.charge.enums.*;
 import com.tianli.charge.mapper.OrderMapper;
 import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.query.WithdrawQuery;
-import com.tianli.charge.vo.OrderBaseVO;
-import com.tianli.charge.vo.OrderChargeInfoVO;
-import com.tianli.charge.vo.OrderRechargeDetailsVo;
-import com.tianli.charge.vo.OrderSettleRecordVO;
+import com.tianli.charge.vo.*;
 import com.tianli.common.*;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.NetworkType;
@@ -348,7 +347,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
             orderReviewService.review(reviewQuery);
         }
-
         return order.getId();
     }
 
@@ -625,16 +623,29 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         return charges.convert(charge -> {
             OrderChargeInfoVO orderChargeInfoVO = chargeConverter.toVO(charge);
-            if (ChargeType.transaction_reward.equals(orderChargeInfoVO.getType())) {
+            ChargeType type = orderChargeInfoVO.getType();
+            if (ChargeType.transaction_reward.equals(type)) {
                 int i = orderRewardRecordService.recordCountThisHour(charge.getUid(), charge.getCreateTime());
                 orderChargeInfoVO.setRemarks("已发放" + i + "笔");
                 orderChargeInfoVO.setRemarksEn(i + " Receiving Record(s)");
             }
 
-            if (!ChargeType.transaction_reward.equals(orderChargeInfoVO.getType())) {
+            if (!ChargeType.transaction_reward.equals(type)) {
                 ChargeRemarks remarks = ChargeRemarks.getInstance(charge.getType(), charge.getStatus());
                 orderChargeInfoVO.setRemarks(remarks.getRemarks());
                 orderChargeInfoVO.setRemarksEn(remarks.getRemarksEn());
+            }
+
+            if (ChargeType.user_credit_in.equals(type) || ChargeType.user_credit_out.equals(type) ||
+                    ChargeType.credit_out.equals(type) || ChargeType.credit_in.equals(type)) {
+                AccountUserTransfer accountUserTransfer =
+                        accountUserTransferService.getByExternalPk(charge.getRelatedId());
+
+                Optional.ofNullable(accountUserTransfer)
+                        .ifPresent(a -> orderChargeInfoVO.setOrderOtherInfoVo(OrderOtherInfoVo.builder()
+                                .transferExternalPk(a.getExternalPk())
+                                .build()));
+
             }
             return orderChargeInfoVO;
         });
@@ -720,4 +731,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     private OccasionalAddressService occasionalAddressService;
     @Resource
     private RedissonClient redissonClient;
+    @Resource
+    private AccountUserTransferService accountUserTransferService;
 }
