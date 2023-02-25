@@ -115,7 +115,7 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
 
     @Override
     public List<RedEnvelopeSpiltGetRecordVO> getRecordVos(RedEnvelope redEnvelope) {
-        List<RedEnvelopeSpiltGetRecord> index = this.getRecords(redEnvelope, new PageQuery<>(1, 1000000))
+        List<RedEnvelopeSpiltGetRecord> index = this.getRecords(redEnvelope, new PageQuery<>(0, 1000000))
                 .getRecords();
         return index.stream().map(redEnvelopeConvert::toRedEnvelopeSpiltGetRecordVO).collect(Collectors.toList());
     }
