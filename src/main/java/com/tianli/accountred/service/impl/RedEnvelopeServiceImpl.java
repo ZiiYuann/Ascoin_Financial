@@ -329,11 +329,11 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         String externKey = RedisConstants.RED_EXTERN + redEnvelope.getId(); //删除缓存 用于减少可领取兑换码缓存
 
         String script =
-                "local externKey = KEYS[4] " +
-                        "local externRecordKey = KEYS[5] " +
-                        "local oldMember = ARGV[1] " +
-                        "local newMember = ARGV[2] " +
-                        "local newMemberScore = ARGV[3] " +
+                "local externKey = KEYS[4] \n" +
+                        "local externRecordKey = KEYS[5] \n" +
+                        "local oldMember = ARGV[1] \n" +
+                        "local newMember = ARGV[2] \n" +
+                        "local newMemberScore = ARGV[3] \n" +
                         "if redis.call('EXISTS', KEYS[1]) > 0 then\n" +
                         "    return 'RECEIVED'\n" +
                         "elseif redis.call('EXISTS', KEYS[2]) == 0 then\n" +
@@ -346,7 +346,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                         "    redis.call('ZREM',externKey,oldMember)\n" +
                         "    redis.call('ZREM',externRecordKey,oldMember)\n" +
                         "    redis.call('ZADD',externRecordKey,newMemberScore,newMember)\n" +
-                        "end";
+                        "end\n";
         DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
         redisScript.setResultType(String.class);
         redisScript.setScriptText(script);
@@ -370,7 +370,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                 .rid(redEnvelope.getId())
                 .exchangeCode(null)
                 .build();
-        redEnvelopeSpiltService.generateRecord(uid, shortUid, result, dto);
+        redEnvelopeSpiltService.generateRecord(uid, shortUid, redEnvelopeSpiltDTO.getId(), dto);
 
         // 异步转账
         RedEnvelopeContext redEnvelopeContext = RedEnvelopeContext.builder()
