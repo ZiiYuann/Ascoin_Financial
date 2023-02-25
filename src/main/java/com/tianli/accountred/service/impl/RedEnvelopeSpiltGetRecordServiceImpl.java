@@ -54,7 +54,7 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
     private RedEnvelopeService redEnvelopeService;
 
     @Override
-    public RedEnvelopeSpiltGetRecord getRecords(Long rid, Long uid) {
+    public RedEnvelopeSpiltGetRecord getRecord(Long rid, Long uid) {
         return this.getBaseMapper().selectOne(new LambdaQueryWrapper<RedEnvelopeSpiltGetRecord>()
                 .eq(RedEnvelopeSpiltGetRecord::getRid, rid)
                 .eq(RedEnvelopeSpiltGetRecord::getUid, uid));

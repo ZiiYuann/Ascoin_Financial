@@ -52,7 +52,7 @@ public class FundIncomeTask {
     @Resource
     private RedissonClient redissonClient;
 
-    @Scheduled(cron = "0 5 0 1/1 * ? ")
+    @Scheduled(cron = "0 1 0 1/1 * ? ")
     public void incomeTasks() {
         log.info("========执行基金计算利息定时任务========");
         LocalDateTime now = LocalDateTime.now();

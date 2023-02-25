@@ -22,13 +22,24 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
 
     /**
      * 领取拆分红包
+     * <p>
+     * 涉及到的DML操作
+     * 1、生成 order
+     * 2、操作 account_balance
      *
      * @param uid               用户id
      * @param shortUid          用户id短码
-     * @param uuid              拆分红包id
+     * @param spiltId           拆分红包id
      * @param redEnvelopeGetDTO 领取红包参数
      */
-    RedEnvelopeSpiltGetRecord getRedEnvelopeSpilt(Long uid, Long shortUid, String uuid, RedEnvelopeGetDTO redEnvelopeGetDTO);
+    RedEnvelopeSpiltGetRecord getSpilt(Long uid, Long shortUid, String spiltId, RedEnvelopeGetDTO redEnvelopeGetDTO);
+
+    /**
+     * 涉及到的DML操作
+     * 1、修改 red_envelope_spilt 的状态
+     * 2、插入 red_envelope_spilt_get_record 记录
+     */
+    RedEnvelopeSpiltGetRecord generateRecord(Long uid, Long shortUid, String uuid, RedEnvelopeGetDTO redEnvelopeGetDTO);
 
     /**
      * 拆分红包,并且会把拆分id缓存到redis中
@@ -44,7 +55,7 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
      * @param receive 领取状态
      * @return 红包列表
      */
-    List<RedEnvelopeSpilt> getRedEnvelopeSpilt(Long rid, boolean receive);
+    List<RedEnvelopeSpilt> getSpilt(Long rid, boolean receive);
 
     /**
      * 获取兑换码

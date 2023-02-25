@@ -26,7 +26,7 @@ public interface RedEnvelopeSpiltGetRecordService {
      * @param uid 领取人id
      * @return 红包领取记录
      */
-    RedEnvelopeSpiltGetRecord getRecords(Long rid, Long uid);
+    RedEnvelopeSpiltGetRecord getRecord(Long rid, Long uid);
 
     /**
      * 获取红包领取记录

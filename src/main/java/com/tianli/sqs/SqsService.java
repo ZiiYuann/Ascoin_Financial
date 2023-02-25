@@ -39,13 +39,13 @@ public class SqsService {
         }
 
         sqsClientConfig.getSqsClient().sendMessage(builder -> {
-            builder.queueUrl(configService.getOrDefault("sqs.url","https://sqs.ap-northeast-1.amazonaws.com/228032912223/financial-sqs"))
+            builder.queueUrl(configService.getOrDefault("sqs.url", "https://sqs.ap-northeast-1.amazonaws.com/228032912223/financial-sqs"))
                     .messageBody(JSONUtil.toJsonStr(sqsContext));
         });
     }
 
     public int receiveAndDelete(String url, int maxNumberOfMessages) {
-        var sqsUrl = configService.getOrDefault("sqs.url","https://sqs.ap-northeast-1.amazonaws.com/228032912223/financial-sqs");
+        var sqsUrl = configService.getOrDefault("sqs.url", "https://sqs.ap-northeast-1.amazonaws.com/228032912223/financial-sqs");
         url = StringUtils.isBlank(url) ? sqsUrl : url;
         final String finalUrl = url;
         ReceiveMessageResponse receiveMessageResponse = sqsClientConfig.getSqsClient().receiveMessage(builder -> {
@@ -56,6 +56,7 @@ public class SqsService {
 
         List<Message> messages = receiveMessageResponse.messages();
         if (CollectionUtils.isNotEmpty(messages)) {
+            log.info("sqs处理消息，数量:{}", messages.size());
             messages.forEach(message -> {
                 try {
                     SqsContext<?> sqsContext = JSONUtil.toBean(message.body(), SqsContext.class);

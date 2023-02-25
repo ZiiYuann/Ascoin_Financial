@@ -41,7 +41,6 @@ import com.tianli.common.RedisConstants;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.CustomException;
-import com.tianli.exception.ErrCodeException;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
@@ -59,18 +58,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -315,11 +316,25 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             ErrorCodeEnum.RED_OVERDUE.throwException();
         }
 
+        // 这个字段会导致修改失败，未领取的时候全部为false
+        String oldMember = JSONUtil.toJsonStr(redEnvelopeSpiltDTO);
+        redEnvelopeSpiltDTO.setReceive(true);
+        String newMember = JSONUtil.toJsonStr(redEnvelopeSpiltDTO);
+        String newMemberScore = LocalDateTime.now().toInstant(ZoneOffset.ofHours(8)).toEpochMilli() + "";
+
+        String externRecordKey = RedisConstants.RED_EXTERN_RECORD + redEnvelope.getId(); //修改缓存 用于更新领取信息
         String receivedKey = RedisConstants.SPILT_RED_ENVELOPE_GET + rid + ":" + uid;
         String exchangeCodeKey = RedisConstants.RED_EXTERN_CODE + query.getExchangeCode();
         String semaphore = RedisConstants.RED_SEMAPHORE + rid + ":" + uid;
+        String externKey = RedisConstants.RED_EXTERN + redEnvelope.getId(); //删除缓存 用于减少可领取兑换码缓存
+
         String script =
-                "if redis.call('EXISTS', KEYS[1]) > 0 then\n" +
+                "local externKey = KEYS[4] " +
+                        "local externRecordKey = KEYS[5] " +
+                        "local oldMember = ARGV[1] " +
+                        "local newMember = ARGV[2] " +
+                        "local newMemberScore = ARGV[3] " +
+                        "if redis.call('EXISTS', KEYS[1]) > 0 then\n" +
                         "    return 'RECEIVED'\n" +
                         "elseif redis.call('EXISTS', KEYS[2]) == 0 then\n" +
                         "    return 'FINISH'\n" +
@@ -328,6 +343,9 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                         "    redis.call('EXPIRE',KEYS[1],2592000)\n" +
                         "    redis.call('DEL',KEYS[2])\n" +
                         "    redis.call('SET',KEYS[3],'')\n" +
+                        "    redis.call('ZREM',externKey,oldMember)\n" +
+                        "    redis.call('ZREM',externRecordKey,oldMember)\n" +
+                        "    redis.call('ZADD',externRecordKey,newMember)\n" +
                         "end";
         DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
         redisScript.setResultType(String.class);
@@ -335,7 +353,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         String result;
         try {
             result = stringRedisTemplate.opsForValue().getOperations().execute(redisScript
-                    , List.of(receivedKey, exchangeCodeKey, semaphore));
+                    , List.of(receivedKey, exchangeCodeKey, semaphore, externKey, externRecordKey)
+                    , oldMember, newMember, newMemberScore);
         } catch (Exception e) {
             // 防止由于网络波动导致的红包异常 暂时做通知处理，如果情况比较多，后续进行补偿
             webHookService.dingTalkSend("兑换红包状态异常，请及时处理，红包id：" + rid + " uid：" + uid, e);
@@ -345,6 +364,13 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         if ((status = EnumUtils.getEnum(RedEnvelopeStatus.class, result)) != null) {
             return new RedEnvelopeGetVO(status, coinBase);
         }
+
+        RedEnvelopeGetDTO dto = RedEnvelopeGetDTO.builder().deviceNumber(query.getDeviceNumber())
+                .redEnvelope(redEnvelope)
+                .rid(redEnvelope.getId())
+                .exchangeCode(null)
+                .build();
+        redEnvelopeSpiltService.generateRecord(uid, shortUid, result, dto);
 
         // 异步转账
         RedEnvelopeContext redEnvelopeContext = RedEnvelopeContext.builder()
@@ -374,7 +400,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         RedEnvelopeGetDetailsVO redEnvelopeGetDetailsVO = redEnvelopeConvert.toRedEnvelopeGetDetailsVO(redEnvelope);
         redEnvelopeGetDetailsVO.setRecords(recordVo);
 
-        RedEnvelopeSpiltGetRecord getRecord = redEnvelopeSpiltGetRecordService.getRecords(rid, uid);
+        RedEnvelopeSpiltGetRecord getRecord = redEnvelopeSpiltGetRecordService.getRecord(rid, uid);
         redEnvelopeGetDetailsVO.setReceiveAmount(Objects.isNull(getRecord) ? null : getRecord.getAmount());
         redEnvelopeGetDetailsVO.setUReceiveAmount(Objects.isNull(getRecord) ? null
                 : getRecord.getAmount().multiply(currencyService.getDollarRate(redEnvelope.getCoin())));
@@ -425,12 +451,18 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         }
 
         CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
-
         RedEnvelopeStatus status;
 
         if ((status = EnumUtils.getEnum(RedEnvelopeStatus.class, result)) != null) {
             return new RedEnvelopeGetVO(status, coinBase);
         }
+
+        RedEnvelopeGetDTO dto = RedEnvelopeGetDTO.builder().deviceNumber(query.getDeviceNumber())
+                .redEnvelope(redEnvelope)
+                .rid(redEnvelope.getId())
+                .exchangeCode(null)
+                .build();
+        redEnvelopeSpiltService.generateRecord(uid, shortUid, result, dto);
 
         // 异步转账
         RedEnvelopeContext redEnvelopeContext = RedEnvelopeContext.builder()
@@ -552,9 +584,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                 .exchangeCode(sqsContext.getExchangeCode())
                 .build();
 
-
         // 领取子红包（创建订单，余额操作）
-        var redEnvelopeSpilt = redEnvelopeSpiltService.getRedEnvelopeSpilt(uid, shortUid, spiltId, query);
+        var redEnvelopeSpilt = redEnvelopeSpiltService.getSpilt(uid, shortUid, spiltId, query);
         // 增加已经领取红包个数
         int i = this.getBaseMapper().increaseReceive(query.getRid(), redEnvelopeSpilt.getAmount());
         if (i == 0) {
@@ -577,7 +608,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         }
 
         List<RedEnvelopeSpilt> spiltRedEnvelopes =
-                redEnvelopeSpiltService.getRedEnvelopeSpilt(redEnvelope.getId(), false);
+                redEnvelopeSpiltService.getSpilt(redEnvelope.getId(), false);
 
         // 进入这个方法的红包应该存在红包未领取
         if (RedEnvelopeStatus.OVERDUE.equals(status)
@@ -789,7 +820,6 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
             // 数量为0 或者 大于配置金额
             if (num == 0 || num > redEnvelopeConfig.getNum()) {
-//                throw new ErrCodeException(ErrorCodeEnum.RED_NUM_LIMIT.getErrorMsg() + redEnvelopeConfig.getNum() + "个", ErrorCodeEnum.RED_NUM_LIMIT.getErrorNo());
                 ErrorCodeEnum.RED_NUM_ERROR.throwException();
             }
 
@@ -799,8 +829,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             if (totalAmount.compareTo(redEnvelopeConfig.getLimitAmount()) > 0
                     || totalAmount.compareTo(BigDecimal.ZERO) == 0
                     || totalAmount.compareTo(totalMinAmount) < 0) {
-                throw new CustomException(ErrorCodeEnum.RED_TOTAL_AMOUNT_LIMIT.getErrorNo(),redEnvelope.getCoin().toUpperCase()+ErrorCodeEnum.RED_TOTAL_AMOUNT_LIMIT.getErrorMsg() + redEnvelopeConfig.getLimitAmount()
-                        .stripTrailingZeros().toPlainString()+redEnvelope.getCoin().toUpperCase());
+                throw new CustomException(ErrorCodeEnum.RED_TOTAL_AMOUNT_LIMIT.getErrorNo(), redEnvelope.getCoin().toUpperCase() + ErrorCodeEnum.RED_TOTAL_AMOUNT_LIMIT.getErrorMsg() + redEnvelopeConfig.getLimitAmount()
+                        .stripTrailingZeros().toPlainString() + redEnvelope.getCoin().toUpperCase());
             }
 
             // 获取配置项目小数点位数

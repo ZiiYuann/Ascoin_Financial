@@ -89,68 +89,46 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     @Override
     @Transactional
     @SuppressWarnings("unchecked")
-    public RedEnvelopeSpiltGetRecord getRedEnvelopeSpilt(Long uid, Long shortUid, String uuid, RedEnvelopeGetDTO redEnvelopeGetDTO) {
-        RedEnvelope redEnvelope = redEnvelopeGetDTO.getRedEnvelope();
-        LocalDateTime receiveTime = LocalDateTime.now();
-        uuid = uuid.replace("\"", "");
+    public RedEnvelopeSpiltGetRecord getSpilt(Long uid, Long shortUid, String spiltId, RedEnvelopeGetDTO redEnvelopeGetDTO) {
 
-        // 修改拆分（子）红包的状态
-        int i = this.getBaseMapper().receive(redEnvelope.getId(), uuid, receiveTime);
-        if (i == 0) {
-            ErrorCodeEnum.RED_STATUS_ERROR.throwException();
-        }
-
-        RedEnvelopeSpilt redEnvelopeSpilt = this.getById(uuid);
-
-        // 这个步骤会添加领取记录的缓存
-        RedEnvelopeSpiltGetRecord redEnvelopeSpiltGetRecord =
-                redEnvelopeSpiltGetRecordService.redEnvelopeSpiltGetRecordFlow(uid, shortUid, uuid, redEnvelopeGetDTO, redEnvelopeSpilt);
-        String coin = redEnvelope.getCoin();
+        LocalDateTime now = LocalDateTime.now();
+        RedEnvelopeSpilt redEnvelopeSpilt = this.getById(spiltId);
+        RedEnvelope redEnvelope = redEnvelopeService.getWithCache(redEnvelopeSpilt.getRid());
+        RedEnvelopeSpiltGetRecord redEnvelopeSpiltGetRecord = redEnvelopeSpiltGetRecordService.getRecord(redEnvelope.getId(), uid);
         // 红包订单
         Order order = Order.builder()
                 .uid(uid)
-                .coin(coin)
+                .coin(redEnvelope.getCoin())
                 .orderNo(AccountChangeType.red_get.getPrefix() + CommonFunction.generalSn(CommonFunction.generalId()))
                 .amount(redEnvelopeSpilt.getAmount())
                 .type(ChargeType.red_get) // 添加记录
-                .completeTime(receiveTime)
-                .createTime(receiveTime)
+                .completeTime(now)
+                .createTime(now)
                 .status(ChargeStatus.chain_success)
                 // 关联领取订单详情
                 .relatedId(redEnvelopeSpiltGetRecord.getId())
                 .build();
         orderService.save(order);
         // 操作账户
-        accountBalanceServiceImpl.increase(uid, ChargeType.red_get, coin, redEnvelopeSpilt.getAmount(), order.getOrderNo(), "抢红包获取");
-
-        // 站外红包需要额外操作
-        if (RedEnvelopeChannel.EXTERN.equals(redEnvelope.getChannel())) {
-            RedEnvelopeSpiltDTO redEnvelopeSpiltDTO = redEnvelopeConvert.toRedEnvelopeSpiltDTO(redEnvelopeSpilt);
-            // 这个字段会导致修改失败，未领取的时候全部为false
-            redEnvelopeSpiltDTO.setReceive(false);
-            String oldMember = JSONUtil.toJsonStr(redEnvelopeSpiltDTO);
-            redEnvelopeSpiltDTO.setReceive(true);
-            String newMember = JSONUtil.toJsonStr(redEnvelopeSpiltDTO);
-
-            String externKey = RedisConstants.RED_EXTERN + redEnvelope.getId(); //删除缓存 用于减少可领取兑换码缓存
-            String externRecordKey = RedisConstants.RED_EXTERN_RECORD + redEnvelope.getId(); //修改缓存 用于更新领取信息
-            String semaphore = RedisConstants.RED_SEMAPHORE + redEnvelope.getId() + ":" + uid;
-
-            stringRedisTemplate.opsForZSet().getOperations().executePipelined(new SessionCallback<>() {
-                @Override
-                public <K, V> Object execute(@Nonnull RedisOperations<K, V> operations) throws DataAccessException {
-
-                    var zSetOperation = (ZSetOperations<String, String>) operations.opsForZSet();
-                    zSetOperation.remove(externKey, oldMember);
-
-                    zSetOperation.remove(externRecordKey, oldMember);
-                    zSetOperation.add(externRecordKey, newMember, receiveTime.toInstant(ZoneOffset.ofHours(8)).toEpochMilli());
-                    operations.delete((K) semaphore);
-                    return null;
-                }
-            });
-        }
+        accountBalanceServiceImpl.increase(uid, ChargeType.red_get, redEnvelope.getCoin()
+                , redEnvelopeSpilt.getAmount(), order.getOrderNo(), "抢红包获取");
+        String semaphore = RedisConstants.RED_SEMAPHORE + redEnvelope.getId() + ":" + uid;
+        stringRedisTemplate.delete(semaphore);
         return redEnvelopeSpiltGetRecord;
+    }
+
+    @Override
+    public RedEnvelopeSpiltGetRecord generateRecord(Long uid, Long shortUid, String spiltId, RedEnvelopeGetDTO redEnvelopeGetDTO) {
+        LocalDateTime receiveTime = LocalDateTime.now();
+        // 修改拆分（子）红包的状态
+        int i = this.getBaseMapper().receive(redEnvelopeGetDTO.getRid(), spiltId, receiveTime);
+        if (i == 0) {
+            ErrorCodeEnum.RED_STATUS_ERROR.throwException();
+        }
+        RedEnvelopeSpilt redEnvelopeSpilt = this.getById(spiltId);
+
+        // 这个步骤会添加领取记录的缓存
+        return redEnvelopeSpiltGetRecordService.redEnvelopeSpiltGetRecordFlow(uid, shortUid, spiltId, redEnvelopeGetDTO, redEnvelopeSpilt);
     }
 
     @Override
@@ -189,7 +167,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     }
 
     @Override
-    public List<RedEnvelopeSpilt> getRedEnvelopeSpilt(Long rid, boolean receive) {
+    public List<RedEnvelopeSpilt> getSpilt(Long rid, boolean receive) {
         return this.list(new LambdaQueryWrapper<RedEnvelopeSpilt>()
                 .eq(RedEnvelopeSpilt::getRid, rid)
                 .eq(RedEnvelopeSpilt::isReceive, receive));
