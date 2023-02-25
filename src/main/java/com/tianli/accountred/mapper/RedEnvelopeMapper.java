@@ -19,7 +19,7 @@ public interface RedEnvelopeMapper extends BaseMapper<RedEnvelope> {
             " WHERE `id` = #{id} and `receive_num` < `num` AND `status` = 'PROCESS' ")
     int increaseReceive(@Param("id") Long id, @Param("receiveAmount") BigDecimal receiveAmount);
 
-    @Update("UPDATE  red_envelope SET `status` = 'FINISH'  WHERE `id` = #{id} AND  `status` = 'PROCESS' ")
+    @Update("UPDATE  red_envelope SET `status` = 'FINISH',finish_time=#{finishTime}  WHERE `id` = #{id} AND  `status` = 'PROCESS' ")
     int finish(@Param("id") Long id, @Param("finishTime") LocalDateTime finishTime);
 
     @Update("UPDATE  red_envelope SET `status` = 'OVERDUE'  WHERE `id` = #{id} AND  `status` = 'PROCESS' ")
