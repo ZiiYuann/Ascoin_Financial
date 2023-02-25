@@ -442,7 +442,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         CoinBase coinBase = coinBaseService.getByName(order.getCoin());
 
         OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
-        log.info("get orderChargeInfo by id:{},orderNo{}", order.getRelatedId(), order.getOrderNo());
         orderChargeInfo = Optional.ofNullable(orderChargeInfo).orElse(new OrderChargeInfo());
 
         OrderChargeInfoVO orderChargeInfoVO = chargeConverter.toVO(order);

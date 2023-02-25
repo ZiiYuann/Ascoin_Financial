@@ -215,4 +215,12 @@ public class TestController {
         }
         return new Result<>(redEnvelopeSpiltService.getExchangeCode(Long.parseLong(id), ip, fingerprintKey));
     }
+
+    @PostMapping("/red/get")
+    public Result redGet(Long uid, Long shortUid, @RequestBody @Valid RedEnvelopeGetQuery query) {
+        if (Objects.isNull(shortUid)) {
+            ErrorCodeEnum.ACCOUNT_ERROR.throwException();
+        }
+        return Result.success().setData(redEnvelopeService.get(uid, shortUid, query));
+    }
 }
