@@ -54,6 +54,7 @@ import com.tianli.tool.crypto.PBE;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.redisson.api.RBloomFilter;
@@ -341,7 +342,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             throw e;
         }
 
-        if ((status = RedEnvelopeStatus.getInstance(result)) != null) {
+        if ((status = EnumUtils.getEnum(RedEnvelopeStatus.class, result)) != null) {
             return new RedEnvelopeGetVO(status, coinBase);
         }
 
@@ -426,7 +427,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
 
         RedEnvelopeStatus status;
-        if ((status = RedEnvelopeStatus.getInstance(result)) != null) {
+
+        if ((status = EnumUtils.getEnum(RedEnvelopeStatus.class, result)) != null) {
             return new RedEnvelopeGetVO(status, coinBase);
         }
 

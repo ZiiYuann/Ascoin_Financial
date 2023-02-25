@@ -32,13 +32,4 @@ public enum RedEnvelopeStatus {
         return PROCESS.equals(status);
     }
 
-    public static RedEnvelopeStatus getInstance(String str) {
-        if ("FINISH".equals(str)) {
-            return FINISH;
-        }
-        if ("RECEIVED".equals(str)) {
-            return RECEIVED;
-        }
-        return null;
-    }
 }
