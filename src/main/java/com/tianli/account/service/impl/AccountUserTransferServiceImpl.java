@@ -81,7 +81,7 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
                     coin, amount);
         }
 
-        Optional.ofNullable(orderNo).orElseThrow(ErrorCodeEnum.TRANSFER_ERROR::generalException);
+        orderNo = Optional.ofNullable(orderNo).orElseThrow(ErrorCodeEnum.TRANSFER_ERROR::generalException);
 
         AccountUserTransfer accountUserTransfer = AccountUserTransfer.builder()
                 .id(accountUserTransferId)
@@ -96,7 +96,7 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
     }
 
     @Override
-    public AccountUserTransferVO getByExternalPk(Long externalPk) {
+    public AccountUserTransferVO getVOByExternalPk(Long externalPk) {
         return accountConverter.toAccountUserTransferVO(this.getOne(new LambdaQueryWrapper<AccountUserTransfer>()
                 .eq(AccountUserTransfer::getExternalPk, externalPk)));
     }

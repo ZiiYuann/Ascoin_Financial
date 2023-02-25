@@ -383,6 +383,6 @@ public class OpenApiService {
     }
 
     public AccountUserTransferVO transferOrder(Long externalPk) {
-        return accountUserTransferService.getByExternalPk(externalPk);
+        return accountUserTransferService.getVOByExternalPk(externalPk);
     }
 }
