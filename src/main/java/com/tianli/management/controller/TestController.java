@@ -43,11 +43,9 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -168,8 +166,19 @@ public class TestController {
 //    }
     @GetMapping("/rds")
     public Result rdsGet(String key) {
-        Object o = redisService.get(key);
-        return Result.success(o);
+        Set<String> keys = stringRedisTemplate.keys("*" + key + "*");
+        if (CollectionUtils.isEmpty(keys)){
+            return new Result("没有key");
+        }
+        HashMap<String, String> map = new HashMap<>();
+        keys.forEach(index ->
+        {
+            String value = stringRedisTemplate.opsForValue().get(index);
+            map.put(index, value);
+
+        });
+
+        return Result.success(map);
     }
 
     @DeleteMapping("/rds")
