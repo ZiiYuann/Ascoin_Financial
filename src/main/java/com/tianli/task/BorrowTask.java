@@ -48,7 +48,7 @@ public class BorrowTask {
     private WebHookService webHookService;
 
     //    @Scheduled(cron = "0 0 0 1/1 * ? ")  // 1min
-    @Scheduled(cron = "0/1 * * * * ? ") // 1s
+//    @Scheduled(cron = "0/1 * * * * ? ") // 1s
     public void task() {
         String key = RedisConstants.BORROW_TASK + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
         RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
@@ -99,7 +99,7 @@ public class BorrowTask {
         }
     }
 
-    @Scheduled(cron = "0 0 1/1 * * ?")
+//    @Scheduled(cron = "0 0 1/1 * * ?")
     public void interestTask() {
         LocalDateTime now = LocalDateTime.now();
         String key = RedisConstants.BORROW_TASK_INTEREST + now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
@@ -108,7 +108,7 @@ public class BorrowTask {
         atomicLong.expire(Duration.ofSeconds(30));
         while (true) {
             try {
-                long page = atomicLong.getAndDecrement();
+                long page = atomicLong.getAndIncrement();
                 var borrowRecords = borrowRecordService.page(new Page<>(page, 10)
                         , new LambdaQueryWrapper<BorrowRecord>()
                                 .select(BorrowRecord::getId, BorrowRecord::getUid)
