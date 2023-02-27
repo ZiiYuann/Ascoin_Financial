@@ -45,15 +45,25 @@ public class BorrowRecordServiceImpl extends ServiceImpl<BorrowRecordMapper, Bor
 
     @Override
     @Transactional
-    public BorrowRecord copy(Long bid, PledgeStatus pledgeStatus) {
-        LocalDateTime now = LocalDateTime.now();
+    public BorrowRecord getWait(Long bid) {
+
         BorrowRecord borrowRecord = this.getById(bid);
-        borrowRecord.setId(null);
-        borrowRecord.setCreateTime(now);
-        borrowRecord.setUpdateTime(now);
-        borrowRecord.setPledgeStatus(pledgeStatus);
-        borrowRecord.setCopy(true);
-        this.save(borrowRecord);
+
+        BorrowRecord newRecord = this.getOne(new LambdaQueryWrapper<BorrowRecord>()
+                .eq(BorrowRecord::getUid, borrowRecord.getUid())
+                .eq(BorrowRecord::getPledgeStatus, PledgeStatus.WAIT)
+                .eq(BorrowRecord::getParentId, bid));
+        if (Objects.isNull(newRecord)) {
+            LocalDateTime now = LocalDateTime.now();
+            borrowRecord.setId(null);
+            borrowRecord.setCreateTime(now);
+            borrowRecord.setUpdateTime(now);
+            borrowRecord.setPledgeStatus(PledgeStatus.WAIT);
+            borrowRecord.setParentId(bid);
+            this.save(borrowRecord);
+            newRecord = borrowRecord;
+
+        }
         return borrowRecord;
     }
 

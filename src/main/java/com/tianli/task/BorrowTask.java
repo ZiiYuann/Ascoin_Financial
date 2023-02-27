@@ -82,7 +82,7 @@ public class BorrowTask {
                     String lockKey = RedisLockConstants.LOCK_BORROW + borrowRecord.getUid();
 
                     // 自动补仓
-                    if (currencyPledgeRate.compareTo(newRecord.getAssureLqPledgeRate()) < 0) {
+                    if (currencyPledgeRate.compareTo(newRecord.getLqPledgeRate()) < 0) {
                         redissonClientTool.tryLock(lockKey, () -> borrowService.autoReplenishment(borrowRecord)
                                 , ErrorCodeEnum.SYSTEM_BUSY, 30, TimeUnit.SECONDS, true);
                         return;

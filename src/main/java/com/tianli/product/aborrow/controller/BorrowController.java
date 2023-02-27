@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author chenb
@@ -130,6 +132,9 @@ public class BorrowController {
     public Result<List<BorrowRecordPledgeVO>> borrowRecord() {
         Long uid = requestInitService.uid();
         BorrowRecord borrowRecord = borrowRecordService.get(uid);
+        if (Objects.isNull(borrowRecord)) {
+            return new Result<>(new ArrayList<>());
+        }
         return new Result<>(borrowRecordCoinService.vos(uid, borrowRecord.getId()));
     }
 

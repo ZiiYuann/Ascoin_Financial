@@ -468,7 +468,7 @@ public class BorrowServiceImpl implements BorrowService {
         var recordInterests = borrowInterestService.list(uid, bid);
 
         BigDecimal leveRate = BigDecimal.valueOf(0.5f);
-        BigDecimal onePointFive = BigDecimal.valueOf(0.5f);
+        BigDecimal onePointFive = BigDecimal.valueOf(1.5f);
         while (true) {
             final var factLeveRate = leveRate;
 

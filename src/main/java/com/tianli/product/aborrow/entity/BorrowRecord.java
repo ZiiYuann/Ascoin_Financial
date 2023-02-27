@@ -48,7 +48,7 @@ public class BorrowRecord {
 
     private Long newestSnapshotId;
 
-    private boolean copy;
+    private Long parentId;
 
     private boolean finish;
 

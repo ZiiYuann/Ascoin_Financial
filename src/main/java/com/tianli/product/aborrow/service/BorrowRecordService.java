@@ -16,7 +16,7 @@ import com.tianli.product.aborrow.vo.MBorrowUserVO;
  **/
 public interface BorrowRecordService extends IService<BorrowRecord> {
 
-    BorrowRecord copy(Long bid, PledgeStatus pledgeStatus);
+    BorrowRecord getWait(Long bid);
 
     BorrowRecord getAndInit(Long uid, Boolean autoReplenishment);
 

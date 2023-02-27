@@ -313,10 +313,10 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
 
         // 如果不是强制平仓，则生成当前记录的副本，添加到强平记录中
         if (!forced) {
-            BorrowRecord borrowRecord = borrowRecordService.copy(bid, PledgeStatus.WAIT);
+            BorrowRecord borrowRecord = borrowRecordService.getWait(bid);
             Long newBid = borrowRecord.getId();
             BorrowRecordPledge borrowRecordPledge = getAndInit(uid, newBid, coin, PledgeType.WALLET, null);
-            this.casDecrease(borrowRecordPledge.getId(), coin, decreaseAmount, borrowRecordPledge.getAmount(), PledgeType.WALLET);
+            this.casIncrease(borrowRecordPledge.getId(), coin, decreaseAmount, borrowRecordPledge.getAmount(), PledgeType.WALLET);
         }
 
         orderService.save(order);
