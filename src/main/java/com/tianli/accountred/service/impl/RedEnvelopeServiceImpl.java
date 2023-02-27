@@ -323,7 +323,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         String newMemberScore = LocalDateTime.now().toInstant(ZoneOffset.ofHours(8)).toEpochMilli() + "";
 
         String externRecordKey = RedisConstants.RED_EXTERN_RECORD + redEnvelope.getId(); //修改缓存 用于更新领取信息
-        String receivedKey = RedisConstants.SPILT_RED_ENVELOPE_GET + rid + ":" + uid;
+        String receivedUidKey = RedisConstants.SPILT_RED_ENVELOPE_GET + rid + ":" + uid;
+        String receivedDeviceKey = RedisConstants.SPILT_RED_ENVELOPE_GET + rid + ":" + query.getDeviceNumber();
         String exchangeCodeKey = RedisConstants.RED_EXTERN_CODE + query.getExchangeCode();
         String semaphore = RedisConstants.RED_SEMAPHORE + rid + ":" + uid;
         String externKey = RedisConstants.RED_EXTERN + redEnvelope.getId(); //删除缓存 用于减少可领取兑换码缓存
@@ -331,16 +332,21 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         String script =
                 "local externKey = KEYS[4] \n" +
                         "local externRecordKey = KEYS[5] \n" +
+                        "local receivedDeviceKey = KEYS[6] \n" +
                         "local oldMember = ARGV[1] \n" +
                         "local newMember = ARGV[2] \n" +
                         "local newMemberScore = ARGV[3] \n" +
                         "if redis.call('EXISTS', KEYS[1]) > 0 then\n" +
+                        "    return 'RECEIVED'\n" +
+                        "elseif redis.call('EXISTS', receivedDeviceKey) > 0 then\n" +
                         "    return 'RECEIVED'\n" +
                         "elseif redis.call('EXISTS', KEYS[2]) == 0 then\n" +
                         "    return 'FINISH'\n" +
                         "else\n" +
                         "    redis.call('SET',KEYS[1],'')\n" +
                         "    redis.call('EXPIRE',KEYS[1],2592000)\n" +
+                        "    redis.call('SET',receivedDeviceKey,'')\n" +
+                        "    redis.call('EXPIRE',receivedDeviceKey,2592000)\n" +
                         "    redis.call('DEL',KEYS[2])\n" +
                         "    redis.call('SET',KEYS[3],'')\n" +
                         "    redis.call('ZREM',externKey,oldMember)\n" +
@@ -353,7 +359,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         String result;
         try {
             result = stringRedisTemplate.opsForValue().getOperations().execute(redisScript
-                    , List.of(receivedKey, exchangeCodeKey, semaphore, externKey, externRecordKey)
+                    , List.of(receivedUidKey, exchangeCodeKey, semaphore, externKey, externRecordKey, receivedDeviceKey)
                     , oldMember, newMember, newMemberScore);
         } catch (Exception e) {
             // 防止由于网络波动导致的红包异常 暂时做通知处理，如果情况比较多，后续进行补偿
