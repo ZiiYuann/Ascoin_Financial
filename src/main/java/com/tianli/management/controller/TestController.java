@@ -30,6 +30,7 @@ import com.tianli.product.afund.entity.FundIncomeRecord;
 import com.tianli.product.afund.entity.FundRecord;
 import com.tianli.product.afund.service.IFundIncomeRecordService;
 import com.tianli.product.afund.service.IFundRecordService;
+import com.tianli.task.BorrowTask;
 import com.tianli.task.FinancialIncomeTask;
 import com.tianli.task.FundIncomeTask;
 import com.tianli.tool.IPUtils;
@@ -80,6 +81,8 @@ public class TestController {
     private CoinService coinService;
     @Resource
     private RedEnvelopeSpiltService redEnvelopeSpiltService;
+    @Resource
+    private BorrowTask borrowTask;
 
 //    /**
 //     * 基金补偿
@@ -222,5 +225,11 @@ public class TestController {
             ErrorCodeEnum.ACCOUNT_ERROR.throwException();
         }
         return Result.success().setData(redEnvelopeService.get(uid, shortUid, query));
+    }
+
+    @PostMapping("/pledge/cal")
+    public Result<Void> pledgeCal() {
+        borrowTask.task();
+        return new Result<>();
     }
 }

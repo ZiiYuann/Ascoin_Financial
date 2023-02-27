@@ -30,6 +30,8 @@ public class MBorrowOperationLogVO {
 
     private BigDecimal amount;
 
+    private BigDecimal rate;
+
     private ChargeType chargeType;
 
     private String chargeTypeName;

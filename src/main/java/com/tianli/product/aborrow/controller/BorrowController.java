@@ -129,7 +129,7 @@ public class BorrowController {
     @GetMapping("/borrow/record")
     public Result<List<BorrowRecordPledgeVO>> borrowRecord() {
         Long uid = requestInitService.uid();
-        BorrowRecord borrowRecord = borrowRecordService.getValid(uid);
+        BorrowRecord borrowRecord = borrowRecordService.get(uid);
         return new Result<>(borrowRecordCoinService.vos(uid, borrowRecord.getId()));
     }
 

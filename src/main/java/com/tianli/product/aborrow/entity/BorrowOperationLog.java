@@ -35,6 +35,8 @@ public class BorrowOperationLog {
 
     private BigDecimal amount;
 
+    private BigDecimal rate;
+
     private ChargeType chargeType;
 
     private boolean display;
@@ -46,12 +48,15 @@ public class BorrowOperationLog {
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
-    public static BorrowOperationLog log(ChargeType chargeType, Long bid, Long uid, String coin, BigDecimal amount) {
+    public static BorrowOperationLog log(ChargeType chargeType, Long bid, Long uid, String coin
+            , BigDecimal amount, BigDecimal rate) {
         return BorrowOperationLog.builder()
                 .bid(bid)
                 .uid(uid)
                 .coin(coin)
-                .amount(amount).chargeType(chargeType).build();
+                .amount(amount).chargeType(chargeType)
+                .rate(rate)
+                .build();
     }
 
 }

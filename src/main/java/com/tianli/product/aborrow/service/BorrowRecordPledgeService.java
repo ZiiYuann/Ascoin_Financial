@@ -17,9 +17,9 @@ import java.util.List;
  **/
 public interface BorrowRecordPledgeService extends IService<BorrowRecordPledge> {
 
-    void save(Long uid, Long bid, PledgeContextQuery query);
+    void save(Long uid, Long bid, PledgeContextQuery query,boolean auto,boolean addLog);
 
-    void save(Long uid, Long bid, PledgeContextQuery query, ModifyPledgeContextType type);
+    void modifyPledgeContext(Long uid, Long bid, PledgeContextQuery query, ModifyPledgeContextType type);
 
     /**
      * 释放质押物

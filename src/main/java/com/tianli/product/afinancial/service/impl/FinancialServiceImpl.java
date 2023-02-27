@@ -626,7 +626,7 @@ public class FinancialServiceImpl implements FinancialService {
             financialProductVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
 
             financialProductVO.setNewUser(isNewUser);
-            financialProductVO.setCoins(coinService.pushCoinsWithCache(product.getCoin()).stream()
+            financialProductVO. setCoins(coinService.pushCoinsWithCache(product.getCoin()).stream()
                     .map(chainConverter::toCoinVO).collect(Collectors.toList()));
 
             return financialProductVO;

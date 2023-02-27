@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.product.aborrow.entity.BorrowConfigPledge;
 import com.tianli.product.aborrow.entity.BorrowRecord;
+import com.tianli.product.aborrow.enums.PledgeStatus;
 import com.tianli.product.aborrow.query.BorrowUserQuery;
 import com.tianli.product.aborrow.vo.MBorrowUserVO;
 
@@ -15,6 +16,8 @@ import com.tianli.product.aborrow.vo.MBorrowUserVO;
  **/
 public interface BorrowRecordService extends IService<BorrowRecord> {
 
+    BorrowRecord copy(Long bid, PledgeStatus pledgeStatus);
+
     BorrowRecord getAndInit(Long uid, Boolean autoReplenishment);
 
     BorrowRecord getValid(Long uid);
@@ -23,5 +26,5 @@ public interface BorrowRecordService extends IService<BorrowRecord> {
 
     IPage<MBorrowUserVO> pledgeUsers(Page<BorrowRecord> page, BorrowUserQuery query);
 
-    void finish(Long uid,Long bid);
+    void finish(Long uid, Long bid);
 }

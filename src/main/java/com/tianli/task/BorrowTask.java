@@ -52,11 +52,10 @@ public class BorrowTask {
     public void task() {
         String key = RedisConstants.BORROW_TASK + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
         RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
-        long pagePre = atomicLong.get();
+        long page = atomicLong.incrementAndGet();
         atomicLong.expire(Duration.ofSeconds(30));
         while (true) {
             try {
-                long page = atomicLong.getAndIncrement();
                 var borrowRecords = borrowRecordService.page(new Page<>(page, 10)
                                 , new LambdaQueryWrapper<BorrowRecord>()
                                         .in(BorrowRecord::getPledgeStatus, List.of(PledgeStatus.PROCESS))
@@ -81,25 +80,31 @@ public class BorrowTask {
                         return;
                     }
                     String lockKey = RedisLockConstants.LOCK_BORROW + borrowRecord.getUid();
-                    if (currencyPledgeRate.compareTo(lqPledgeRate) < 0) {
+
+                    // 自动补仓
+                    if (currencyPledgeRate.compareTo(newRecord.getAssureLqPledgeRate()) < 0) {
                         redissonClientTool.tryLock(lockKey, () -> borrowService.autoReplenishment(borrowRecord)
                                 , ErrorCodeEnum.SYSTEM_BUSY, 30, TimeUnit.SECONDS, true);
                         return;
                     }
+
+                    // 强制平仓
                     redissonClientTool.tryLock(lockKey, () -> borrowService.forcedCloseout(borrowRecord)
                             , ErrorCodeEnum.SYSTEM_BUSY, 30, TimeUnit.SECONDS, true);
 
                 });
+                page = atomicLong.incrementAndGet();
 
             } catch (Exception e) {
                 // 防止异常导致部分记录未计算
                 e.printStackTrace();
-                webHookService.dingTalkSend("借贷定时任务异常：" + key + "  page：" + pagePre);
+                webHookService.dingTalkSend("借贷定时任务异常：" + key + "  page：" + page);
+                break;
             }
         }
     }
 
-//    @Scheduled(cron = "0 0 1/1 * * ?")
+    //    @Scheduled(cron = "0 0 1/1 * * ?")
     public void interestTask() {
         LocalDateTime now = LocalDateTime.now();
         String key = RedisConstants.BORROW_TASK_INTEREST + now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));

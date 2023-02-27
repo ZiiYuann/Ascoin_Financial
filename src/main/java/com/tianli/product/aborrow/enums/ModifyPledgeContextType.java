@@ -6,5 +6,5 @@ package com.tianli.product.aborrow.enums;
 * @since 2023-02-16
 **/
 public enum ModifyPledgeContextType {
-    ADD,REDUCE
+    ADD,REDUCE,AUTO_ADD
 }

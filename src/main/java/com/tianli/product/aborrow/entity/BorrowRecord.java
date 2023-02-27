@@ -48,6 +48,8 @@ public class BorrowRecord {
 
     private Long newestSnapshotId;
 
+    private boolean copy;
+
     private boolean finish;
 
     private PledgeStatus pledgeStatus;

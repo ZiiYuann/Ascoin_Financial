@@ -28,8 +28,8 @@ import com.tianli.product.aborrow.vo.HoldPledgingVO;
 import com.tianli.product.afinancial.entity.FinancialRecord;
 import com.tianli.product.afinancial.service.FinancialRecordService;
 import com.tianli.product.vo.RateVo;
-import com.tianli.tool.ApplicationContextTool;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,7 +95,7 @@ public class BorrowServiceImpl implements BorrowService {
                 .borrow(true).build(), true);
 
 
-        query.getPledgeContext().forEach(context -> borrowRecordPledgeService.save(uid, bid, context));
+        query.getPledgeContext().forEach(context -> borrowRecordPledgeService.save(uid, bid, context, false, true));
         borrowRecordCoinService.save(uid, bid, query);
 
         this.insertOperationLog(bid, ChargeType.borrow
@@ -118,10 +118,18 @@ public class BorrowServiceImpl implements BorrowService {
         BorrowRecord borrowRecord = borrowRecordService.getValid(uid);
 
         query.getPledgeContext().forEach(pledgeContext -> {
-            borrowRecordPledgeService.save(uid, borrowRecord.getId(), pledgeContext, query.getType());
+            borrowRecordPledgeService.modifyPledgeContext(uid, borrowRecord.getId(), pledgeContext, query.getType());
 
-            ChargeType chargeType = ModifyPledgeContextType.ADD.equals(query.getType()) ?
-                    ChargeType.pledge : ChargeType.release;
+            ChargeType chargeType = null;
+            if (ModifyPledgeContextType.ADD.equals(query.getType())) {
+                chargeType = ChargeType.pledge;
+            }
+            if (ModifyPledgeContextType.REDUCE.equals(query.getType())) {
+                chargeType = ChargeType.release;
+            }
+            if (ModifyPledgeContextType.AUTO_ADD.equals(query.getType())) {
+                chargeType = ChargeType.auto_re;
+            }
 
             this.insertOperationLog(borrowRecord.getId(), chargeType
                     , uid, pledgeContext.getCoin(), pledgeContext.getPledgeAmount());
@@ -167,13 +175,6 @@ public class BorrowServiceImpl implements BorrowService {
 
         borrowRecordService.saveOrUpdate(borrowRecord);
         return borrowRecord;
-    }
-
-    @Override
-    public BorrowRecord calPledgeRate(BorrowRecord borrowRecord, boolean borrow) {
-        BorrowServiceImpl bean = ApplicationContextTool.getBean(BorrowServiceImpl.class);
-        bean = Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
-        return bean.calPledgeRate(borrowRecord, borrowRecord.getUid(), borrowRecord.isAutoReplenishment(), borrow);
     }
 
     @Override
@@ -320,12 +321,12 @@ public class BorrowServiceImpl implements BorrowService {
         var currencyPledgeRate = borrowAmount.add(interestFee).divide(pledgeFee, 8, RoundingMode.UP);
         var lqPledgeRate = lqFee.divide(pledgeFee, 8, RoundingMode.UP);
         var warnPledgeRate = warnFee.divide(pledgeFee, 8, RoundingMode.UP);
-        var assureLqPledgeRate = warnFee.divide(pledgeFee, 8, RoundingMode.UP);
+        var assureLqPledgeRate = assureLqFee.divide(pledgeFee, 8, RoundingMode.UP);
         var initPledgeRate = initFee.divide(pledgeFee, 8, RoundingMode.UP);
 
         return PledgeRateDto.builder()
                 .pledgeFee(pledgeFee)
-                .LqFee(lqPledgeRate)
+                .LqFee(lqFee)
                 .lqPledgeRate(lqPledgeRate)
                 .warnFee(warnFee)
                 .warnPledgeRate(warnPledgeRate)
@@ -343,7 +344,12 @@ public class BorrowServiceImpl implements BorrowService {
     public BorrowRecordSnapshotVO newestSnapshot(Long uid) {
         BorrowRecord borrowRecord = borrowRecordService.get(uid);
         if (Objects.isNull(borrowRecord)) {
-            return null;
+            return BorrowRecordSnapshotVO.builder()
+                    .coinRates(new ArrayList<>())
+                    .holdPledgingVOS(new ArrayList<>())
+                    .holdBorrowingVOS(new ArrayList<>())
+                    .pledgeRateDto(new PledgeRateDto())
+                    .borrowRecordVO(new BorrowRecordVO()).build();
         }
 
         BorrowRecordSnapshot borrowRecordSnapshot = borrowRecordSnapshotService.getById(borrowRecord.getNewestSnapshotId());
@@ -414,7 +420,7 @@ public class BorrowServiceImpl implements BorrowService {
         accountBalances.sort((e1, e2) -> e2.getRemain().multiply(rateMap.get(e2.getCoin()))
                 .compareTo(e1.getRemain().multiply(rateMap.get(e1.getCoin()))));
 
-        var configPledgeMap = borrowConfigPledgeService.listByIds(borrowCoins).stream()
+        var configPledgeMap = borrowConfigPledgeService.listByIds(pledgeCoins).stream()
                 .collect(Collectors.toMap(BorrowConfigPledge::getCoin, o -> o));
 
         BigDecimal borrowFee = recordCoins.stream().map(borrow -> borrow.getAmount().multiply(rateMap.get(borrow.getCoin())))
@@ -439,27 +445,17 @@ public class BorrowServiceImpl implements BorrowService {
 
 
             if (accountBalance.getRemain().compareTo(replenishmentAmount) >= 0) {
-
                 this.modifyPledgeContext(uid, ModifyPledgeContextQuery.builder()
-                        .type(ModifyPledgeContextType.ADD)
+                        .type(ModifyPledgeContextType.AUTO_ADD)
                         .pledgeContext(List.of(PledgeContextQuery.builder()
                                 .pledgeType(PledgeType.WALLET)
                                 .coin(coin)
                                 .pledgeAmount(replenishmentAmount).build())).build());
-
-                Order order = Order.success(uid, ChargeType.auto_re, coin, replenishmentAmount, bid);
-                orderService.save(order);
-
-                this.insertOperationLog(borrowRecord.getId(), ChargeType.auto_re
-                        , uid, coin, replenishmentAmount);
-                // todo 补仓成功
                 return;
             }
         }
 
-        // todo 手动
-
-
+        // todo 通知补仓
     }
 
     @Override
@@ -470,7 +466,6 @@ public class BorrowServiceImpl implements BorrowService {
         var recordPledgeDtos = borrowRecordPledgeService.dtoListByUid(uid, bid);
         var recordCoins = borrowRecordCoinService.listByUid(uid, bid);
         var recordInterests = borrowInterestService.list(uid, bid);
-
 
         BigDecimal leveRate = BigDecimal.valueOf(0.5f);
         BigDecimal onePointFive = BigDecimal.valueOf(0.5f);
@@ -525,7 +520,8 @@ public class BorrowServiceImpl implements BorrowService {
             , Long uid, String coin, BigDecimal amount) {
 
         var borrowRecord = borrowRecordService.getById(bid);
-        BorrowOperationLog operationLog = BorrowOperationLog.log(chargeType, borrowRecord.getId(), uid, coin, amount);
+        BorrowOperationLog operationLog = BorrowOperationLog.log(chargeType, borrowRecord.getId()
+                , uid, coin, amount, currencyService.getDollarRate(coin));
         operationLog.setPrePledgeRate(borrowRecord.getCurrencyPledgeRate());
 
         borrowRecord = this.calPledgeRate(borrowRecord, uid, borrowRecord.isAutoReplenishment(), false);

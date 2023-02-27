@@ -21,4 +21,6 @@ public interface BorrowHedgeEntrustService extends IService<BorrowHedgeEntrust> 
     IPage<MBorrowHedgeEntrustVO> vos(Page<BorrowHedgeEntrust> page, MBorrowHedgeQuery query);
 
     void cancel(IdsQuery query);
+
+
 }

@@ -25,8 +25,6 @@ public interface BorrowService {
 
     BorrowRecord calPledgeRate(BorrowRecord borrowRecord, Long uid, Boolean autoReplenishment, boolean borrow);
 
-    BorrowRecord calPledgeRate(BorrowRecord borrowRecord, boolean borrow);
-
     PledgeRateDto preCalPledgeRate(Long uid, CalPledgeQuery borrowCoinQuery, boolean borrowOperation);
 
     PledgeRateDto calPledgeRate(HashMap<String, BigDecimal> rateMap
@@ -43,7 +41,14 @@ public interface BorrowService {
 
     BorrowRecordSnapshotVO newestSnapshot(Long uid);
 
+    /**
+     * 自动补仓
+     */
     void autoReplenishment(BorrowRecord borrowRecord);
 
+    /**
+     * 强制平仓
+     */
     void forcedCloseout(BorrowRecord borrowRecord);
+
 }

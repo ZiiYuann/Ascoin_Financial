@@ -869,7 +869,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
     public static void main(String[] args) {
 
-        String s = PBE.encryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, "1757699208289090917");
+        String s = PBE.encryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, "1758968400237400317");
         log.info(s);
     }
 
