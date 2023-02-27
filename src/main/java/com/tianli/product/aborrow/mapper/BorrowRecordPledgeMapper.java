@@ -29,7 +29,7 @@ public interface BorrowRecordPledgeMapper extends BaseMapper<BorrowRecordPledge>
 
     @Update(" UPDATE  borrow_record_pledge SET `amount` = `amount` - #{decreaseAmount}  WHERE" +
             " id =#{id} AND `coin` =#{coin} and `amount` =#{originalAmount} AND `amount` >= #{decreaseAmount}" +
-            "and `pledge_type`=#{pledgeType} ")
+            " and `pledge_type`=#{pledgeType} ")
     int casDecrease(@Param("id") Long id,
                     @Param("coin") String coin,
                     @Param("decreaseAmount") BigDecimal decreaseAmount,

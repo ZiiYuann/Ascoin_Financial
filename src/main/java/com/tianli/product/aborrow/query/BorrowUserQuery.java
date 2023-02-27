@@ -7,11 +7,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -50,7 +52,14 @@ public class BorrowUserQuery {
     @QueryWrapperGenerator(field = "finish")
     private Boolean finish;
 
-    @QueryWrapperGenerator(field = "pledge_status",op = SqlKeyword.IN)
+    @QueryWrapperGenerator(field = "pledge_status", op = SqlKeyword.IN)
     private List<PledgeStatus> pledgeStatus;
 
+
+    public List<String> getPledgeStatus() {
+        if (CollectionUtils.isNotEmpty(pledgeStatus)) {
+            return pledgeStatus.stream().map(PledgeStatus::name).collect(Collectors.toList());
+        }
+        return null;
+    }
 }

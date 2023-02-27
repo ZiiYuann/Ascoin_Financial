@@ -61,7 +61,7 @@ public class QueryWrapperUtils {
                     result = result.ge(fieldName, param);
                 case IN:
                     if (CollectionUtils.isNotEmpty((Collection<?>) param)) {
-                        result = result.in(fieldName, param);
+                        result = result.in(fieldName, ((Collection<?>) param).toArray());
 
                     }
                 default:
