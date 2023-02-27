@@ -4,8 +4,8 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.service.ChainService;
+import com.tianli.sqs.AbstractSqsReceiveHandler;
 import com.tianli.sqs.SqsContext;
-import com.tianli.sqs.SqsReceiveHandler;
 import com.tianli.sqs.SqsTypeEnum;
 import com.tianli.sqs.context.PushAddressContext;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ import java.util.List;
  **/
 @Slf4j
 @Component
-public class PushAddressHandler implements SqsReceiveHandler {
+public class PushAddressHandler extends AbstractSqsReceiveHandler {
 
     @Resource
     private ChainService chainService;
@@ -31,7 +31,7 @@ public class PushAddressHandler implements SqsReceiveHandler {
     @Override
     @Transactional
     @SuppressWarnings("unchecked")
-    public void handler(Message message) {
+    public void handlerOperation(Message message) {
         SqsContext<JSONObject> sqsContext = JSONUtil.toBean(message.body(), SqsContext.class);
         PushAddressContext pushAddressContext = JSONUtil.toBean(sqsContext.getContext(), PushAddressContext.class);
         List<String> addresses = pushAddressContext.getAddresses();

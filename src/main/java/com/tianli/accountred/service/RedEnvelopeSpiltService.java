@@ -1,9 +1,15 @@
 package com.tianli.accountred.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tianli.accountred.dto.RedEnvelopStatusDTO;
+import com.tianli.accountred.dto.RedEnvelopeGetDTO;
+import com.tianli.accountred.dto.RedEnvelopeSpiltDTO;
 import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
-import com.tianli.accountred.query.RedEnvelopeGetQuery;
+import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
+import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO;
+import com.tianli.accountred.vo.RedEnvelopeExternGetDetailsVO;
+import com.tianli.common.PageQuery;
 
 import java.util.List;
 
@@ -15,22 +21,32 @@ import java.util.List;
 public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
 
     /**
+     * 领取拆分红包
+     * <p>
+     * 涉及到的DML操作
+     * 1、生成 order
+     * 2、操作 account_balance
+     *
+     * @param uid               用户id
+     * @param shortUid          用户id短码
+     * @param spiltId           拆分红包id
+     * @param redEnvelopeGetDTO 领取红包参数
+     */
+    RedEnvelopeSpiltGetRecord getSpilt(Long uid, Long shortUid, String spiltId, RedEnvelopeGetDTO redEnvelopeGetDTO);
+
+    /**
+     * 涉及到的DML操作
+     * 1、修改 red_envelope_spilt 的状态
+     * 2、插入 red_envelope_spilt_get_record 记录
+     */
+    RedEnvelopeSpiltGetRecord generateRecord(Long uid, Long shortUid, String uuid, RedEnvelopeGetDTO redEnvelopeGetDTO);
+
+    /**
      * 拆分红包,并且会把拆分id缓存到redis中
      *
      * @param redEnvelope 红包信息
      */
     void spiltRedEnvelope(RedEnvelope redEnvelope);
-
-    /**
-     * 领取拆分红包
-     *
-     * @param uid                 用户id
-     * @param shortUid            用户id短码
-     * @param uuid                拆分红包id
-     * @param redEnvelopeGetQuery 领取红包参数
-     * @return 领取信息
-     */
-    RedEnvelopeSpilt getRedEnvelopeSpilt(Long uid, Long shortUid, String uuid, RedEnvelopeGetQuery redEnvelopeGetQuery);
 
     /**
      * 获取子红包
@@ -39,5 +55,40 @@ public interface RedEnvelopeSpiltService extends IService<RedEnvelopeSpilt> {
      * @param receive 领取状态
      * @return 红包列表
      */
-    List<RedEnvelopeSpilt> getRedEnvelopeSpilt(Long rid, boolean receive);
+    List<RedEnvelopeSpilt> getSpilt(Long rid, boolean receive);
+
+    /**
+     * 获取兑换码
+     */
+    RedEnvelopeExchangeCodeVO getExchangeCode(Long rid, String ip, String fingerprint);
+
+    /**
+     * 获取临近当前时间最近的过期 时间信息
+     */
+    RedEnvelopStatusDTO getLatestExpireDTO(String externKey, long now);
+
+    /**
+     * 获取小于当前时间红包状态信息
+     */
+    RedEnvelopStatusDTO getNotExpireDTO(String externKey, long now);
+
+    RedEnvelopStatusDTO getIpOrFingerDTO(String fingerprint, Long rid);
+
+    /**
+     * 获取红包领取记录VO（站外实未领取，分页50条一页）
+     *
+     * @param redEnvelope 红包参数
+     * @param pageQuery   分页参数
+     * @return 红包领取记录
+     */
+    RedEnvelopeExternGetDetailsVO getExternDetailsRedis(RedEnvelope redEnvelope, PageQuery<RedEnvelopeSpiltGetRecord> pageQuery);
+
+    /**
+     * 根据兑换码获取拆分红包信息
+     *
+     * @param exchangeCode 兑换码
+     * @return 拆分红包信息
+     */
+    RedEnvelopeSpiltDTO getRedEnvelopeSpiltDTOCache(String exchangeCode);
+
 }

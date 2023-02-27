@@ -3,6 +3,7 @@ package com.tianli.chain.controller;
 import com.tianli.chain.converter.ChainConverter;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.enums.ChainType;
+import com.tianli.chain.service.CoinBaseService;
 import com.tianli.chain.service.CoinService;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.vo.CoinMapVO;
@@ -36,6 +37,8 @@ public class ChainController {
     private CoinService coinService;
     @Resource
     private ChainConverter chainConverter;
+    @Resource
+    private CoinBaseService coinBaseService;
 
     /**
      * 校验地址有效
@@ -52,7 +55,7 @@ public class ChainController {
      * 获取上线的币别信息
      */
     @GetMapping("/coin/infos")
-    public Result coinInfos(Integer version) {
+    public Result<List<CoinMapVO>> coinInfos(Integer version) {
         final var versionFinal = Optional.ofNullable(version).orElse(0);
         List<Coin> coins = coinService.pushCoinsWithCache();
 
@@ -74,11 +77,12 @@ public class ChainController {
             value.sort(Comparator.comparing(coin -> coin.getChain().getSequence()));
             value.forEach(e -> e.setChainName(e.getChain().getDisplay()));
             coinMapVO.setCoins(value);
+            coinMapVO.setCoinUrl(coinBaseService.getByName(key).getLogo());
             coinMapVO.setWithdrawDecimals(value.get(0).getWithdrawDecimals());
             result.add(coinMapVO);
         });
 
-        return Result.success().setData(result);
+        return new Result<>(result);
     }
 
     @GetMapping("/network")

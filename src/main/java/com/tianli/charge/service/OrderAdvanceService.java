@@ -154,7 +154,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
             financialRecord.setStatus(RecordStatus.SUCCESS);
             financialRecord.setLocalPurchase(true);
             financialRecordService.updateById(financialRecord);
-            webHookService.dingTalkSend("监测到理财预购订单申购事件" + query.getTxid() + ",时间：" + LocalDateTime.now());
+//            webHookService.dingTalkSend("监测到理财预购订单申购事件" + query.getTxid() + ",时间：" + LocalDateTime.now());
             return chargeService.orderDetails(requestInitService.uid()
                     , AccountChangeType.advance_purchase.getPrefix() + query.getId());
 
@@ -211,7 +211,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
             orderFundTransactionVO.setProductName(product.getName());
             orderFundTransactionVO.setProductNameEn(product.getNameEn());
             orderFundTransactionVO.setType(FundTransactionType.purchase);
-            webHookService.dingTalkSend("监测到基金预购订单申购事件" + query.getTxid() + ",时间：" + LocalDateTime.now());
+//            webHookService.dingTalkSend("监测到基金预购订单申购事件" + query.getTxid() + ",时间：" + LocalDateTime.now());
             return orderFundTransactionVO;
         }
 
@@ -261,7 +261,7 @@ public class OrderAdvanceService extends ServiceImpl<OrderAdvanceMapper, OrderAd
                 return;
             }
 
-            webHookService.dingTalkSend("监测到预购订单消费事件" + req.getHash() + ",时间：" + LocalDateTime.now());
+//            webHookService.dingTalkSend("监测到预购订单消费事件" + req.getHash() + ",时间：" + LocalDateTime.now());
 
             Order order = orderService.getByOrderNo(AccountChangeType.advance_purchase.getPrefix() + orderAdvance.getId());
 

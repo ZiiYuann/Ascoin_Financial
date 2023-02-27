@@ -46,6 +46,8 @@ public class RedEnvelopeGetVO {
 
     private String coinUrl;
 
+    private String remarks;
+
     public RedEnvelopeGetVO(RedEnvelopeStatus status, CoinBase coin) {
         this.status = status;
         this.coin = coin.getName();

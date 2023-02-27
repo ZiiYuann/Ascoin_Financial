@@ -1,0 +1,49 @@
+package com.tianli.accountred.service;
+
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.tianli.accountred.entity.RedEnvelopeConfig;
+import com.tianli.accountred.enums.RedEnvelopeChannel;
+import com.tianli.accountred.vo.RedEnvelopeConfigVO;
+import com.tianli.other.query.RedEnvelopeConfigIoUQuery;
+
+import java.util.List;
+
+/**
+ * @author chenb
+ * @apiNote
+ * @since 2022-10-17
+ **/
+public interface RedEnvelopeConfigService extends IService<RedEnvelopeConfig> {
+
+    /**
+     * 保存或者更新
+     *
+     * @param query 请求参数
+     */
+    void saveOrUpdate(String nickName,RedEnvelopeConfigIoUQuery query);
+
+
+    /**
+     * 通过币别和渠道获相对应的配置
+     *
+     * @param coin    币别
+     * @param channel 渠道
+     */
+    RedEnvelopeConfig getOne(String coin, RedEnvelopeChannel channel);
+
+    /**
+     * 通过币别和渠道获相对应的配置
+     * @param coin 币别
+     * @param channel 渠道
+     * @return
+     */
+    RedEnvelopeConfig getDetails(String coin,RedEnvelopeChannel channel);
+
+    /**
+     * 获取红包配置列表
+     * @param channel
+     * @return
+     */
+    List<RedEnvelopeConfigVO> getList(String channel, String coin);
+}
+

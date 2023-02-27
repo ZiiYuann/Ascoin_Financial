@@ -3,6 +3,7 @@ package com.tianli.sqs.context;
 import com.tianli.chain.entity.Coin;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;

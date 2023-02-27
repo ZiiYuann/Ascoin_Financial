@@ -1,5 +1,6 @@
 package com.tianli.accountred.query;
 
+import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.enums.RedEnvelopeType;
 import com.tianli.accountred.enums.RedEnvelopeWay;
 import com.tianli.common.query.IoUQuery;
@@ -23,7 +24,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class RedEnvelopeIoUQuery extends IoUQuery {
 
-    @NotBlank(message = "红包唯一标示不允许为空")
     private String flag;
 
     private String coin;
@@ -35,6 +35,8 @@ public class RedEnvelopeIoUQuery extends IoUQuery {
     private int num;
 
     private String remarks;
+
+    private RedEnvelopeChannel channel = RedEnvelopeChannel.CHAT;
 
     private RedEnvelopeType type;
 

@@ -3,12 +3,10 @@ package com.tianli.openapi.controller;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.AccountUserTransferVO;
-import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.management.query.UidsQuery;
-import com.tianli.openapi.dto.IdDto;
 import com.tianli.openapi.dto.TransferResultDto;
 import com.tianli.openapi.query.OpenapiOperationQuery;
 import com.tianli.openapi.query.UserTransferQuery;
@@ -38,6 +36,7 @@ public class OpenApiController {
     private ChargeService chargeService;
     @Resource
     private AccountBalanceService accountBalanceService;
+
 
     /**
      * 奖励接口
@@ -129,15 +128,15 @@ public class OpenApiController {
     /**
      * 订单信息
      */
-    @GetMapping("/transferInfo/{transferId}")
-    public Result<AccountUserTransferVO> transferOrder(@PathVariable Long transferId,
+    @GetMapping("/transferInfo/{externalPk}")
+    public Result<AccountUserTransferVO> transferOrder(@PathVariable Long externalPk,
                                                        @RequestHeader("sign") String sign,
                                                        @RequestHeader("timestamp") String timestamp) {
 
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
-        return new Result<>(openApiService.transferOrder(transferId));
+        return new Result<>(openApiService.transferOrder(externalPk));
     }
 
     /**
@@ -190,9 +189,9 @@ public class OpenApiController {
      * nft返还gas
      */
     @PostMapping("/return/gas")
-    public Result returnGas(@RequestBody @Valid OpenapiOperationQuery query,
-                            @RequestHeader("sign") String sign,
-                            @RequestHeader("timestamp") String timestamp) {
+    public Result<Void> returnGas(@RequestBody @Valid OpenapiOperationQuery query,
+                                  @RequestHeader("sign") String sign,
+                                  @RequestHeader("timestamp") String timestamp) {
 
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
@@ -205,14 +204,17 @@ public class OpenApiController {
      * cpl金币奖励
      */
     @PostMapping("/gold/exchange")
-    public Result goldExchange(@RequestBody @Valid OpenapiOperationQuery query,
-                               @RequestHeader("sign") String sign,
-                               @RequestHeader("timestamp") String timestamp) {
+    public Result<Void> goldExchange(@RequestBody @Valid OpenapiOperationQuery query,
+                                     @RequestHeader("sign") String sign,
+                                     @RequestHeader("timestamp") String timestamp) {
 
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
         openApiService.goldExchange(query);
-        return Result.success();
+        return new Result<>();
     }
+
+
+
 }

@@ -12,9 +12,24 @@ public enum RedEnvelopeStatus {
     FAIL,
     FINISH,
     OVERDUE,
+    // 手动退回
+    BACK,
+
+//   --------------------  上面的状态会持久化落库
 
     // RECEIVED:已经领取 SUCCESS:领取成功
     RECEIVED,
     SUCCESS,
+    EXCHANGE,
+    WAIT_EXCHANGE,
+
+    // 临时结束
+    FINISH_TEMP,
+    ;
+
+
+    public static boolean valid(RedEnvelopeStatus status) {
+        return PROCESS.equals(status);
+    }
 
 }

@@ -28,6 +28,7 @@ import com.tianli.product.afinancial.vo.DollarIncomeVO;
 import com.tianli.product.afund.query.FundRecordQuery;
 import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.management.dto.AmountDto;
+import com.tianli.tool.ApplicationContextTool;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -183,7 +184,9 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
     }
 
     public void unfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
-        unfreeze(uid, type, coin, null, amount, sn, des);
+        AccountBalanceServiceImpl bean = ApplicationContextTool.getBean(this.getClass());
+        Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR :: generalException)
+                .unfreeze(uid, type, coin, null, amount, sn, des);
     }
 
     @Transactional
@@ -298,6 +301,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         return accountBalanceVOS;
     }
 
+    @Transactional
     public AccountBalanceVO accountSingleCoin(Long uid, String coinName) {
         CoinBase coinBase = validCurrencyToken(coinName);
 

@@ -3,6 +3,7 @@ package com.tianli.sqs;
 import cn.hutool.json.JSONUtil;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.mconfig.ConfigService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.Objects;
  * @apiNote
  * @since 2022-11-23
  **/
+@Slf4j
 @Service
 public class SqsService {
 
@@ -37,13 +39,13 @@ public class SqsService {
         }
 
         sqsClientConfig.getSqsClient().sendMessage(builder -> {
-            builder.queueUrl(configService.getOrDefault("sqs.url","https://sqs.ap-northeast-1.amazonaws.com/228032912223/financial-sqs"))
+            builder.queueUrl(configService.getOrDefault("sqs.url", "https://sqs.ap-northeast-1.amazonaws.com/228032912223/financial-sqs"))
                     .messageBody(JSONUtil.toJsonStr(sqsContext));
         });
     }
 
     public int receiveAndDelete(String url, int maxNumberOfMessages) {
-        var sqsUrl = configService.getOrDefault("sqs.url","https://sqs.ap-northeast-1.amazonaws.com/228032912223/financial-sqs");
+        var sqsUrl = configService.getOrDefault("sqs.url", "https://sqs.ap-northeast-1.amazonaws.com/228032912223/financial-sqs");
         url = StringUtils.isBlank(url) ? sqsUrl : url;
         final String finalUrl = url;
         ReceiveMessageResponse receiveMessageResponse = sqsClientConfig.getSqsClient().receiveMessage(builder -> {
@@ -54,6 +56,7 @@ public class SqsService {
 
         List<Message> messages = receiveMessageResponse.messages();
         if (CollectionUtils.isNotEmpty(messages)) {
+            log.info("sqs处理消息，数量:{}", messages.size());
             messages.forEach(message -> {
                 try {
                     SqsContext<?> sqsContext = JSONUtil.toBean(message.body(), SqsContext.class);
@@ -64,6 +67,8 @@ public class SqsService {
                 } catch (Exception e) {
                     e.printStackTrace();
                     webHookService.dingTalkSend("推送地址消费失败", e);
+                    sqsClientConfig.getSqsClient().deleteMessage(builder ->
+                            builder.queueUrl(sqsUrl).receiptHandle(message.receiptHandle()));
                 }
             });
         }

@@ -15,6 +15,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by wangqiyun on 2018/1/18.
@@ -76,6 +78,26 @@ public class HandleExceptionController {
         return Result.fail(ErrorCodeEnum.ARGUEMENT_ERROR);
     }
 
+
+    @ExceptionHandler(value = CustomException.class)
+    public Result customExceptionHandler(CustomException e){
+        Result result = Result.instance();
+        String message = e.getMessage();
+        String regEx = "[^0-9]";
+        Pattern p = Pattern.compile(regEx);
+        Matcher matcher = p.matcher(message);
+        String trim = matcher.replaceAll("").trim();
+        String[] num = {trim};
+        String s = num[0];
+        int firstChinaChartIndex = getFirstChinaChartIndex(message);
+        String substring = message.substring(firstChinaChartIndex, message.indexOf(s));
+        String transMsg = getEnMsg(substring);
+        result.setCode(e.getCode().toString());
+        result.setMsg(e.getMessage());
+        result.setEnMsg(message.substring(0,firstChinaChartIndex)+" "+transMsg+""+message.substring(message.indexOf(s)));
+        return result;
+    }
+
     private String getEnMsg(String msg) {
         String transMsg = errMsgMappingService.getTransMsg("en", msg);
         return transMsg == null ? msg : transMsg;
@@ -85,6 +107,26 @@ public class HandleExceptionController {
         String transMsg = errMsgMappingService.getTransMsg("thai", msg);
         return transMsg == null ? msg : transMsg;
     }
+
+    /**
+     * 获取第一个中文字符索引
+     * @param str
+     * @return
+     */
+    private int getFirstChinaChartIndex(String str){
+        int beginIndex=0;
+        for (int index = 0;index<=str.length()-1;index++) {
+            //将字符串拆开成单个的字符
+            String w = str.substring(index, index + 1);
+            if (w.compareTo("\u4e00") > 0 && w.compareTo("\u9fa5") < 0) {// \u4e00-\u9fa5 中文汉字的范围
+                beginIndex=index;
+                break;
+            }
+        }
+        return beginIndex;
+    }
+
+    private static boolean checkIfExistChineseCharacter(String s) { return !(s.length() == s.getBytes().length); }
 
     @Resource
     private ErrMsgMappingService errMsgMappingService;

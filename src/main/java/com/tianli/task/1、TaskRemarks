@@ -1,0 +1,9 @@
+
+
+1、SqsTask 1秒
+2、FinancialBoardTask 每天0点
+3、FinancialIncomeTask 每天0点
+4、FundIncomeTask 每天1点
+5、OrderTask 15分钟一次
+6、RedEnvelopeTask 1分钟一次
+7、WithdrawTask 15分钟一次

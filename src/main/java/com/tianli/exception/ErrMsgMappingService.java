@@ -1,5 +1,7 @@
 package com.tianli.exception;
 
+import com.tianli.common.GoogleTranslator;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Locale;
@@ -10,17 +12,18 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class ErrMsgMappingService {
 
-    public void putThaiMsg(String type, String msg, String transMsg){
-        switch (type){
+    public void putThaiMsg(String type, String msg, String transMsg) {
+        switch (type) {
             case "en":
                 EN_ERR_MSG_PAIRS.put(msg, transMsg);
                 break;
-            default: break;
+            default:
+                break;
         }
     }
 
-    public String getTransMsg(String type, String msg){
-        switch (type){
+    public String getTransMsg(String type, String msg) {
+        switch (type) {
             case "en":
                 return EN_ERR_MSG_PAIRS.get(msg);
         }

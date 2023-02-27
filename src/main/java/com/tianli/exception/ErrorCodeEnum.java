@@ -149,7 +149,18 @@ public enum ErrorCodeEnum {
     RED_LIMIT_AMOUNT(3706, "单个红包数额不得低于0.000001"),
     RED_ORDER_NOT_FIND(3707, "红包订单未找到"),
     RED_SET_BLOOM_FAIl(3708, "红包发送失败(bloom)"),
-
+    RED_NUM_ERROR(3709, "红包数量异常"),
+    RED_AMOUNT_ERROR(3710, "红包金额异常"),
+    RED_EXCHANGE_ERROR(3711, "红包兑换码无效"),
+    RED_HAVE_RECEIVED(3712, "红包已领取"),
+    RED_STRATEGY_ERROR(3713, "红包策略暂不支持"),
+    RED_EXTERN_LIMIT(3714, "站外红包领取限制"),
+    RED_FLAG_NULL(3715, "flag不能为null"),
+    RED_NUM_CONFIG_ERROR(3716, "红包配置数量不能超过1000"),
+    RED_IP_LIMIT(3717, "该IP领取超限"),
+    RED_TOTAL_AMOUNT_LIMIT(3718,"红包价值不得超过"),
+    RED_OVERDUE(3719,"红包已过期"),
+    RED_TRANSFER_ING(3720,"红包异步转账未完成"),
 
     /*** －－－－－－业务错误码-理财相关－－－－－－*/
     FINANCIAL_INCOME_REPEAT(3801, "理财利息当日利息已经计算"),
