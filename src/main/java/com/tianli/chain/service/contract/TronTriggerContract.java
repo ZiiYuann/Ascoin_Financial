@@ -103,7 +103,7 @@ public class TronTriggerContract extends AbstractContractOperation {
         if (toAddress == null || toAddress.isEmpty()) toAddress = ownerAddress;
 
         String data = super.buildRecycleData(toAddress, addressIds, tokenContractAddresses);
-        return triggerSmartContract(ownerAddress, contractAddress, data, 150000000L * addressIds.size());
+        return triggerSmartContract(ownerAddress, contractAddress, data, 300000000L * addressIds.size());
     }
 
     @Override
