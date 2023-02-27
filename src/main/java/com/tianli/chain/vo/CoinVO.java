@@ -45,4 +45,6 @@ public class CoinVO {
 
     private BigDecimal withdrawFixedAmount;
 
+    private String logo;
+
 }

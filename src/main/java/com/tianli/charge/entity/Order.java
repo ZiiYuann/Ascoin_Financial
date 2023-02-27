@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.service.OrderService;
+import com.tianli.common.CommonFunction;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -71,8 +73,9 @@ public class Order {
      * 提现 + 充值: order_charge_info 链上记录表
      * 申购: [区分本地申购和普通申购通过 order_no] 普通申购：持用id 本地申购 预订单表id
      * 本地申购 order_advance id 一般申购（基金：基金持用fund_record id 理财：理财持用 financial_record id）
-     * 借贷：弃用
+     * 借币：借贷操作日志id
      * 赎回：financial_record id
+     *
      */
     private Long relatedId;
 
@@ -97,5 +100,25 @@ public class Order {
      * 订单完成时间
      */
     private LocalDateTime completeTime;
+
+    public static Order success(Long uid, ChargeType chargeType, String coin, BigDecimal amount, Long relatedId) {
+        Order order = Order.generate(uid, chargeType, coin, amount, relatedId);
+        order.setCompleteTime(LocalDateTime.now());
+        order.setStatus(ChargeStatus.chain_success);
+        return order;
+    }
+
+    public static Order generate(Long uid, ChargeType chargeType, String coin, BigDecimal amount, Long relatedId) {
+        long id = CommonFunction.generalId();
+        return Order.builder()
+                .id(id)
+                .uid(uid)
+                .orderNo(chargeType.getAccountChangeType().getPrefix() + CommonFunction.generalSn(id))
+                .amount(amount)
+                .type(chargeType)
+                .coin(coin)
+                .relatedId(relatedId)
+                .build();
+    }
 
 }

@@ -8,7 +8,10 @@ public enum AccountOperationType {
     increase,  //充值
     reduce,    //扣除
     freeze,    //冻结
+    pledge_freeze,    //冻结
     unfreeze,  //解冻
+    pledge_unfreeze,  //解冻
+    pledge_reduce,  //解冻
     withdraw,  //提现
     decrease,  //非冻结扣除
     pledge, //质押

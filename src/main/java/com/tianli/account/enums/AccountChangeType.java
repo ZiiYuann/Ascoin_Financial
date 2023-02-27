@@ -60,6 +60,11 @@ public enum AccountChangeType {
     credit_out("CO"),
     credit_in("CI"),
     swap_reward("SR"),
+    auto_re("AUR"),
+    forced_closeout("FC"),
+    advance_borrow("ABO"),
+    //还币
+    advance_repay("ARP"),
     ;
 
     AccountChangeType(String prefix) {

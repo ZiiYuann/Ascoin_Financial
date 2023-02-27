@@ -54,6 +54,13 @@ public enum ChargeRemarks {
     credit_out_success("上分划出成功", "Credit out successful", ChargeType.credit_out, ChargeStatus.chain_success),
     credit_in_success("下分划入成功", "Credit in successful", ChargeType.credit_in, ChargeStatus.chain_success),
     swap_reward_success("奖励到账", "Reward return successful", ChargeType.swap_reward, ChargeStatus.chain_success),
+    borrow_success("借币到账", "Debit Arrival", ChargeType.borrow, ChargeStatus.chain_success),
+    repay_success("还币成功", "Repay success", ChargeType.repay, ChargeStatus.chain_success),
+    pledge_success("锁定质押物", "Locked collaterals", ChargeType.pledge, ChargeStatus.chain_success),
+    release_success("释放质押物", "Released collaterals", ChargeType.release, ChargeStatus.chain_success),
+    auto_re_success("补仓成功", "Successful position filling", ChargeType.auto_re, ChargeStatus.chain_success),
+    forced_closeout_success("平仓完成", "Closeout completed", ChargeType.forced_closeout, ChargeStatus.chain_success),
+
     ;
 
     ChargeRemarks(String remarks, String remarksEn, ChargeType type, ChargeStatus status) {

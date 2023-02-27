@@ -1,5 +1,6 @@
 package com.tianli.charge.entity;
 
+import com.tianli.charge.enums.AdvanceType;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.product.afinancial.enums.PurchaseTerm;
 import lombok.AllArgsConstructor;
@@ -47,4 +48,9 @@ public class OrderAdvance {
     private int finish;
 
     private int tryTimes;
+
+    private AdvanceType advanceType;
+
+    private String query;
+
 }

@@ -48,4 +48,8 @@ public class RedisConstants {
 
     public static final String HOT_WALLET_BALANCE = "hot:wallet:balance";
 
+    public static final String BORROW_TASK = "task:borrow:";
+
+    public static final String BORROW_TASK_INTEREST = "task:borrow:interest:";
+
 }

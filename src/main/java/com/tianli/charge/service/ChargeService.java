@@ -45,16 +45,16 @@ import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
-import com.tianli.product.afinancial.entity.FinancialProduct;
-import com.tianli.product.afinancial.entity.FinancialRecord;
-import com.tianli.product.afinancial.enums.ProductType;
-import com.tianli.product.service.FinancialProductService;
-import com.tianli.product.afinancial.service.FinancialRecordService;
-import com.tianli.product.afinancial.vo.ExpectIncomeVO;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.service.IWalletAgentService;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.openapi.service.OrderRewardRecordService;
+import com.tianli.product.afinancial.entity.FinancialProduct;
+import com.tianli.product.afinancial.entity.FinancialRecord;
+import com.tianli.product.afinancial.enums.ProductType;
+import com.tianli.product.afinancial.service.FinancialRecordService;
+import com.tianli.product.afinancial.vo.ExpectIncomeVO;
+import com.tianli.product.service.FinancialProductService;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.ApplicationContextTool;
 import lombok.extern.slf4j.Slf4j;
@@ -575,6 +575,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     /**
      * 获取分页数据
      */
+    // todo 优化
     public IPage<OrderChargeInfoVO> pageByChargeGroup(Long uid, AccountDetailsQuery query, Page<Order> page) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)

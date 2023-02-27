@@ -30,11 +30,6 @@ public class AccountBalance extends Model<AccountBalance> {
     private Long id;
 
     /**
-     * logo 地址  可以删除
-     */
-    private String logo;
-
-    /**
      * 用户id
      */
     private Long uid;
@@ -58,5 +53,7 @@ public class AccountBalance extends Model<AccountBalance> {
      * 剩余余额
      */
     private BigDecimal remain;
+
+    private BigDecimal pledgeFreeze;
 
 }

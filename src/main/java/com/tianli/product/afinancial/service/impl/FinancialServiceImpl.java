@@ -29,6 +29,33 @@ import com.tianli.management.query.TimeQuery;
 import com.tianli.management.service.FinancialBoardProductService;
 import com.tianli.management.service.FinancialBoardWalletService;
 import com.tianli.management.service.IWalletAgentProductService;
+import com.tianli.management.vo.FinancialSummaryDataVO;
+import com.tianli.management.vo.FinancialUserInfoVO;
+import com.tianli.management.vo.FundProductBindDropdownVO;
+import com.tianli.management.vo.UserAmountDetailsVO;
+import com.tianli.product.afinancial.convert.FinancialConverter;
+import com.tianli.product.afinancial.dto.FinancialIncomeAccrueDTO;
+import com.tianli.product.afinancial.dto.ProductRateDTO;
+import com.tianli.product.afinancial.entity.FinancialIncomeAccrue;
+import com.tianli.product.afinancial.entity.FinancialIncomeDaily;
+import com.tianli.product.afinancial.entity.FinancialProduct;
+import com.tianli.product.afinancial.entity.FinancialRecord;
+import com.tianli.product.afinancial.enums.BusinessType;
+import com.tianli.product.afinancial.enums.ProductStatus;
+import com.tianli.product.afinancial.enums.ProductType;
+import com.tianli.product.afinancial.enums.RecordStatus;
+import com.tianli.product.afinancial.mapper.ProductMapper;
+import com.tianli.product.afinancial.query.FinancialRecordQuery;
+import com.tianli.product.afinancial.query.ProductHoldQuery;
+import com.tianli.product.afinancial.service.*;
+import com.tianli.product.afinancial.vo.*;
+import com.tianli.product.afund.contant.FundIncomeStatus;
+import com.tianli.product.afund.dto.FundIncomeAmountDTO;
+import com.tianli.product.afund.entity.FundRecord;
+import com.tianli.product.afund.query.FundIncomeQuery;
+import com.tianli.product.afund.query.FundRecordQuery;
+import com.tianli.product.afund.service.IFundIncomeRecordService;
+import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.management.vo.*;
 import com.tianli.product.afinancial.convert.FinancialConverter;
 import com.tianli.product.afinancial.dto.FinancialIncomeAccrueDTO;
@@ -257,10 +284,21 @@ public class FinancialServiceImpl implements FinancialService {
     @Override
     public IPage<FinancialProductVO> products(Page<FinancialProduct> page, ProductType type) {
 
+        // 排除未持有的，这个列表真的改了1w次，不知道搞些什么
+        Long uid = requestInitService.uid();
+        List<Long> holdProductIds = new ArrayList<>();
+        holdProductIds.addAll(financialProductService.holdProductIds(uid));
+        holdProductIds.addAll(fundProductService.holdProductIds(uid));
+
+
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
                 .eq(FinancialProduct::getStatus, ProductStatus.open)
                 .orderByAsc(FinancialProduct::getType) // 活期优先
                 .orderByDesc(FinancialProduct::getRate); // 年化利率降序
+
+        if (CollectionUtils.isEmpty(holdProductIds)) {
+            query = query.notIn(FinancialProduct::getId, holdProductIds);
+        }
 
         IPage<FinancialProductVO> financialProductVOIPage = getFinancialProductVOIPage(page, type, query);
         List<FinancialProductVO> records = financialProductVOIPage.getRecords();
@@ -521,29 +559,29 @@ public class FinancialServiceImpl implements FinancialService {
         if (Objects.nonNull(type)) {
             query = query.eq(FinancialProduct::getType, type);
         }
-
+        Long uid = requestInitService.uid();
         var list = financialProductService.page(page, query);
         List<Long> productIds = list.getRecords().stream().map(FinancialProduct::getId).distinct().collect(Collectors.toList());
 
-        Boolean isNewUser = financialRecordService.isNewUser(requestInitService.uid());
+        Boolean isNewUser = financialRecordService.isNewUser(uid);
 
         // 如果是新用户直接返回空map，减少无效查询
         Map<Long, Long> firstProcessRecordMap = isNewUser ? Collections.emptyMap() :
-                financialRecordService.firstProcessRecordMap(productIds, requestInitService.uid());
+                financialRecordService.firstProcessRecordMap(productIds, uid);
         Map<Long, BigDecimal> useFinancialPersonQuotaMap = isNewUser ? Collections.emptyMap() :
-                financialRecordService.getUseQuota(productIds, requestInitService.uid());
+                financialRecordService.getUseQuota(productIds, uid);
 
         return list.convert(product -> {
             BigDecimal totalQuota = product.getTotalQuota();
             BigDecimal personQuota = product.getPersonQuota();
             BigDecimal useQuota = MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO);
-            var accountBalance = accountBalanceServiceImpl.getAndInit(requestInitService.uid(), product.getCoin());
+            var accountBalance = accountBalanceServiceImpl.getAndInit(uid, product.getCoin());
             FinancialProductVO financialProductVO = financialConverter.toFinancialProductVO(product);
 
             // 设置额度信息
             financialProductVO.setAvailableBalance(accountBalance.getRemain());
             if (ProductType.fund.equals(product.getType())) {
-                List<FundRecord> fundRecords = fundRecordService.listByUidAndProductId(requestInitService.uid(), product.getId());
+                List<FundRecord> fundRecords = fundRecordService.listByUidAndProductId(uid, product.getId());
                 if (CollectionUtils.isNotEmpty(fundRecords)) {
                     BigDecimal holdAmount = fundRecords.stream().map(FundRecord::getHoldAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
                     financialProductVO.setUserPersonQuota(holdAmount);

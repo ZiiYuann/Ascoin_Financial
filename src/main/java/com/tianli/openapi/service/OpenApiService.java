@@ -17,6 +17,7 @@ import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.product.afinancial.service.FinancialIncomeAccrueService;
 import com.tianli.openapi.dto.IdDto;
 import com.tianli.openapi.dto.TransferResultDto;
 import com.tianli.product.afinancial.service.FinancialIncomeAccrueService;

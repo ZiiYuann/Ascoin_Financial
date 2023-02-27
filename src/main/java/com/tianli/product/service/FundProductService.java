@@ -1,6 +1,5 @@
 package com.tianli.product.service;
 
-import cn.hutool.core.lang.Opt;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
@@ -18,8 +17,6 @@ import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.service.IWalletAgentProductService;
-import com.tianli.product.dto.PurchaseResultDto;
-import com.tianli.product.dto.RedeemResultDto;
 import com.tianli.product.afinancial.dto.IncomeDto;
 import com.tianli.product.afinancial.entity.FinancialProduct;
 import com.tianli.product.afinancial.enums.ProductType;
@@ -37,6 +34,8 @@ import com.tianli.product.afund.enums.FundTransactionType;
 import com.tianli.product.afund.query.FundRecordQuery;
 import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.product.afund.service.IFundTransactionRecordService;
+import com.tianli.product.dto.PurchaseResultDto;
+import com.tianli.product.dto.RedeemResultDto;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +45,6 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * @author chenb
@@ -83,6 +81,11 @@ public class FundProductService extends AbstractProductOperation<FinancialProduc
                 amount.add(holdAmount.getAmount()).compareTo(product.getPersonQuota()) > 0) {
             ErrorCodeEnum.PURCHASE_GT_PERSON_QUOTA.throwException();
         }
+    }
+
+    @Override
+    public List<Long> holdProductIds(Long uid) {
+        return fundRecordService.holdProductIds(uid);
     }
 
     @Override

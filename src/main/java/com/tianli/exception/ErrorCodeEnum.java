@@ -172,6 +172,24 @@ public enum ErrorCodeEnum {
     TRANSFER_ORDER_EXIST(3807, "转账已存在"),
     TRANSFER_ERROR(3808, "转账异常"),
 
+    /*** －－－－－－业务错误码-质押－－－－－－*/
+    BORROW_COIN_ERROR(3901, "借币异常"),
+    BORROW_RECORD_PLEDGE_ERROR(3902, "质押记录异常"),
+    BORROW_RECORD_COIN_ERROR(3903, "借币记录异常"),
+    BORROW_AMOUNT_MIN_ERROR(3904, "借币金额过小"),
+    BORROW_AMOUNT_MAX_ERROR(3905, "借币金额过大"),
+    BORROW_COIN_NOT_OPEN(3906, "此币种未开放"),
+    BORROW_FIXED_PRODUCT_ERROR(3907, "定期产品不允许质押"),
+    BORROW_INTEREST_EXIST(3908, "借币利息异常，请联系管理员"),
+    BORROW_PRODUCT_HAVE_PLEDGE(3909, "理财产品已经质押"),
+    BORROW_RECORD_NOT_EXIST(3910, "质押记录不存在"),
+    BORROW_PRODUCT_CAN_NOT_REPAY(3911, "借币未还清，无法释放质押产品"),
+    BORROW_EXCEED_INIT(3912, "借币金额超过初始质押率"),
+    BORROW_CONFIG_PLEDGE_NOT_OPEN(3912, "质押配置未开放"),
+    BORROW_REPAY_AMOUNT_ERROR(3913, "还币金额异常"),
+    BORROW_RECORD_CANNOT_FINISH(3914, "借贷记录结束异常"),
+    BORROW_M_LOCK_ERROR(3915, "质押配置被使用中，请稍后修改配置"),
+
     ;
     private int errorNo;
 

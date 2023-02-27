@@ -39,4 +39,6 @@ public class RedisLockConstants {
 
     public static final String LOCK_REWARD = "lock:reward:";
 
+    public static final String LOCK_BORROW = "lock:borrow:";
+
 }

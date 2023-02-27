@@ -9,6 +9,7 @@ import com.tianli.management.dto.FundUserHoldDto;
 import com.tianli.management.vo.FundUserRecordVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 import java.math.BigDecimal;
@@ -43,4 +44,8 @@ public interface FundRecordMapper extends BaseMapper<FundRecord> {
 
     int updateRateByProductId(@Param("productId") Long productId,
                               @Param("rate") BigDecimal rate);
+
+
+    @Select("SELECT `product_id` FROM fund_record WHERE `status` = 'PROCESS' ")
+    List<Long> holdProductIds(@Param("uid") Long uid);
 }

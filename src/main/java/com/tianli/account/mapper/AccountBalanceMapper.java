@@ -48,4 +48,14 @@ public interface AccountBalanceMapper extends BaseMapper<AccountBalance> {
 
     @Select("select sum(balance) as balanceAmount ,coin from account_balance GROUP BY coin")
     List<AccountBalanceSimpleVO> listAccountBalanceSimpleVO();
+
+    @Update("UPDATE `account_balance` SET `pledge_freeze`=`pledge_freeze`+#{amount},`remain`=`remain`-#{amount} WHERE `uid`=#{id} and coin=#{coin} AND `remain`>=#{amount} ")
+    long pledgeFreeze(@Param("id") long id, @Param("amount") BigDecimal amount, @Param("coin") String coin);
+
+    @Update("UPDATE `account_balance` SET `pledge_freeze`=`pledge_freeze`- #{amount},`remain`=`remain`+#{amount} WHERE `uid`=#{id} and coin=#{coin} AND `pledge_freeze`>=#{amount} ")
+    long pledgeUnfreeze(@Param("id") long id, @Param("amount") BigDecimal amount, @Param("coin") String coin);
+
+    @Update("UPDATE `account_balance` SET `balance`=`balance`-#{amount},`pledge_freeze`=`pledge_freeze`-#{amount} WHERE `uid`=#{id} and coin=#{coin} AND  `pledge_freeze`>=#{amount} ")
+    long pledgeReduce(@Param("id") long id, @Param("amount") BigDecimal amount, @Param("coin") String coin);
+
 }

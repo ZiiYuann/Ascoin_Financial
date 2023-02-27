@@ -1,8 +1,10 @@
 package com.tianli.product.afinancial.vo;
 
+import com.tianli.product.afinancial.enums.BusinessType;
 import com.tianli.product.afinancial.enums.ProductType;
 import com.tianli.product.afinancial.enums.PurchaseTerm;
 import lombok.Data;
+import org.redisson.api.RateType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -75,5 +77,16 @@ public class HoldProductVo {
      */
     private long incomeDays;
 
+    private boolean pledge;
+
+    private BusinessType businessType;
+
+    private int rateType;
+
+    private BigDecimal maxRate;
+
+    private BigDecimal minRate;
+
+    private BigDecimal rate;
 
 }

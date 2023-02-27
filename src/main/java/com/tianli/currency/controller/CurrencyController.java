@@ -1,7 +1,7 @@
 package com.tianli.currency.controller;
 
 import com.tianli.chain.service.CoinBaseService;
-import com.tianli.chain.service.CoinService;
+import com.tianli.chain.vo.CoinBaseVO;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.Result;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -34,6 +38,14 @@ public class CurrencyController {
         Map<String, Set<String>> result = new HashMap<>();
         result.put("coins", coins);
         return Result.success().setData(result);
+    }
+
+    @GetMapping("coin/infos")
+    public Result<List<CoinBaseVO>> coinInfos() {
+        var coins = coinBaseService.getPushListCache();
+        var result = coins.stream().map(coinBase -> new CoinBaseVO(coinBase.getName(), coinBase.getLogo()))
+                .collect(Collectors.toList());
+        return new Result<>(result);
     }
 
     @GetMapping("/rate/{coin}")

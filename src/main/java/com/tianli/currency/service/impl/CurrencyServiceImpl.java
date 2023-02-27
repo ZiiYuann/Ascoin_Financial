@@ -1,5 +1,6 @@
 package com.tianli.currency.service.impl;
 
+import com.tianli.chain.service.CoinBaseService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.ErrorCodeEnum;
@@ -10,10 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author chenb
@@ -26,6 +24,8 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Resource
     private DigitalCurrencyExchange digitalCurrencyExchange;
+    @Resource
+    private CoinBaseService coinBaseService;
 
 
     @Override
@@ -78,5 +78,20 @@ public class CurrencyServiceImpl implements CurrencyService {
         }
 
         throw ErrorCodeEnum.COIN_RATE_ERROR.generalException();
+    }
+
+    @Override
+    public HashMap<String, BigDecimal> rateMap() {
+        Set<String> coins = coinBaseService.pushCoinNames();
+        var coinRates = new HashMap<String, BigDecimal>();
+        coins.forEach(coin -> coinRates.put(coin, this.getDollarRate(coin)));
+        return coinRates;
+    }
+
+    @Override
+    public HashMap<String, BigDecimal> rateMap(Collection<String> coins) {
+        final var coinRates = new HashMap<String, BigDecimal>();
+        coins.stream().distinct().forEach(coin -> coinRates.put(coin, this.getDollarRate(coin)));
+        return coinRates;
     }
 }

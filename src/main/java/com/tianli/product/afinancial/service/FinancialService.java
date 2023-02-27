@@ -14,6 +14,16 @@ import com.tianli.product.afinancial.entity.FinancialProduct;
 import com.tianli.product.afinancial.enums.ProductType;
 import com.tianli.product.afinancial.query.ProductHoldQuery;
 import com.tianli.product.afinancial.vo.*;
+import com.tianli.management.vo.FinancialSummaryDataVO;
+import com.tianli.management.vo.FinancialUserInfoVO;
+import com.tianli.management.vo.FundProductBindDropdownVO;
+import com.tianli.management.vo.UserAmountDetailsVO;
+import com.tianli.product.afinancial.dto.FinancialIncomeAccrueDTO;
+import com.tianli.product.afinancial.entity.FinancialIncomeDaily;
+import com.tianli.product.afinancial.entity.FinancialProduct;
+import com.tianli.product.afinancial.enums.ProductType;
+import com.tianli.product.afinancial.query.ProductHoldQuery;
+import com.tianli.product.afinancial.vo.*;
 
 import java.util.List;
 
@@ -128,4 +138,5 @@ public interface FinancialService {
      * @return 产品信息
      */
     ProductInfoVO productExtraInfo(Long uid, Long productId);
+
 }

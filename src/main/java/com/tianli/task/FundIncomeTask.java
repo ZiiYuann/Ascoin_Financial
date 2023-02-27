@@ -4,9 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.MoreObjects;
 import com.tianli.common.RedisLockConstants;
+import com.tianli.common.lock.RedissonClientTool;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.management.query.FundIncomeCompensateQuery;
 import com.tianli.product.afund.contant.FundCycle;
 import com.tianli.product.afund.contant.FundIncomeStatus;
 import com.tianli.product.afund.entity.FundIncomeRecord;
@@ -14,13 +16,11 @@ import com.tianli.product.afund.entity.FundRecord;
 import com.tianli.product.afund.enums.FundRecordStatus;
 import com.tianli.product.afund.service.IFundIncomeRecordService;
 import com.tianli.product.afund.service.IFundRecordService;
-import com.tianli.management.query.FundIncomeCompensateQuery;
 import com.tianli.product.service.FinancialProductService;
 import com.tianli.tool.ApplicationContextTool;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.log4j.Log4j2;
 import org.redisson.api.RAtomicLong;
-import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -50,6 +50,8 @@ public class FundIncomeTask {
     @Resource
     private WebHookService webHookService;
     @Resource
+    private RedissonClientTool redissonClientTool;
+    @Resource
     private RedissonClient redissonClient;
 
     @Scheduled(cron = "0 1 0 1/1 * ? ")
@@ -66,16 +68,8 @@ public class FundIncomeTask {
         var bean = ApplicationContextTool.getBean(FundIncomeTask.class);
         var fundIncomeTask = Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
 
-        records.forEach(fundRecord -> {
-            RLock lock = redissonClient.getLock(RedisLockConstants.FUND_UPDATE_LOCK + fundRecord.getId());
-            try {
-                lock.lock();
-                fundIncomeTask.calculateIncome(fundRecord, now);
-            } finally {
-                lock.unlock();
-            }
-
-        });
+        records.forEach(fundRecord -> redissonClientTool.tryLock(RedisLockConstants.FUND_UPDATE_LOCK + fundRecord.getId(),
+                () -> fundIncomeTask.calculateIncome(fundRecord, now), ErrorCodeEnum.SYSTEM_ERROR, false));
     }
 
     @Transactional
