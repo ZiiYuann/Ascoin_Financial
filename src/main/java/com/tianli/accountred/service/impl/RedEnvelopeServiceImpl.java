@@ -861,7 +861,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         ConfigService bean = ApplicationContextTool.getBean(ConfigService.class);
         bean = Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
         return bean
-                .getOrDefault(SYSTEM_URL_PATH_PREFIX, "https://wallet-news.giantdt.com")
+                .getOrDefault(SYSTEM_URL_PATH_PREFIX, "https://www.assureadd.com")
                 + "/packet/openapi/red/redPackage?context="
                 + PBE.encryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, id + "").replace("+", "%2B");
     }
