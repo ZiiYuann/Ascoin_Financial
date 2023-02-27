@@ -59,11 +59,12 @@ public class QueryWrapperUtils {
                     break;
                 case GE:
                     result = result.ge(fieldName, param);
+                    break;
                 case IN:
                     if (CollectionUtils.isNotEmpty((Collection<?>) param)) {
                         result = result.in(fieldName, ((Collection<?>) param).toArray());
-
                     }
+                    break;
                 default:
                     break;
             }
