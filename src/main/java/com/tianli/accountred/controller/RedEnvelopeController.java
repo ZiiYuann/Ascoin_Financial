@@ -196,7 +196,6 @@ public class RedEnvelopeController {
         return new Result<>(result);
     }
 
-
     /**
      * 红包配置列表
      */
