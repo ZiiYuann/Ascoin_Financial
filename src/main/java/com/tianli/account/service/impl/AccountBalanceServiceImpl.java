@@ -233,7 +233,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
     @Transactional
     public void unfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
         AccountBalanceServiceImpl bean = ApplicationContextTool.getBean(this.getClass());
-        Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR :: generalException)
+        Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException)
                 .unfreeze(uid, type, coin, null, amount, sn, des);
     }
 
@@ -324,6 +324,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         result.setTotalDollarHold(income.getHoldFee());
         result.setTotalDollarFreeze(userAssetsVO.getFreezeAmount());
         result.setTotalDollarRemain(userAssetsVO.getRemainAmount());
+        result.setTotalDollarPledgeFreeze(userAssetsVO.getPledgeFreezeAmount());
         result.setYesterdayIncomeFee(income.getYesterdayIncomeFee());
         result.setAccrueIncomeFee(income.getAccrueIncomeFee());
         result.setTotalAssets(userAssetsVO.getAssets());
@@ -379,6 +380,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         accountBalanceVO.setDollarFreeze(dollarRate.multiply(accountBalanceVO.getFreeze()));
         accountBalanceVO.setDollarRemain(dollarRate.multiply(accountBalanceVO.getRemain()));
         accountBalanceVO.setDollarBalance(dollarRate.multiply(accountBalanceVO.getBalance()));
+        accountBalanceVO.setDollarPledgeFreeze(dollarRate.multiply(accountBalanceVO.getPledgeFreeze()));
         accountBalanceVO.setLogo(coinBase.getLogo());
         accountBalanceVO.setWeight(coinBase.getWeight());
         return accountBalanceVO;
@@ -408,6 +410,9 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         BigDecimal totalFreeze = accountBalanceVOS.stream()
                 .map(AccountBalanceVO::getDollarFreeze)
                 .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.DOWN);
+        BigDecimal totalPledgeFreeze = accountBalanceVOS.stream()
+                .map(AccountBalanceVO::getDollarPledgeFreeze)
+                .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.DOWN);
 
         BigDecimal assets = totalBalance.add(financialHoldAmount).add(fundHoldAmount);
 
@@ -419,6 +424,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
                 .balanceAmount(totalBalance)
                 .remainAmount(totalRemain)
                 .freezeAmount(totalFreeze)
+                .pledgeFreezeAmount(totalPledgeFreeze)
                 .build();
     }
 

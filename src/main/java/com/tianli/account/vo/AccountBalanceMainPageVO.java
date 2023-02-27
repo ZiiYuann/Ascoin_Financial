@@ -44,6 +44,9 @@ public class AccountBalanceMainPageVO extends DollarIncomeVO {
     @BigDecimalFormat("0.00")
     private BigDecimal totalDollarFreeze;
 
+    @BigDecimalFormat("0.00")
+    private BigDecimal totalDollarPledgeFreeze;
+
     /**
      * 累计收益
      */
@@ -55,6 +58,7 @@ public class AccountBalanceMainPageVO extends DollarIncomeVO {
      */
     @BigDecimalFormat("0.00")
     private BigDecimal yesterdayIncomeFee;
+
 
     /**
      * 单个账户余额

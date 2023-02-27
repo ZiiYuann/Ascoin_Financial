@@ -40,6 +40,9 @@ public class UserAssetsVO {
     private BigDecimal freezeAmount;
 
     @BigDecimalFormat("0.00")
+    private BigDecimal pledgeFreezeAmount;
+
+    @BigDecimalFormat("0.00")
     private BigDecimal remainAmount;
 
     public static UserAssetsVO defaultInstance() {

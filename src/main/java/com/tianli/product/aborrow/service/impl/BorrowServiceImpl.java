@@ -179,10 +179,11 @@ public class BorrowServiceImpl implements BorrowService {
     @Override
     public PledgeRateDto preCalPledgeRate(Long uid, CalPledgeQuery calPledgeQuery, boolean borrowOperation) {
         BorrowRecord borrowRecord = borrowRecordService.get(uid);
+        var bid = Objects.isNull(borrowRecord) ? null : borrowRecord.getId();
         List<BorrowRecordCoin> borrowRecordCoins =
-                borrowRecordCoinService.listByUid(uid, Objects.isNull(borrowRecord) ? null : borrowRecord.getId());
-        var borrowRecordPledges = borrowRecordPledgeService.dtoListByUid(uid, borrowRecord.getId());
-        List<BorrowInterest> borrowInterests = borrowInterestService.list(uid, borrowRecord.getId());
+                borrowRecordCoinService.listByUid(uid, bid);
+        var borrowRecordPledges = borrowRecordPledgeService.dtoListByUid(uid, bid);
+        List<BorrowInterest> borrowInterests = borrowInterestService.list(uid, bid);
 
         // 单借还币
         if (Objects.nonNull(calPledgeQuery.getBorrow()) && Objects.nonNull(calPledgeQuery.getCoin())) {

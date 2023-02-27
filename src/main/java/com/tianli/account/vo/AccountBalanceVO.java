@@ -62,6 +62,8 @@ public class AccountBalanceVO {
      */
     private BigDecimal freeze;
 
+    private BigDecimal pledgeFreeze;
+
     /**
      * 剩余余额
      */
@@ -89,6 +91,9 @@ public class AccountBalanceVO {
      */
     @BigDecimalFormat("0.00")
     private BigDecimal dollarRemain;
+
+    @BigDecimalFormat("0.00")
+    private BigDecimal dollarPledgeFreeze;
 
     private int weight;
 
