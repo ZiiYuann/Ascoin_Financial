@@ -2,7 +2,9 @@ package com.tianli.management.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.account.query.IdsQuery;
 import com.tianli.common.PageQuery;
+import com.tianli.common.QueryWrapperUtils;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
@@ -144,12 +146,9 @@ public class ManageBorrowController {
     @AdminPrivilege
     @GetMapping("/user/operation")
     public Result<IPage<MBorrowOperationLogVO>> userOperation(PageQuery<BorrowOperationLog> page
-            , @RequestParam("uid") Long uid) {
+            , MBorrowOperationLogQuery query) {
         IPage<MBorrowOperationLogVO> result = borrowOperationLogService.page(page.page()
-                        , new LambdaQueryWrapper<BorrowOperationLog>()
-                                .eq(BorrowOperationLog::getUid, uid)
-                                .eq(BorrowOperationLog::isDisplay, true)
-                )
+                        , QueryWrapperUtils.generate(BorrowOperationLog.class, query))
                 .convert(borrowConvert::toMBorrowOperationLogVO);
         return new Result<>(result);
     }
@@ -169,5 +168,11 @@ public class ManageBorrowController {
         return new Result<>(result);
     }
 
+    @AdminPrivilege
+    @PostMapping("/hedge/cancel")
+    public Result<Void> hedgeCancel(@RequestBody IdsQuery query) {
+        borrowHedgeEntrustService.cancel(query);
+        return new Result<>();
+    }
 
 }

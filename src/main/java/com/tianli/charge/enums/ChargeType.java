@@ -44,7 +44,7 @@ public enum ChargeType {
     airdrop("Airdrop", "空投",AccountChangeType.airdrop),
     swap_reward("Swap reward", "幸运闪兑奖励",AccountChangeType.swap_reward),
 
-    // 借贷
+    // 借贷 borrow 借币 repay 还币 pledge 锁定质押物 release 释放质押物 forced_closeout 强制平仓 auto_re 自动补仓
     borrow("Borrow", "借币",AccountChangeType.borrow),
     repay("Repay", "还币",AccountChangeType.recharge),
     pledge("Collateral", "锁定质押物",AccountChangeType.borrow_pledge),

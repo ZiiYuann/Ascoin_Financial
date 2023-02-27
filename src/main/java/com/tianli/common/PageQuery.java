@@ -14,7 +14,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class PageQuery<T> {
 
-
     private int page = 1;
 
     private int pageSize = 10;

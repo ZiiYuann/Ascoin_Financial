@@ -24,6 +24,8 @@ public class MBorrowOperationLogVO {
 
     private Long id;
 
+    private Long uid;
+
     private String coin;
 
     private BigDecimal amount;

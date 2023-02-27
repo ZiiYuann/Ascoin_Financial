@@ -3,6 +3,7 @@ package com.tianli.product.aborrow.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tianli.account.query.IdsQuery;
 import com.tianli.management.query.BorrowHedgeEntrustIoUQuery;
 import com.tianli.product.aborrow.entity.BorrowHedgeEntrust;
 import com.tianli.product.aborrow.query.MBorrowHedgeQuery;
@@ -18,4 +19,6 @@ public interface BorrowHedgeEntrustService extends IService<BorrowHedgeEntrust> 
     void manual(BorrowHedgeEntrustIoUQuery query);
 
     IPage<MBorrowHedgeEntrustVO> vos(Page<BorrowHedgeEntrust> page, MBorrowHedgeQuery query);
+
+    void cancel(IdsQuery query);
 }

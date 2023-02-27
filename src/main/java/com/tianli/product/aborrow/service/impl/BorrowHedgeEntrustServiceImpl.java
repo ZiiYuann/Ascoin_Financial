@@ -3,8 +3,10 @@ package com.tianli.product.aborrow.service.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.account.query.IdsQuery;
 import com.tianli.common.QueryWrapperUtils;
 import com.tianli.currency.service.CurrencyService;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.query.BorrowHedgeEntrustIoUQuery;
 import com.tianli.product.aborrow.convert.BorrowConvert;
 import com.tianli.product.aborrow.entity.BorrowConfigPledge;
@@ -64,6 +66,14 @@ public class BorrowHedgeEntrustServiceImpl extends ServiceImpl<BorrowHedgeEntrus
     public IPage<MBorrowHedgeEntrustVO> vos(Page<BorrowHedgeEntrust> page, MBorrowHedgeQuery query) {
         return this.page(page, QueryWrapperUtils.generate(BorrowHedgeEntrust.class, query))
                 .convert(index -> borrowConvert.toMBorrowHedgeEntrustVO(index));
+    }
+
+    @Override
+    public void cancel(IdsQuery query) {
+        int i = baseMapper.cancel(query.getId());
+        if (i != 1) {
+            ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
+        }
     }
 
 
