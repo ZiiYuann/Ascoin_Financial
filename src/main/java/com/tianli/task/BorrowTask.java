@@ -9,7 +9,6 @@ import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.product.aborrow.entity.BorrowRecord;
 import com.tianli.product.aborrow.enums.PledgeStatus;
-import com.tianli.product.aborrow.query.CalPledgeQuery;
 import com.tianli.product.aborrow.service.BorrowRecordCoinService;
 import com.tianli.product.aborrow.service.BorrowRecordService;
 import com.tianli.product.aborrow.service.BorrowService;
@@ -45,6 +44,8 @@ public class BorrowTask {
     private BorrowRecordCoinService borrowRecordCoinService;
     @Resource
     private RedissonClientTool redissonClientTool;
+    @Resource
+    private WebHookService webHookService;
 
     //    @Scheduled(cron = "0 0 0 1/1 * ? ")  // 1min
     @Scheduled(cron = "0/1 * * * * ? ") // 1s
@@ -93,7 +94,7 @@ public class BorrowTask {
             } catch (Exception e) {
                 // 防止异常导致部分记录未计算
                 e.printStackTrace();
-                WebHookService.send("借贷定时任务异常：" + key + "  page：" + pagePre);
+                webHookService.dingTalkSend("借贷定时任务异常：" + key + "  page：" + pagePre);
             }
         }
     }
@@ -119,7 +120,7 @@ public class BorrowTask {
                         borrowRecordCoinService.calInterest(borrowRecord.getUid(), borrowRecord.getId()));
             } catch (Exception e) {
                 // 防止异常导致部分记录未计算
-                WebHookService.send("借贷定时利息任务异常：" + key + "  page：" + pagePre);
+                webHookService.dingTalkSend("借贷定时利息任务异常：" + key + "  page：" + pagePre);
             }
         }
     }

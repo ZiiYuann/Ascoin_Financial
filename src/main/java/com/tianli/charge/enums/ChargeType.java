@@ -42,7 +42,7 @@ public enum ChargeType {
     credit_out("Credit out","上分划出",AccountChangeType.credit_out),
     credit_in("Credit in","下分划入",AccountChangeType.credit_in),
     airdrop("Airdrop", "空投",AccountChangeType.airdrop),
-    swap_reward("Swap reward", "幸运闪兑奖励",AccountChangeType.swap_reward)
+    swap_reward("Swap reward", "幸运闪兑奖励",AccountChangeType.swap_reward),
 
     // 借贷
     borrow("Borrow", "借币",AccountChangeType.borrow),
