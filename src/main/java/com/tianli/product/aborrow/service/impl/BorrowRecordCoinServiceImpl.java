@@ -169,6 +169,7 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
                 .minAmount(borrowConfigCoinService.getById(recordCoin.getCoin()).getMinAmount())
                 .logo(coinBaseService.getByName(recordCoin.getCoin()).getLogo())
                 .interestAmount(borrowInterestService.get(uid, bid, recordCoin.getCoin()).getAmount())
+                .remain(accountBalanceService.getAndInit(uid,recordCoin.getCoin()).getRemain())
                 .build()).collect(Collectors.toList());
     }
 

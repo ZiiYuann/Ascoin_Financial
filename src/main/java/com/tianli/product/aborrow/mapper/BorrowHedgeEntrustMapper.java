@@ -14,6 +14,6 @@ import org.apache.ibatis.annotations.Update;
 @Mapper
 public interface BorrowHedgeEntrustMapper extends BaseMapper<BorrowHedgeEntrust> {
 
-    @Update("UPDATE  `borrow_hedge_entrusdt` set `status` = 'CANCEL' WHERE `id` = #{id}")
+    @Update("UPDATE  `borrow_hedge_entrusdt` set `status` = 'CANCEL' WHERE `id` = #{id} AND `status` ='WAIT'")
     int cancel(@Param("id") Long id);
 }

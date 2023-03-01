@@ -25,5 +25,4 @@ public class BorrowRecordPledgeVO {
     private BigDecimal amount;
 
     private Long recordId;
-
 }

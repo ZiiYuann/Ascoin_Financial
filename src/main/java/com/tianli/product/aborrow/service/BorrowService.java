@@ -49,6 +49,11 @@ public interface BorrowService {
     /**
      * 强制平仓
      */
-    void forcedCloseout(BorrowRecord borrowRecord);
+    void reduce(BorrowRecord borrowRecord);
+
+    /**
+     * 强制平仓 + 自动清算
+     */
+    void liquidate(BorrowRecord borrowRecord);
 
 }

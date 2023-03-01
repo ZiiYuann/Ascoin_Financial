@@ -36,6 +36,8 @@ public class AccountBorrowVO {
 
     private BigDecimal borrowProportion;
 
+    private BigDecimal maxBorrowAmount;
+
     private boolean hold;
 
 }

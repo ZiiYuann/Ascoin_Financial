@@ -4,6 +4,7 @@ import com.google.common.base.MoreObjects;
 import com.tianli.account.query.AccountDetailsQuery;
 import com.tianli.account.query.IdsQuery;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.vo.TransactionGroupTypeVO;
 import com.tianli.address.Service.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.vo.AddressVO;
@@ -11,6 +12,7 @@ import com.tianli.chain.entity.Coin;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.CoinService;
 import com.tianli.charge.entity.Order;
+import com.tianli.charge.enums.ChargeGroup;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.NetworkType;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -210,9 +213,9 @@ public class AccountController {
      * 【云钱包】交易类型
      */
     @GetMapping("/transaction/type")
-    public Result transactionType() {
+    public Result<List<TransactionGroupTypeVO>> transactionType() {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(chargeService.listTransactionGroupType(uid));
+        return new Result<>(chargeService.listTransactionGroupType(uid, List.of(ChargeGroup.receive, ChargeGroup.pay)));
     }
 
 }

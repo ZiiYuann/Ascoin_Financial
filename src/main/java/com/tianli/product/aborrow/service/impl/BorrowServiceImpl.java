@@ -4,9 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.chain.service.CoinBaseService;
-import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeType;
-import com.tianli.charge.service.OrderService;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.ErrorCodeEnum;
@@ -16,9 +14,7 @@ import com.tianli.product.aborrow.dto.BorrowRecordPledgeDto;
 import com.tianli.product.aborrow.dto.BorrowRecordSnapshotDTO;
 import com.tianli.product.aborrow.dto.PledgeRateDto;
 import com.tianli.product.aborrow.entity.*;
-import com.tianli.product.aborrow.enums.ModifyPledgeContextType;
-import com.tianli.product.aborrow.enums.PledgeStatus;
-import com.tianli.product.aborrow.enums.PledgeType;
+import com.tianli.product.aborrow.enums.*;
 import com.tianli.product.aborrow.query.*;
 import com.tianli.product.aborrow.service.*;
 import com.tianli.product.aborrow.vo.BorrowRecordSnapshotVO;
@@ -28,8 +24,8 @@ import com.tianli.product.aborrow.vo.HoldPledgingVO;
 import com.tianli.product.afinancial.entity.FinancialRecord;
 import com.tianli.product.afinancial.service.FinancialRecordService;
 import com.tianli.product.vo.RateVo;
+import com.tianli.tool.ApplicationContextTool;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,7 +73,7 @@ public class BorrowServiceImpl implements BorrowService {
     @Resource
     private AccountBalanceService accountBalanceService;
     @Resource
-    private OrderService orderService;
+    private BorrowHedgeEntrustService borrowHedgeEntrustService;
 
     @Override
     @Transactional
@@ -460,7 +456,7 @@ public class BorrowServiceImpl implements BorrowService {
 
     @Override
     @Transactional
-    public void forcedCloseout(BorrowRecord borrowRecord) {
+    public void reduce(BorrowRecord borrowRecord) {
         Long bid = borrowRecord.getId();
         Long uid = borrowRecord.getUid();
         var recordPledgeDtos = borrowRecordPledgeService.dtoListByUid(uid, bid);
@@ -468,7 +464,7 @@ public class BorrowServiceImpl implements BorrowService {
         var recordInterests = borrowInterestService.list(uid, bid);
 
         BigDecimal leveRate = BigDecimal.valueOf(0.5f);
-        BigDecimal onePointFive = BigDecimal.valueOf(1.5f);
+        BigDecimal zeroPointFive = BigDecimal.valueOf(0.5f);
         while (true) {
             final var factLeveRate = leveRate;
 
@@ -477,8 +473,15 @@ public class BorrowServiceImpl implements BorrowService {
 
             if (pledgeRateDto.getCurrencyPledgeRate().compareTo(pledgeRateDto.getInitPledgeRate()) > 0
                     && pledgeRateDto.getBorrowFee().compareTo(BigDecimal.valueOf(200)) > 0) {
-                leveRate = leveRate.multiply(onePointFive);
+                leveRate = leveRate.multiply(zeroPointFive);
                 continue;
+            }
+
+            if (pledgeRateDto.getCurrencyPledgeRate().compareTo(pledgeRateDto.getInitPledgeRate()) > 0
+                    && pledgeRateDto.getBorrowFee().compareTo(BigDecimal.valueOf(200)) <= 0) {
+                // 强平
+                forcedCloseout(uid, bid, borrowRecord, recordInterests);
+                return;
             }
 
             final var finalRete = BigDecimal.ONE.subtract(factLeveRate);
@@ -501,19 +504,48 @@ public class BorrowServiceImpl implements BorrowService {
                         , interest.getAmount().multiply(finalRete)));
                 return;
             }
-
-            if (pledgeRateDto.getBorrowFee().compareTo(BigDecimal.valueOf(200)) <= 0) {
-                // 强平
-                borrowRecordPledgeService.reduce(uid, bid, null, true);
-                borrowRecordCoinService.reduce(uid, bid, null);
-
-                borrowRecord.setPledgeStatus(PledgeStatus.WAIT);
-                borrowRecord.setFinish(true);
-                borrowRecordService.updateById(borrowRecord);
-                recordInterests.forEach(interest -> borrowInterestService.reduceAll(uid, bid, interest.getCoin()));
-                return;
-            }
         }
+    }
+
+    @Override
+    public void liquidate(BorrowRecord borrowRecord) {
+        Long uid = borrowRecord.getUid();
+        Long bid = borrowRecord.getId();
+
+        var recordInterests = borrowInterestService.list(uid, bid);
+        var bean = ApplicationContextTool.getBean(BorrowServiceImpl.class);
+        bean = Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
+        // 强平事务会提前提交
+        bean.forcedCloseout(uid, bid, borrowRecord, recordInterests);
+
+        List<BorrowRecordPledge> borrowRecordPledges = borrowRecordPledgeService.listByUid(uid, bid);
+        borrowRecordPledges.stream()
+                .filter(index -> index.getAmount().compareTo(BigDecimal.ZERO) > 0)
+                .filter(index -> {
+                    String coin = index.getCoin();
+                    return !"usdt".equals(coin) && !"usdc".equals(coin);
+                })
+                .forEach(index -> {
+                    BorrowHedgeEntrust borrowHedgeEntrust = BorrowHedgeEntrust.builder()
+                            .bid(bid).brId(index.getId()).coin(index.getCoin()).hedgeCoin("coin").hedgeType(HedgeType.AUTO)
+                            .hedgeStatus(HedgeStatus.WAIT).amount(index.getAmount())
+                            .createRate(currencyService.getDollarRate(index.getCoin()))
+                            .entrustRate(BigDecimal.ONE).createBy("系统").updateBy("系统").build();
+                    borrowHedgeEntrustService.save(borrowHedgeEntrust);
+                    borrowHedgeEntrustService.liquidate(borrowHedgeEntrust);
+                });
+    }
+
+    @Transactional
+    public void forcedCloseout(Long uid, Long bid, BorrowRecord borrowRecord, List<BorrowInterest> recordInterests) {
+        // 强平
+        borrowRecordPledgeService.reduce(uid, bid, null, true);
+        borrowRecordCoinService.reduce(uid, bid, null);
+
+        borrowRecord.setPledgeStatus(PledgeStatus.WAIT);
+        borrowRecord.setFinish(true);
+        borrowRecordService.updateById(borrowRecord);
+        recordInterests.forEach(interest -> borrowInterestService.reduceAll(uid, bid, interest.getCoin()));
     }
 
     private void insertOperationLog(Long bid, ChargeType chargeType

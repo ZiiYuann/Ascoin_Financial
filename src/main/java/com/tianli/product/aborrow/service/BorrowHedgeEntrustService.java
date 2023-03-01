@@ -16,11 +16,14 @@ import com.tianli.product.aborrow.vo.MBorrowHedgeEntrustVO;
  **/
 public interface BorrowHedgeEntrustService extends IService<BorrowHedgeEntrust> {
 
-    void manual(BorrowHedgeEntrustIoUQuery query);
+    BorrowHedgeEntrust manual(BorrowHedgeEntrustIoUQuery query);
 
     IPage<MBorrowHedgeEntrustVO> vos(Page<BorrowHedgeEntrust> page, MBorrowHedgeQuery query);
 
     void cancel(IdsQuery query);
 
+    // 清算
+    void liquidate(BorrowHedgeEntrust borrowHedgeEntrust);
 
+    void liquidateStatus(BorrowHedgeEntrust borrowHedgeEntrust);
 }

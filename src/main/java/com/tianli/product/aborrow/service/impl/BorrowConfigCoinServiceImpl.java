@@ -11,6 +11,7 @@ import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.product.aborrow.convert.BorrowConvert;
 import com.tianli.product.aborrow.entity.BorrowConfigCoin;
+import com.tianli.product.aborrow.entity.BorrowInterest;
 import com.tianli.product.aborrow.entity.BorrowRecord;
 import com.tianli.product.aborrow.entity.BorrowRecordCoin;
 import com.tianli.product.aborrow.enums.BorrowStatus;
@@ -19,6 +20,7 @@ import com.tianli.product.aborrow.query.BorrowCoinQuery;
 import com.tianli.product.aborrow.query.BorrowConfigCoinIoUQuery;
 import com.tianli.product.aborrow.query.BorrowQuery;
 import com.tianli.product.aborrow.service.BorrowConfigCoinService;
+import com.tianli.product.aborrow.service.BorrowInterestService;
 import com.tianli.product.aborrow.service.BorrowRecordCoinService;
 import com.tianli.product.aborrow.service.BorrowRecordService;
 import com.tianli.product.aborrow.vo.AccountBorrowVO;
@@ -31,6 +33,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -55,6 +58,8 @@ public class BorrowConfigCoinServiceImpl extends ServiceImpl<BorrowConfigCoinMap
     private AccountBalanceService accountBalanceService;
     @Resource
     private CurrencyService currencyService;
+    @Resource
+    private BorrowInterestService borrowInterestService;
 
     @Override
     @Transactional
@@ -134,19 +139,26 @@ public class BorrowConfigCoinServiceImpl extends ServiceImpl<BorrowConfigCoinMap
             accountBorrowVO.setRemain(accountBalance.getRemain());
             accountBorrowVO.setRate(currencyService.getDollarRate(index.getCoin()));
             accountBorrowVO.setLogo(coinBaseService.getByName(coin).getLogo());
+            accountBorrowVO.setMaxBorrowAmount(index.getMaxAmount());
 
             if (Objects.nonNull(borrowRecord)) {
                 BigDecimal dollarRate = currencyService.getDollarRate(coin);
                 var borrowRecordCoinMap = borrowRecordCoinService.listByUid(uid, borrowRecord.getId())
                         .stream().collect(Collectors.toMap(BorrowRecordCoin::getCoin, o -> o));
+                Map<String, BorrowInterest> interestMap = borrowInterestService.list(uid, borrowRecord.getId())
+                        .stream().collect(Collectors.toMap(BorrowInterest::getCoin, o -> o));
 
                 BorrowRecordCoin borrowRecordCoin = borrowRecordCoinMap.get(coin);
+                var interest = interestMap.get(coin);
                 accountBorrowVO.setBorrowAmount(Objects.isNull(borrowRecordCoin) ? BigDecimal.ZERO
                         : borrowRecordCoin.getAmount());
                 accountBorrowVO.setRate(dollarRate);
                 accountBorrowVO.setBorrowProportion(accountBorrowVO.getBorrowAmount().multiply(dollarRate)
                         .divide(borrowRecord.getBorrowFee(), 4, RoundingMode.DOWN));
                 accountBorrowVO.setHold(Objects.nonNull(borrowRecordCoin));
+                accountBorrowVO.setMaxBorrowAmount(index.getMaxAmount()
+                        .subtract(borrowRecordCoin == null ? BigDecimal.ZERO : borrowRecordCoin.getAmount())
+                        .subtract(interest == null ? BigDecimal.ZERO : interest.getAmount()));
             }
             return accountBorrowVO;
         }).collect(Collectors.toList());

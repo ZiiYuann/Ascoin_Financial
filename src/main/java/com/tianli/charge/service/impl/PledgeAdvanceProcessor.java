@@ -1,16 +1,29 @@
 package com.tianli.charge.service.impl;
 
 import cn.hutool.json.JSONUtil;
+import com.tianli.chain.service.CoinBaseService;
+import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderAdvance;
 import com.tianli.charge.enums.AdvanceType;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.query.GenerateOrderAdvanceQuery;
-import com.tianli.charge.service.OrderAdvanceProcessor;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.product.aborrow.entity.BorrowConfigPledge;
 import com.tianli.product.aborrow.enums.ModifyPledgeContextType;
+import com.tianli.product.aborrow.enums.PledgeType;
 import com.tianli.product.aborrow.query.ModifyPledgeContextQuery;
+import com.tianli.product.aborrow.query.PledgeContextQuery;
+import com.tianli.product.aborrow.service.BorrowConfigPledgeService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -18,7 +31,13 @@ import java.util.Optional;
  * @since 2023-02-24
  **/
 @Service
-public class PledgeAdvanceProcessor implements OrderAdvanceProcessor {
+public class PledgeAdvanceProcessor extends AbstractAdvanceProcessor<ModifyPledgeContextQuery> {
+
+    @Resource
+    private CoinBaseService coinBaseService;
+    @Resource
+    private BorrowConfigPledgeService borrowConfigPledgeService;
+
     @Override
     public AdvanceType getType() {
         return AdvanceType.PLEDGE;
@@ -30,7 +49,26 @@ public class PledgeAdvanceProcessor implements OrderAdvanceProcessor {
                 Optional.ofNullable(query.getModifyPledgeContextQuery())
                         .orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
 
-        if (!ModifyPledgeContextType.ADD.equals(modifyPledgeContextQuery.getType())) {
+        List<PledgeContextQuery> pledgeContext;
+        if (!ModifyPledgeContextType.ADD.equals(modifyPledgeContextQuery.getType()) ||
+                CollectionUtils.isEmpty(pledgeContext = modifyPledgeContextQuery.getPledgeContext())) {
+            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
+        }
+        pledgeContext = pledgeContext.stream().filter(index -> PledgeType.WALLET.equals(index.getPledgeType()))
+                .collect(Collectors.toList());
+        if (pledgeContext.size() != 1) {
+            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
+        }
+        PledgeContextQuery pledgeContextQuery = pledgeContext.get(0);
+        if (pledgeContextQuery.getPledgeAmount().compareTo(BigDecimal.ZERO) < 0) {
+            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
+        }
+        Set<String> coinNames = coinBaseService.pushCoinNames();
+        if (!coinNames.contains(pledgeContextQuery.getCoin())) {
+            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
+        }
+        BorrowConfigPledge borrowConfigPledge = borrowConfigPledgeService.getById(pledgeContextQuery.getCoin());
+        if (Objects.isNull(borrowConfigPledge) || borrowConfigPledge.getStatus() != 1) {
             throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
         }
 
@@ -40,4 +78,30 @@ public class PledgeAdvanceProcessor implements OrderAdvanceProcessor {
     public void preInsertProcess(GenerateOrderAdvanceQuery query, OrderAdvance orderAdvance) {
         orderAdvance.setQuery(JSONUtil.toJsonStr(query.getModifyPledgeContextQuery()));
     }
+
+    @Override
+    protected ChargeType chargeType() {
+        return ChargeType.pledge;
+    }
+
+    @Override
+    protected Order generateOrder(OrderAdvance orderAdvance) {
+        ModifyPledgeContextQuery query = this.getQuery(orderAdvance);
+        Optional<PledgeContextQuery> any = query.getPledgeContext().stream().filter(index -> PledgeType.WALLET.equals(index.getPledgeType()))
+                .findAny();
+
+        if (any.isEmpty()) {
+            throw ErrorCodeEnum.SYSTEM_ERROR.generalException();
+        }
+
+        PledgeContextQuery pledgeContextQuery = any.get();
+        return Order.generate(orderAdvance.getId(),
+                this.chargeType(), pledgeContextQuery.getCoin(), pledgeContextQuery.getPledgeAmount(), orderAdvance.getId());
+    }
+
+    @Override
+    public ModifyPledgeContextQuery getQuery(OrderAdvance orderAdvance) {
+        return JSONUtil.toBean(orderAdvance.getQuery(), ModifyPledgeContextQuery.class);
+    }
+
 }

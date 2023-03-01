@@ -7,8 +7,11 @@ import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedissonClientTool;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.product.aborrow.entity.BorrowHedgeEntrust;
 import com.tianli.product.aborrow.entity.BorrowRecord;
+import com.tianli.product.aborrow.enums.HedgeStatus;
 import com.tianli.product.aborrow.enums.PledgeStatus;
+import com.tianli.product.aborrow.service.BorrowHedgeEntrustService;
 import com.tianli.product.aborrow.service.BorrowRecordCoinService;
 import com.tianli.product.aborrow.service.BorrowRecordService;
 import com.tianli.product.aborrow.service.BorrowService;
@@ -46,6 +49,8 @@ public class BorrowTask {
     private RedissonClientTool redissonClientTool;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private BorrowHedgeEntrustService borrowHedgeEntrustService;
 
     //    @Scheduled(cron = "0 0 0 1/1 * ? ")  // 1min
 //    @Scheduled(cron = "0/1 * * * * ? ") // 1s
@@ -88,8 +93,14 @@ public class BorrowTask {
                         return;
                     }
 
-                    // 强制平仓
-                    redissonClientTool.tryLock(lockKey, () -> borrowService.forcedCloseout(borrowRecord)
+                    // 强制平仓（手动）
+                    if (currencyPledgeRate.compareTo(newRecord.getAssureLqPledgeRate()) < 0) {
+                        redissonClientTool.tryLock(lockKey, () -> borrowService.reduce(borrowRecord)
+                                , ErrorCodeEnum.SYSTEM_BUSY, 30, TimeUnit.SECONDS, true);
+                        return;
+                    }
+
+                    redissonClientTool.tryLock(lockKey, () -> borrowService.liquidate(borrowRecord)
                             , ErrorCodeEnum.SYSTEM_BUSY, 30, TimeUnit.SECONDS, true);
 
                 });
@@ -104,16 +115,15 @@ public class BorrowTask {
         }
     }
 
-    //    @Scheduled(cron = "0 0 1/1 * * ?")
-    public void interestTask() {
+//    @Scheduled(cron = "0 0 1/1 * * ?")
+    public void interest() {
         LocalDateTime now = LocalDateTime.now();
         String key = RedisConstants.BORROW_TASK_INTEREST + now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
         RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
-        long pagePre = atomicLong.get();
+        long page = atomicLong.incrementAndGet();
         atomicLong.expire(Duration.ofSeconds(30));
         while (true) {
             try {
-                long page = atomicLong.getAndIncrement();
                 var borrowRecords = borrowRecordService.page(new Page<>(page, 10)
                         , new LambdaQueryWrapper<BorrowRecord>()
                                 .select(BorrowRecord::getId, BorrowRecord::getUid)
@@ -123,11 +133,32 @@ public class BorrowTask {
                 }
                 borrowRecords.forEach(borrowRecord ->
                         borrowRecordCoinService.calInterest(borrowRecord.getUid(), borrowRecord.getId()));
+
+                page = atomicLong.incrementAndGet();
             } catch (Exception e) {
                 // 防止异常导致部分记录未计算
-                webHookService.dingTalkSend("借贷定时利息任务异常：" + key + "  page：" + pagePre);
+                webHookService.dingTalkSend("借贷定时利息任务异常：" + key + "  page：" + page);
             }
         }
+    }
+
+//    @Scheduled(cron = "0/10 * * * * ? ")
+    public void entrust() {
+        List<BorrowHedgeEntrust> borrowHedgeEntrusts = borrowHedgeEntrustService.list(new LambdaQueryWrapper<BorrowHedgeEntrust>()
+                .in(BorrowHedgeEntrust::getHedgeStatus, List.of(HedgeStatus.WAIT, HedgeStatus.PROCESS)));
+
+        borrowHedgeEntrusts.forEach(borrowHedgeEntrust -> {
+
+            if (HedgeStatus.WAIT.equals(borrowHedgeEntrust.getHedgeStatus())) {
+                borrowHedgeEntrustService.liquidate(borrowHedgeEntrust);
+            }
+
+            if (HedgeStatus.PROCESS.equals(borrowHedgeEntrust.getHedgeStatus())) {
+                borrowHedgeEntrustService.liquidateStatus(borrowHedgeEntrust);
+            }
+
+        });
+
     }
 
 }

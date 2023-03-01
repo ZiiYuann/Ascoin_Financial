@@ -28,6 +28,9 @@ public class MBorrowOperationLogQuery {
     @QueryWrapperGenerator(field = "id")
     private Long id;
 
+    @QueryWrapperGenerator(field = "uid")
+    private Long uid;
+
     @QueryWrapperGenerator(field = "uid", op = SqlKeyword.LIKE)
     private Long uidStr;
 

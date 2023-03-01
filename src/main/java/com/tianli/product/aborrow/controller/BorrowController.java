@@ -1,6 +1,9 @@
 package com.tianli.product.aborrow.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.account.vo.TransactionGroupTypeVO;
+import com.tianli.charge.enums.ChargeGroup;
+import com.tianli.charge.service.ChargeService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedissonClientTool;
@@ -48,6 +51,8 @@ public class BorrowController {
     private BorrowRecordService borrowRecordService;
     @Resource
     private BorrowRecordCoinService borrowRecordCoinService;
+    @Resource
+    private ChargeService chargeService;
 
     /**
      * 借币
@@ -124,12 +129,15 @@ public class BorrowController {
     public Result<List<BorrowRecordPledgeVO>> pledgeRecord(
             @RequestParam(value = "pledgeType", required = false) PledgeType pledgeType) {
         Long uid = requestInitService.uid();
-        BorrowRecord borrowRecord = borrowRecordService.getValid(uid);
+        BorrowRecord borrowRecord = borrowRecordService.get(uid);
+        if (Objects.isNull(borrowRecord)) {
+            return new Result<>(new ArrayList<>());
+        }
         return new Result<>(borrowRecordPledgeService.vos(uid, borrowRecord.getId(), pledgeType));
     }
 
     @GetMapping("/borrow/record")
-    public Result<List<BorrowRecordPledgeVO>> borrowRecord() {
+    public Result<List<BorrowRecordCoinVO>> borrowRecord() {
         Long uid = requestInitService.uid();
         BorrowRecord borrowRecord = borrowRecordService.get(uid);
         if (Objects.isNull(borrowRecord)) {
@@ -166,6 +174,15 @@ public class BorrowController {
         Long uid = requestInitService.uid();
         query.setUid(uid);
         return new Result<>(borrowOperationLogService.logs(pageQuery.page(), query));
+    }
+
+    /**
+     * 交易类型
+     */
+    @GetMapping("/transaction/type")
+    public Result<List<TransactionGroupTypeVO>> transactionType() {
+        Long uid = requestInitService.uid();
+        return new Result<>(chargeService.listTransactionGroupType(uid, List.of(ChargeGroup.loan)));
     }
 
 

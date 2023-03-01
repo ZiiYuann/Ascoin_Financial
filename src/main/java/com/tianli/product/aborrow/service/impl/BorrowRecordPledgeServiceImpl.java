@@ -299,6 +299,7 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
             FinancialRecord financialRecord = financialRecordService.selectById(recordId, uid);
 
             if (forced) {
+                this.casDecrease(recordPledge.getId(), coin, recordPledge.getAmount(), recordPledge.getAmount(), PledgeType.FINANCIAL);
                 BorrowRecordPledge borrowRecordPledge = getAndInit(uid, bid, coin, PledgeType.WALLET, null);
                 this.casIncrease(borrowRecordPledge.getId(), coin, decreaseAmount, borrowRecordPledge.getAmount(), PledgeType.WALLET);
             }

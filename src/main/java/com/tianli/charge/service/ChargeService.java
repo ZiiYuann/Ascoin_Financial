@@ -35,7 +35,9 @@ import com.tianli.charge.mapper.OrderMapper;
 import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.query.WithdrawQuery;
 import com.tianli.charge.vo.*;
-import com.tianli.common.*;
+import com.tianli.common.CommonFunction;
+import com.tianli.common.ConfigConstants;
+import com.tianli.common.RedisLockConstants;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
@@ -66,7 +68,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -84,12 +85,9 @@ import java.util.stream.Collectors;
 @Service
 public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
-    /**
-     * 预加载数据
-     */
-    @PostConstruct
-    private List<TransactionGroupTypeVO> preloading() {
-        List<TransactionGroupTypeVO> list = new ArrayList<>(2);
+    public static final List<TransactionGroupTypeVO> transactionGroupTypeVOs = new ArrayList<>(2);
+
+    static {
         for (ChargeGroup chargeGroup : ChargeGroup.values()) {
             TransactionGroupTypeVO transactionGroupTypeVO = new TransactionGroupTypeVO();
             transactionGroupTypeVO.setGroup(chargeGroup);
@@ -102,30 +100,19 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 return transactionTypeVO;
             }).collect(Collectors.toList());
             transactionGroupTypeVO.setTypes(transactionTypeVOS);
-            list.add(transactionGroupTypeVO);
+            transactionGroupTypeVOs.add(transactionGroupTypeVO);
         }
-
-        redisService.set(RedisConstants.ACCOUNT_TRANSACTION_TYPE, list, 10L, TimeUnit.DAYS);
-        return list;
     }
 
-    @SuppressWarnings("unchecked")
-    public List<TransactionGroupTypeVO> listTransactionGroupType(Long uid) {
-        List<TransactionGroupTypeVO> result;
-        Object o = redisService.get(RedisConstants.ACCOUNT_TRANSACTION_TYPE);
-        if (Objects.nonNull(o)) {
-            result = (List<TransactionGroupTypeVO>) o;
-        } else {
-            result = preloading();
-        }
-
+    public List<TransactionGroupTypeVO> listTransactionGroupType(Long uid, List<ChargeGroup> groups) {
         boolean agent = walletAgentService.isAgent(uid);
         if (agent) {
-            return result;
+            return transactionGroupTypeVOs;
         }
         List<ChargeType> filterType =
                 List.of(ChargeType.agent_fund_sale, ChargeType.agent_fund_interest, ChargeType.agent_fund_redeem);
 
+        List<TransactionGroupTypeVO> result = JSONUtil.parseArray(transactionGroupTypeVOs).toList(TransactionGroupTypeVO.class);
         result.forEach(group -> {
             List<TransactionTypeVO> types = group.getTypes();
             List<TransactionTypeVO> newTypes = types.stream()
@@ -133,7 +120,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                     .collect(Collectors.toList());
             group.setTypes(newTypes);
         });
-
         return result;
     }
 
@@ -372,7 +358,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         ContractOperation contractService = contractAdapter.getOne(orderChargeInfo.getNetwork());
         Coin coin = coinService.getByNameAndNetwork(orderChargeInfo.getCoin(), orderChargeInfo.getNetwork());
         BigInteger amount = TokenAdapter.restoreBigInteger(order.getAmount().subtract(order.getServiceAmount()), coin.getDecimals());
-        Result<Object> result = null;
+        Result<Object> result;
 
         /* 注册监听回调接口
          * {@link com.tianli.charge.controller.ChargeController#withdrawCallback(ChainType, String, String, String)}
@@ -508,7 +494,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      * 获取充值DTO数据 不同链的usdt后面的0个数不一样  需要做一个对齐处理 目前是后面8个0为1个u
      */
     private Address getAddress(NetworkType network, String addressStr) {
-        Address address = null;
+        Address address;
         switch (network) {
             case erc20:
                 address = addressService.getByEth(addressStr);
@@ -715,8 +701,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     private OrderReviewService orderReviewService;
     @Resource
     private WebHookService webHookService;
-    @Resource
-    private RedisService redisService;
     @Resource
     private IWalletAgentService walletAgentService;
     @Resource

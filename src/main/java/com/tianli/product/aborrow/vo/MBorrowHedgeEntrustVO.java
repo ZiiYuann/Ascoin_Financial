@@ -1,8 +1,5 @@
 package com.tianli.product.aborrow.vo;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.tianli.product.aborrow.enums.HedgeStatus;
 import com.tianli.product.aborrow.enums.HedgeType;
 import lombok.AllArgsConstructor;
@@ -32,11 +29,15 @@ public class MBorrowHedgeEntrustVO {
 
     private String coin;
 
+    private String amount;
+
+    private String hedgeCoin;
+
     private HedgeType hedgeType;
 
     private HedgeStatus hedgeStatus;
 
-    private BigDecimal amount;
+    private BigDecimal translateAmount;
 
     // 创建汇率 接管价
     private BigDecimal createRate;
@@ -46,6 +47,8 @@ public class MBorrowHedgeEntrustVO {
 
     // 成交汇率
     private BigDecimal translateRate;
+
+    private BigDecimal liquidateId;
 
     private LocalDateTime createTime;
 

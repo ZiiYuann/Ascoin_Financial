@@ -7,9 +7,10 @@ package com.tianli.product.aborrow.enums;
  * @since 2023-02-15
  **/
 public enum HedgeStatus {
-    // PROCESS 进行中 FINISH 完成 CANCEL 取消
+    // PROCESS 进行中 FINISH 完成 CANCEL 取消 FAIL 失败
     WAIT,
     PROCESS,
     FINISH,
-    CANCEL
+    CANCEL,
+    FAIL
 }

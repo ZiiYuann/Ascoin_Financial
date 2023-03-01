@@ -7,6 +7,8 @@ import com.tianli.product.afinancial.entity.FinancialRecord;
 import com.tianli.product.afinancial.service.FinancialRecordService;
 import com.tianli.product.afund.entity.FundRecord;
 import com.tianli.product.afund.service.IFundRecordService;
+import com.tianli.rpc.RpcService;
+import com.tianli.rpc.dto.LiquidateDTO;
 import com.tianli.task.FinancialIncomeTask;
 import com.tianli.task.FundIncomeTask;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -43,7 +46,19 @@ class BootTest {
     private TronTriggerContract tronTriggerContract;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
+    @Resource
+    private RpcService rpcService;
 
+    @Test
+    void rpcTest() {
+        String bnb = rpcService.liquidate(LiquidateDTO.builder()
+                .recordId(1759070380018892898L)
+                .coin("bnb")
+                .amount(new BigDecimal("0.043"))
+                .build());
+        log.info(bnb);
+
+    }
 
     @Test
     void getStatusByHash() {

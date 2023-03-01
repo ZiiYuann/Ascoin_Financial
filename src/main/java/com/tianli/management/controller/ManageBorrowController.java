@@ -1,6 +1,5 @@
 package com.tianli.management.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.account.query.IdsQuery;
 import com.tianli.common.PageQuery;
@@ -12,7 +11,6 @@ import com.tianli.exception.Result;
 import com.tianli.management.query.BorrowHedgeEntrustIoUQuery;
 import com.tianli.product.aborrow.convert.BorrowConvert;
 import com.tianli.product.aborrow.entity.*;
-import com.tianli.product.aborrow.enums.HedgeStatus;
 import com.tianli.product.aborrow.query.*;
 import com.tianli.product.aborrow.service.*;
 import com.tianli.product.aborrow.vo.*;
@@ -23,7 +21,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -134,7 +134,10 @@ public class ManageBorrowController {
     public Result<List<MBorrowRecordVO>> userPledge(@RequestParam("uid") Long uid,
                                                     @RequestParam("bid") Long bid) {
         var result = borrowRecordPledgeService.listByUid(uid, bid)
-                .stream().map(coin -> MBorrowRecordVO.builder()
+                .stream()
+                .filter(coin -> coin.getAmount().compareTo(BigDecimal.ZERO) > 0)
+                .map(coin -> MBorrowRecordVO.builder()
+                        .brId(coin.getId())
                         .amount(coin.getAmount())
                         .pledgeType(coin.getPledgeType())
                         .rate(currencyService.getDollarRate(coin.getCoin()))
@@ -157,7 +160,10 @@ public class ManageBorrowController {
     @AdminPrivilege
     @PostMapping("/hedge")
     public Result<Void> hedge(@RequestBody BorrowHedgeEntrustIoUQuery query) {
-        borrowHedgeEntrustService.manual(query);
+        BorrowHedgeEntrust manual = borrowHedgeEntrustService.manual(query);
+        if (Objects.isNull(query.getEntrustRate())){
+            borrowHedgeEntrustService.liquidate(manual);
+        }
         return new Result<>();
     }
 

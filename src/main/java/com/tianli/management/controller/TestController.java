@@ -170,7 +170,7 @@ public class TestController {
     @GetMapping("/rds")
     public Result rdsGet(String key) {
         Set<String> keys = stringRedisTemplate.keys("*" + key + "*");
-        if (CollectionUtils.isEmpty(keys)){
+        if (CollectionUtils.isEmpty(keys)) {
             return new Result("没有key");
         }
         HashMap<String, String> map = new HashMap<>();
@@ -237,6 +237,18 @@ public class TestController {
     @PostMapping("/pledge/cal")
     public Result<Void> pledgeCal() {
         borrowTask.task();
+        return new Result<>();
+    }
+
+    @PostMapping("/pledge/interest")
+    public Result<Void> pledgeInterest() {
+        borrowTask.interest();
+        return new Result<>();
+    }
+
+    @PostMapping("/pledge/entrust")
+    public Result<Void> pledge() {
+        borrowTask.entrust();
         return new Result<>();
     }
 }

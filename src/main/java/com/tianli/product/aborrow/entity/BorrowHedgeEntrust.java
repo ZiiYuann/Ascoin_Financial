@@ -41,7 +41,7 @@ public class BorrowHedgeEntrust{
 
     private BigDecimal amount;
 
-    private BigDecimal hedgeAmount;
+    private BigDecimal translateAmount;
 
     // 创建汇率 接管价
     private BigDecimal createRate;
@@ -51,6 +51,8 @@ public class BorrowHedgeEntrust{
 
     // 成交汇率
     private BigDecimal translateRate;
+
+    private String liquidateId;
 
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
