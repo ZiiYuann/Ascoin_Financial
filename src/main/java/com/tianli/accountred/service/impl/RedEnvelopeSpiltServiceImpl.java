@@ -70,7 +70,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
 
     private static MessageDigest MD5 = null;
 
-    private static final String PRFIX = "0x";
+    private static final String PREFIX = "0x";
 
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
@@ -362,8 +362,8 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                     .receive(dto.isReceive())
                     .receiveTime(LocalDateTime.ofEpochSecond(score.longValue() / 1000, 0, ZoneOffset.ofHours(8)))
                     .nickName(
-                            PRFIX + Numeric.toHexString((MD5.digest((tuple.getScore().longValue() + "")
-                                    .getBytes(StandardCharsets.UTF_8)))).substring(2, 10)
+                            PREFIX + Numeric.toHexString((MD5.digest((tuple.getScore().longValue() + "")
+                                    .getBytes(StandardCharsets.UTF_8)))).substring(4, 10)
                     )
                     .coin(coin)
                     .build();
@@ -381,14 +381,6 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         vo.setExpireTime(redEnvelope.getCreateTime().plusDays(redEnvelope.getChannel().getExpireDays()));
         vo.setRecordPage(page);
         return vo;
-    }
-
-    public static void main(String[] args) throws NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        String message = "1233334";
-        byte[] digest = md.digest(message.getBytes(StandardCharsets.UTF_8));
-        String substring = Numeric.toHexString(digest).substring(2, 10);
-        System.out.println(substring);
     }
 
     @Override
