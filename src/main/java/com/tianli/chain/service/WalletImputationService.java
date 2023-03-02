@@ -42,10 +42,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -143,7 +140,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                     , List.of(ImputationStatus.wait, ImputationStatus.processing, ImputationStatus.fail));
         }
 
-        queryWrapper = queryWrapper.orderByDesc(WalletImputation :: getAmount);
+        queryWrapper = queryWrapper.orderByDesc(WalletImputation::getAmount);
 
         return walletImputationMapper.selectPage(page, queryWrapper).convert(chainConverter::toWalletImputationVO);
     }
@@ -192,29 +189,32 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
             ErrorCodeEnum.throwException("上链失败");
         }
 
-        BigDecimal amount = walletImputations.stream().map(WalletImputation::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        final List<BigDecimal> amountList = new ArrayList<>();
+        List<WalletImputationLogAppendix> logAppendices = walletImputations.stream()
+                .filter(walletImputation -> walletImputation.getAmount().compareTo(BigDecimal.ZERO) > 0)
+                .collect(Collectors.groupingBy(WalletImputation::getAddress))
+                .values().stream().map(value -> {
+                    WalletImputation walletImputation = value.get(0);
+                    WalletImputationLogAppendix appendix = new WalletImputationLogAppendix();
+                    appendix.setAmount(walletImputation.getAmount());
+                    appendix.setNetwork(walletImputation.getNetwork());
+                    appendix.setFromAddress(walletImputation.getAddress());
+                    appendix.setTxid(hash);
+                    amountList.add(walletImputation.getAmount());
+                    return appendix;
+                }).collect(Collectors.toList());
+        walletImputationLogAppendixService.saveBatch(logAppendices);
+
         Long logId = CommonFunction.generalId();
         WalletImputationLog walletImputationLog = WalletImputationLog.builder()
                 .id(logId)
-                .amount(amount)
+                .amount(amountList.stream().reduce(BigDecimal.ZERO, BigDecimal::add))
                 .txid(hash)
                 .coin(coinName)
                 .network(network)
                 .status(ImputationStatus.processing)
                 .createTime(LocalDateTime.now()).build();
         walletImputationLogService.save(walletImputationLog);
-
-        List<WalletImputationLogAppendix> logAppendices = walletImputations.stream()
-                .filter(walletImputation -> walletImputation.getAmount().compareTo(BigDecimal.ZERO) > 0)
-                .map(walletImputation -> {
-                    WalletImputationLogAppendix appendix = new WalletImputationLogAppendix();
-                    appendix.setAmount(walletImputation.getAmount());
-                    appendix.setNetwork(walletImputation.getNetwork());
-                    appendix.setFromAddress(walletImputation.getAddress());
-                    appendix.setTxid(hash);
-                    return appendix;
-                }).collect(Collectors.toList());
-        walletImputationLogAppendixService.saveBatch(logAppendices);
 
         walletImputations.forEach(walletImputation -> {
             walletImputation.setStatus(ImputationStatus.processing);
