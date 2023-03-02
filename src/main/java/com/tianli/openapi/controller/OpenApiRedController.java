@@ -16,6 +16,7 @@ import com.tianli.accountred.vo.RedEnvelopeExternGetDetailsVO;
 import com.tianli.common.Constants;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisConstants;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.openapi.query.OpenapiRedQuery;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * @author chenb
@@ -147,6 +149,9 @@ public class OpenApiRedController {
     @GetMapping("/openRedPackage")
     public String openRedPackage(OpenapiRedQuery query) {
         String rid = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, query.getContext());
+        if (Objects.isNull(rid)) {
+            throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
+        }
         RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.parseLong(rid));
         UserInfoDTO userInfoDTO = rpcService.userInfoDTO(redEnvelope.getUid());
         String url = configService.getOrDefault("telegram_red_share_url"
