@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class MBannerVO {
 
-    @Id
     private Long id;
 
     private String name;
