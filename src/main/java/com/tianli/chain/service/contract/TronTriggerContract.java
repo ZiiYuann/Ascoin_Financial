@@ -107,18 +107,18 @@ public class TronTriggerContract extends AbstractContractOperation {
     }
 
     @Override
-    public Result tokenTransfer(String to, BigInteger val, Coin coin) {
+    public Result<String> tokenTransfer(String to, BigInteger val, Coin coin) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
         String contractAddress = coin.isMainToken() ? "" : coin.getContract();
         String data = org.tron.tronj.abi.FunctionEncoder.encode(
                 new org.tron.tronj.abi.datatypes.Function("transfer",
                         List.of(new org.tron.tronj.abi.datatypes.Address(to), new org.tron.tronj.abi.datatypes.generated.Uint256(val)),
                         List.of()));
-        return Result.success(triggerSmartContract(ownerAddress, contractAddress, data, 40000000L));
+        return new Result<>(triggerSmartContract(ownerAddress, contractAddress, data, 40000000L));
     }
 
     @Override
-    Result mainTokenTransfer(String to, BigInteger val, Coin coin) {
+    Result<String> mainTokenTransfer(String to, BigInteger val, Coin coin) {
         String ownerAddress = configService.get(ConfigConstants.TRON_MAIN_WALLET_ADDRESS);
         var transferContract = BalanceContract.TransferContract.newBuilder()
                 .setToAddress(address2ByteString(to))
@@ -126,7 +126,7 @@ public class TronTriggerContract extends AbstractContractOperation {
                 .setAmount(val.longValue())
                 .build();
         GrpcAPI.TransactionExtention extention = blockingStub.createTransaction2(transferContract);
-        return Result.success(processTransactionExtention(extention));
+        return new Result<>(processTransactionExtention(extention));
     }
 
     public String triggerSmartContract(String ownerAddress, String contractAddress, String data, long feeLimit) {

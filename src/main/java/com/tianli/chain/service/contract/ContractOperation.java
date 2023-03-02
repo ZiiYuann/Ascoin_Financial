@@ -40,7 +40,7 @@ public interface ContractOperation {
      * @param coin 代币信息
      * @return 交易结果
      */
-    Result transfer(String to, BigInteger val, Coin coin);
+    Result<String> transfer(String to, BigInteger val, Coin coin);
 
     /**
      * 校验地址是否有效

@@ -4,10 +4,11 @@ import com.tianli.charge.enums.ChargeGroup;
 import com.tianli.charge.enums.ChargeType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author chenb
@@ -33,5 +34,23 @@ public class AccountDetailsQuery {
     private List<ChargeGroup> chargeGroups;
 
     private List<ChargeType> chargeTypes;
+
+    public Set<ChargeType> chargeTypeSet() {
+        Set<ChargeType> types = new HashSet<>();
+
+        Optional.ofNullable(this.getChargeGroup()).ifPresent(chargeGroup -> types.addAll(this.getChargeGroup().getChargeTypes()));
+
+        if (CollectionUtils.isNotEmpty(this.getChargeGroups())) {
+            this.getChargeGroups().forEach(group -> types.addAll(group.getChargeTypes()));
+        }
+        if (CollectionUtils.isNotEmpty(this.getChargeTypes())) {
+            types.addAll(this.getChargeTypes());
+        }
+
+        if (Objects.nonNull(chargeType)) {
+            types.addAll(chargeTypes);
+        }
+        return types;
+    }
 
 }

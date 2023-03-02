@@ -85,7 +85,7 @@ import java.util.stream.Collectors;
 @Service
 public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
-    public static final List<TransactionGroupTypeVO> transactionGroupTypeVOs = new ArrayList<>(2);
+    private static final List<TransactionGroupTypeVO> transactionGroupTypeVOs = new ArrayList<>(2);
 
     static {
         for (ChargeGroup chargeGroup : ChargeGroup.values()) {
@@ -113,6 +113,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 List.of(ChargeType.agent_fund_sale, ChargeType.agent_fund_interest, ChargeType.agent_fund_redeem);
 
         List<TransactionGroupTypeVO> result = JSONUtil.parseArray(transactionGroupTypeVOs).toList(TransactionGroupTypeVO.class);
+        result = result.stream().filter(index -> groups.contains(index.getGroup())).collect(Collectors.toList());
         result.forEach(group -> {
             List<TransactionTypeVO> types = group.getTypes();
             List<TransactionTypeVO> newTypes = types.stream()
@@ -358,7 +359,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         ContractOperation contractService = contractAdapter.getOne(orderChargeInfo.getNetwork());
         Coin coin = coinService.getByNameAndNetwork(orderChargeInfo.getCoin(), orderChargeInfo.getNetwork());
         BigInteger amount = TokenAdapter.restoreBigInteger(order.getAmount().subtract(order.getServiceAmount()), coin.getDecimals());
-        Result<Object> result;
+        Result<String> result;
 
         /* 注册监听回调接口
          * {@link com.tianli.charge.controller.ChargeController#withdrawCallback(ChainType, String, String, String)}
@@ -385,7 +386,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      * 结算列表
      */
     public IPage<OrderSettleRecordVO> settleOrderPage(IPage<OrderSettleRecordVO> page, Long uid, ProductType productType) {
-        return orderService.OrderSettleInfoVOPage(page, uid, productType);
+        return orderService.orderSettleInfoVOPage(page, uid, productType);
     }
 
     /**
@@ -561,7 +562,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     /**
      * 获取分页数据
      */
-    // todo 优化
     public IPage<OrderChargeInfoVO> pageByChargeGroup(Long uid, AccountDetailsQuery query, Page<Order> page) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUid, uid)
@@ -569,26 +569,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 .orderByDesc(Order::getId)
                 .eq(false, Order::getStatus, ChargeStatus.chain_fail);
 
-        Set<ChargeType> types = new HashSet<>();
 
-        if (Objects.nonNull(query.getChargeGroup())) {
-            types.addAll(query.getChargeGroup().getChargeTypes());
-        }
-
-        if (CollectionUtils.isNotEmpty(query.getChargeGroups())) {
-            query.getChargeGroups().forEach(group -> types.addAll(group.getChargeTypes()));
-        }
-
-        if (CollectionUtils.isNotEmpty(query.getChargeTypes())) {
-            types.addAll(query.getChargeTypes());
-        }
-
-        if (CollectionUtils.isNotEmpty(types)) {
-            wrapper = wrapper.in(Order::getType, types);
-        }
-
-        if (Objects.nonNull(query.getChargeType())) {
-            wrapper = wrapper.eq(Order::getType, query.getChargeType());
+        if (CollectionUtils.isNotEmpty(query.chargeTypeSet())) {
+            wrapper = wrapper.in(Order::getType, query.chargeTypeSet());
         }
 
         if (StringUtils.isNotBlank(query.getCoin())) {

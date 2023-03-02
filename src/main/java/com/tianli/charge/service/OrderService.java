@@ -112,7 +112,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
         });
     }
 
-    public IPage<OrderSettleRecordVO> OrderSettleInfoVOPage(IPage<OrderSettleRecordVO> page, Long uid, ProductType productType) {
+    public IPage<OrderSettleRecordVO> orderSettleInfoVOPage(IPage<OrderSettleRecordVO> page, Long uid, ProductType productType) {
         return orderMapper.selectOrderSettleInfoVOPage(page, uid, productType);
     }
 

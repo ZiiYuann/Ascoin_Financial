@@ -1,17 +1,20 @@
 package com.tianli.charge.service.impl;
 
+import com.tianli.chain.dto.TRONTokenReq;
+import com.tianli.chain.entity.Coin;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderAdvance;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
-import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.service.OrderAdvanceProcessor;
+import com.tianli.charge.service.OrderAdvanceService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.charge.vo.OrderBaseVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 
 /**
  * @author chenb
@@ -24,13 +27,13 @@ public abstract class AbstractAdvanceProcessor<T> implements OrderAdvanceProcess
     @Resource
     private OrderService orderService;
     @Resource
-    private ChargeService chargeService;
+    private OrderAdvanceService orderAdvanceService;
 
     protected abstract ChargeType chargeType();
 
-    protected Order generateOrder(OrderAdvance orderAdvance) {
-        return null;
-    }
+    protected abstract Order generateOrder(OrderAdvance orderAdvance);
+
+    protected abstract void handlerRechargerOperation(OrderAdvance orderAdvance, TRONTokenReq tronTokenReq, BigDecimal finalAmount, Coin coin);
 
     @Override
     @Transactional
@@ -39,7 +42,13 @@ public abstract class AbstractAdvanceProcessor<T> implements OrderAdvanceProcess
         order.setStatus(ChargeStatus.chaining);
         order.setRelatedId(orderAdvance.getId());
         orderService.save(order);
-
         return null;
+    }
+
+    @Override
+    @Transactional
+    public void handlerRecharge(OrderAdvance orderAdvance, TRONTokenReq tronTokenReq, BigDecimal finalAmount, Coin coin) {
+        this.handlerRechargerOperation(orderAdvance, tronTokenReq, finalAmount, coin);
+        orderAdvanceService.finish(orderAdvance.getId());
     }
 }

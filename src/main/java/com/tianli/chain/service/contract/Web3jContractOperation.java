@@ -2,7 +2,6 @@ package com.tianli.chain.service.contract;
 
 import com.google.gson.Gson;
 import com.tianli.chain.entity.Coin;
-import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.tool.time.TimeTool;
@@ -10,7 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.web3j.abi.*;
-import org.web3j.abi.datatypes.*;
+import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.Uint;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
@@ -47,8 +49,8 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
     /**
      * 代币转账
      */
-    public Result tokenTransfer(String to, BigInteger val, Coin coin) {
-        Result result = null;
+    public Result<String> tokenTransfer(String to, BigInteger val, Coin coin) {
+        Result<String> result = null;
         try {
             result = this.sendRawTransactionWithDefaultParam(
                     coin.getContract(),
@@ -64,7 +66,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
         return result;
     }
 
-    public Result mainTokenTransfer(String to, BigInteger val, Coin coin) {
+    public Result<String> mainTokenTransfer(String to, BigInteger val, Coin coin) {
         return sendRawTransactionWithDefaultParam(to, "", val,
                 BigInteger.valueOf(Long.parseLong(getTransferGasLimit())), "主笔转账：" + coin.getName());
     }
@@ -74,7 +76,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
      */
     public String recycle(String toAddress, List<Long> addressIds, List<String> tokenContractAddresses) {
         toAddress = Optional.ofNullable(toAddress).orElse(this.getMainWalletAddress());
-        Result result;
+        Result<String> result;
 
         String data = super.buildRecycleData(toAddress, addressIds, tokenContractAddresses);
         try {
@@ -122,7 +124,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
      * @param operation 操作信息
      * @return 结果
      */
-    public Result sendRawTransactionWithDefaultParam(String to, String data, BigInteger value, BigInteger gasLimit, String operation) {
+    public Result<String> sendRawTransactionWithDefaultParam(String to, String data, BigInteger value, BigInteger gasLimit, String operation) {
         String password = this.getMainWalletPassword();
         String address = this.getMainWalletAddress();
         String gas = this.getGas();
@@ -145,8 +147,8 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
      * @param operation 操作信息
      * @return 结果
      */
-    public Result sendRawTransaction(BigInteger nonce, Long chainId, String to, String data, BigInteger value,
-                                     String gas, BigInteger gasLimit, String password, String operation) {
+    public Result<String> sendRawTransaction(BigInteger nonce, Long chainId, String to, String data, BigInteger value,
+                                             String gas, BigInteger gasLimit, String password, String operation) {
         log.info("gas:{}, limit: {}", gas, gasLimit);
 
         BigInteger gasPrice = Convert.toWei(gas, Convert.Unit.GWEI).toBigInteger();
@@ -169,7 +171,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
         }
 
         log.info("时间: " + TimeTool.getDateTimeDisplayString(LocalDateTime.now()) + ", " + operation + " < HASH: " + send.getTransactionHash() + " >");
-        return Result.success(send.getTransactionHash());
+        return new Result<>(send.getTransactionHash());
     }
 
     public EthGetTransactionReceipt getTransactionByHash(String hash) {

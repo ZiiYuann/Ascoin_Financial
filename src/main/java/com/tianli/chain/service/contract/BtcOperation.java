@@ -73,7 +73,7 @@ public class BtcOperation extends AbstractContractOperation {
     private OccasionalAddressService occasionalAddressService;
 
     @Override
-    Result tokenTransfer(String to, BigInteger val, Coin coin) {
+    Result<String> tokenTransfer(String to, BigInteger val, Coin coin) {
         throw ErrorCodeEnum.NOT_OPEN.generalException();
     }
 

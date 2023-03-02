@@ -9,6 +9,9 @@ import org.apache.ibatis.annotations.Update;
 @Mapper
 public interface OrderAdvanceMapper extends BaseMapper<OrderAdvance> {
 
-    @Update("update order_advance set try_times = try_times + 1 where id =#{id}")
+    @Update("update `order_advance` set `try_times` = `try_times` + 1 where `id` =#{id}")
     int addTryTimes(@Param("id") Long id);
+
+    @Update("update `order_advance` set  `finish` = 1 where `id` =#{id} and `finish` = 0")
+    int finish(@Param("id") Long id);
 }

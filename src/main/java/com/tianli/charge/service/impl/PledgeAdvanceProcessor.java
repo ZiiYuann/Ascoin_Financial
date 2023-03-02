@@ -1,6 +1,8 @@
 package com.tianli.charge.service.impl;
 
 import cn.hutool.json.JSONUtil;
+import com.tianli.chain.dto.TRONTokenReq;
+import com.tianli.chain.entity.Coin;
 import com.tianli.chain.service.CoinBaseService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderAdvance;
@@ -14,6 +16,7 @@ import com.tianli.product.aborrow.enums.PledgeType;
 import com.tianli.product.aborrow.query.ModifyPledgeContextQuery;
 import com.tianli.product.aborrow.query.PledgeContextQuery;
 import com.tianli.product.aborrow.service.BorrowConfigPledgeService;
+import com.tianli.product.aborrow.service.BorrowService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +40,13 @@ public class PledgeAdvanceProcessor extends AbstractAdvanceProcessor<ModifyPledg
     private CoinBaseService coinBaseService;
     @Resource
     private BorrowConfigPledgeService borrowConfigPledgeService;
+    @Resource
+    private BorrowService borrowService;
+
+    @Override
+    protected ChargeType chargeType() {
+        return ChargeType.pledge;
+    }
 
     @Override
     public AdvanceType getType() {
@@ -49,9 +59,9 @@ public class PledgeAdvanceProcessor extends AbstractAdvanceProcessor<ModifyPledg
                 Optional.ofNullable(query.getModifyPledgeContextQuery())
                         .orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
 
-        List<PledgeContextQuery> pledgeContext;
+        List<PledgeContextQuery> pledgeContext = modifyPledgeContextQuery.getPledgeContext();
         if (!ModifyPledgeContextType.ADD.equals(modifyPledgeContextQuery.getType()) ||
-                CollectionUtils.isEmpty(pledgeContext = modifyPledgeContextQuery.getPledgeContext())) {
+                CollectionUtils.isEmpty(pledgeContext)) {
             throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
         }
         pledgeContext = pledgeContext.stream().filter(index -> PledgeType.WALLET.equals(index.getPledgeType()))
@@ -71,7 +81,6 @@ public class PledgeAdvanceProcessor extends AbstractAdvanceProcessor<ModifyPledg
         if (Objects.isNull(borrowConfigPledge) || borrowConfigPledge.getStatus() != 1) {
             throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
         }
-
     }
 
     @Override
@@ -80,8 +89,9 @@ public class PledgeAdvanceProcessor extends AbstractAdvanceProcessor<ModifyPledg
     }
 
     @Override
-    protected ChargeType chargeType() {
-        return ChargeType.pledge;
+    protected void handlerRechargerOperation(OrderAdvance orderAdvance, TRONTokenReq tronTokenReq, BigDecimal finalAmount, Coin coin) {
+        ModifyPledgeContextQuery query = this.getQuery(orderAdvance);
+        borrowService.modifyPledgeContext(orderAdvance.getUid(), query);
     }
 
     @Override

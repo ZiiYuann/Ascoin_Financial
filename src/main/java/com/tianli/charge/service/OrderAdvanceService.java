@@ -23,4 +23,6 @@ public interface OrderAdvanceService extends IService<OrderAdvance> {
     void addTryTimes(Long id);
 
     void handlerRechargeEvent(Long uid, TRONTokenReq req, BigDecimal finalAmount, Coin coin);
+
+    void finish(Long id);
 }

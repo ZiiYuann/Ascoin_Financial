@@ -84,7 +84,7 @@ public abstract class AbstractContractOperation implements ContractOperation {
     }
 
     @Override
-    public Result transfer(String to, BigInteger val, Coin coin) {
+    public Result<String> transfer(String to, BigInteger val, Coin coin) {
         if (coin.isMainToken()) {
             return mainTokenTransfer(to, val, coin);
         } else {
@@ -95,11 +95,11 @@ public abstract class AbstractContractOperation implements ContractOperation {
     /**
      * 代币转账
      */
-    abstract Result tokenTransfer(String to, BigInteger val, Coin coin);
+    abstract Result<String> tokenTransfer(String to, BigInteger val, Coin coin);
 
     /**
      * 主币转账
      */
-    abstract Result mainTokenTransfer(String to, BigInteger val, Coin coin);
+    abstract Result<String> mainTokenTransfer(String to, BigInteger val, Coin coin);
 
 }
