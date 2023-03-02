@@ -40,15 +40,18 @@ import com.tianli.tool.NameUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.tron.tronj.utils.Numeric;
 
-import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -64,6 +67,10 @@ import java.util.stream.Collectors;
 public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMapper, RedEnvelopeSpilt> implements RedEnvelopeSpiltService {
 
     private static final long TIME_BEGIN = 1670774400000L;
+
+    private static MessageDigest MD5 = null;
+
+    private static final String PRFIX = "0x";
 
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
@@ -85,6 +92,11 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     private RedEnvelopeConvert redEnvelopeConvert;
     @Resource
     private RedEnvelopeService redEnvelopeService;
+
+    @PostConstruct
+    public void md5Init() throws NoSuchAlgorithmException {
+        MD5 = MessageDigest.getInstance("MD5");
+    }
 
     @Override
     @Transactional
@@ -349,7 +361,10 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                     .amount(dto.getAmount())
                     .receive(dto.isReceive())
                     .receiveTime(LocalDateTime.ofEpochSecond(score.longValue() / 1000, 0, ZoneOffset.ofHours(8)))
-                    .nickName(NameUtil.getNickName(tuple.getScore().longValue()))
+                    .nickName(
+                            PRFIX + Numeric.toHexString((MD5.digest((tuple.getScore().longValue() + "")
+                                    .getBytes(StandardCharsets.UTF_8)))).substring(2, 10)
+                    )
                     .coin(coin)
                     .build();
         }).collect(Collectors.toList());
@@ -366,6 +381,14 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         vo.setExpireTime(redEnvelope.getCreateTime().plusDays(redEnvelope.getChannel().getExpireDays()));
         vo.setRecordPage(page);
         return vo;
+    }
+
+    public static void main(String[] args) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        String message = "1233334";
+        byte[] digest = md.digest(message.getBytes(StandardCharsets.UTF_8));
+        String substring = Numeric.toHexString(digest).substring(2, 10);
+        System.out.println(substring);
     }
 
     @Override
