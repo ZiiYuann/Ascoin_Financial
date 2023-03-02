@@ -1,9 +1,11 @@
 package com.tianli.other.convert;
 
 import com.tianli.other.entity.Banner;
+import com.tianli.other.entity.PushMessage;
 import com.tianli.other.query.BannerIoUQuery;
 import com.tianli.other.vo.BannerVO;
 import com.tianli.other.vo.MBannerVO;
+import com.tianli.other.vo.PushMessageVO;
 import org.mapstruct.Mapper;
 
 /**
@@ -19,4 +21,6 @@ public interface OtherConvert {
     MBannerVO toMBannerVO(Banner banner);
 
     BannerVO toBannerVO(Banner banner);
+
+    PushMessageVO toPushMessageVO(PushMessage pushMessage);
 }
