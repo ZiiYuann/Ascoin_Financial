@@ -3,6 +3,7 @@ package com.tianli.chain.service.contract;
 import com.google.gson.Gson;
 import com.tianli.chain.dto.TransactionReceiptLogDTO;
 import com.tianli.chain.entity.Coin;
+import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;

@@ -53,19 +53,22 @@ public interface AccountBalanceService {
 
     void unfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String orderNo, NetworkType networkType);
 
-
     /**
      * 质押冻结
      */
-    void pledgeFreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des);
+    void pledgeFreeze(long uid, ChargeType type, String coin, BigDecimal amount, String orderNo);
+
+    void pledgeFreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, NetworkType networkType);
+
+    void pledgeReduce(long uid, ChargeType type, String coin, BigDecimal amount, String orderNo);
+
+    void pledgeReduce(long uid, ChargeType type, String coin, BigDecimal amount, String orderNo, NetworkType networkType);
 
     /**
      * 质押解冻
      */
-    void pledgeUnfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des);
+    void pledgeUnfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String orderNo);
 
-
-    void pledgeReduce(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des);
 
     /**
      * 获取并且不存在的话会初始化

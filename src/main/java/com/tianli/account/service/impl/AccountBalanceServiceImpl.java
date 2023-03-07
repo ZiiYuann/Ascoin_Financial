@@ -27,6 +27,7 @@ import com.tianli.product.afinancial.service.FinancialService;
 import com.tianli.product.afinancial.vo.DollarIncomeVO;
 import com.tianli.product.afund.query.FundRecordQuery;
 import com.tianli.product.afund.service.IFundRecordService;
+import com.tianli.tool.ApplicationContextTool;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -137,7 +138,13 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
     }
 
     @Transactional
-    public void pledgeFreeze(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+    public void pledgeFreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn) {
+        pledgeFreeze(uid, type, coin, amount, sn, null);
+    }
+
+    @Transactional
+    public void pledgeFreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn,
+                             NetworkType networkType) {
         this.validBlackUser(uid);
         getAndInit(uid, coin);
 
@@ -145,7 +152,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.pledge_freeze, amount, sn, des);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
     }
 
     @Transactional
@@ -188,7 +195,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
      * @param sn     订单号
      */
     @Transactional
-    public void pledgeUnfreeze(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+    public void pledgeUnfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, NetworkType networkType) {
         getAndInit(uid, coin);
 
         if (accountBalanceMapper.pledgeUnfreeze(uid, amount, coin) <= 0L) {
@@ -196,11 +203,17 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         }
 
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.pledge_unfreeze, amount, sn, des);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
+    }
+
+    @Override
+    @Transactional
+    public void pledgeReduce(long uid, ChargeType type, String coin, BigDecimal amount, String sn) {
+        pledgeReduce(uid, type, coin, amount, sn, null);
     }
 
     @Transactional
-    public void pledgeReduce(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+    public void pledgeReduce(long uid, ChargeType type, String coin, BigDecimal amount, String sn, NetworkType networkType) {
         getAndInit(uid, coin);
 
         if (accountBalanceMapper.pledgeReduce(uid, amount, coin) <= 0L) {
@@ -208,7 +221,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         }
 
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.pledge_reduce, amount, sn, des);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
     }
 
 
@@ -219,13 +232,8 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
     }
 
     @Transactional
-    public void pledgeUnfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
-        pledgeUnfreeze(uid, type, coin, null, amount, sn, des);
-    }
-
-    @Override
-    public void pledgeReduce(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
-        pledgeReduce(uid, type, coin, null, amount, sn, des);
+    public void pledgeUnfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn) {
+        pledgeUnfreeze(uid, type, coin, amount, sn, null);
     }
 
     @Transactional
@@ -340,11 +348,13 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         return accountBalanceVOS;
     }
 
-    @Transactional
     public AccountBalanceVO accountSingleCoin(Long uid, String coinName) {
         CoinBase coinBase = validCurrencyToken(coinName);
 
-        AccountBalanceVO accountBalanceVO = accountConverter.toVO(this.getAndInit(uid, coinName));
+        var bean = Optional.ofNullable(ApplicationContextTool.getBean(AccountBalanceService.class))
+                .orElseThrow(ErrorCodeEnum.SYSTEM_ERROR :: generalException);
+
+        AccountBalanceVO accountBalanceVO = accountConverter.toVO(bean.getAndInit(uid, coinName));
         BigDecimal dollarRate = currencyService.getDollarRate(accountBalanceVO.getCoin());
 
 
@@ -475,7 +485,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
 
     private void validBlackUser(Long uid) {
         Boolean member = stringRedisTemplate.opsForSet().isMember(RedisConstants.WITHDRAW_BLACK, uid + "");
-        if (Objects.nonNull(member) && member) {
+        if (Objects.nonNull(member) && Boolean.TRUE.equals(member)) {
             ErrorCodeEnum.WITHDRAW_BLACK.throwException();
         }
     }

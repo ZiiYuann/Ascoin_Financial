@@ -98,7 +98,7 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
         }
 
         if (!f) {
-            accountBalanceService.pledgeFreeze(uid, pledge, coin, pledgeAmount, order.getOrderNo(), pledge.getNameZn());
+            accountBalanceService.pledgeFreeze(uid, pledge, coin, pledgeAmount, order.getOrderNo());
         }
 
         if (f) {
@@ -130,8 +130,7 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
             Order order = Order.success(uid, release, query.getCoin(), query.getPledgeAmount(), bid);
             orderService.save(order);
 
-            accountBalanceService.pledgeUnfreeze(uid, release, order.getCoin(), query.getPledgeAmount()
-                    , order.getOrderNo(), release.getNameZn());
+            accountBalanceService.pledgeUnfreeze(uid, release, order.getCoin(), query.getPledgeAmount(), order.getOrderNo());
 
             // 在外层保存操作日志，因为需要显示
         }
@@ -159,8 +158,7 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
                 Order order = Order.success(uid, release, coin, amount, bid);
                 orderService.save(order);
 
-                accountBalanceService.pledgeUnfreeze(uid, release, coin, amount
-                        , order.getOrderNo(), release.getNameZn());
+                accountBalanceService.pledgeUnfreeze(uid, release, coin, amount, order.getOrderNo());
 
                 // 此日志只做插入不做显示
                 BorrowOperationLog operationLog = BorrowOperationLog.log(release, bid, uid, coin
@@ -288,7 +286,7 @@ public class BorrowRecordPledgeServiceImpl extends ServiceImpl<BorrowRecordPledg
             order = Order.success(uid, chargeType, recordPledge.getCoin(), decreaseAmount, bid);
 
             accountBalanceService.pledgeReduce(uid, chargeType, coin, decreaseAmount
-                    , order.getOrderNo(), chargeType.getNameZn());
+                    , order.getOrderNo());
             rate = currencyService.getDollarRate(coin);
             // 此日志只做插入不做显示
             operationLog = BorrowOperationLog.log(chargeType, bid, uid, coin, decreaseAmount, rate);

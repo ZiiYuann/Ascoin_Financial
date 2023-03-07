@@ -63,7 +63,7 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
         Order order = Order.success(uid, ChargeType.borrow, coin, query.getBorrowAmount(), bid);
         orderService.save(order);
 
-        accountBalanceService.increase(uid, ChargeType.borrow, coin, query.getBorrowAmount(), order.getOrderNo(), "借币");
+        accountBalanceService.increase(uid, ChargeType.borrow, coin, query.getBorrowAmount(), order.getOrderNo());
 
         BorrowConfigCoin borrowConfigCoin = borrowConfigCoinService.getById(coin);
         BigDecimal hourRate = borrowConfigCoin.getHourRate();
@@ -85,7 +85,7 @@ public class BorrowRecordCoinServiceImpl extends ServiceImpl<BorrowRecordCoinMap
 
         Order order = Order.success(uid, ChargeType.repay, query.getCoin(), repayAmount, bid);
         orderService.save(order);
-        accountBalanceService.decrease(uid, ChargeType.borrow, query.getCoin(), repayAmount, order.getOrderNo(), ChargeType.repay.getNameZn());
+        accountBalanceService.decrease(uid, ChargeType.borrow, query.getCoin(), repayAmount, order.getOrderNo());
 
         if (Objects.nonNull(borrowInterest) && borrowInterest.getAmount().compareTo(BigDecimal.ZERO) > 0) {
             var reduceInterestAmount = repayAmount.compareTo(borrowInterest.getAmount()) >= 0
