@@ -14,14 +14,14 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 /**
- * @Author cs
- * @Date 2023-01-05 16:08
+ * @author  cs
+ * @since  2023-01-05 16:08
  */
 @Component
 public class PolygonTriggerContract extends Web3jContractOperation {
 
-    private ConfigService configService;
-    private JsonRpc2_0Web3j web3j;
+    private final ConfigService configService;
+    private final JsonRpc2_0Web3j web3j;
 
     @Autowired
     public PolygonTriggerContract(ConfigService configService, @Value("${rpc.polygon.url}")String url) {
@@ -34,11 +34,13 @@ public class PolygonTriggerContract extends Web3jContractOperation {
         return computeAddress(new BigInteger("" + addressId));
     }
 
+    @Override
     public String computeAddress(BigInteger addressId) throws IOException {
         String address = configService.get(ConfigConstants.POLYGON_MAIN_WALLET_ADDRESS);
         return computeAddress(address, addressId);
     }
 
+    @Override
     public String computeAddress(String walletAddress, BigInteger addressId) throws IOException {
         String contractAddress = configService.get(ConfigConstants.POLYGON_TRIGGER_ADDRESS);
         return super.computeAddress(walletAddress, addressId, contractAddress);

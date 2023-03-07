@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.convert.AccountConverter;
 import com.tianli.account.entity.AccountBalance;
-import com.tianli.account.enums.AccountOperationType;
 import com.tianli.account.mapper.AccountBalanceMapper;
 import com.tianli.account.service.AccountBalanceOperationLogService;
 import com.tianli.account.service.AccountBalanceService;
@@ -21,16 +20,14 @@ import com.tianli.common.RedisConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.management.dto.AmountDto;
 import com.tianli.product.afinancial.query.FinancialRecordQuery;
 import com.tianli.product.afinancial.service.FinancialRecordService;
 import com.tianli.product.afinancial.service.FinancialService;
 import com.tianli.product.afinancial.vo.DollarIncomeVO;
 import com.tianli.product.afund.query.FundRecordQuery;
 import com.tianli.product.afund.service.IFundRecordService;
-import com.tianli.management.dto.AmountDto;
-import com.tianli.tool.ApplicationContextTool;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +59,42 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         FIXED_COINS.add("bnb");
     }
 
+    @Override
+    @Transactional
+    public void decrease(long uid, ChargeType type, String coin, BigDecimal amount, String sn) {
+        decrease(uid, type, coin, amount, sn, null);
+    }
+
+    @Override
+    @Transactional
+    public void decrease(long uid, ChargeType type, String coin, BigDecimal amount, String sn, NetworkType networkType) {
+        this.validBlackUser(uid);
+        getAndInit(uid, coin);
+        if (accountBalanceMapper.decrease(uid, amount, coin) <= 0L) {
+            ErrorCodeEnum.CREDIT_LACK.throwException();
+        }
+        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
+    }
+
+    @Override
+    @Transactional
+    public void increase(long uid, ChargeType type, String coin, BigDecimal amount, String sn) {
+        increase(uid, type, coin, amount, sn, null);
+    }
+
+    @Override
+    @Transactional
+    public void increase(long uid, ChargeType type, String coin, BigDecimal amount, String sn, NetworkType networkType) {
+        getAndInit(uid, coin);
+
+        if (accountBalanceMapper.increase(uid, amount, coin) <= 0L) {
+            ErrorCodeEnum.CREDIT_LACK.throwException();
+        }
+        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
+    }
+
 
     /**
      * 冻结金额
@@ -70,9 +103,24 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
      * @param amount 金额
      * @param sn     订单号
      */
+    @Override
     @Transactional
-    public void freeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
-        freeze(uid, type, coin, null, amount, sn, des);
+    public void freeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn) {
+        freeze(uid, type, coin, amount, sn, null);
+    }
+
+    @Override
+    @Transactional
+    public void freeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, NetworkType networkType) {
+        this.validBlackUser(uid);
+        getAndInit(uid, coin);
+
+        if (accountBalanceMapper.freeze(uid, amount, coin) <= 0L) {
+            ErrorCodeEnum.CREDIT_LACK.throwException();
+        }
+        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
+
     }
 
     /**
@@ -82,35 +130,14 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
      * @param amount 金额
      * @param sn     订单号
      */
-    @Transactional
-    public void reduce(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
-        reduce(uid, type, coin, null, amount, sn, des);
-    }
-
     @Override
     @Transactional
-    public void increase(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
-        increase(uid, type, coin, null, amount, sn, des);
+    public void reduce(long uid, ChargeType type, String coin, BigDecimal amount, String sn) {
+        reduce(uid, type, coin, amount, sn, null);
     }
 
     @Transactional
-    public void increase(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
-        increase(uid, type, coin, networkType, amount, sn, des, AccountOperationType.increase);
-    }
-
-    @Transactional
-    public void increase(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des, AccountOperationType accountOperationType) {
-        getAndInit(uid, coin);
-
-        if (accountBalanceMapper.increase(uid, amount, coin) <= 0L) {
-            ErrorCodeEnum.CREDIT_LACK.throwException();
-        }
-        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, accountOperationType, amount, sn, des);
-    }
-
-    @Transactional
-    public void reduce(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+    public void reduce(long uid, ChargeType type, String coin, BigDecimal amount, String sn, NetworkType networkType) {
         this.validBlackUser(uid);
         getAndInit(uid, coin);
 
@@ -118,50 +145,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.reduce, amount, sn, des);
-    }
-
-    @Override
-    @Transactional
-    public void decrease(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
-        decrease(uid, type, coin, null, amount, sn, des);
-    }
-
-    @Transactional
-    public void decrease(long uid, ChargeType type, String coin, NetworkType networkType,
-                         BigDecimal amount, String sn, String des, AccountOperationType accountOperationType) {
-        this.validBlackUser(uid);
-        getAndInit(uid, coin);
-        if (accountBalanceMapper.decrease(uid, amount, coin) <= 0L) {
-            ErrorCodeEnum.CREDIT_LACK.throwException();
-        }
-        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, accountOperationType, amount, sn, des);
-    }
-
-    /**
-     * 扣除可用金额
-     *
-     * @param uid    用户id
-     * @param amount 金额
-     * @param sn     订单号
-     */
-    @Transactional
-    public void decrease(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
-        decrease(uid, type, coin, networkType, amount, sn, des, AccountOperationType.withdraw);
-    }
-
-    @Transactional
-    public void freeze(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
-        this.validBlackUser(uid);
-        getAndInit(uid, coin);
-
-        if (accountBalanceMapper.freeze(uid, amount, coin) <= 0L) {
-            ErrorCodeEnum.CREDIT_LACK.throwException();
-        }
-        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.freeze, amount, sn, des);
-
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
     }
 
     /**
@@ -171,8 +155,9 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
      * @param amount 金额
      * @param sn     订单号
      */
+    @Override
     @Transactional
-    public void unfreeze(long uid, ChargeType type, String coin, NetworkType networkType, BigDecimal amount, String sn, String des) {
+    public void unfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, NetworkType networkType) {
         getAndInit(uid, coin);
 
         if (accountBalanceMapper.unfreeze(uid, amount, coin) <= 0L) {
@@ -180,13 +165,13 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         }
 
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, AccountOperationType.unfreeze, amount, sn, des);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
     }
 
-    public void unfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des) {
-        AccountBalanceServiceImpl bean = ApplicationContextTool.getBean(this.getClass());
-        Optional.ofNullable(bean).orElseThrow(ErrorCodeEnum.SYSTEM_ERROR :: generalException)
-                .unfreeze(uid, type, coin, null, amount, sn, des);
+    @Override
+    @Transactional
+    public void unfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String sn) {
+        this.unfreeze(uid, type, coin, amount, sn, null);
     }
 
     @Transactional

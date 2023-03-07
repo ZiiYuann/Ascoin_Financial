@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.enums.AccountChangeType;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.accountred.convert.RedEnvelopeConvert;
 import com.tianli.accountred.dto.RedEnvelopStatusDTO;
 import com.tianli.accountred.dto.RedEnvelopeGetDTO;
@@ -36,17 +36,18 @@ import com.tianli.common.RedisConstants;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.tool.NameUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.DefaultTypedTuple;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.tron.tronj.utils.Numeric;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -68,7 +69,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
 
     private static final long TIME_BEGIN = 1670774400000L;
 
-    private static MessageDigest MD5 = null;
+    private static MessageDigest md5 = null;
 
     private static final String PREFIX = "0x";
 
@@ -81,7 +82,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     @Resource
     private OrderService orderService;
     @Resource
-    private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private CurrencyService currencyService;
     @Resource
@@ -93,14 +94,17 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
     @Resource
     private RedEnvelopeService redEnvelopeService;
 
-    @PostConstruct
-    public void md5Init() throws NoSuchAlgorithmException {
-        MD5 = MessageDigest.getInstance("MD5");
+    static {
+        try {
+            md5 = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
     }
+
 
     @Override
     @Transactional
-    @SuppressWarnings("unchecked")
     public RedEnvelopeSpiltGetRecord getSpilt(Long uid, Long shortUid, String spiltId, RedEnvelopeGetDTO redEnvelopeGetDTO) {
 
         LocalDateTime now = LocalDateTime.now();
@@ -122,8 +126,8 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                 .build();
         orderService.save(order);
         // 操作账户
-        accountBalanceServiceImpl.increase(uid, ChargeType.red_get, redEnvelope.getCoin()
-                , redEnvelopeSpilt.getAmount(), order.getOrderNo(), "抢红包获取");
+        accountBalanceService.increase(uid, ChargeType.red_get, redEnvelope.getCoin()
+                , redEnvelopeSpilt.getAmount(), order.getOrderNo());
         String semaphore = RedisConstants.RED_SEMAPHORE + redEnvelope.getId() + ":" + uid;
         stringRedisTemplate.delete(semaphore);
         return redEnvelopeSpiltGetRecord;
@@ -255,7 +259,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         redisScript.setScriptText(script);
         String result = stringRedisTemplate.opsForValue().getOperations()
                 .execute(redisScript, List.of(externKey, exchangeCodeKey, externRecordKey, ipKey, fingerprintKey, rid + "")
-                        , String.valueOf(now), uuid.toString(), exchangeCodeExpireTime);
+                        , String.valueOf(now), uuid, exchangeCodeExpireTime);
         if (StringUtils.isBlank(result)) {
             ErrorCodeEnum.SYSTEM_ERROR.throwException();
         }
@@ -276,7 +280,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         return RedEnvelopeExchangeCodeVO.builder()
                 .status(RedEnvelopeStatus.SUCCESS)
                 .receiveAmount(redEnvelopeSpilt.getAmount())
-                .exchangeCode(uuid.toString())
+                .exchangeCode(uuid)
                 .coin(redEnvelope.getCoin())
                 .usdtRate(currencyService.huobiUsdtRate(redEnvelope.getCoin()))
                 .usdtCnyRate(BigDecimal.valueOf(digitalCurrencyExchange.usdtCnyPrice()))
@@ -362,7 +366,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
                     .receive(dto.isReceive())
                     .receiveTime(LocalDateTime.ofEpochSecond(score.longValue() / 1000, 0, ZoneOffset.ofHours(8)))
                     .nickName(
-                            PREFIX + Numeric.toHexString((MD5.digest((tuple.getScore().longValue() + "")
+                            PREFIX + Numeric.toHexString((md5.digest((tuple.getScore().longValue() + "")
                                     .getBytes(StandardCharsets.UTF_8)))).substring(4, 10)
                     )
                     .coin(coin)

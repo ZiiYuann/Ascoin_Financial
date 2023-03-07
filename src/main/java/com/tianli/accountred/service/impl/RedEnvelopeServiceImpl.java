@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.accountred.RedEnvelopeVerifier;
 import com.tianli.accountred.convert.RedEnvelopeConvert;
 import com.tianli.accountred.dto.RedEnvelopeGetDTO;
@@ -58,15 +58,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -90,7 +89,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
     public static final String BLOOM = "bloom";
 
     @Resource
-    private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private RedEnvelopeConvert redEnvelopeConvert;
     @Resource
@@ -207,8 +206,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         orderService.save(order);
 
         // 直接扣除红包金额
-        accountBalanceServiceImpl.decrease(uid, ChargeType.red_give, redEnvelope.getCoin(), redEnvelope.getTotalAmount()
-                , order.getOrderNo(), "发红包");
+        accountBalanceService.decrease(uid, ChargeType.red_give, redEnvelope.getCoin(), redEnvelope.getTotalAmount()
+                , order.getOrderNo());
     }
 
     @Override
@@ -649,8 +648,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                 .build();
         orderService.save(order);
 
-        accountBalanceServiceImpl.increase(redEnvelope.getUid(), ChargeType.red_back, redEnvelope.getCoin(), rollbackAmount
-                , order.getOrderNo(), ChargeType.red_back.getNameZn());
+        accountBalanceService.increase(redEnvelope.getUid(), ChargeType.red_back, redEnvelope.getCoin(), rollbackAmount
+                , order.getOrderNo());
 
 
         this.statusProcess(redEnvelope.getId(), status, redEnvelope.getReceiveNum(), now);
@@ -803,7 +802,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                 ErrorCodeEnum.RED_AMOUNT_EXCEED_LIMIT_100.throwException();
             }
 
-            AccountBalance accountBalance = accountBalanceServiceImpl.getAndInit(uid, coin);
+            AccountBalance accountBalance = accountBalanceService.getAndInit(uid, coin);
             if (totalAmount.compareTo(accountBalance.getRemain()) > 0) {
                 ErrorCodeEnum.INSUFFICIENT_BALANCE.throwException();
             }

@@ -15,7 +15,6 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.lock.RedisLock;
-import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.dto.ProductSummaryDataDto;
@@ -93,7 +92,7 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
     @Resource
     private FinancialIncomeAccrueService financialIncomeAccrueService;
     @Resource
-    private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    private AccountBalanceServiceImpl accountBalanceService;
     @Resource
     private OrderService orderService;
     @Resource
@@ -345,7 +344,7 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
         }
 
         // 减少余额
-        accountBalanceServiceImpl.decrease(uid, ChargeType.purchase, product.getCoin(), amount, order.getOrderNo(), CurrencyLogDes.申购.name());
+        accountBalanceService.decrease(uid, ChargeType.purchase, product.getCoin(), amount, order.getOrderNo());
 
         FinancialPurchaseResultVO financialPurchaseResultVO = financialConverter.toFinancialPurchaseResultVO(financialRecord);
         financialPurchaseResultVO.setName(product.getName());
@@ -464,7 +463,8 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
         orderService.save(order);
 
         // 增加
-        accountBalanceServiceImpl.increase(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount(), order.getOrderNo(), CurrencyLogDes.赎回.name());
+        accountBalanceService.increase(uid, ChargeType.redeem, record.getCoin(), query.getRedeemAmount()
+                , order.getOrderNo());
 
         // 减少产品持有
         financialRecordService.redeem(record.getId(), query.getRedeemAmount(), record.getHoldAmount());

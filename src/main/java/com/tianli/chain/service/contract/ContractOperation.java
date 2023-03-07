@@ -2,7 +2,6 @@ package com.tianli.chain.service.contract;
 
 import com.tianli.chain.entity.Coin;
 import com.tianli.common.blockchain.NetworkType;
-import com.tianli.exception.Result;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -40,7 +39,7 @@ public interface ContractOperation {
      * @param coin 代币信息
      * @return 交易结果
      */
-    Result transfer(String to, BigInteger val, Coin coin);
+    String transfer(String to, BigInteger val, Coin coin);
 
     /**
      * 校验地址是否有效

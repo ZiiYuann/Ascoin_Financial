@@ -17,17 +17,17 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 /**
- * @Author cs
- * @Date 2023-01-06 11:23
+ * @author  cs
+ * @since  2023-01-06 11:23
  */
 @Component
 public class ArbitrumTriggerContract extends Web3jContractOperation {
 
-    private ConfigService configService;
-    private JsonRpc2_0Web3j web3j;
+    private final ConfigService configService;
+    private final JsonRpc2_0Web3j web3j;
 
     @Autowired
-    public ArbitrumTriggerContract(ConfigService configService, @Value("${rpc.arbitrum.url}")String url) {
+    public ArbitrumTriggerContract(ConfigService configService, @Value("${rpc.arbitrum.url}") String url) {
         this.configService = configService;
         this.web3j = new ArbitrumWeb3j(new HttpService(url));
     }
@@ -37,11 +37,13 @@ public class ArbitrumTriggerContract extends Web3jContractOperation {
         return computeAddress(new BigInteger("" + addressId));
     }
 
+    @Override
     public String computeAddress(BigInteger addressId) throws IOException {
         String address = configService.get(ConfigConstants.ARBITRUM_MAIN_WALLET_ADDRESS);
         return computeAddress(address, addressId);
     }
 
+    @Override
     public String computeAddress(String walletAddress, BigInteger addressId) throws IOException {
         String contractAddress = configService.get(ConfigConstants.ARBITRUM_TRIGGER_ADDRESS);
         return super.computeAddress(walletAddress, addressId, contractAddress);
@@ -59,7 +61,7 @@ public class ArbitrumTriggerContract extends Web3jContractOperation {
             BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
             gas = new BigDecimal(gasPrice).movePointLeft(9).toString();
         } catch (IOException e) {
-            gas = configService.getOrDefault(ConfigConstants.ARBITRUM_GAS_PRICE,"0.1");
+            gas = configService.getOrDefault(ConfigConstants.ARBITRUM_GAS_PRICE, "0.1");
         }
         return gas;
     }
@@ -81,12 +83,12 @@ public class ArbitrumTriggerContract extends Web3jContractOperation {
 
     @Override
     protected String getRecycleGasLimit() {
-        return configService.getOrDefault(ConfigConstants.ARBITRUM_GAS_LIMIT_PLUS,"10000000");
+        return configService.getOrDefault(ConfigConstants.ARBITRUM_GAS_LIMIT_PLUS, "10000000");
     }
 
     @Override
     protected String getTransferGasLimit() {
-        return configService.getOrDefault(ConfigConstants.ARBITRUM_GAS_LIMIT,"800000");
+        return configService.getOrDefault(ConfigConstants.ARBITRUM_GAS_LIMIT, "800000");
     }
 
     @Override

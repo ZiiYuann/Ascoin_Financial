@@ -17,10 +17,14 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
-import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.product.service.FinancialProductService;
+import com.tianli.management.dto.AmountDto;
+import com.tianli.management.entity.WalletAgentProduct;
+import com.tianli.management.service.IWalletAgentProductService;
+import com.tianli.management.service.IWalletAgentService;
+import com.tianli.management.vo.FundTransactionAmountVO;
+import com.tianli.management.vo.WalletAgentVO;
 import com.tianli.product.afund.contant.FundTransactionStatus;
 import com.tianli.product.afund.convert.FundRecordConvert;
 import com.tianli.product.afund.dao.FundTransactionRecordMapper;
@@ -38,12 +42,7 @@ import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.product.afund.service.IFundReviewService;
 import com.tianli.product.afund.service.IFundTransactionRecordService;
 import com.tianli.product.afund.vo.FundTransactionRecordVO;
-import com.tianli.management.dto.AmountDto;
-import com.tianli.management.entity.WalletAgentProduct;
-import com.tianli.management.service.IWalletAgentProductService;
-import com.tianli.management.service.IWalletAgentService;
-import com.tianli.management.vo.FundTransactionAmountVO;
-import com.tianli.management.vo.WalletAgentVO;
+import com.tianli.product.service.FinancialProductService;
 import com.tianli.product.service.ProductHoldRecordService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -74,7 +73,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     @Resource
     private OrderService orderService;
     @Resource
-    private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    private AccountBalanceServiceImpl accountBalanceService;
     @Resource
     private IFundRecordService fundRecordService;
     @Resource
@@ -229,7 +228,8 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
                 .build();
         orderService.save(agentOrder);
         // 减少余额
-        accountBalanceServiceImpl.decrease(agentVO.getUid(), ChargeType.agent_fund_redeem, fundTransactionRecord.getCoin(), fundTransactionRecord.getTransactionAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金赎回.name());
+        accountBalanceService.decrease(agentVO.getUid(), ChargeType.agent_fund_redeem, fundTransactionRecord.getCoin()
+                , fundTransactionRecord.getTransactionAmount(), agentOrder.getOrderNo());
 
         //生成一笔订单
         Order order = Order.builder()
@@ -245,7 +245,8 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
                 .build();
         orderService.save(order);
         // 增加余额
-        accountBalanceServiceImpl.increase(uid, ChargeType.fund_redeem, fundTransactionRecord.getCoin(), fundTransactionRecord.getTransactionAmount(), order.getOrderNo(), CurrencyLogDes.代理基金赎回.name());
+        accountBalanceService.increase(uid, ChargeType.fund_redeem, fundTransactionRecord.getCoin()
+                , fundTransactionRecord.getTransactionAmount(), order.getOrderNo());
 
         FundReview fundReview = FundReview.builder()
                 .rId(fundTransactionRecord.getId())

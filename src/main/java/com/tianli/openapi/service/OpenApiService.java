@@ -3,8 +3,8 @@ package com.tianli.openapi.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.AccountUserTransferService;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.AccountBalanceVO;
 import com.tianli.account.vo.AccountUserTransferVO;
 import com.tianli.charge.entity.Order;
@@ -17,15 +17,15 @@ import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.openapi.dto.IdDto;
-import com.tianli.openapi.dto.TransferResultDto;
-import com.tianli.product.afinancial.service.FinancialIncomeAccrueService;
 import com.tianli.management.query.FinancialProductIncomeQuery;
+import com.tianli.openapi.dto.IdDto;
+import com.tianli.openapi.dto.StatisticsDataDto;
+import com.tianli.openapi.dto.TransferResultDto;
 import com.tianli.openapi.entity.OrderRewardRecord;
 import com.tianli.openapi.query.OpenapiAccountQuery;
 import com.tianli.openapi.query.OpenapiOperationQuery;
 import com.tianli.openapi.query.UserTransferQuery;
-import com.tianli.openapi.dto.StatisticsDataDto;
+import com.tianli.product.afinancial.service.FinancialIncomeAccrueService;
 import com.tianli.rpc.RpcService;
 import com.tianli.rpc.dto.InviteDTO;
 import com.tianli.tool.time.TimeTool;
@@ -53,7 +53,7 @@ public class OpenApiService {
     @Resource
     private OrderService orderService;
     @Resource
-    private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private OrderRewardRecordService orderRewardRecordService;
     @Resource
@@ -118,8 +118,8 @@ public class OpenApiService {
                 order = newOrder;
             }
 
-            accountBalanceServiceImpl.increase(query.getUid(), query.getType(), query.getCoin()
-                    , query.getAmount(), order.getOrderNo(), query.getType().getNameZn());
+            accountBalanceService.increase(query.getUid(), query.getType(), query.getCoin()
+                    , query.getAmount(), order.getOrderNo());
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -174,13 +174,13 @@ public class OpenApiService {
 
         if (ChargeType.transfer_increase.equals(query.getType())
                 || ChargeType.airdrop.equals(query.getType()) || ChargeType.swap_reward.equals(query.getType())) {
-            accountBalanceServiceImpl.increase(query.getUid(), query.getType(), query.getCoin()
-                    , query.getAmount(), newOrder.getOrderNo(), query.getType().getNameZn());
+            accountBalanceService.increase(query.getUid(), query.getType(), query.getCoin()
+                    , query.getAmount(), newOrder.getOrderNo());
         }
 
         if (ChargeType.transfer_reduce.equals(query.getType())) {
-            accountBalanceServiceImpl.decrease(query.getUid(), query.getType(), query.getCoin()
-                    , query.getAmount(), newOrder.getOrderNo(), query.getType().getNameZn());
+            accountBalanceService.decrease(query.getUid(), query.getType(), query.getCoin()
+                    , query.getAmount(), newOrder.getOrderNo());
         }
 
         return new IdDto(orderRewardRecord.getId());
@@ -243,7 +243,7 @@ public class OpenApiService {
     }
 
     private StatisticsDataDto getStatisticsData(Long uid, List<Long> subUids, LocalDateTime startTime, LocalDateTime endTime) {
-        var totalSummaryData = accountBalanceServiceImpl.accountList(uid);
+        var totalSummaryData = accountBalanceService.accountList(uid);
         // 总余额
         BigDecimal balance = totalSummaryData.stream()
                 .map(AccountBalanceVO::getDollarBalance).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -275,7 +275,7 @@ public class OpenApiService {
                 .build();
 
         if (CollectionUtils.isNotEmpty(subUids)) {
-            var allUserAssetsVO = accountBalanceServiceImpl.getAllUserAssetsVO(subUids);
+            var allUserAssetsVO = accountBalanceService.getAllUserAssetsVO(subUids);
 
             BigDecimal subRedeemAmount = orderService.uAmount(subUids, ChargeType.redeem);
             data.setSubBalance(allUserAssetsVO.getBalanceAmount());
@@ -318,7 +318,7 @@ public class OpenApiService {
         BigDecimal redeemAmount = orderService.uAmount(subUids, ChargeType.redeem);
         BigDecimal incomeAmount = CollectionUtils.isEmpty(subUids) ? BigDecimal.ZERO :
                 financialIncomeAccrueService.summaryIncomeByQuery(FinancialProductIncomeQuery.builder().uids(subUids).build());
-        var allUserAssetsVO = accountBalanceServiceImpl.getAllUserAssetsVO(subUids);
+        var allUserAssetsVO = accountBalanceService.getAllUserAssetsVO(subUids);
 
         Page<StatisticsDataDto> result = pageQuery.page();
         StatisticsDataDto firstRow = StatisticsDataDto.builder()
@@ -378,8 +378,8 @@ public class OpenApiService {
                 .build();
         orderService.save(newOrder);
 
-        accountBalanceServiceImpl.increase(query.getUid(), query.getType(), query.getCoin()
-                , query.getAmount(), newOrder.getOrderNo(), query.getType().getNameZn());
+        accountBalanceService.increase(query.getUid(), query.getType(), query.getCoin()
+                , query.getAmount(), newOrder.getOrderNo());
     }
 
     public AccountUserTransferVO transferOrder(Long externalPk) {

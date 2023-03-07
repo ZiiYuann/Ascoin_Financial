@@ -136,9 +136,9 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
         orderService.save(receiveOrder);
 
         accountBalanceService.decrease(decreaseUid, decreaseType, coin, amount
-                , transferOrder.getOrderNo(), decreaseType.getNameZn());
+                , transferOrder.getOrderNo());
         accountBalanceService.increase(increaseUid, increaseType, coin, amount
-                , receiveOrder.getOrderNo(), increaseType.getNameZn());
+                , receiveOrder.getOrderNo());
         return transferOrder.getOrderNo();
     }
 }

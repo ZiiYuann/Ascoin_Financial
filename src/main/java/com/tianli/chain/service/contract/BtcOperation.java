@@ -3,17 +3,15 @@ package com.tianli.chain.service.contract;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.tianli.address.PushHttpClient;
-import com.tianli.address.Service.AddressMnemonicService;
-import com.tianli.address.Service.OccasionalAddressService;
+import com.tianli.address.service.AddressMnemonicService;
+import com.tianli.address.service.OccasionalAddressService;
 import com.tianli.chain.dto.BtcBalance;
 import com.tianli.chain.dto.DesignBtcTx;
 import com.tianli.chain.dto.RawTransaction;
 import com.tianli.chain.entity.Coin;
-import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.UutokenHttpService;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.NetworkType;
-import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrCodeException;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
@@ -33,7 +31,6 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bouncycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.codec.Utf8;
-import org.springframework.stereotype.Component;
 import party.loveit.bip44forjava.core.ECKey;
 import party.loveit.bip44forjava.utils.Bip44Utils;
 
@@ -73,7 +70,7 @@ public class BtcOperation extends AbstractContractOperation {
     private OccasionalAddressService occasionalAddressService;
 
     @Override
-    Result tokenTransfer(String to, BigInteger val, Coin coin) {
+    String tokenTransfer(String to, BigInteger val, Coin coin) {
         throw ErrorCodeEnum.NOT_OPEN.generalException();
     }
 
@@ -112,11 +109,10 @@ public class BtcOperation extends AbstractContractOperation {
     }
 
     @Override
-    Result mainTokenTransfer(String to, BigInteger val, Coin coin) {
+    String mainTokenTransfer(String to, BigInteger val, Coin coin) {
         String fromAddress = configService.get(ConfigConstants.BTC_MAIN_WALLET_ADDRESS);
         String mnemonic = configService.get(ConfigConstants.MAIN_WALLET_PASSWORD);
-        String hash = sendMnemonic(mnemonic, fromAddress, to, val.longValue());
-        return Result.success(hash);
+        return sendMnemonic(mnemonic, fromAddress, to, val.longValue());
     }
 
     @Override
@@ -145,7 +141,7 @@ public class BtcOperation extends AbstractContractOperation {
         RawTransaction rawTransaction = getrawtransaction(hash);
         BigDecimal btcFee = BigDecimal.ZERO;
         for (RawTransaction.Vin vin : rawTransaction.getVin()) {
-            if(StringUtils.isNotBlank(vin.getTxid()) && vin.getVout() != null) {
+            if (StringUtils.isNotBlank(vin.getTxid()) && vin.getVout() != null) {
                 RawTransaction.Vout vout = getrawtransaction(vin.getTxid()).getVout().get(vin.getVout());
                 btcFee = btcFee.add(new BigDecimal(vout.getValue()).movePointRight(8));
             }
@@ -180,7 +176,7 @@ public class BtcOperation extends AbstractContractOperation {
     private String sendPrivateKey(String privateKey, String from, String to, Long val) {
         Long fee = uutokenHttpService.btcFee();
         DesignBtcTx designBtcTx = uutokenHttpService.designSimpleBitcoin(from, to, val, fee);
-        if(designBtcTx == null || designBtcTx.getVin().size() == 0 || designBtcTx.getVout().size() == 0) {
+        if (designBtcTx == null || designBtcTx.getVin().size() == 0 || designBtcTx.getVout().size() == 0) {
             ErrorCodeEnum.throwException("比特币交易设计失败");
         }
         long vinValue = 0;
@@ -189,7 +185,7 @@ public class BtcOperation extends AbstractContractOperation {
         }
         long voutVal1 = designBtcTx.getVout().get(0).getValue();
         long voutVal2 = designBtcTx.getVout().size() > 1 ? designBtcTx.getVout().get(1).getValue() : 0L;
-        if(voutVal1 < 546L || voutVal2 < 0L || voutVal1 + voutVal2 + designBtcTx.getFee() > vinValue) {
+        if (voutVal1 < 546L || voutVal2 < 0L || voutVal1 + voutVal2 + designBtcTx.getFee() > vinValue) {
             log.error("比特币转账参数错误 vin:{} vout1:{} vout2:{} fee:{}", vinValue, voutVal1, voutVal2, designBtcTx.getFee());
             ErrorCodeEnum.throwException("比特币转账参数错误");
         }
@@ -265,7 +261,7 @@ public class BtcOperation extends AbstractContractOperation {
         if (StringUtils.isBlank(result)) {
             JSONObject error = jsonObject.getJSONObject("error");
             int code = error.get("code", Integer.class);
-            if (code == -26) throw new  ErrCodeException("发送失败,请等待上一笔交易完成");
+            if (code == -26) throw new ErrCodeException("发送失败,请等待上一笔交易完成");
             throw new ErrCodeException("发送交易失败");
         }
         return result;
@@ -294,7 +290,7 @@ public class BtcOperation extends AbstractContractOperation {
             HttpResponse response = PushHttpClient.getClient().execute(httpPost);
             return EntityUtils.toString(response.getEntity());
         } catch (IOException e) {
-            log.error("btc请求上链失败 method:{}  params:{}",method,  params, e);
+            log.error("btc请求上链失败 method:{}  params:{}", method, params, e);
             return "{}";
         }
     }

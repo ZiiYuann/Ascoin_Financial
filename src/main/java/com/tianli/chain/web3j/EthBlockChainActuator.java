@@ -1,20 +1,13 @@
-package com.tianli.common.blockchain;
+package com.tianli.chain.web3j;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.tianli.chain.dto.EthGasAPIResponse;
 import com.tianli.common.ConfigConstants;
-import com.tianli.common.HttpUtils;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.mconfig.ConfigService;
-import com.tianli.tool.judge.JsonObjectTool;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.util.EntityUtils;
-import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -44,9 +37,7 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service

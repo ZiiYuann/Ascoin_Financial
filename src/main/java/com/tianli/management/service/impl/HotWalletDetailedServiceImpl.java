@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.service.AccountBalanceService;
-import com.tianli.address.Service.AddressService;
+import com.tianli.address.service.AddressService;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.service.CoinService;
 import com.tianli.chain.service.contract.ContractAdapter;

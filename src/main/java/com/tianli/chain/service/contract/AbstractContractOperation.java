@@ -2,7 +2,6 @@ package com.tianli.chain.service.contract;
 
 import com.tianli.chain.entity.Coin;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.exception.Result;
 import org.apache.commons.lang3.StringUtils;
 import org.tron.tronj.abi.FunctionEncoder;
 import org.tron.tronj.abi.datatypes.Address;
@@ -84,7 +83,7 @@ public abstract class AbstractContractOperation implements ContractOperation {
     }
 
     @Override
-    public Result transfer(String to, BigInteger val, Coin coin) {
+    public String transfer(String to, BigInteger val, Coin coin) {
         if (coin.isMainToken()) {
             return mainTokenTransfer(to, val, coin);
         } else {
@@ -95,11 +94,11 @@ public abstract class AbstractContractOperation implements ContractOperation {
     /**
      * 代币转账
      */
-    abstract Result tokenTransfer(String to, BigInteger val, Coin coin);
+    abstract String tokenTransfer(String to, BigInteger val, Coin coin);
 
     /**
      * 主币转账
      */
-    abstract Result mainTokenTransfer(String to, BigInteger val, Coin coin);
+    abstract String mainTokenTransfer(String to, BigInteger val, Coin coin);
 
 }

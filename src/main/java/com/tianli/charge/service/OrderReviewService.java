@@ -1,7 +1,7 @@
 package com.tianli.charge.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.service.CoinService;
 import com.tianli.chain.service.contract.ContractAdapter;
@@ -107,14 +107,13 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
 
             transactionStatus = platformTransactionManager.getTransaction(transactionDefinition);
             if (Objects.isNull(txid)) {
+                // 提交事务之后抛出异常
                 orderService.reviewOrderRollback(order.getOrderNo());
+                platformTransactionManager.commit(transactionStatus);
+                throw ErrorCodeEnum.UPLOAD_CHAIN_ERROR.generalException();
             }
-            if (Objects.nonNull(txid)) {
-                orderChargeInfoService.updateTxid(orderChargeInfo.getId(), txid);
-            }
+            orderChargeInfoService.updateTxid(orderChargeInfo.getId(), txid);
             platformTransactionManager.commit(transactionStatus);
-
-            return;
         }
 
         // 手动打币
@@ -133,8 +132,8 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
 
         // 审核不通过需要解冻金额
         if (!query.isPass()) {
-            accountBalanceServiceImpl.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount()
-                    , order.getOrderNo(), "提现申请未通过");
+            accountBalanceService.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount()
+                    , order.getOrderNo());
             order.setStatus(ChargeStatus.review_fail);
             order.setCompleteTime(LocalDateTime.now());
             orderService.saveOrUpdate(order);
@@ -174,7 +173,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         }
     }
 
-    private boolean validHotWallet(OrderReviewQuery query, Coin coin, OrderChargeInfo orderChargeInfo) {
+    private void validHotWallet(OrderReviewQuery query, Coin coin, OrderChargeInfo orderChargeInfo) {
         // 判断热钱包余额是充足(如果不足则改成人工审核)
         BigDecimal balance = contractAdapter.getBalance(coin.getNetwork(), coin);
         if (Objects.isNull(query.getHash()) && query.isPass() && balance.compareTo(orderChargeInfo.getFee()) < 0) {
@@ -182,14 +181,13 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
                     " 提币金额：" + orderChargeInfo.getFee().stripTrailingZeros().toPlainString());
             throw ErrorCodeEnum.INSUFFICIENT_BALANCE.generalException();
         }
-        return true;
     }
 
     @Transactional
     public void withdrawSuccess(Order order, OrderChargeInfo orderChargeInfo) {
         // 操作余额信息
-        accountBalanceServiceImpl.reduce(order.getUid(), ChargeType.withdraw, order.getCoin()
-                , orderChargeInfo.getNetwork(), orderChargeInfo.getFee(), order.getOrderNo(), "提现成功扣除");
+        accountBalanceService.reduce(order.getUid(), ChargeType.withdraw, order.getCoin()
+                , orderChargeInfo.getFee(), order.getOrderNo(), orderChargeInfo.getNetwork());
 
         // 插入热钱包操作数据表
         HotWalletDetailed hotWalletDetailed = HotWalletDetailed.builder()
@@ -217,7 +215,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
     @Resource
     private OrderReviewMapper orderReviewMapper;
     @Resource
-    private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private OrderChargeInfoService orderChargeInfoService;
     @Resource

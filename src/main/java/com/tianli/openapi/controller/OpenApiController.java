@@ -1,6 +1,5 @@
 package com.tianli.openapi.controller;
 
-import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.AccountUserTransferVO;
 import com.tianli.charge.service.ChargeService;
@@ -35,7 +34,7 @@ public class OpenApiController {
     @Resource
     private ChargeService chargeService;
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private com.tianli.account.service.AccountBalanceService accountBalanceService;
 
 
     /**

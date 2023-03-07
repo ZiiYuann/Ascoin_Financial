@@ -237,6 +237,16 @@ public class ManageWalletController {
     }
 
     /**
+     * 归集数据修复
+     */
+    @PutMapping("/imputation/fix")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result<Void> imputationLogFix(String txid) {
+        walletImputationService.imputationLogFix(txid);
+        return Result.success();
+    }
+
+    /**
      * 提现手续费 init
      */
     @PostMapping("/serviceFee/init")

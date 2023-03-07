@@ -1,7 +1,10 @@
 package com.tianli.chain.entity;
 
 import com.tianli.common.blockchain.NetworkType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
@@ -12,6 +15,9 @@ import java.math.BigDecimal;
  * @since 2022-07-25
  **/
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class WalletImputationLogAppendix {
 
     private Long id;

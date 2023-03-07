@@ -1,20 +1,21 @@
 package com.tianli.chain.service.contract;
 
-import cn.hutool.json.JSONUtil;
-import com.tianli.chain.enums.ChainType;
+import com.tianli.chain.dto.TransactionReceiptLogDTO;
+import com.tianli.chain.entity.Coin;
+import com.tianli.common.blockchain.NetworkType;
+import com.tianli.currency.enums.TokenAdapter;
+import com.tianli.exception.ErrorCodeEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Component;
+import org.tron.tronj.abi.datatypes.Address;
 import org.web3j.protocol.core.JsonRpc2_0Web3j;
+import org.web3j.protocol.core.methods.response.Log;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.utils.Numeric;
 
 import javax.annotation.Resource;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -22,77 +23,74 @@ import java.math.BigInteger;
  * @since 2022-10-26
  **/
 @Slf4j
-//@Component
-public class TronWeb3jContract {
+@Component
+public class TronWeb3jContract extends Web3jContractOperation {
 
     @Resource
     private JsonRpc2_0Web3j tronWeb3j;
 
-    public String computeAddress(long addressId) throws IOException {
+    @Override
+    public List<TransactionReceiptLogDTO> transactionReceiptLogDTOS(Coin coin, String hash) {
+        try {
+            TransactionReceipt transactionReceipt = this.getTransactionReceipt(hash);
+            List<Log> logs = transactionReceipt.getLogs();
+            return logs.stream().map(log -> {
+                TransactionReceiptLogDTO transactionReceiptLogDTO = new TransactionReceiptLogDTO();
+                transactionReceiptLogDTO.setAmount(TokenAdapter.alignment(coin, Numeric.toBigInt(log.getData())));
+                List<String> topics = log.getTopics();
+                String fromAddress = new Address(topics.get(1)).getValue();
+                transactionReceiptLogDTO.setFromAddress(fromAddress);
+                return transactionReceiptLogDTO;
+            }).collect(Collectors.toList());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw ErrorCodeEnum.SYSTEM_ERROR.generalException();
+        }
+    }
+
+    @Override
+    public boolean matchByChain(NetworkType chain) {
+        return NetworkType.trc20.equals(chain);
+    }
+
+    @Override
+    protected JsonRpc2_0Web3j getWeb3j() {
+        return tronWeb3j;
+    }
+
+    @Override
+    protected String getGas() {
         throw new UnsupportedOperationException();
     }
 
-    public String computeAddress(BigInteger addressId) throws IOException {
+    @Override
+    protected String getMainWalletAddress() {
         throw new UnsupportedOperationException();
     }
 
-    public String computeAddress(String walletAddress, BigInteger addressId) throws IOException {
+    @Override
+    protected String getMainWalletPassword() {
         throw new UnsupportedOperationException();
     }
 
-//    @Override
-//    protected JsonRpc2_0Web3j getWeb3j() {
-//        return tronWeb3j;
-//    }
-//
-//    @Override
-//    public String getGas() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    protected String getMainWalletAddress() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    protected String getMainWalletPassword() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    protected Long getChainId() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    protected String getRecycleGasLimit() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    protected String getTransferGasLimit() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    protected String getRecycleTriggerAddress() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    public BigDecimal getConsumeFee(String hash) throws IOException {
-//
-//        HttpClient client = HttpClientBuilder.create().build();
-//        HttpGet httpGet = new HttpGet("https://apilist.tronscanapi.com/api/transaction-info?hash=" + hash);
-//
-//        HttpResponse execute = client.execute(httpGet);
-//        String result = EntityUtils.toString(execute.getEntity());
-//
-//        BigDecimal energyFee = JSONUtil.parseObj(result).getByPath("cost.energy_fee", BigDecimal.class);
-//        BigDecimal netFee = JSONUtil.parseObj(result).getByPath("cost.net_fee", BigDecimal.class);
-//
-//        return energyFee.add(netFee).multiply(BigDecimal.valueOf(0.000001));
-//
-//    }
+    @Override
+    protected Long getChainId() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected String getRecycleGasLimit() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected String getTransferGasLimit() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected String getRecycleTriggerAddress() {
+        throw new UnsupportedOperationException();
+    }
 }

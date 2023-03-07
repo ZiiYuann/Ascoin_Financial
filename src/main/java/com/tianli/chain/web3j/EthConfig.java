@@ -1,4 +1,4 @@
-package com.tianli.common.blockchain;
+package com.tianli.chain.web3j;
 
 import com.tianli.common.ConfigConstants;
 import com.tianli.mconfig.ConfigService;
@@ -10,22 +10,22 @@ import org.web3j.protocol.http.HttpService;
 import javax.annotation.Resource;
 
 @Configuration
-public class BscConfig {
+public class EthConfig {
 
-    private static String BINANCE_SMART_CHAIN_MAIN_NET = "https://bsc-dataseed1.ninicoin.io";
+    private static String ETH_CHAIN_MAIN_NET = "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161";
 
     @Resource
     private ConfigService configService;
 
     @Bean
-    public JsonRpc2_0Web3j bscWeb3j(){
-        String bsc_url;
+    public JsonRpc2_0Web3j ethWeb3j(){
+        String eth_url;
         try {
-            bsc_url = configService.getOrDefault(ConfigConstants.BSC_CHAIN_URL, BINANCE_SMART_CHAIN_MAIN_NET);
+            eth_url = configService.getOrDefault(ConfigConstants.ETH_CHAIN_URL, ETH_CHAIN_MAIN_NET);
         } catch (Exception e) {
-            bsc_url = BINANCE_SMART_CHAIN_MAIN_NET;
+            eth_url = ETH_CHAIN_MAIN_NET;
         }
-        return new JsonRpc2_0Web3j(new HttpService(bsc_url));
+        return new JsonRpc2_0Web3j(new HttpService(eth_url));
     }
 
 }

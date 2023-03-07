@@ -6,6 +6,7 @@ import com.tianli.account.vo.AccountBalanceSimpleVO;
 import com.tianli.account.vo.AccountBalanceVO;
 import com.tianli.account.vo.UserAssetsVO;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.common.blockchain.NetworkType;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,12 +21,38 @@ public interface AccountBalanceService {
     /**
      * 减少余额
      */
-    void decrease(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des);
+    void decrease(long uid, ChargeType type, String coin, BigDecimal amount, String orderNo);
+
+    void decrease(long uid, ChargeType type, String coin, BigDecimal amount, String orderNo, NetworkType networkType);
 
     /**
      * 增加余额
      */
-    void increase(long uid, ChargeType type, String coin, BigDecimal amount, String sn, String des);
+    void increase(long uid, ChargeType type, String coin, BigDecimal amount, String orderNo);
+
+    void increase(long uid, ChargeType type, String coin, BigDecimal amount, String orderNo, NetworkType networkType);
+
+    /**
+     * 冻结余额
+     */
+    void freeze(long uid, ChargeType type, String coin, BigDecimal amount, String orderNo);
+
+    void freeze(long uid, ChargeType type, String coin, BigDecimal amount, String orderNo, NetworkType networkType);
+
+    /**
+     * 减少冻结余额
+     */
+    void reduce(long uid, ChargeType type, String coin, BigDecimal amount, String orderNo);
+
+    void reduce(long uid, ChargeType type, String coin, BigDecimal amount, String orderNo, NetworkType networkType);
+
+    /**
+     * 解冻余额
+     */
+    void unfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String orderNo);
+
+    void unfreeze(long uid, ChargeType type, String coin, BigDecimal amount, String orderNo, NetworkType networkType);
+
 
     /**
      * 获取并且不存在的话会初始化

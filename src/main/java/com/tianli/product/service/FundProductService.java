@@ -1,6 +1,5 @@
 package com.tianli.product.service;
 
-import cn.hutool.core.lang.Opt;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.enums.AccountChangeType;
@@ -13,13 +12,10 @@ import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
-import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.service.IWalletAgentProductService;
-import com.tianli.product.dto.PurchaseResultDto;
-import com.tianli.product.dto.RedeemResultDto;
 import com.tianli.product.afinancial.dto.IncomeDto;
 import com.tianli.product.afinancial.entity.FinancialProduct;
 import com.tianli.product.afinancial.enums.ProductType;
@@ -37,6 +33,8 @@ import com.tianli.product.afund.enums.FundTransactionType;
 import com.tianli.product.afund.query.FundRecordQuery;
 import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.product.afund.service.IFundTransactionRecordService;
+import com.tianli.product.dto.PurchaseResultDto;
+import com.tianli.product.dto.RedeemResultDto;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +44,6 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * @author chenb
@@ -138,7 +135,8 @@ public class FundProductService extends AbstractProductOperation<FinancialProduc
         }
 
         // 减少余额
-        accountBalanceService.decrease(uid, ChargeType.fund_purchase, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.基金申购.name());
+        accountBalanceService.decrease(uid, ChargeType.fund_purchase, financialProduct.getCoin(), purchaseAmount
+                , order.getOrderNo());
         //代理人钱包
         AccountBalance agentAccountBalance = accountBalanceService.getAndInit(walletAgentProduct.getUid(), financialProduct.getCoin());
         //代理人生成一笔订单
@@ -154,7 +152,8 @@ public class FundProductService extends AbstractProductOperation<FinancialProduc
                 .completeTime(LocalDateTime.now())
                 .build();
         orderService.save(agentOrder);
-        accountBalanceService.increase(agentAccountBalance.getUid(), ChargeType.agent_fund_sale, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.代理基金销售.name());
+        accountBalanceService.increase(agentAccountBalance.getUid(), ChargeType.agent_fund_sale, financialProduct.getCoin()
+                , purchaseAmount, order.getOrderNo());
 
         //交易记录
         FundTransactionRecord transactionRecord;
