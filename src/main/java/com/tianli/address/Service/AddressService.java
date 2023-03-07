@@ -1,8 +1,7 @@
-package com.tianli.address.Service;
+package com.tianli.address.service;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.query.IdsQuery;
@@ -31,6 +30,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.web3j.protocol.exceptions.ClientConnectionException;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -246,12 +246,12 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
             String s = EntityUtils.toString(response.getEntity());
             Boolean exist = JSONUtil.parse(s).getByPath("data.exist", Boolean.class);
             exist = MoreObjects.firstNonNull(exist, Boolean.FALSE);
-            if (!exist) {
+            if (Boolean.FALSE.equals(exist)) {
                 webHookService.dingTalkSend("uid 激活失败：" + uid);
                 ErrorCodeEnum.throwException("uid 校验不存在");
             }
 
-        } catch (IOException e) {
+        } catch (IOException | ClientConnectionException e) {
             e.printStackTrace();
             ErrorCodeEnum.throwException("http 调用异常");
         }

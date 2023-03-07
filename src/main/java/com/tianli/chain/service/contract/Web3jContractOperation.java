@@ -1,9 +1,9 @@
 package com.tianli.chain.service.contract;
 
 import com.google.gson.Gson;
+import com.tianli.chain.dto.TransactionReceiptLogDTO;
 import com.tianli.chain.entity.Coin;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.exception.Result;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +31,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -49,8 +50,8 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
     /**
      * 代币转账
      */
-    public Result<String> tokenTransfer(String to, BigInteger val, Coin coin) {
-        Result<String> result = null;
+    public String tokenTransfer(String to, BigInteger val, Coin coin) {
+        String result = null;
         try {
             result = this.sendRawTransactionWithDefaultParam(
                     coin.getContract(),
@@ -61,12 +62,12 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
                     BigInteger.valueOf(Long.parseLong(getTransferGasLimit())),
                     String.format("转账%s", coin.getName()));
         } catch (Exception ignored) {
-
+            log.error("代币转账失败");
         }
         return result;
     }
 
-    public Result<String> mainTokenTransfer(String to, BigInteger val, Coin coin) {
+    public String mainTokenTransfer(String to, BigInteger val, Coin coin) {
         return sendRawTransactionWithDefaultParam(to, "", val,
                 BigInteger.valueOf(Long.parseLong(getTransferGasLimit())), "主笔转账：" + coin.getName());
     }
@@ -74,15 +75,15 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
     /**
      * 归集
      */
+    @Override
     public String recycle(String toAddress, List<Long> addressIds, List<String> tokenContractAddresses) {
         toAddress = Optional.ofNullable(toAddress).orElse(this.getMainWalletAddress());
-        Result<String> result;
-
+        String hash;
         String data = super.buildRecycleData(toAddress, addressIds, tokenContractAddresses);
         try {
-            result = this.sendRawTransactionWithDefaultParam(this.getRecycleTriggerAddress(), data, BigInteger.ZERO,
+            hash = this.sendRawTransactionWithDefaultParam(this.getRecycleTriggerAddress(), data, BigInteger.ZERO,
                     BigInteger.valueOf(Long.parseLong(getRecycleGasLimit())).multiply(BigInteger.valueOf(addressIds.size())), "归集: ");
-            return (String) result.getData();
+            return hash;
         } catch (Exception ignored) {
             return null;
         }
@@ -108,7 +109,8 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
         try {
             EthGetTransactionCount send = this.getWeb3j().ethGetTransactionCount(address, DefaultBlockParameterName.PENDING).send();
             nance = send.getTransactionCount().longValue();
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.error("获取nance失败" + e.getMessage());
         }
         return Objects.isNull(nance) ? null : nance;
     }
@@ -124,7 +126,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
      * @param operation 操作信息
      * @return 结果
      */
-    public Result<String> sendRawTransactionWithDefaultParam(String to, String data, BigInteger value, BigInteger gasLimit, String operation) {
+    public String sendRawTransactionWithDefaultParam(String to, String data, BigInteger value, BigInteger gasLimit, String operation) {
         String password = this.getMainWalletPassword();
         String address = this.getMainWalletAddress();
         String gas = this.getGas();
@@ -147,8 +149,8 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
      * @param operation 操作信息
      * @return 结果
      */
-    public Result<String> sendRawTransaction(BigInteger nonce, Long chainId, String to, String data, BigInteger value,
-                                             String gas, BigInteger gasLimit, String password, String operation) {
+    private String sendRawTransaction(BigInteger nonce, Long chainId, String to, String data, BigInteger value,
+                                      String gas, BigInteger gasLimit, String password, String operation) {
         log.info("gas:{}, limit: {}", gas, gasLimit);
 
         BigInteger gasPrice = Convert.toWei(gas, Convert.Unit.GWEI).toBigInteger();
@@ -167,11 +169,11 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
         }
         if (Objects.isNull(send) || StringUtils.isBlank(send.getTransactionHash())) {
             log.error("时间: " + TimeTool.getDateTimeDisplayString(LocalDateTime.now()) + ", 上链失败!!  SEND => " + new Gson().toJson(send));
-            return Result.fail(operation + "  上链失败");
+            return null;
         }
 
         log.info("时间: " + TimeTool.getDateTimeDisplayString(LocalDateTime.now()) + ", " + operation + " < HASH: " + send.getTransactionHash() + " >");
-        return new Result<>(send.getTransactionHash());
+        return send.getTransactionHash();
     }
 
     public EthGetTransactionReceipt getTransactionByHash(String hash) {
@@ -282,6 +284,25 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
         var transaction =
                 getWeb3j().ethGetTransactionByHash(hash).send().getTransaction();
         return transaction.orElse(null);
+    }
+
+    public List<TransactionReceiptLogDTO> transactionReceiptLogDTOS(Coin coin, String hash) {
+        try {
+            TransactionReceipt transactionReceipt = this.getTransactionReceipt(hash);
+            List<Log> logs = transactionReceipt.getLogs();
+            return logs.stream().map(log -> {
+                TransactionReceiptLogDTO transactionReceiptLogDTO = new TransactionReceiptLogDTO();
+                transactionReceiptLogDTO.setAmount(TokenAdapter.alignment(coin, Numeric.toBigInt(log.getData())));
+
+                List<String> topics = log.getTopics();
+                transactionReceiptLogDTO.setFromAddress("0x" + topics.get(1).substring(26));
+                return transactionReceiptLogDTO;
+            }).collect(Collectors.toList());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw ErrorCodeEnum.SYSTEM_ERROR.generalException();
+        }
     }
 
     protected abstract JsonRpc2_0Web3j getWeb3j();

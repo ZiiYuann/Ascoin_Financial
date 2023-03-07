@@ -1,4 +1,4 @@
-package com.tianli.address.Service;
+package com.tianli.address.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

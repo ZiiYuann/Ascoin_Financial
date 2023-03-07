@@ -25,11 +25,13 @@ public class BscTriggerContract extends Web3jContractOperation {
         return computeAddress(new BigInteger("" + addressId));
     }
 
+    @Override
     public String computeAddress(BigInteger addressId) throws IOException {
         String address = configService.get(ConfigConstants.BSC_MAIN_WALLET_ADDRESS);
         return computeAddress(address, addressId);
     }
 
+    @Override
     public String computeAddress(String walletAddress, BigInteger addressId) throws IOException {
         String contractAddress = configService.get(ConfigConstants.BSC_TRIGGER_ADDRESS);
         return super.computeAddress(walletAddress, addressId, contractAddress);

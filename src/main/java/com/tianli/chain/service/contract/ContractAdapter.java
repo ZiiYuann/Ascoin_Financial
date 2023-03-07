@@ -1,6 +1,6 @@
 package com.tianli.chain.service.contract;
 
-import com.tianli.address.Service.AddressService;
+import com.tianli.address.service.AddressService;
 import com.tianli.chain.entity.Coin;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.TokenAdapter;
@@ -25,14 +25,30 @@ import java.util.List;
 @Service
 public class ContractAdapter implements BeanFactoryAware {
 
+    @Resource
     private List<ContractOperation> contractOperationList;
+    @Resource
+    private List<Web3jContractOperation> web3jContractOperations;
     @Resource
     private AddressService addressService;
 
+    // 不包括tron 的web3j
     public ContractOperation getOne(NetworkType networkType) {
         for (ContractOperation contractOperation : contractOperationList) {
             if (contractOperation.matchByChain(networkType)) {
+                if (contractOperation instanceof TronWeb3jContract) {
+                    continue;
+                }
                 return contractOperation;
+            }
+        }
+        throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();
+    }
+
+    public Web3jContractOperation getWeb3jOne(NetworkType networkType) {
+        for (Web3jContractOperation web3jContractOperation : web3jContractOperations) {
+            if (web3jContractOperation.matchByChain(networkType)) {
+                return web3jContractOperation;
             }
         }
         throw ErrorCodeEnum.ARGUEMENT_ERROR.generalException();

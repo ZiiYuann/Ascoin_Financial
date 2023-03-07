@@ -3,11 +3,12 @@ package com.tianli.chain.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.address.Service.AddressService;
+import com.tianli.address.service.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.pojo.MainWalletAddress;
 import com.tianli.chain.converter.ChainConverter;
 import com.tianli.chain.dto.TRONTokenReq;
+import com.tianli.chain.dto.TransactionReceiptLogDTO;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.entity.WalletImputation;
 import com.tianli.chain.entity.WalletImputationLog;
@@ -16,10 +17,11 @@ import com.tianli.chain.enums.ImputationStatus;
 import com.tianli.chain.mapper.WalletImputationMapper;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.service.contract.ContractOperation;
+import com.tianli.chain.service.contract.Web3jContractOperation;
 import com.tianli.chain.vo.WalletImputationVO;
+import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisLockConstants;
-import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.lock.RedisLock;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
@@ -171,38 +173,76 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         var coinName = walletImputations.stream().map(WalletImputation::getCoin).findAny().orElseThrow();
         var network = walletImputations.stream().map(WalletImputation::getNetwork).findAny().orElseThrow();
 
-        Coin coin = coinService.getByNameAndNetwork(coinName, network);
+        Map<String, List<WalletImputation>> walletImputationMap = walletImputations.stream()
+                .filter(walletImputation -> walletImputation.getAmount().compareTo(BigDecimal.ZERO) > 0)
+                .collect(Collectors.groupingBy(WalletImputation::getAddress));
 
-        // 优化：取实际金额,避免账户没钱被归,减少莫名奇妙的手续费
-        walletImputations.forEach(walletImputation -> {
-            String address = walletImputation.getAddress();
-            BigDecimal balance = baseContractService.getBalance(network, address, coin);
-            walletImputation.setAmount(balance.setScale(8, RoundingMode.DOWN));
+
+        walletImputationMap.forEach((key, value) -> {
+            // 说明可能存在脏数据需要手动修复
+            if (value.size() == 1) {
+                return;
+            }
+            WalletImputation walletImputation = value.get(0);
+            List<Long> allIds = value.stream().map(WalletImputation::getId).collect(Collectors.toList());
+            allIds.remove(walletImputation.getId());
+            walletImputationMapper.deleteBatchIds(allIds);
+            for (int i = 1; i < value.size(); i++) {
+                walletImputations.remove(value.get(i));
+            }
         });
 
-        List<Long> addressIds = walletImputations.stream().map(WalletImputation::getAddressId).distinct().collect(Collectors.toList());
-        String hash = baseContractService.getOne(network).recycle(null, addressIds, coin.isMainToken()
-                ? Collections.emptyList() : List.of(coin.getContract()));
-        // 事务问题如何解决，如果中间出现异常，整个事务回滚，归集状态为wait，重新归集只收取手续费
+        Coin coin = coinService.getByNameAndNetwork(coinName, network);
 
-        if (StringUtils.isBlank(hash)) {
-            ErrorCodeEnum.throwException("上链失败");
+        boolean mainToken = coin.isMainToken();
+        ArrayList<Long> addressIds = new ArrayList<>();
+        walletImputations.forEach(walletImputation -> {
+            String address = walletImputation.getAddress();
+            // 实际的金额
+            BigDecimal realBalance = baseContractService.getBalance(network, address, coin);
+            // 如果是主币且账户为0，说明在归集代币的时候主币已经被归集
+            if (mainToken && realBalance.compareTo(BigDecimal.ZERO) == 0) {
+                return;
+            }
+            if (mainToken && realBalance.compareTo(BigDecimal.ZERO) > 0) {
+                walletImputation.setAmount(realBalance.setScale(8, RoundingMode.DOWN));
+                addressIds.add(walletImputation.getAddressId());
+            }
+
+            if (!mainToken) {
+                walletImputation.setAmount(realBalance.setScale(8, RoundingMode.DOWN));
+                if (realBalance.compareTo(BigDecimal.ZERO) != 0) {
+                    addressIds.add(walletImputation.getAddressId());
+                }
+            }
+
+        });
+
+        String hash = null;
+        if (CollectionUtils.isNotEmpty(addressIds)) {
+            hash = baseContractService.getOne(network).recycle(null, new ArrayList<>(addressIds), mainToken
+                    ? Collections.emptyList() : List.of(coin.getContract()));
+            if (StringUtils.isBlank(hash)) {
+                ErrorCodeEnum.throwException("上链失败");
+            }
+        }
+        if (CollectionUtils.isEmpty(addressIds)) {
+            hash = "0x00000000";
         }
 
+        // 事务问题如何解决，如果中间出现异常，整个事务回滚，归集状态为wait，重新归集只收取手续费
+
+        final var hashFinal = hash;
         final List<BigDecimal> amountList = new ArrayList<>();
-        List<WalletImputationLogAppendix> logAppendices = walletImputations.stream()
-                .filter(walletImputation -> walletImputation.getAmount().compareTo(BigDecimal.ZERO) > 0)
-                .collect(Collectors.groupingBy(WalletImputation::getAddress))
-                .values().stream().map(value -> {
-                    WalletImputation walletImputation = value.get(0);
-                    WalletImputationLogAppendix appendix = new WalletImputationLogAppendix();
-                    appendix.setAmount(walletImputation.getAmount());
-                    appendix.setNetwork(walletImputation.getNetwork());
-                    appendix.setFromAddress(walletImputation.getAddress());
-                    appendix.setTxid(hash);
-                    amountList.add(walletImputation.getAmount());
-                    return appendix;
-                }).collect(Collectors.toList());
+        List<WalletImputationLogAppendix> logAppendices = walletImputations.stream().map(walletImputation -> {
+            WalletImputationLogAppendix appendix = new WalletImputationLogAppendix();
+            appendix.setAmount(walletImputation.getAmount());
+            appendix.setNetwork(walletImputation.getNetwork());
+            appendix.setFromAddress(walletImputation.getAddress());
+            appendix.setTxid(hashFinal);
+            amountList.add(walletImputation.getAmount());
+            return appendix;
+        }).collect(Collectors.toList());
         walletImputationLogAppendixService.saveBatch(logAppendices);
 
         Long logId = CommonFunction.generalId();
@@ -224,7 +264,6 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
 
         // 异步检测数据
         asynCheckImputationStatus();
-
     }
 
     /**
@@ -377,5 +416,105 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
             imputationAmountVO.setCoin(query.getCoin());
         }
         return imputationAmountVO;
+    }
+
+    @Transactional
+    public void imputationLogFix(String txid) {
+        List<WalletImputationLog> walletImputationLogs = new ArrayList<>();
+        if (StringUtils.isNotBlank(txid)) {
+            WalletImputationLog walletImputationLog = walletImputationLogService.getOneByTxid(txid, ImputationStatus.success);
+            Optional.ofNullable(walletImputationLog).ifPresent(walletImputationLogs::add);
+        }
+
+        if (StringUtils.isBlank(txid)) {
+            walletImputationLogs.addAll(walletImputationLogService.list(new LambdaQueryWrapper<WalletImputationLog>()
+                    .eq(WalletImputationLog::getStatus, ImputationStatus.success)));
+        }
+
+        walletImputationLogs.forEach(walletImputationLog -> {
+            Coin coin = coinService.getByNameAndNetwork(walletImputationLog.getCoin(), walletImputationLog.getNetwork());
+            if (coin.isMainToken()) {
+                return;
+            }
+            this.imputationLogFix(walletImputationLog);
+        });
+    }
+
+    private void imputationLogFix(WalletImputationLog walletImputationLog) {
+        String txid = walletImputationLog.getTxid();
+        NetworkType network = walletImputationLog.getNetwork();
+        Coin coin = coinService.getByNameAndNetwork(walletImputationLog.getCoin(), network);
+
+        if (coin.isMainToken()) {
+            ErrorCodeEnum.throwException("不支持主币的补偿");
+        }
+
+        final List<WalletImputationLogAppendix> appendices = walletImputationLogAppendixService
+                .list(new LambdaQueryWrapper<WalletImputationLogAppendix>()
+                        .eq(WalletImputationLogAppendix::getTxid, txid));
+
+        Map<String, List<WalletImputationLogAppendix>> appendixMap =
+                appendices.stream().collect(Collectors.groupingBy(WalletImputationLogAppendix::getFromAddress));
+        appendixMap.forEach((key, value) -> {
+            if (value.size() == 1) {
+                return;
+            }
+            WalletImputationLogAppendix appendix = value.get(0);
+            List<Long> allIds = value.stream().map(WalletImputationLogAppendix::getId).collect(Collectors.toList());
+            allIds.remove(appendix.getId());
+            walletImputationLogAppendixService.removeByIds(allIds);
+            for (int i = 1; i < value.size(); i++) {
+                appendices.remove(value.get(i));
+            }
+        });
+
+
+        Web3jContractOperation web3j = baseContractService.getWeb3jOne(network);
+        try {
+            var transactionReceiptLogDTOS = web3j.transactionReceiptLogDTOS(coin, txid);
+            walletImputationLog.setAmount(transactionReceiptLogDTOS.stream().map(TransactionReceiptLogDTO::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add));
+            walletImputationLogService.updateById(walletImputationLog);
+
+            List<String> address = transactionReceiptLogDTOS.stream().map(TransactionReceiptLogDTO::getFromAddress)
+                    .collect(Collectors.toList());
+            Map<String, TransactionReceiptLogDTO> transactionReceiptLogDTOMap = transactionReceiptLogDTOS.stream()
+                    .collect(Collectors.toMap(TransactionReceiptLogDTO::getFromAddress, o -> o));
+
+            List<Long> removedAppendixIds = appendices.stream()
+                    .filter(appendix -> !address.contains(appendix.getFromAddress()))
+                    .map(WalletImputationLogAppendix::getId)
+                    .collect(Collectors.toList());
+            walletImputationLogAppendixService.removeByIds(removedAppendixIds);
+
+            var newAppendices = appendices.stream()
+                    .filter(appendix -> address.contains(appendix.getFromAddress()))
+                    .collect(Collectors.toList());
+
+            newAppendices.forEach(appendix -> {
+                var dto = transactionReceiptLogDTOMap.get(appendix.getFromAddress());
+                appendix.setAmount(dto.getAmount());
+                transactionReceiptLogDTOMap.remove(appendix.getFromAddress());
+            });
+
+            if (transactionReceiptLogDTOMap.size() > 0) {
+                transactionReceiptLogDTOMap.forEach((key, value) -> {
+                    var walletImputationLogAppendix = WalletImputationLogAppendix.builder()
+                            .id(CommonFunction.generalId())
+                            .txid(txid)
+                            .amount(value.getAmount())
+                            .fromAddress(value.getFromAddress())
+                            .network(network)
+                            .build();
+                    walletImputationLogAppendixService.save(walletImputationLogAppendix);
+                });
+            }
+
+            walletImputationLogAppendixService.updateBatchById(newAppendices);
+
+        } catch (Exception e) {
+            log.error("fix error");
+            e.printStackTrace();
+        }
     }
 }

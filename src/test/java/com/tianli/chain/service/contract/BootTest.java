@@ -19,6 +19,9 @@ import org.redisson.api.RedissonClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.tron.tronj.abi.datatypes.Address;
+import org.web3j.protocol.core.JsonRpc2_0Web3j;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -47,6 +50,12 @@ class BootTest {
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
     @Resource
+    private BscTriggerContract bscTriggerContract;
+    @Resource
+    private JsonRpc2_0Web3j ethWeb3j;
+    @Resource
+    private TronWeb3jContract tronWeb3jContract;
+    @Resource
     private RpcService rpcService;
 
     @Test
@@ -58,11 +67,6 @@ class BootTest {
                 .build());
         log.info(bnb);
 
-    }
-
-    @Test
-    void getStatusByHash() {
-        fundIncomeTask.incomeTasks();
     }
 
     @Test

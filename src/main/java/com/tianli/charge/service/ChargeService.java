@@ -8,14 +8,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.entity.AccountUserTransfer;
 import com.tianli.account.enums.AccountChangeType;
 import com.tianli.account.query.AccountDetailsQuery;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.AccountUserTransferService;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.TransactionGroupTypeVO;
 import com.tianli.account.vo.TransactionTypeVO;
-import com.tianli.address.Service.AddressService;
-import com.tianli.address.Service.OccasionalAddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.mapper.OccasionalAddress;
+import com.tianli.address.service.AddressService;
+import com.tianli.address.service.OccasionalAddressService;
 import com.tianli.chain.dto.CallbackPathDTO;
 import com.tianli.chain.dto.TRONTokenReq;
 import com.tianli.chain.entity.Coin;
@@ -44,9 +44,7 @@ import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
 import com.tianli.common.webhook.WebHookToken;
 import com.tianli.currency.enums.TokenAdapter;
-import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.exception.Result;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.service.IWalletAgentService;
 import com.tianli.mconfig.ConfigService;
@@ -72,7 +70,10 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -165,8 +166,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             String orderNo = insertRechargeOrder(uid, req, coin, finalAmount, req.getValue());
 
             // 操作余额信息
-            accountBalanceServiceImpl.increase(uid, ChargeType.recharge, coin.getName()
-                    , coin.getNetwork(), finalAmount, orderNo, CurrencyLogDes.充值.name());
+            accountBalanceService.increase(uid, ChargeType.recharge, coin.getName()
+                    , finalAmount, orderNo, coin.getNetwork());
+
             // 操作归集信息
             walletImputationService.insert(uid, address, coin, req, finalAmount);
 
@@ -346,8 +348,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         orderService.insert(orderChargeInfo);
         orderService.save(order);
         //冻结提现数额
-        accountBalanceServiceImpl.freeze(uid, ChargeType.withdraw, coin.getName(), coin.getNetwork()
-                , withdrawAmount, order.getOrderNo(), CurrencyLogDes.提现.name());
+        accountBalanceService.freeze(uid, ChargeType.withdraw, coin.getName(), withdrawAmount
+                , order.getOrderNo(), coin.getNetwork());
     }
 
     /**
@@ -359,7 +361,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         ContractOperation contractService = contractAdapter.getOne(orderChargeInfo.getNetwork());
         Coin coin = coinService.getByNameAndNetwork(orderChargeInfo.getCoin(), orderChargeInfo.getNetwork());
         BigInteger amount = TokenAdapter.restoreBigInteger(order.getAmount().subtract(order.getServiceAmount()), coin.getDecimals());
-        Result<String> result;
+        String hash;
 
         /* 注册监听回调接口
          * {@link com.tianli.charge.controller.ChargeController#withdrawCallback(ChainType, String, String, String)}
@@ -370,16 +372,12 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         }
 
         try {
-            result = contractService.transfer(orderChargeInfo.getToAddress(), amount, coin);
+            hash = contractService.transfer(orderChargeInfo.getToAddress(), amount, coin);
         } catch (Exception e) {
             webHookService.dingTalkSend("上链失败", e);
             return null;
         }
-        if (Objects.isNull(result) || Objects.isNull(result.getData())) {
-            return null;
-        }
-
-        return (String) result.getData();
+        return hash;
     }
 
     /**
@@ -657,7 +655,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     @Resource
     private RequestInitService requestInitService;
     @Resource
-    private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private AddressService addressService;
     @Resource

@@ -46,5 +46,11 @@ public enum TokenAdapter {
         return amount.movePointLeft(coin.getDecimals()).setScale(8, RoundingMode.DOWN);
     }
 
+    public static BigDecimal alignment(Coin coin, BigInteger l) {
+        BigDecimal amount = new BigDecimal(l);
+        if (amount == null) return BigDecimal.ZERO;
+        return amount.movePointLeft(coin.getDecimals()).setScale(8, RoundingMode.DOWN);
+    }
+
 
 }

@@ -12,7 +12,6 @@ import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
-import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.dto.AmountDto;
 import com.tianli.management.entity.WalletAgentProduct;
@@ -141,7 +140,8 @@ public class FundProductService extends AbstractProductOperation<FinancialProduc
         }
 
         // 减少余额
-        accountBalanceService.decrease(uid, ChargeType.fund_purchase, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.基金申购.name());
+        accountBalanceService.decrease(uid, ChargeType.fund_purchase, financialProduct.getCoin(), purchaseAmount
+                , order.getOrderNo());
         //代理人钱包
         AccountBalance agentAccountBalance = accountBalanceService.getAndInit(walletAgentProduct.getUid(), financialProduct.getCoin());
         //代理人生成一笔订单
@@ -157,7 +157,8 @@ public class FundProductService extends AbstractProductOperation<FinancialProduc
                 .completeTime(LocalDateTime.now())
                 .build();
         orderService.save(agentOrder);
-        accountBalanceService.increase(agentAccountBalance.getUid(), ChargeType.agent_fund_sale, financialProduct.getCoin(), purchaseAmount, order.getOrderNo(), CurrencyLogDes.代理基金销售.name());
+        accountBalanceService.increase(agentAccountBalance.getUid(), ChargeType.agent_fund_sale, financialProduct.getCoin()
+                , purchaseAmount, order.getOrderNo());
 
         //交易记录
         FundTransactionRecord transactionRecord;

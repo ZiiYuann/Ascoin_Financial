@@ -158,9 +158,9 @@ public enum ErrorCodeEnum {
     RED_FLAG_NULL(3715, "flag不能为null"),
     RED_NUM_CONFIG_ERROR(3716, "红包配置数量不能超过1000"),
     RED_IP_LIMIT(3717, "该IP领取超限"),
-    RED_TOTAL_AMOUNT_LIMIT(3718,"红包价值不得超过"),
-    RED_OVERDUE(3719,"红包已过期"),
-    RED_TRANSFER_ING(3720,"红包异步转账未完成"),
+    RED_TOTAL_AMOUNT_LIMIT(3718, "红包价值不得超过"),
+    RED_OVERDUE(3719, "红包已过期"),
+    RED_TRANSFER_ING(3720, "红包异步转账未完成"),
 
     /*** －－－－－－业务错误码-理财相关－－－－－－*/
     FINANCIAL_INCOME_REPEAT(3801, "理财利息当日利息已经计算"),
@@ -250,6 +250,10 @@ public enum ErrorCodeEnum {
 
     public static void throwException(String msg) {
         throw new ErrCodeException(110, msg);
+    }
+
+    public static ErrCodeException generateException(String msg) {
+        return new ErrCodeException(110, msg);
     }
 
     public static void throwException(Integer code, String msg) {

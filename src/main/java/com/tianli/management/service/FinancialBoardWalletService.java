@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.vo.AccountBalanceSimpleVO;
-import com.tianli.address.Service.AddressService;
+import com.tianli.address.service.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.query.OrderMQuery;

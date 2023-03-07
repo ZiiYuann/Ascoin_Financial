@@ -98,7 +98,7 @@ public class TypeDecoder {
         return new Address(decodeNumeric(input, Uint160.class));
     }
 
-    static <T extends NumericType> T decodeNumeric(String input, Class<T> type) {
+    public static <T extends NumericType> T decodeNumeric(String input, Class<T> type) {
         try {
             byte[] inputByteArray = Numeric.hexStringToByteArray(input);
             int typeLengthAsBytes = getTypeLengthInBytes(type);

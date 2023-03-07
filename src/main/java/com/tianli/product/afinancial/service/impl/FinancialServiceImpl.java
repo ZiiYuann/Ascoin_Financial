@@ -7,10 +7,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.MoreObjects;
-import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.UserAssetsVO;
-import com.tianli.address.Service.AddressService;
+import com.tianli.address.service.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.converter.ChainConverter;
 import com.tianli.chain.entity.CoinBase;
@@ -811,7 +810,7 @@ public class FinancialServiceImpl implements FinancialService {
     @Resource
     private ChainConverter chainConverter;
     @Resource
-    private AccountBalanceService accountBalanceService;
+    private com.tianli.account.service.AccountBalanceService accountBalanceService;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
     @Resource

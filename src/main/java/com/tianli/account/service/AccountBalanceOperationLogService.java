@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
  * @since 2020-12-04
  */
 @Service
-public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanceOperationLogMapper, AccountBalanceOperationLog>{
+public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanceOperationLogMapper, AccountBalanceOperationLog> {
 
     @Resource
     private AccountBalanceOperationLogMapper accountBalanceOperationLogMapper;
@@ -31,13 +31,8 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
     /**
      * 添加余额操作日志
      */
-    public void save(AccountBalance accountBalance, ChargeType type, String coin,
-                     AccountOperationType logType, BigDecimal amount, String sn, String des) {
-        this.save(accountBalance,type,coin,null,logType,amount,sn,des);
-    }
-
-    public void save(AccountBalance accountBalance, ChargeType type, String coin, NetworkType networkType,
-                     AccountOperationType logType, BigDecimal amount, String sn, String des) {
+    public void save(AccountBalance accountBalance, ChargeType type, String coin, NetworkType networkType
+            , BigDecimal amount, String sn) {
         AccountBalanceOperationLog currencyLog = AccountBalanceOperationLog.builder()
                 .id(CommonFunction.generalId())
                 .uid(accountBalance.getUid())
@@ -46,8 +41,7 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
                 .network(networkType)
                 .chargeType(type)
                 .orderNo(sn)
-                .logType(logType)
-                .des(des)
+                .des(type.getNameZn())
                 .balance(accountBalance.getBalance())
                 .freeze(accountBalance.getFreeze())
                 .remain(accountBalance.getRemain())

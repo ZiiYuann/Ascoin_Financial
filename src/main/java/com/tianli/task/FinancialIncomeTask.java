@@ -16,7 +16,6 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.async.AsyncService;
 import com.tianli.common.webhook.WebHookService;
-import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.exception.ErrCodeException;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.product.afinancial.entity.FinancialProduct;
@@ -56,7 +55,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FinancialIncomeTask {
 
     @Resource
-    private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    private AccountBalanceServiceImpl accountBalanceService;
     @Resource
     private FinancialRecordService financialRecordService;
     @Resource
@@ -297,8 +296,8 @@ public class FinancialIncomeTask {
         financialRecordService.updateById(financialRecord);
 
         // 增加
-        accountBalanceServiceImpl.increase(financialRecord.getUid(), ChargeType.settle, financialRecord.getCoin()
-                , financialRecord.getHoldAmount(), order.getOrderNo(), CurrencyLogDes.结算.name());
+        accountBalanceService.increase(financialRecord.getUid(), ChargeType.settle, financialRecord.getCoin()
+                , financialRecord.getHoldAmount(), order.getOrderNo());
         // 减少产品使用额度
         financialProductService.reduceUseQuota(financialRecord.getProductId(), financialRecord.getHoldAmount());
         productHoldRecordService.delete(financialRecord.getUid(), financialRecord.getProductId(), financialRecord.getId());
@@ -349,8 +348,8 @@ public class FinancialIncomeTask {
         orderService.save(order);
 
         // 操作余额
-        accountBalanceServiceImpl.increase(uid, ChargeType.income, financialRecord.getCoin()
-                , income, order.getOrderNo(), CurrencyLogDes.收益.name());
+        accountBalanceService.increase(uid, ChargeType.income, financialRecord.getCoin()
+                , income, order.getOrderNo());
 
 
         // 如果等待记息金额 大于 0 ，则计算完利息之后添加到 记息金额中

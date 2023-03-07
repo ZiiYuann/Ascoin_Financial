@@ -1,4 +1,4 @@
-package com.tianli.common.blockchain;
+package com.tianli.chain.web3j;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

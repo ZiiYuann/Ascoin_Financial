@@ -1,4 +1,4 @@
-package com.tianli.common.blockchain;
+package com.tianli.chain.web3j;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;

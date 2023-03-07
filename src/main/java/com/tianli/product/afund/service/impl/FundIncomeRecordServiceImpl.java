@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.agent.management.auth.AgentContent;
 import com.tianli.agent.management.bo.FundAuditBO;
 import com.tianli.agent.management.vo.FundReviewVO;
@@ -18,9 +18,12 @@ import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
-import com.tianli.currency.log.CurrencyLogDes;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.management.dto.AmountDto;
+import com.tianli.management.service.IWalletAgentService;
+import com.tianli.management.vo.FundIncomeAmountVO;
+import com.tianli.management.vo.WalletAgentVO;
 import com.tianli.product.afund.contant.FundIncomeStatus;
 import com.tianli.product.afund.convert.FundRecordConvert;
 import com.tianli.product.afund.dao.FundIncomeRecordMapper;
@@ -35,10 +38,6 @@ import com.tianli.product.afund.service.IFundIncomeRecordService;
 import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.product.afund.service.IFundReviewService;
 import com.tianli.product.afund.vo.FundIncomeRecordVO;
-import com.tianli.management.dto.AmountDto;
-import com.tianli.management.service.IWalletAgentService;
-import com.tianli.management.vo.FundIncomeAmountVO;
-import com.tianli.management.vo.WalletAgentVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,7 +71,7 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
     @Resource
     private FundRecordConvert fundRecordConvert;
     @Resource
-    private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private IFundRecordService fundRecordService;
     @Resource
@@ -186,7 +185,8 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
                         .createTime(LocalDateTime.now()).completeTime(LocalDateTime.now()).build();
                 orderService.save(agentOrder);
                 // 减少余额
-                accountBalanceServiceImpl.decrease(agentVO.getUid(), ChargeType.agent_fund_interest, fundIncomeRecord.getCoin(), fundIncomeRecord.getInterestAmount(), agentOrder.getOrderNo(), CurrencyLogDes.代理基金利息.name());
+                accountBalanceService.decrease(agentVO.getUid(), ChargeType.agent_fund_interest, fundIncomeRecord.getCoin()
+                        , fundIncomeRecord.getInterestAmount(), agentOrder.getOrderNo());
 
                 //订单【基金利息】对于客户而言
                 Order order = Order.builder()
@@ -201,7 +201,8 @@ public class FundIncomeRecordServiceImpl extends ServiceImpl<FundIncomeRecordMap
                         .completeTime(LocalDateTime.now()).build();
                 orderService.save(order);
                 // 增加余额
-                accountBalanceServiceImpl.increase(uid, ChargeType.fund_interest, fundIncomeRecord.getCoin(), fundIncomeRecord.getInterestAmount(), order.getOrderNo(), CurrencyLogDes.基金利息.name());
+                accountBalanceService.increase(uid, ChargeType.fund_interest, fundIncomeRecord.getCoin()
+                        , fundIncomeRecord.getInterestAmount(), order.getOrderNo());
 
                 //持仓记录待发已发修改
                 FundRecord fundRecord = fundRecordService.getById(fundIncomeRecord.getFundId());

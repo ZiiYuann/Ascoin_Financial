@@ -2,7 +2,7 @@ package com.tianli.chain.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.address.Service.AddressService;
+import com.tianli.address.service.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.enums.ChainType;
