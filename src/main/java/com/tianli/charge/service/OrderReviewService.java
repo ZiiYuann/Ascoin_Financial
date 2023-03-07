@@ -71,7 +71,10 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         this.validReviewOrder(order, orderChargeInfo);
 
         Coin coin = coinService.getByNameAndNetwork(orderChargeInfo.getCoin(), orderChargeInfo.getNetwork());
-        this.validHotWallet(query, coin, orderChargeInfo);
+        boolean pass = this.validHotWallet(query, coin, orderChargeInfo);
+        if (!pass) {
+            return;
+        }
 
         // 获取审核策略(自动审核直接使用枚举，否则会增加提现次数)
         OrderReviewStrategy strategy = query.isAutoPass() ? OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER :
@@ -173,14 +176,19 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         }
     }
 
-    private void validHotWallet(OrderReviewQuery query, Coin coin, OrderChargeInfo orderChargeInfo) {
+    private boolean validHotWallet(OrderReviewQuery query, Coin coin, OrderChargeInfo orderChargeInfo) {
         // 判断热钱包余额是充足(如果不足则改成人工审核)
         BigDecimal balance = contractAdapter.getBalance(coin.getNetwork(), coin);
-        if (Objects.isNull(query.getHash()) && query.isPass() && balance.compareTo(orderChargeInfo.getFee()) < 0) {
+        if (Objects.isNull(query.getHash()) && query.isPass()
+                && balance.compareTo(orderChargeInfo.getFee()) < 0) {
             webHookService.dingTalkSend("热钱包余额不足：" + coin.getNetwork().name() + ":" + coin.getName() + "钱包余额：" + balance.stripTrailingZeros().toPlainString() +
                     " 提币金额：" + orderChargeInfo.getFee().stripTrailingZeros().toPlainString());
+            if (query.isAutoPass()) {
+                return false;
+            }
             throw ErrorCodeEnum.INSUFFICIENT_BALANCE.generalException();
         }
+        return true;
     }
 
     @Transactional
