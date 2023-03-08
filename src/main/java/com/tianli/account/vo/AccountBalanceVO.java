@@ -112,7 +112,10 @@ public class AccountBalanceVO {
                 .dollarFreeze(BigDecimal.ZERO)
                 .assets(BigDecimal.ZERO)
                 .dollarAssets(BigDecimal.ZERO)
-                .dollarRemain(BigDecimal.ZERO).build();
+                .dollarRemain(BigDecimal.ZERO)
+                .pledgeFreeze(BigDecimal.ZERO)
+                .dollarPledgeFreeze(BigDecimal.ZERO)
+                .build();
 
     }
 
