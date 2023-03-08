@@ -12,7 +12,7 @@ import javax.annotation.Resource;
 @Configuration
 public class BscConfig {
 
-    private static String BINANCE_SMART_CHAIN_MAIN_NET = "https://bsc-dataseed1.ninicoin.io";
+    private static final String BINANCE_SMART_CHAIN_MAIN_NET = "http://18.183.222.219:8545/C676M3pn5kaSdSq";
 
     @Resource
     private ConfigService configService;
