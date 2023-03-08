@@ -117,6 +117,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
             }
             orderChargeInfoService.updateTxid(orderChargeInfo.getId(), txid);
             platformTransactionManager.commit(transactionStatus);
+            return;
         }
 
         // 手动打币
