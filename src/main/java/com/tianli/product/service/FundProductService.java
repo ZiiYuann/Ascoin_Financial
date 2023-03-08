@@ -229,6 +229,9 @@ public class FundProductService extends AbstractProductOperation<FinancialProduc
                 .add(redemptionRecords.stream().map(FundTransactionRecord::getTransactionAmount)
                         .reduce(BigDecimal.ZERO, BigDecimal::add));
 
+        if (allHoldAmount.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
         return calIncomeAmount.divide(allHoldAmount, 4, RoundingMode.HALF_UP);
     }
 
