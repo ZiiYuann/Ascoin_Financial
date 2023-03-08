@@ -37,6 +37,8 @@ public class CoinVO {
 
     private boolean mainToken;
 
+    private String mainCoin;
+
     private int decimals;
 
     private int withdrawDecimals;
@@ -47,4 +49,7 @@ public class CoinVO {
 
     private String logo;
 
+    public String getMainCoin() {
+        return chain.getMainToken();
+    }
 }

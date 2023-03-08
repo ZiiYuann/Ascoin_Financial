@@ -1,9 +1,6 @@
 package com.tianli.product.afinancial.vo;
 
-import com.tianli.product.afinancial.enums.ProductType;
-import com.tianli.product.afinancial.enums.PurchaseTerm;
-import com.tianli.product.afinancial.enums.RecordStatus;
-import com.tianli.product.afinancial.enums.RiskType;
+import com.tianli.product.afinancial.enums.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -82,4 +79,7 @@ public class RecordIncomeVO {
 
     private BigDecimal earningRate;
 
+    private boolean newUser;
+
+    private ProductStatus productStatus;
 }
