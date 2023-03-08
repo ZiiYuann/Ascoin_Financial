@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author chenb
@@ -11,6 +12,7 @@ import lombok.Data;
  * @since 2022-07-14
  **/
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class PageQuery<T> {
 
