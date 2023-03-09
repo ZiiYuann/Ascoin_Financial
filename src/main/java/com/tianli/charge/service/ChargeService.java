@@ -107,14 +107,17 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
     public List<TransactionGroupTypeVO> listTransactionGroupType(Long uid, List<ChargeGroup> groups) {
         boolean agent = walletAgentService.isAgent(uid);
-        if (agent) {
-            return transactionGroupTypeVOs;
-        }
+
         List<ChargeType> filterType =
                 List.of(ChargeType.agent_fund_sale, ChargeType.agent_fund_interest, ChargeType.agent_fund_redeem);
 
         List<TransactionGroupTypeVO> result = JSONUtil.parseArray(transactionGroupTypeVOs).toList(TransactionGroupTypeVO.class);
         result = result.stream().filter(index -> groups.contains(index.getGroup())).collect(Collectors.toList());
+
+        if (agent) {
+            return result;
+        }
+
         result.forEach(group -> {
             List<TransactionTypeVO> types = group.getTypes();
             List<TransactionTypeVO> newTypes = types.stream()
