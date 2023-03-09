@@ -182,7 +182,7 @@ public class RedEnvelopeController {
 
     @AppUse
     @GetMapping("/exchange/{exchangeCode}")
-    public Result<RedEnvelopeSpiltDTO> redInfo(@PathVariable String exchangeCode) {
+    public Result<RedEnvelopeExchangeCodeVO1> redInfo(@PathVariable String exchangeCode) {
         RedEnvelopeSpiltDTO redEnvelopeSpiltDTO =
                 redEnvelopeSpiltService.getRedEnvelopeSpiltDTOCache(exchangeCode);
         String rid = redEnvelopeSpiltDTO.getRid();

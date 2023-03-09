@@ -30,8 +30,8 @@ import java.util.List;
 @Slf4j
 @Service
 public class OccasionalAddressService extends ServiceImpl<OccasionalAddressMapper, OccasionalAddress> {
-    private final static String OCCASIONAL_ADDRESS_LOCK = "occasional:address:lock:";
-    private final static String REGISTER_OCCASIONAL_ADDRESS_LOCK = "register:occasional:address:lock";
+    private static final String OCCASIONAL_ADDRESS_LOCK = "occasional:address:lock:";
+    private static final String REGISTER_OCCASIONAL_ADDRESS_LOCK = "register:occasional:address:lock";
 
     @Resource
     private RedissonClient redisson;
@@ -50,12 +50,12 @@ public class OccasionalAddressService extends ServiceImpl<OccasionalAddressMappe
 
     public String get(long addressId, ChainType chain) {
         OccasionalAddress address = this.getOne(Wrappers.lambdaQuery(OccasionalAddress.class).eq(OccasionalAddress::getAddressId, addressId).eq(OccasionalAddress::getChain, chain));
-        if(address == null) {
+        if (address == null) {
             RLock lock = redisson.getLock(OCCASIONAL_ADDRESS_LOCK + addressId + ":" + chain);
             try {
                 lock.lock();
                 address = this.getOne(Wrappers.lambdaQuery(OccasionalAddress.class).eq(OccasionalAddress::getAddressId, addressId).eq(OccasionalAddress::getChain, chain));
-                if(address == null) {
+                if (address == null) {
                     String addressStr = contractAdapter.getOne(NetworkType.getInstance(chain)).computeAddress(addressId);
                     address = OccasionalAddress.builder()
                             .id(CommonFunction.generalId())
@@ -67,7 +67,7 @@ public class OccasionalAddressService extends ServiceImpl<OccasionalAddressMappe
                             .retryCount(0).build();
                     this.save(address);
                     boolean registered = uutokenHttpService.registerAddress(chain, addressStr);
-                    if(registered) {
+                    if (registered) {
                         registered(addressStr, chain);
                     }
                 }
@@ -75,12 +75,10 @@ public class OccasionalAddressService extends ServiceImpl<OccasionalAddressMappe
                 log.error("compute address failed addressId:{} chain:{}", addressId, chain, e);
                 throw ErrorCodeEnum.GENERATE_CHARGE_ADDRESS_FAILED.generalException();
             } finally {
-                if(lock.isLocked() && lock.isHeldByCurrentThread()) {
-                    lock.unlock();
-                }
+                lock.unlock();
             }
         } else {
-            if(!address.getRegistered()) {
+            if (Boolean.FALSE.equals(address.getRegistered())) {
                 ErrorCodeEnum.CHARGE_ADDRESS_NOT_FOUND.throwException();
             }
         }
@@ -90,7 +88,7 @@ public class OccasionalAddressService extends ServiceImpl<OccasionalAddressMappe
     @Scheduled(cron = "0/3 * * * * ?")
     void register() {
         RLock lock = redisson.getLock(REGISTER_OCCASIONAL_ADDRESS_LOCK);
-        if(lock.tryLock()) {
+        if (lock.tryLock()) {
             try {
                 LocalDateTime now = LocalDateTime.now();
                 List<OccasionalAddress> list = this.list(Wrappers.lambdaQuery(OccasionalAddress.class)
@@ -100,7 +98,7 @@ public class OccasionalAddressService extends ServiceImpl<OccasionalAddressMappe
                 for (OccasionalAddress address : list) {
                     try {
                         boolean registered = uutokenHttpService.registerAddress(address.getChain(), address.getAddress());
-                        if(registered) {
+                        if (registered) {
                             address.setRegistered(true);
                         }
                     } catch (Exception e) {
@@ -117,9 +115,7 @@ public class OccasionalAddressService extends ServiceImpl<OccasionalAddressMappe
                     }
                 }
             } finally {
-                if(lock.isLocked() && lock.isHeldByCurrentThread()) {
-                    lock.unlock();
-                }
+                lock.unlock();
             }
         }
     }

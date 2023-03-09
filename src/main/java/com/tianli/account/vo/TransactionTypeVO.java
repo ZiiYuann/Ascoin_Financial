@@ -3,8 +3,6 @@ package com.tianli.account.vo;
 import com.tianli.charge.enums.ChargeType;
 import lombok.Data;
 
-import java.util.List;
-
 /**
  * @author chenb
  * @apiNote

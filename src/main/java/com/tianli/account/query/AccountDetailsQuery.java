@@ -38,7 +38,7 @@ public class AccountDetailsQuery {
     public Set<ChargeType> chargeTypeSet() {
         Set<ChargeType> types = new HashSet<>();
 
-        Optional.ofNullable(this.getChargeGroup()).ifPresent(chargeGroup -> types.addAll(this.getChargeGroup().getChargeTypes()));
+        Optional.ofNullable(this.getChargeGroup()).ifPresent(group -> types.addAll(group.getChargeTypes()));
 
         if (CollectionUtils.isNotEmpty(this.getChargeGroups())) {
             this.getChargeGroups().forEach(group -> types.addAll(group.getChargeTypes()));

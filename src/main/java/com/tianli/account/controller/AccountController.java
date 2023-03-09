@@ -7,9 +7,9 @@ import com.tianli.account.query.IdsQuery;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.AccountBalanceMainPageVO;
 import com.tianli.account.vo.AccountBalanceVO;
-import com.tianli.address.service.AddressService;
 import com.tianli.account.vo.TransactionGroupTypeVO;
 import com.tianli.address.mapper.Address;
+import com.tianli.address.service.AddressService;
 import com.tianli.address.vo.AddressVO;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.enums.ChainType;
@@ -63,9 +63,9 @@ public class AccountController {
      */
     @AppUse
     @PostMapping("/activate")
-    public Result activateWallet() {
+    public Result<Address> activateWallet() {
         Long uid = requestInitService.uid();
-        return Result.success().setData(addressService.activityAccount(uid));
+        return new Result<>(addressService.activityAccount(uid));
     }
 
     /**
@@ -85,7 +85,7 @@ public class AccountController {
      * 激活钱包
      */
     @PostMapping("/activate/uids")
-    public Result activateWalletByUids(@RequestBody IdsQuery idsQuery) {
+    public Result<Void> activateWalletByUids(@RequestBody IdsQuery idsQuery) {
         try {
             addressService.activityAccount(idsQuery);
         } catch (Exception e) {
@@ -100,12 +100,12 @@ public class AccountController {
      */
     @AppUse
     @GetMapping("/status")
-    public Result status() {
+    public Result<Map<String, Boolean>> status() {
         Long uid = requestInitService.uid();
         Address address = addressService.get(uid);
         Map<String, Boolean> result = new HashMap<>();
         result.put("activate", Objects.nonNull(address));
-        return Result.success().setData(result);
+        return Result.success(result);
     }
 
     /**
@@ -128,7 +128,7 @@ public class AccountController {
      * @param chain 所属链
      */
     @GetMapping("/address/{chain}")
-    public Result address(@PathVariable("chain") ChainType chain) {
+    public Result<String> address(@PathVariable("chain") ChainType chain) {
         Long uid = requestInitService.uid();
         return Result.success(addressService.get(uid, chain));
     }
@@ -137,7 +137,7 @@ public class AccountController {
      * 主钱包地址
      */
     @GetMapping("/address/config")
-    public Result addressConfig() {
+    public Result<AddressVO> addressConfig() {
         return Result.success(AddressVO.trans(addressService.getConfigAddress()));
     }
 
@@ -145,7 +145,7 @@ public class AccountController {
      * 手续费
      */
     @GetMapping("/service/amount")
-    public Result serviceRate(String coin, NetworkType networkType) {
+    public Result<HashMap<String, String>> serviceRate(String coin, NetworkType networkType) {
         if (StringUtils.isBlank(coin)) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
@@ -153,14 +153,14 @@ public class AccountController {
         BigDecimal withdrawFixedAmount = coinEntity.getWithdrawFixedAmount();
         HashMap<String, String> rateMap = new HashMap<>();
         rateMap.put("serviceAmount", withdrawFixedAmount.toPlainString());
-        return Result.success().setData(rateMap);
+        return Result.success(rateMap);
     }
 
     /**
      * 最低提币
      */
     @GetMapping("/withdraw/limit")
-    public Result withdrawLimit(String coin, NetworkType networkType) {
+    public Result<HashMap<String, String>> withdrawLimit(String coin, NetworkType networkType) {
         if (StringUtils.isBlank(coin)) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
@@ -168,7 +168,7 @@ public class AccountController {
         var withdrawMin = coinEntity.getWithdrawMin();
         HashMap<String, String> rateMap = new HashMap<>();
         rateMap.put("withdrawLimitAmount", withdrawMin.toPlainString());
-        return Result.success().setData(rateMap);
+        return Result.success(rateMap);
     }
 
     /**
@@ -196,9 +196,9 @@ public class AccountController {
      * 【云钱包】 账户列表
      */
     @GetMapping("/balances")
-    public Result balances() {
+    public Result<List<AccountBalanceVO>> balances() {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(accountBalanceServiceImpl.accountList(uid));
+        return Result.success(accountBalanceServiceImpl.accountList(uid));
     }
 
     /**

@@ -22,6 +22,7 @@ import com.tianli.product.afund.query.FundTransactionQuery;
 import com.tianli.product.afund.service.IFundIncomeRecordService;
 import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.product.afund.service.IFundTransactionRecordService;
+import com.tianli.product.afund.vo.FundIncomeRecordVO;
 import com.tianli.product.afund.vo.FundTransactionRecordVO;
 import com.tianli.management.entity.WalletAgentProduct;
 import com.tianli.management.vo.FundIncomeAmountVO;
@@ -59,7 +60,7 @@ public class FundAgentManagementController {
      */
     @GetMapping("/transaction/data")
     @AgentPrivilege
-    public Result transactionData(FundStatisticsQuery query) {
+    public Result<TransactionDataVO> transactionData(FundStatisticsQuery query) {
         TransactionDataVO transactionDataVO = fundAgentManageService.transactionData(query);
         return Result.success(transactionDataVO);
     }
@@ -69,7 +70,7 @@ public class FundAgentManagementController {
      */
     @GetMapping("/hold/data")
     @AgentPrivilege
-    public Result holdData(FundStatisticsQuery query) {
+    public Result<HoldDataVO> holdData(FundStatisticsQuery query) {
         HoldDataVO holdDataVO = fundAgentManageService.holdData(query);
         return Result.success(holdDataVO);
     }
@@ -79,7 +80,7 @@ public class FundAgentManagementController {
      */
     @GetMapping("/product/statistics")
     @AgentPrivilege
-    public Result productStatistics(PageQuery<WalletAgentProduct> page, FundStatisticsQuery query) {
+    public Result<IPage<FundProductStatisticsVO>> productStatistics(PageQuery<WalletAgentProduct> page, FundStatisticsQuery query) {
         IPage<FundProductStatisticsVO> statisticsPage = fundAgentManageService.productStatistics(page, query);
         return Result.success(statisticsPage);
     }
@@ -89,7 +90,7 @@ public class FundAgentManagementController {
      */
     @GetMapping("/transaction/record")
     @AgentPrivilege
-    public Result transactionRecord(PageQuery<FundTransactionRecord> page, FundTransactionQuery query) {
+    public Result<IPage<FundTransactionRecordVO>> transactionRecord(PageQuery<FundTransactionRecord> page, FundTransactionQuery query) {
         query.setAgentId(AgentContent.getAgentId());
         IPage<FundTransactionRecordVO> transactionPage = fundTransactionRecordService.getTransactionPage(page, query);
         return Result.success(transactionPage);
@@ -100,7 +101,7 @@ public class FundAgentManagementController {
      */
     @GetMapping("/transaction/amount")
     @AgentPrivilege
-    public Result transactionAmount(FundTransactionQuery query) {
+    public Result<FundTransactionAmountVO> transactionAmount(FundTransactionQuery query) {
         query.setAgentId(AgentContent.getAgentId());
         FundTransactionAmountVO transactionAmount = fundTransactionRecordService.getTransactionAmount(query);
         return Result.success(transactionAmount);
@@ -111,7 +112,7 @@ public class FundAgentManagementController {
      */
     @GetMapping("/income/record")
     @AgentPrivilege
-    public Result incomeRecord(PageQuery<FundIncomeRecord> page, FundIncomeQuery query) {
+    public Result<IPage<FundIncomeRecordVO>> incomeRecord(PageQuery<FundIncomeRecord> page, FundIncomeQuery query) {
         query.setAgentId(AgentContent.getAgentId());
         if (CollectionUtils.isEmpty(query.getStatus())) {
             query.setStatus(List.of(1, 3));
@@ -124,7 +125,7 @@ public class FundAgentManagementController {
      */
     @GetMapping("/income/record/audit")
     @AgentPrivilege
-    public Result auditIncomeRecord(PageQuery<FundIncomeRecord> page, FundIncomeQuery query) {
+    public Result<IPage<FundIncomeRecordVO>> auditIncomeRecord(PageQuery<FundIncomeRecord> page, FundIncomeQuery query) {
         query.setAgentId(AgentContent.getAgentId());
         if (CollectionUtils.isEmpty(query.getStatus())) {
             query.setStatus(List.of(2, 4));
@@ -137,7 +138,7 @@ public class FundAgentManagementController {
      */
     @GetMapping("/income/amount")
     @AgentPrivilege
-    public Result incomeAmount(FundIncomeQuery query) {
+    public Result<FundIncomeAmountVO> incomeAmount(FundIncomeQuery query) {
         query.setAgentId(AgentContent.getAgentId());
         if (CollectionUtils.isEmpty(query.getStatus())) {
             query.setStatus(List.of(1, 3));
@@ -151,7 +152,7 @@ public class FundAgentManagementController {
      */
     @GetMapping("/income/amount/audit")
     @AgentPrivilege
-    public Result incomeAuditAmount(FundIncomeQuery query) {
+    public Result<FundIncomeAmountVO> incomeAuditAmount(FundIncomeQuery query) {
         query.setAgentId(AgentContent.getAgentId());
         if (CollectionUtils.isEmpty(query.getStatus())) {
             query.setStatus(List.of(2, 4));
@@ -166,7 +167,7 @@ public class FundAgentManagementController {
      */
     @GetMapping("/hold/record")
     @AgentPrivilege
-    public Result holdRecord(PageQuery<FundRecord> pageQuery, FundRecordQuery query) {
+    public Result<IPage<FundUserRecordVO>> holdRecord(PageQuery<FundRecord> pageQuery, FundRecordQuery query) {
         query.setAgentId(AgentContent.getAgentId());
         IPage<FundUserRecordVO> fundUserRecordPage = fundRecordService.fundUserRecordPage(pageQuery, query);
         return Result.success(fundUserRecordPage);
@@ -177,7 +178,7 @@ public class FundAgentManagementController {
      */
     @GetMapping("/hold/amount")
     @AgentPrivilege
-    public Result holdAmount(FundRecordQuery query) {
+    public Result<HoldUserAmount> holdAmount(FundRecordQuery query) {
         query.setAgentId(AgentContent.getAgentId());
         HoldUserAmount holdUserAmount = fundRecordService.fundUserAmount(query);
         return Result.success(holdUserAmount);
@@ -188,7 +189,7 @@ public class FundAgentManagementController {
      */
     @PostMapping("/redemption/audit")
     @AgentPrivilege
-    public Result redemptionAudit(@RequestBody @Valid FundAuditBO bo) {
+    public Result<Void> redemptionAudit(@RequestBody @Valid FundAuditBO bo) {
         String key = StringUtils.join(bo.getIds(), ",");
         RLock lock = redissonClient.getLock(RedisLockConstants.FUND_REDEEM_LOCK + key);
         lock.lock();
@@ -205,7 +206,7 @@ public class FundAgentManagementController {
      */
     @GetMapping("/redemption/audit/{id}")
     @AgentPrivilege
-    public Result redemptionAuditRecord(@PathVariable Long id) {
+    public Result<List<FundReviewVO>> redemptionAuditRecord(@PathVariable Long id) {
         List<FundReviewVO> fundReviewVOS = fundTransactionRecordService.getRedemptionAuditRecord(id);
         return Result.success(fundReviewVOS);
     }
@@ -215,7 +216,7 @@ public class FundAgentManagementController {
      */
     @PostMapping("/income/audit")
     @AgentPrivilege
-    public Result incomeAudit(@RequestBody @Valid FundAuditBO bo) {
+    public Result<Void> incomeAudit(@RequestBody @Valid FundAuditBO bo) {
         String key = StringUtils.join(bo.getIds(), ",");
         RLock lock = redissonClient.getLock(RedisLockConstants.FUND_INCOME_LOCK + key);
         lock.lock();
@@ -232,7 +233,7 @@ public class FundAgentManagementController {
      */
     @GetMapping("/income/audit/{id}")
     @AgentPrivilege
-    public Result incomeAuditRecord(@PathVariable Long id) {
+    public Result<List<FundReviewVO>> incomeAuditRecord(@PathVariable Long id) {
         List<FundReviewVO> fundReviewVOS = fundIncomeRecordService.getIncomeAuditRecord(id);
         return Result.success(fundReviewVOS);
     }

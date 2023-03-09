@@ -24,7 +24,7 @@ public class AuthController {
      * 用户登陆
      */
     @PostMapping("/login")
-    public Result login(@RequestBody @Valid AuthUserBO authUserBO){
+    public Result<LoginTokenVO> login(@RequestBody @Valid AuthUserBO authUserBO){
         LoginTokenVO tokenVO = authService.login(authUserBO);
         return Result.success(tokenVO);
     }
@@ -34,7 +34,7 @@ public class AuthController {
      */
     @PostMapping("/change/password")
     @AgentPrivilege
-    public Result changePassword(@RequestBody @Valid RePwdBO rePwdBO){
+    public Result<Void> changePassword(@RequestBody @Valid RePwdBO rePwdBO){
         authService.changePassword(rePwdBO);
         return Result.success();
     }
@@ -44,7 +44,7 @@ public class AuthController {
      */
     @GetMapping("/userInfo")
     @AgentPrivilege
-    public Result userInfo(){
+    public Result<AgentInfo> userInfo(){
         AgentInfo agentInfo = AgentContent.get();
         return Result.success(agentInfo);
     }

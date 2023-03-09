@@ -3,7 +3,6 @@ package com.tianli.account.entity;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.NetworkType;
-import com.tianli.account.enums.AccountOperationType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -51,7 +50,7 @@ public class AccountBalanceOperationLog extends Model<AccountBalanceOperationLog
     /**
      * 记录类型
      */
-    private AccountOperationType logType;
+    private String logType;
 
     /**
      * 币种类型

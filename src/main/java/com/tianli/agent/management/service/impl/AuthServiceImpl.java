@@ -1,7 +1,7 @@
 package com.tianli.agent.management.service.impl;
 
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.tianli.agent.management.auth.AgentContent;
 import com.tianli.agent.management.auth.AgentInfo;
@@ -41,22 +41,22 @@ public class AuthServiceImpl implements AuthService {
         String password = loginUserBO.getPassword();
         String verifyKey = RedisConstants.CAPTCHA_CODE_KEY + uuid;
         RBucket<String> bucket = redissonClient.getBucket(verifyKey);
-        if(StrUtil.isBlank(bucket.get()) || !code.equalsIgnoreCase(bucket.get())){
+        if (CharSequenceUtil.isBlank(bucket.get()) || !code.equalsIgnoreCase(bucket.get())) {
             ErrorCodeEnum.CODE_ERROR.throwException();
         }
         WalletAgent walletAgent = walletAgentService.getByAgentName(username);
-        if(Objects.isNull(walletAgent) || !walletAgent.getLoginPassword().equals(SecureUtil.md5(password))){
-            ErrorCodeEnum.PASSWORD_ERROR.throwException();
+        if (Objects.isNull(walletAgent) || !walletAgent.getLoginPassword().equals(SecureUtil.md5(password))) {
+            throw ErrorCodeEnum.PASSWORD_ERROR.generalException();
         }
         bucket.delete();
         String token = IdUtil.simpleUUID();
-        String sessionKey = RedisConstants.AGENT_SESSION_KEY+token;
+        String sessionKey = RedisConstants.AGENT_SESSION_KEY + token;
         AgentInfo agentInfo = AgentInfo.builder()
                 .agentId(walletAgent.getId())
                 .agentName(walletAgent.getAgentName())
                 .build();
         RBucket<String> tokenBucket = redissonClient.getBucket(sessionKey);
-        tokenBucket.set(Constants.GSON.toJson(agentInfo),4L,TimeUnit.HOURS);
+        tokenBucket.set(Constants.GSON.toJson(agentInfo), 4L, TimeUnit.HOURS);
         return LoginTokenVO.builder()
                 .token(token)
                 .userId(walletAgent.getUid())
@@ -71,8 +71,8 @@ public class AuthServiceImpl implements AuthService {
         String newPassword = rePwdBO.getNewPassword();
         String agentName = AgentContent.get().getAgentName();
         WalletAgent walletAgent = walletAgentService.getByAgentName(agentName);
-        if(Objects.isNull(walletAgent) || !walletAgent.getLoginPassword().equals(SecureUtil.md5(oldPassword))){
-            ErrorCodeEnum.PASSWORD_ERROR.throwException();
+        if (Objects.isNull(walletAgent) || !walletAgent.getLoginPassword().equals(SecureUtil.md5(oldPassword))) {
+           throw  ErrorCodeEnum.PASSWORD_ERROR.generalException();
         }
         walletAgent.setLoginPassword(SecureUtil.md5(newPassword));
         walletAgentService.updateById(walletAgent);

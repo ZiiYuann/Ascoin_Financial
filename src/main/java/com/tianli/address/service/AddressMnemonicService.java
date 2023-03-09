@@ -48,9 +48,7 @@ public class AddressMnemonicService extends ServiceImpl<AddressMnemonicMapper, A
                 log.error("addressId: {} save charge address mnemonic failed", addressId, e);
                 throw ErrorCodeEnum.GENERATE_MNEMONIC_FAILED.generalException();
             } finally {
-                if(lock.isLocked() && lock.isHeldByCurrentThread()) {
                     lock.unlock();
-                }
             }
         }
         return dataSecurityTool.decryptWithPrivateKey(addressMnemonic.getMnemonic());

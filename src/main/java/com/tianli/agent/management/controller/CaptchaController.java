@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,7 +29,7 @@ public class CaptchaController {
      * 生成验证码
      */
     @GetMapping("/captchaImage")
-    public Result getCode() throws IOException {
+    public Result<CaptchaImageVO> getCode() {
         // 保存验证码信息
         String uuid = IdUtil.simpleUUID();
         String verifyKey = RedisConstants.CAPTCHA_CODE_KEY + uuid;

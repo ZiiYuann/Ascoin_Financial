@@ -13,7 +13,11 @@ public class PushHttpClient {
 
     private static CloseableHttpClient client = null;
 
-    public synchronized static CloseableHttpClient getClient() {
+    private PushHttpClient() {
+
+    }
+
+    public static synchronized CloseableHttpClient getClient() {
         if (client == null) {
             synchronized (PushHttpClient.class) {
                 if (client == null) {

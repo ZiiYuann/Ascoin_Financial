@@ -213,7 +213,7 @@ public class ChargeController {
         RLock lock = redissonClient.getLock(RedisLockConstants.PRODUCT_PURCHASE + uid + ":" + purchaseQuery.getProductId());
         try {
             lock.lock();
-            return Result.instance().setData(financialProductService.purchase(uid, purchaseQuery).getFinancialPurchaseResultVO());
+            return Result.success(financialProductService.purchase(uid, purchaseQuery).getFinancialPurchaseResultVO());
         } finally {
             lock.unlock();
         }

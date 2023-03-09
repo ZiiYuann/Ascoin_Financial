@@ -16,14 +16,10 @@ import org.apache.ibatis.session.ResultHandler;
 @Mapper
 public interface AddressMapper extends BaseMapper<Address> {
 
-    @Select("SELECT * FROM `address` WHERE `btc`=#{btc}")
-    Address getByBtc(String to_address);
 
-    @Select("SELECT * FROM `address` WHERE `eth`=#{eth}")
-    Address getByEth(String to_address);
 
-    @Select("SELECT * FROM `address` WHERE `eth`= #{from_address} OR `btc` = #{from_address} limit 1")
-    Address getByEthBtc(@Param("from_address") String from_address);
+    @Select("SELECT * FROM `address` WHERE `eth`=#{toAddress}")
+    Address getByEth(@Param("toAddress") String toAddress);
 
     @Select("SELECT * FROM `address` WHERE `tron`=#{tron}")
     Address getByTron(@Param("tron") String tron);

@@ -3,7 +3,6 @@ package com.tianli.account.service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.entity.AccountBalanceOperationLog;
-import com.tianli.account.enums.AccountOperationType;
 import com.tianli.account.mapper.AccountBalanceOperationLogMapper;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.CommonFunction;
