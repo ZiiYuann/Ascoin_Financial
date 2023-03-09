@@ -2,9 +2,11 @@ package com.tianli.other.controller;
 
 import com.tianli.account.query.IdsQuery;
 import com.tianli.common.RedisConstants;
+import com.tianli.common.annotation.AppUse;
 import com.tianli.currency.service.DigitalCurrencyExchange;
 import com.tianli.exception.Result;
 import com.tianli.other.service.BannerService;
+import com.tianli.other.vo.BannerVO;
 import com.tianli.other.vo.IpInfoVO;
 import com.tianli.tool.IPUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -34,9 +36,10 @@ public class OtherController {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+    @AppUse
     @GetMapping("/banner/list")
-    public Result bannerList() {
-        return Result.success(bannerService.processList());
+    public Result<List<BannerVO>> bannerList() {
+        return new Result<>(bannerService.processList());
     }
 
     /**

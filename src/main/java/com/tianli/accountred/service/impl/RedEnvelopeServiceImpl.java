@@ -88,6 +88,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
     public static final String BLOOM = "bloom";
 
+    private static final String RETURN_RECEIVED = "    return 'RECEIVED'\n";
+
     @Resource
     private AccountBalanceService accountBalanceService;
     @Resource
@@ -336,9 +338,9 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
                         "local newMember = ARGV[2] \n" +
                         "local newMemberScore = ARGV[3] \n" +
                         "if redis.call('EXISTS', KEYS[1]) > 0 then\n" +
-                        "    return 'RECEIVED'\n" +
+                        RETURN_RECEIVED +
                         "elseif redis.call('EXISTS', receivedDeviceKey) > 0 then\n" +
-                        "    return 'RECEIVED'\n" +
+                        RETURN_RECEIVED +
                         "elseif redis.call('EXISTS', KEYS[2]) == 0 then\n" +
                         "    return 'FINISH'\n" +
                         "else\n" +
@@ -434,7 +436,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         // 此lua脚本的用处 1、判断用户是否已经抢过红包 2、判断拆分红包是否还有剩余
         String script =
                 "if redis.call('EXISTS', KEYS[1]) > 0 then\n" +
-                        "    return 'RECEIVED'\n" +
+                        RETURN_RECEIVED +
                         "elseif redis.call('EXISTS', KEYS[2]) == 0 then\n" +
                         "    return 'FINISH'\n" +
                         "else\n" +

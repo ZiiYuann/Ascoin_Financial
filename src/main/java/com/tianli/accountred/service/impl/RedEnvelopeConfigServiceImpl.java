@@ -64,13 +64,12 @@ public class RedEnvelopeConfigServiceImpl extends ServiceImpl<RedEnvelopeConfigM
                 .eq(RedEnvelopeConfig::getCoin, coin)
                 .eq(RedEnvelopeConfig::getChannel, channel));
         if (Objects.isNull(one)) {
-            one = new RedEnvelopeConfig() {{
-                setCoin(coin);
-                setLimitAmount(BigDecimal.valueOf(100));
-                setMinAmount(BigDecimal.valueOf(0.000001));
-                setChannel(RedEnvelopeChannel.EXTERN);
-                setNum(1000);
-            }};
+            one = new RedEnvelopeConfig();
+            one.setCoin(coin);
+            one.setLimitAmount(BigDecimal.valueOf(100));
+            one.setMinAmount(BigDecimal.valueOf(0.000001));
+            one.setChannel(RedEnvelopeChannel.EXTERN);
+            one.setNum(1000);
         }
         return one;
     }

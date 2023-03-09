@@ -12,7 +12,6 @@ import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
-import com.tianli.accountred.mapper.RedEnvelopeMapper;
 import com.tianli.accountred.mapper.RedEnvelopeSpiltGetRecordMapper;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
@@ -79,12 +78,12 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
 
         Boolean hasKey = Optional.ofNullable(stringRedisTemplate.hasKey(getRecordsKey)).orElse(Boolean.FALSE);
 
-        if (!hasKey) {
+        if (Boolean.FALSE.equals(hasKey)) {
             List<RedEnvelopeSpiltGetRecord> records = this.list(new LambdaQueryWrapper<RedEnvelopeSpiltGetRecord>()
                     .eq(RedEnvelopeSpiltGetRecord::getRid, redEnvelope.getId()));
-            var typedTuples = records.stream().map(record -> {
-                long score = record.getReceiveTime().toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
-                return ZSetOperations.TypedTuple.of(JSONUtil.toJsonStr(record), (double) score);
+            var typedTuples = records.stream().map(index -> {
+                long score = index.getReceiveTime().toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+                return ZSetOperations.TypedTuple.of(JSONUtil.toJsonStr(index), (double) score);
             }).collect(Collectors.toSet());
             stringRedisTemplate.opsForZSet().add(getRecordsKey, typedTuples);
             stringRedisTemplate.expire(getRecordsKey, redEnvelope.getChannel().getExpireDays(), TimeUnit.DAYS);

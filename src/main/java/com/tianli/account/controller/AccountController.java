@@ -1,9 +1,12 @@
 package com.tianli.account.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.query.AccountDetailsQuery;
 import com.tianli.account.query.IdsQuery;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.vo.AccountBalanceMainPageVO;
+import com.tianli.account.vo.AccountBalanceVO;
 import com.tianli.address.service.AddressService;
 import com.tianli.account.vo.TransactionGroupTypeVO;
 import com.tianli.address.mapper.Address;
@@ -14,7 +17,9 @@ import com.tianli.chain.service.CoinService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeGroup;
 import com.tianli.charge.service.ChargeService;
+import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.common.PageQuery;
+import com.tianli.common.annotation.AppUse;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
@@ -56,6 +61,7 @@ public class AccountController {
     /**
      * 激活钱包
      */
+    @AppUse
     @PostMapping("/activate")
     public Result activateWallet() {
         Long uid = requestInitService.uid();
@@ -65,13 +71,14 @@ public class AccountController {
     /**
      * 激活钱包
      */
+    @AppUse
     @PostMapping("/activate/uid")
-    public Result activateWalletByUid(@RequestBody(required = false) IdsQuery idsQuery) {
+    public Result<Address> activateWalletByUid(@RequestBody(required = false) IdsQuery idsQuery) {
         if (Objects.isNull(idsQuery.getUid())) {
             ErrorCodeEnum.ACCOUNT_ACTIVATE_UID_NULL.throwException();
         }
 
-        return Result.success().setData(addressService.activityAccount(idsQuery.getUid()));
+        return new Result<>(addressService.activityAccount(idsQuery.getUid()));
     }
 
     /**
@@ -91,6 +98,7 @@ public class AccountController {
     /**
      * 钱包激活状态
      */
+    @AppUse
     @GetMapping("/status")
     public Result status() {
         Long uid = requestInitService.uid();
@@ -103,14 +111,15 @@ public class AccountController {
     /**
      * 用户钱包地址
      */
+    @AppUse
     @GetMapping("/address")
-    public Result address() {
+    public Result<AddressVO> address() {
         Long uid = requestInitService.uid();
         Address address = addressService.get(uid);
         if (Objects.isNull(address)) {
             ErrorCodeEnum.ACCOUNT_NOT_ACTIVE.throwException();
         }
-        return Result.success(AddressVO.trans(address));
+        return new Result<>(AddressVO.trans(address));
     }
 
     /**
@@ -165,20 +174,22 @@ public class AccountController {
     /**
      * 【云钱包】总资产 + 账户列表
      */
+    @AppUse
     @GetMapping("/balance/summary")
-    public Result accountBalance() {
+    public Result<AccountBalanceMainPageVO> accountBalance() {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(accountBalanceServiceImpl.accountSummary(uid, true, 0));
+        return new Result<>(accountBalanceServiceImpl.accountSummary(uid, true, 0));
     }
 
     /**
      * 【云钱包】总资产 + 账户列表
      */
+    @AppUse
     @GetMapping("/balance/summary/dynamic")
-    public Result accountBalanceDynamic(Integer version) {
+    public Result<AccountBalanceMainPageVO> accountBalanceDynamic(Integer version) {
         version = MoreObjects.firstNonNull(version, 0);
         Long uid = requestInitService.uid();
-        return Result.instance().setData(accountBalanceServiceImpl.accountSummary(uid, version));
+        return new Result<>(accountBalanceServiceImpl.accountSummary(uid, version));
     }
 
     /**
@@ -193,25 +204,28 @@ public class AccountController {
     /**
      * 【云钱包】币别详情账户余额
      */
+    @AppUse
     @GetMapping("/balance/{coin}")
-    public Result accountBalance(@PathVariable String coin) {
+    public Result<AccountBalanceVO> accountBalance(@PathVariable String coin) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(accountBalanceServiceImpl.accountSingleCoin(uid, coin));
+        return new Result<>(accountBalanceServiceImpl.accountSingleCoin(uid, coin));
     }
 
     /**
      * 【云钱包】币别详情下方详情列表
      */
+    @AppUse
     @GetMapping("/balance/details")
-    public Result accountBalanceDetails(PageQuery<Order> pageQuery, AccountDetailsQuery query) {
+    public Result<IPage<OrderChargeInfoVO>> accountBalanceDetails(PageQuery<Order> pageQuery, AccountDetailsQuery query) {
         Long uid = requestInitService.uid();
         query = MoreObjects.firstNonNull(query, new AccountDetailsQuery());
-        return Result.instance().setData(chargeService.pageByChargeGroup(uid, query, pageQuery.page()));
+        return new Result<>(chargeService.pageByChargeGroup(uid, query, pageQuery.page()));
     }
 
     /**
      * 【云钱包】交易类型
      */
+    @AppUse
     @GetMapping("/transaction/type")
     public Result<List<TransactionGroupTypeVO>> transactionType() {
         Long uid = requestInitService.uid();

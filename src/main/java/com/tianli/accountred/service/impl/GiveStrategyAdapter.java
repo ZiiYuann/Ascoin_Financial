@@ -17,6 +17,10 @@ import java.util.Optional;
  **/
 public class GiveStrategyAdapter {
 
+    private GiveStrategyAdapter(){
+
+    }
+
     private static final HashMap<String, RedEnvelopeGiveStrategy> GIVE_STRATEGY = new HashMap<>(4);
 
     static {

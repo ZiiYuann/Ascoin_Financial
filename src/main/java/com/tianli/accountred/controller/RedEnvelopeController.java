@@ -5,30 +5,22 @@ import com.google.common.base.MoreObjects;
 import com.tianli.account.query.IdsQuery;
 import com.tianli.accountred.dto.RedEnvelopeSpiltDTO;
 import com.tianli.accountred.entity.RedEnvelope;
-import com.tianli.accountred.entity.RedEnvelopeConfig;
 import com.tianli.accountred.entity.RedEnvelopeSpiltGetRecord;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
-import com.tianli.accountred.query.RedEnvelopeChainQuery;
-import com.tianli.accountred.query.RedEnvelopeExchangeCodeQuery;
-import com.tianli.accountred.query.RedEnvelopeGetQuery;
-import com.tianli.accountred.query.RedEnvelopeGiveRecordQuery;
-import com.tianli.accountred.query.RedEnvelopeIoUQuery;
+import com.tianli.accountred.query.*;
 import com.tianli.accountred.service.RedEnvelopeConfigService;
 import com.tianli.accountred.service.RedEnvelopeService;
 import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
 import com.tianli.accountred.service.RedEnvelopeSpiltService;
-import com.tianli.accountred.vo.RedEnvelopeConfigVO;
-import com.tianli.accountred.vo.RedEnvelopeExchangeCodeVO1;
-import com.tianli.accountred.vo.RedEnvelopeGiveVO;
-import com.tianli.accountred.vo.RedEnvelopeSpiltGetRecordVO;
+import com.tianli.accountred.vo.*;
 import com.tianli.chain.entity.CoinBase;
 import com.tianli.chain.service.CoinBaseService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
+import com.tianli.common.annotation.AppUse;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
-import com.tianli.other.query.RedEnvelopeConfigIoUQuery;
 import com.tianli.sso.init.RequestInitService;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -36,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
@@ -70,8 +61,9 @@ public class RedEnvelopeController {
     /**
      * 发红包
      */
+    @AppUse
     @PostMapping("/give")
-    public Result give(@RequestBody @Valid RedEnvelopeIoUQuery query) {
+    public Result<RedEnvelopeGiveVO> give(@RequestBody @Valid RedEnvelopeIoUQuery query) {
         Long uid = requestInitService.uid();
 
         Long shortUid = requestInitService.get().getUserInfo().getChatId();
@@ -90,27 +82,30 @@ public class RedEnvelopeController {
     /**
      * 发红包记录
      */
+    @AppUse
     @GetMapping("/give/record")
-    public Result giveRecord(PageQuery<RedEnvelope> pageQuery, RedEnvelopeChannel channel) {
+    public Result<IPage<RedEnvelopeGiveRecordVO>> giveRecord(PageQuery<RedEnvelope> pageQuery, RedEnvelopeChannel channel) {
         RedEnvelopeGiveRecordQuery query = RedEnvelopeGiveRecordQuery.builder()
                 .uid(requestInitService.uid())
                 .channel(MoreObjects.firstNonNull(channel, RedEnvelopeChannel.CHAT))
                 .build();
-        return Result.success().setData(redEnvelopeService.giveRecord(query, pageQuery));
+        return new Result<>(redEnvelopeService.giveRecord(query, pageQuery));
     }
 
 
     /**
      * 发红包信息
      */
+    @AppUse
     @GetMapping("/get/{id}")
-    public Result getInfoById(@PathVariable("id") Long id) {
-        return Result.success().setData(redEnvelopeService.getInfoById(id));
+    public Result<RedEnvelopeGetVO> getInfoById(@PathVariable("id") Long id) {
+        return new Result<>(redEnvelopeService.getInfoById(id));
     }
 
     /**
      * 发红包
      */
+    @AppUse
     @PostMapping("/give/txid")
     public Result<RedEnvelopeGiveVO> giveTxid(@RequestBody @Valid RedEnvelopeChainQuery query) {
         Long uid = requestInitService.uid();
@@ -126,41 +121,45 @@ public class RedEnvelopeController {
     /**
      * 抢红包
      */
+    @AppUse
     @PostMapping("/get")
-    public Result get(@RequestBody @Valid RedEnvelopeGetQuery query) {
+    public Result<RedEnvelopeGetVO> get(@RequestBody @Valid RedEnvelopeGetQuery query) {
         Long uid = requestInitService.uid();
         Long shortUid = requestInitService.get().getUserInfo().getChatId();
         if (Objects.isNull(shortUid)) {
             ErrorCodeEnum.ACCOUNT_ERROR.throwException();
         }
-        return Result.success().setData(redEnvelopeService.get(uid, shortUid, query));
+        return new Result<>(redEnvelopeService.get(uid, shortUid, query));
     }
 
     /**
-     * 抢红包
+     * 兑换红包
      */
+    @AppUse
     @PostMapping("/exchange")
-    public Result exchange(@RequestBody @Valid RedEnvelopeExchangeCodeQuery query) {
+    public Result<RedEnvelopeGetVO> exchange(@RequestBody @Valid RedEnvelopeExchangeCodeQuery query) {
         Long uid = requestInitService.uid();
         Long shortUid = requestInitService.get().getUserInfo().getChatId();
         if (Objects.isNull(shortUid)) {
             ErrorCodeEnum.ACCOUNT_ERROR.throwException();
         }
-        return Result.success().setData(redEnvelopeService.get(uid, shortUid, query));
+        return new Result<>(redEnvelopeService.get(uid, shortUid, query));
     }
 
     /**
      * 抢红包详情
      */
+    @AppUse
     @GetMapping("/get/details/{id}")
-    public Result get(@PathVariable Long id) {
+    public Result<RedEnvelopeGetDetailsVO> get(@PathVariable Long id) {
         Long uid = requestInitService.uid();
-        return Result.success(redEnvelopeService.getDetails(uid, id));
+        return new Result<>(redEnvelopeService.getDetails(uid, id));
     }
 
     /**
      * 领取红包记录
      */
+    @AppUse
     @GetMapping("/get/record")
     public Result<IPage<RedEnvelopeSpiltGetRecordVO>> getRecord(PageQuery<RedEnvelopeSpiltGetRecord> pageQuery
             , RedEnvelopeChannel channel) {
@@ -172,6 +171,7 @@ public class RedEnvelopeController {
     /**
      * 领取红包记录
      */
+    @AppUse
     @PostMapping("/back")
     public Result<Void> back(@RequestBody IdsQuery idsQuery) {
         Long rid = idsQuery.getId();
@@ -180,6 +180,7 @@ public class RedEnvelopeController {
         return new Result<>();
     }
 
+    @AppUse
     @GetMapping("/exchange/{exchangeCode}")
     public Result<RedEnvelopeSpiltDTO> redInfo(@PathVariable String exchangeCode) {
         RedEnvelopeSpiltDTO redEnvelopeSpiltDTO =
@@ -199,6 +200,7 @@ public class RedEnvelopeController {
     /**
      * 红包配置列表
      */
+    @AppUse
     @GetMapping("/configs")
     public Result<List<RedEnvelopeConfigVO>> configs(@RequestParam("channel") String channel
             , @RequestParam(value = "coin", required = false) String coin) {

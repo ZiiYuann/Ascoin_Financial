@@ -13,9 +13,11 @@ import com.tianli.charge.query.RedeemQuery;
 import com.tianli.charge.query.WithdrawQuery;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.service.OrderAdvanceService;
+import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderSettleRecordVO;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
+import com.tianli.common.annotation.AppUse;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
@@ -148,6 +150,7 @@ public class ChargeController {
     /**
      * 提现申请
      */
+    @AppUse
     @PostMapping("/withdraw/apply")
     public Result<Long> withdraw(@RequestBody @Valid WithdrawQuery withdrawDTO) {
         Long uid = requestInitService.uid();
@@ -163,6 +166,7 @@ public class ChargeController {
     /**
      * 提现申请
      */
+    @AppUse
     @PostMapping("/withdraw/apply/sign")
     public Result<Long> withdrawWithSign(@RequestBody @Valid WithdrawQuery withdrawDTO, @RequestHeader("sign") String sign) {
         Long uid = requestInitService.uid();
@@ -218,10 +222,11 @@ public class ChargeController {
     /**
      * 订单详情【充值、提币】
      */
+    @AppUse
     @GetMapping("/details/{orderNo}")
-    public Result chargeOrderDetails(@PathVariable String orderNo) {
+    public Result<OrderChargeInfoVO> chargeOrderDetails(@PathVariable String orderNo) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(chargeService.chargeOrderDetails(uid, orderNo));
+        return new Result<>(chargeService.chargeOrderDetails(uid, orderNo));
     }
 
     /**

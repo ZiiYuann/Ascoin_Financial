@@ -9,6 +9,7 @@ import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.vo.CoinMapVO;
 import com.tianli.chain.vo.CoinVO;
 import com.tianli.chain.vo.NetworkTypeVO;
+import com.tianli.common.annotation.AppUse;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.exception.Result;
 import org.apache.commons.collections4.CollectionUtils;
@@ -54,6 +55,7 @@ public class ChainController {
     /**
      * 获取上线的币别信息
      */
+    @AppUse
     @GetMapping("/coin/infos")
     public Result<List<CoinMapVO>> coinInfos(Integer version) {
         final var versionFinal = Optional.ofNullable(version).orElse(0);

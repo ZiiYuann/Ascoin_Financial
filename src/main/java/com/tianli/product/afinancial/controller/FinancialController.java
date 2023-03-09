@@ -1,6 +1,8 @@
 package com.tianli.product.afinancial.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.common.PageQuery;
+import com.tianli.common.annotation.AppUse;
 import com.tianli.exception.Result;
 import com.tianli.product.afinancial.dto.FinancialIncomeAccrueDTO;
 import com.tianli.product.afinancial.entity.FinancialIncomeDaily;
@@ -8,6 +10,8 @@ import com.tianli.product.afinancial.entity.FinancialProduct;
 import com.tianli.product.afinancial.enums.ProductType;
 import com.tianli.product.afinancial.query.ProductHoldQuery;
 import com.tianli.product.afinancial.query.RecordRenewalQuery;
+import com.tianli.product.afinancial.vo.DollarIncomeVO;
+import com.tianli.product.afinancial.vo.HoldProductVo;
 import com.tianli.product.service.FinancialProductService;
 import com.tianli.product.afinancial.service.FinancialRecordService;
 import com.tianli.product.afinancial.service.FinancialService;
@@ -94,10 +98,11 @@ public class FinancialController {
     /**
      * 【我的持用】
      */
+    @AppUse
     @GetMapping("/hold")
-    public Result myHold(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
+    public Result<IPage<HoldProductVo>> myHold(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(financialService.holdProductPage(pageQuery.page(),
+        return new Result<>(financialService.holdProductPage(pageQuery.page(),
                 ProductHoldQuery.builder()
                         .productType(productType)
                         .uid(uid)
@@ -130,10 +135,11 @@ public class FinancialController {
     /**
      * 【理财首页】上方
      */
+    @AppUse
     @GetMapping("/income")
-    public Result income() {
+    public Result<DollarIncomeVO> income() {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(financialService.income(uid));
+        return new Result<>(financialService.income(uid));
     }
 
     /**

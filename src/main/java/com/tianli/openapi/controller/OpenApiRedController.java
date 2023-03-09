@@ -54,7 +54,10 @@ public class OpenApiRedController {
     @Resource
     private RedEnvelopeConfigService redEnvelopeConfigService;
 
-
+    public static void main(String[] args) {
+        String rid = PBE.decryptBase64(Constants.RED_SALT, Constants.RED_SECRET_KEY, "obaJQZMojAbys89FS9Qvo2wykkHgAcNA");
+        System.out.println(rid);
+    }
     /**
      * 领取站外红包记录
      */
