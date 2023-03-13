@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.MoreObjects;
 import com.google.gson.Gson;
 import com.tianli.account.enums.AccountChangeType;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
@@ -55,7 +55,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FinancialIncomeTask {
 
     @Resource
-    private AccountBalanceServiceImpl accountBalanceService;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private FinancialRecordService financialRecordService;
     @Resource

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.convert.AccountConverter;
 import com.tianli.account.entity.AccountBalance;
+import com.tianli.account.enums.AccountOperationType;
 import com.tianli.account.mapper.AccountBalanceMapper;
 import com.tianli.account.service.AccountBalanceOperationLogService;
 import com.tianli.account.service.AccountBalanceService;
@@ -75,7 +76,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn, AccountOperationType.decrease);
     }
 
     @Override
@@ -93,7 +94,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.increase);
     }
 
 
@@ -120,7 +121,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.freeze);
 
     }
 
@@ -152,7 +153,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.freeze);
     }
 
     @Transactional
@@ -164,7 +165,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.reduce);
     }
 
     /**
@@ -184,7 +185,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         }
 
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.unfreeze);
     }
 
     /**
@@ -203,7 +204,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         }
 
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.unfreeze);
     }
 
     @Override
@@ -221,7 +222,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         }
 
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.reduce);
     }
 
 

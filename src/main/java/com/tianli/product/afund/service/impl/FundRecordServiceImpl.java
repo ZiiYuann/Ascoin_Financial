@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.entity.AccountBalance;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.common.webhook.WebHookTemplate;
@@ -81,7 +81,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     @Resource
     private WebHookService webHookService;
     @Resource
-    private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private IFundTransactionRecordService fundTransactionRecordService;
     @Resource
@@ -129,10 +129,10 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
 
         FinancialProduct product = financialProductService.getById(productId);
         if (Objects.isNull(product) || !product.getType().equals(ProductType.fund))
-            ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.throwException();
+          throw   ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST.generalException();
         Long uid = requestInitService.uid();
         BigDecimal personHoldAmount = fundRecordMapper.selectHoldAmountSum(productId, uid);
-        AccountBalance accountBalance = accountBalanceServiceImpl.getAndInit(uid, product.getCoin());
+        AccountBalance accountBalance = accountBalanceService.getAndInit(uid, product.getCoin());
         return FundApplyPageVO.builder()
                 .productId(product.getId())
                 .productName(product.getName())
@@ -192,7 +192,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
     @Override
     public FundRecordVO redemptionPage(Long id) {
         FundRecord fundRecord = this.getById(id);
-        if (Objects.isNull(fundRecord)) ErrorCodeEnum.FUND_NOT_EXIST.throwException();
+        if (Objects.isNull(fundRecord)) throw ErrorCodeEnum.FUND_NOT_EXIST.generalException();
         return FundRecordVO.builder()
                 .id(fundRecord.getId())
                 .productName((fundRecord.getProductName()))
@@ -283,7 +283,7 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
         Long id = bo.getId();
         BigDecimal redemptionAmount = bo.getRedemptionAmount();
         FundRecord fundRecord = this.getById(id);
-        if (Objects.isNull(fundRecord)) ErrorCodeEnum.FUND_NOT_EXIST.throwException();
+        if (Objects.isNull(fundRecord))throw  ErrorCodeEnum.FUND_NOT_EXIST.generalException();
         if (redemptionAmount.compareTo(fundRecord.getHoldAmount()) > 0)
             ErrorCodeEnum.REDEMPTION_GT_HOLD.throwException();
         if (redemptionAmount.compareTo(fundRecord.getHoldAmount()) == 0) {
@@ -392,10 +392,10 @@ public class FundRecordServiceImpl extends ServiceImpl<FundRecordMapper, FundRec
 
         for (Long uid : uids) {
             List<FundRecord> fundRecords = fundRecordMap.getOrDefault(uid, (List<FundRecord>) CollectionUtils.EMPTY_COLLECTION);
-            List<AmountDto> amountDtos = fundRecords.stream().map(record -> {
+            List<AmountDto> amountDtos = fundRecords.stream().map(index -> {
                 AmountDto amountDto = new AmountDto();
-                amountDto.setAmount(record.getCumulativeIncomeAmount());
-                amountDto.setCoin(record.getCoin());
+                amountDto.setAmount(index.getCumulativeIncomeAmount());
+                amountDto.setCoin(index.getCoin());
                 return amountDto;
             }).collect(Collectors.toList());
             BigDecimal amount = currencyService.calDollarAmount(amountDtos);

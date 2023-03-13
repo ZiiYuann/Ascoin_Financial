@@ -1,6 +1,7 @@
 package com.tianli.management.controller;
 
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.vo.AccountBalanceSimpleVO;
 import com.tianli.chain.entity.ChainCallbackLog;
 import com.tianli.chain.entity.WalletImputation;
@@ -11,6 +12,9 @@ import com.tianli.chain.service.ChainCallbackLogService;
 import com.tianli.chain.service.WalletImputationLogAppendixService;
 import com.tianli.chain.service.WalletImputationLogService;
 import com.tianli.chain.service.WalletImputationService;
+import com.tianli.chain.vo.WalletImputationLogAppendixVO;
+import com.tianli.chain.vo.WalletImputationLogVO;
+import com.tianli.chain.vo.WalletImputationVO;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.query.OrderReviewQuery;
@@ -18,6 +22,7 @@ import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.service.OrderReviewService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.charge.vo.OrderChargeInfoVO;
+import com.tianli.charge.vo.OrderReviewVO;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.Result;
@@ -27,6 +32,7 @@ import com.tianli.management.query.WalletImputationManualQuery;
 import com.tianli.management.query.WalletImputationQuery;
 import com.tianli.management.service.ServiceFeeService;
 import com.tianli.management.vo.FinancialSummaryDataVO;
+import com.tianli.management.vo.ImputationAmountVO;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import com.tianli.sso.permission.admin.AdminContent;
@@ -56,7 +62,7 @@ public class ManageWalletController {
     @Resource
     private WalletImputationLogAppendixService walletImputationLogAppendixService;
     @Resource
-    private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private OrderReviewService orderReviewService;
     @Resource
@@ -73,9 +79,9 @@ public class ManageWalletController {
      */
     @GetMapping("/order/recharge")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result rechargeOrder(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
+    public Result<IPage<OrderChargeInfoVO>> rechargeOrder(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
         query.setChargeType(ChargeType.recharge);
-        return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(), query));
+        return Result.success(chargeService.selectOrderChargeInfoVOPage(page.page(), query));
     }
 
     /**
@@ -83,10 +89,9 @@ public class ManageWalletController {
      */
     @GetMapping("/order/recharge/data")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result rechargeOrderData(FinancialChargeQuery query) {
+    public Result<FinancialSummaryDataVO> rechargeOrderData(FinancialChargeQuery query) {
         query.setChargeType(ChargeType.recharge);
-        return Result.success()
-                .setData(FinancialSummaryDataVO.builder().rechargeAmount(chargeService.orderAmountSum(query)).build());
+        return Result.success(FinancialSummaryDataVO.builder().rechargeAmount(chargeService.orderAmountSum(query)).build());
     }
 
     /**
@@ -95,7 +100,7 @@ public class ManageWalletController {
     @GetMapping("/accounts")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result<List<AccountBalanceSimpleVO>> accounts() {
-        return new Result<>(accountBalanceServiceImpl.accountBalanceSimpleVOs());
+        return new Result<>(accountBalanceService.accountBalanceSimpleVOs());
     }
 
     /**
@@ -103,9 +108,9 @@ public class ManageWalletController {
      */
     @GetMapping("/order/withdraw")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result withdrawOrder(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
+    public Result<IPage<OrderChargeInfoVO>> withdrawOrder(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
         query.setChargeType(ChargeType.withdraw);
-        return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(), query));
+        return Result.success(chargeService.selectOrderChargeInfoVOPage(page.page(), query));
     }
 
     /**
@@ -113,10 +118,10 @@ public class ManageWalletController {
      */
     @GetMapping("/order/withdraw/review")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result withdrawOrderNoReview(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
+    public Result<IPage<OrderChargeInfoVO>> withdrawOrderNoReview(PageQuery<OrderChargeInfoVO> page, FinancialChargeQuery query) {
         query.setChargeType(ChargeType.withdraw);
         query.setNoReview(true);
-        return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(), query));
+        return Result.success(chargeService.selectOrderChargeInfoVOPage(page.page(), query));
     }
 
     /**
@@ -124,10 +129,9 @@ public class ManageWalletController {
      */
     @GetMapping("/order/withdraw/data")
     @AdminPrivilege
-    public Result withdrawOrderData(FinancialChargeQuery query) {
+    public Result<FinancialSummaryDataVO> withdrawOrderData(FinancialChargeQuery query) {
         query.setChargeType(ChargeType.withdraw);
-        return Result.success()
-                .setData(FinancialSummaryDataVO.builder().withdrawAmount(chargeService.orderAmountSum(query)).build());
+        return Result.success(FinancialSummaryDataVO.builder().withdrawAmount(chargeService.orderAmountSum(query)).build());
     }
 
     /**
@@ -135,8 +139,8 @@ public class ManageWalletController {
      */
     @GetMapping("/order/withdraw/review/{orderNo}")
     @AdminPrivilege(api = "/management/financial/wallet/order/withdraw/review/orderNo")
-    public Result orderReview(@PathVariable String orderNo) {
-        return Result.success().setData(orderReviewService.getVOByOrderNo(orderNo));
+    public Result<OrderReviewVO> orderReview(@PathVariable String orderNo) {
+        return Result.success(orderReviewService.getVOByOrderNo(orderNo));
     }
 
     /**
@@ -144,7 +148,7 @@ public class ManageWalletController {
      */
     @PostMapping("/order/withdraw/review")
     @AdminPrivilege
-    public Result orderReview(@RequestBody @Valid OrderReviewQuery query) {
+    public Result<Void> orderReview(@RequestBody @Valid OrderReviewQuery query) {
         String nickname = AdminContent.get().getNickname();
         Long aid = AdminContent.get().getAid();
         query.setRid(aid);
@@ -166,7 +170,7 @@ public class ManageWalletController {
      */
     @GetMapping("/imputations")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result imputations(PageQuery<WalletImputation> page, WalletImputationQuery query) {
+    public Result<IPage<WalletImputationVO>> imputations(PageQuery<WalletImputation> page, WalletImputationQuery query) {
         return Result.success(walletImputationService.walletImputationVOPage(page.page(), query));
     }
 
@@ -175,7 +179,7 @@ public class ManageWalletController {
      */
     @GetMapping("/imputation/amount")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result imputationAmount(WalletImputationQuery query) {
+    public Result<ImputationAmountVO> imputationAmount(WalletImputationQuery query) {
         return Result.success(walletImputationService.amount(query));
     }
 
@@ -184,7 +188,7 @@ public class ManageWalletController {
      */
     @PostMapping("/imputation")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result imputation(@RequestBody WalletImputationManualQuery query) {
+    public Result<Void> imputation(@RequestBody WalletImputationManualQuery query) {
         walletImputationService.imputationOperation(query);
         return Result.success();
     }
@@ -194,7 +198,7 @@ public class ManageWalletController {
      */
     @GetMapping("/imputationLogs")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result imputationLogs(PageQuery<WalletImputationLog> page, WalletImputationLogQuery query) {
+    public Result<IPage<WalletImputationLogVO>> imputationLogs(PageQuery<WalletImputationLog> page, WalletImputationLogQuery query) {
         return Result.success(walletImputationLogService.walletImputationLogVOPage(page.page(), query));
     }
 
@@ -203,14 +207,14 @@ public class ManageWalletController {
      */
     @GetMapping("/imputation/appendix")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result imputationLogs(PageQuery<WalletImputationLogAppendix> page, String txid) {
+    public Result<IPage<WalletImputationLogAppendixVO>> imputationLogs(PageQuery<WalletImputationLogAppendix> page, String txid) {
         return Result.success(walletImputationLogAppendixService.pageByTxid(page.page(), txid));
     }
 
     @GetMapping("/callback/logs")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result chainCallbackLogs(PageQuery<ChainCallbackLog> page) {
-        return Result.instance().setData(chainCallbackLogService.page(page.page()));
+    public Result<IPage<ChainCallbackLog>> chainCallbackLogs(PageQuery<ChainCallbackLog> page) {
+        return Result.success(chainCallbackLogService.page(page.page()));
     }
 
     /**
@@ -218,7 +222,7 @@ public class ManageWalletController {
      */
     @PutMapping("/imputation/compensate/")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result imputationCompensate(Long imputationId, ImputationStatus status) {
+    public Result<Void> imputationCompensate(Long imputationId, ImputationStatus status) {
         if (Objects.isNull(status)) {
             status = ImputationStatus.success;
         }
@@ -231,7 +235,7 @@ public class ManageWalletController {
      */
     @PutMapping("/imputation/compensate/scan")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result imputationCompensateScan(Long imputationId) {
+    public Result<Void> imputationCompensateScan(Long imputationId) {
         walletImputationService.imputationCompensateScan(imputationId);
         return Result.success();
     }
@@ -250,7 +254,7 @@ public class ManageWalletController {
      * 提现手续费 init
      */
     @PostMapping("/serviceFee/init")
-    public Result withdrawServiceFeeInit() {
+    public Result<Void> withdrawServiceFeeInit() {
         serviceFeeService.init();
         return Result.success();
     }

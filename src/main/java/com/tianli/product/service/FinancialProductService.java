@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.account.enums.AccountChangeType;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
@@ -25,8 +25,6 @@ import com.tianli.management.query.FinancialProductsQuery;
 import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.management.vo.MFinancialProductVO;
 import com.tianli.mconfig.ConfigService;
-import com.tianli.product.dto.PurchaseResultDto;
-import com.tianli.product.dto.RedeemResultDto;
 import com.tianli.product.afinancial.convert.FinancialConverter;
 import com.tianli.product.afinancial.dto.IncomeDto;
 import com.tianli.product.afinancial.dto.ProductRateDTO;
@@ -46,6 +44,8 @@ import com.tianli.product.afinancial.vo.ExpectIncomeVO;
 import com.tianli.product.afinancial.vo.FinancialPurchaseResultVO;
 import com.tianli.product.afund.query.FundRecordQuery;
 import com.tianli.product.afund.service.IFundRecordService;
+import com.tianli.product.dto.PurchaseResultDto;
+import com.tianli.product.dto.RedeemResultDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -92,7 +92,7 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
     @Resource
     private FinancialIncomeAccrueService financialIncomeAccrueService;
     @Resource
-    private AccountBalanceServiceImpl accountBalanceService;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private OrderService orderService;
     @Resource

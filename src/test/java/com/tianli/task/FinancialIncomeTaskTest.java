@@ -4,7 +4,7 @@ import com.alibaba.testable.core.annotation.MockInvoke;
 import com.alibaba.testable.core.model.MockScope;
 import com.alibaba.testable.core.tool.PrivateAccessor;
 import com.tianli.CommonConstant;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
@@ -55,7 +55,7 @@ public class FinancialIncomeTaskTest {
         }
 
         @MockInvoke(scope = MockScope.ASSOCIATED)
-        public void increase(AccountBalanceServiceImpl self, long uid, ChargeType type,
+        public void increase(AccountBalanceService self, long uid, ChargeType type,
                              String coin, BigDecimal amount,
                              String sn, String des) {
         }

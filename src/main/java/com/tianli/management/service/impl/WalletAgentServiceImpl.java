@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.vo.AccountBalanceVO;
 import com.tianli.address.service.AddressService;
 import com.tianli.charge.enums.ChargeType;
@@ -14,13 +14,6 @@ import com.tianli.charge.service.OrderService;
 import com.tianli.common.PageQuery;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.product.afinancial.entity.FinancialProduct;
-import com.tianli.product.afinancial.enums.ProductStatus;
-import com.tianli.product.afinancial.enums.ProductType;
-import com.tianli.product.service.FinancialProductService;
-import com.tianli.product.afund.contant.FundIncomeStatus;
-import com.tianli.product.afund.contant.FundTransactionStatus;
-import com.tianli.product.afund.enums.FundTransactionType;
 import com.tianli.management.bo.WalletAgentBO;
 import com.tianli.management.converter.WalletAgentConverter;
 import com.tianli.management.dao.WalletAgentMapper;
@@ -31,6 +24,13 @@ import com.tianli.management.query.WalletAgentQuery;
 import com.tianli.management.service.IWalletAgentProductService;
 import com.tianli.management.service.IWalletAgentService;
 import com.tianli.management.vo.WalletAgentVO;
+import com.tianli.product.afinancial.entity.FinancialProduct;
+import com.tianli.product.afinancial.enums.ProductStatus;
+import com.tianli.product.afinancial.enums.ProductType;
+import com.tianli.product.afund.contant.FundIncomeStatus;
+import com.tianli.product.afund.contant.FundTransactionStatus;
+import com.tianli.product.afund.enums.FundTransactionType;
+import com.tianli.product.service.FinancialProductService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,7 +64,7 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
     @Resource
     private FinancialProductService financialProductService;
     @Resource
-    private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private OrderService orderService;
     @Resource
@@ -229,7 +229,7 @@ public class WalletAgentServiceImpl extends ServiceImpl<WalletAgentMapper, Walle
     }
 
     private BigDecimal getWalletAmount(Long uid) {
-        List<AccountBalanceVO> accountBalanceList = accountBalanceServiceImpl.accountList(uid);
+        List<AccountBalanceVO> accountBalanceList = accountBalanceService.accountList(uid);
         List<AmountDto> amountDtoList = accountBalanceList.stream().map(accountBalanceVO ->
                 new AmountDto(accountBalanceVO.getRemain(), accountBalanceVO.getCoin())).collect(Collectors.toList());
         return currencyService.calDollarAmount(amountDtoList);

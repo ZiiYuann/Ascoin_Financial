@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.enums.AccountChangeType;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.agent.management.auth.AgentContent;
 import com.tianli.agent.management.bo.FundAuditBO;
 import com.tianli.agent.management.vo.FundReviewVO;
@@ -73,7 +73,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
     @Resource
     private OrderService orderService;
     @Resource
-    private AccountBalanceServiceImpl accountBalanceService;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private IFundRecordService fundRecordService;
     @Resource
@@ -130,7 +130,7 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
         ids.forEach(id -> {
             // 判断交易记录是否存在
             FundTransactionRecord fundTransactionRecord = fundTransactionRecordMapper.selectById(id);
-            Optional.ofNullable(fundTransactionRecord).orElseThrow(ErrorCodeEnum.TRANSACTION_NOT_EXIST::generalException);
+            fundTransactionRecord = Optional.ofNullable(fundTransactionRecord).orElseThrow(ErrorCodeEnum.TRANSACTION_NOT_EXIST::generalException);
             // 判断交易记录是否为待审核
             if (!fundTransactionRecord.getStatus().equals(FundTransactionStatus.wait_audit)) {
                 ErrorCodeEnum.STATUS_NOT_WAIT.throwException();
@@ -138,11 +138,11 @@ public class FundTransactionRecordServiceImpl extends ServiceImpl<FundTransactio
             // 判断持有记录是否存在
             Long fundId = fundTransactionRecord.getFundId();
             FundRecord fundRecord = fundRecordService.getById(fundId);
-            Optional.ofNullable(fundRecord).orElseThrow(ErrorCodeEnum.FUND_RECORD_NOT_EXIST::generalException);
+            fundRecord = Optional.ofNullable(fundRecord).orElseThrow(ErrorCodeEnum.FUND_RECORD_NOT_EXIST::generalException);
             // 判断产品和代理人绑定关系是否存在
             Long productId = fundRecord.getProductId();
             WalletAgentProduct walletAgentProduct = walletAgentProductService.getByProductId(productId);
-            Optional.ofNullable(walletAgentProduct).orElseThrow(ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST::generalException);
+            walletAgentProduct = Optional.ofNullable(walletAgentProduct).orElseThrow(ErrorCodeEnum.AGENT_PRODUCT_NOT_EXIST::generalException);
             // 判断产品是否是此代理人关联产品
             if (!walletAgentProduct.getAgentId().equals(agentId)) {
                 ErrorCodeEnum.NOT_CURRENT_AGENT.throwException();

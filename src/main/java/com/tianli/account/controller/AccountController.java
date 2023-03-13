@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.query.AccountDetailsQuery;
 import com.tianli.account.query.IdsQuery;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.vo.AccountBalanceMainPageVO;
 import com.tianli.account.vo.AccountBalanceVO;
 import com.tianli.account.vo.TransactionGroupTypeVO;
@@ -49,14 +49,13 @@ public class AccountController {
     @Resource
     private RequestInitService requestInitService;
     @Resource
-    private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private ChargeService chargeService;
     @Resource
     private WebHookService webHookService;
     @Resource
     private CoinService coinService;
-
 
     /**
      * 激活钱包
@@ -178,7 +177,7 @@ public class AccountController {
     @GetMapping("/balance/summary")
     public Result<AccountBalanceMainPageVO> accountBalance() {
         Long uid = requestInitService.uid();
-        return new Result<>(accountBalanceServiceImpl.accountSummary(uid, true, 0));
+        return new Result<>(accountBalanceService.accountSummary(uid, true, 0));
     }
 
     /**
@@ -189,7 +188,7 @@ public class AccountController {
     public Result<AccountBalanceMainPageVO> accountBalanceDynamic(Integer version) {
         version = MoreObjects.firstNonNull(version, 0);
         Long uid = requestInitService.uid();
-        return new Result<>(accountBalanceServiceImpl.accountSummary(uid, version));
+        return new Result<>(accountBalanceService.accountSummary(uid, version));
     }
 
     /**
@@ -198,7 +197,7 @@ public class AccountController {
     @GetMapping("/balances")
     public Result<List<AccountBalanceVO>> balances() {
         Long uid = requestInitService.uid();
-        return Result.success(accountBalanceServiceImpl.accountList(uid));
+        return Result.success(accountBalanceService.accountList(uid));
     }
 
     /**
@@ -208,7 +207,7 @@ public class AccountController {
     @GetMapping("/balance/{coin}")
     public Result<AccountBalanceVO> accountBalance(@PathVariable String coin) {
         Long uid = requestInitService.uid();
-        return new Result<>(accountBalanceServiceImpl.accountSingleCoin(uid, coin));
+        return new Result<>(accountBalanceService.accountSingleCoin(uid, coin));
     }
 
     /**

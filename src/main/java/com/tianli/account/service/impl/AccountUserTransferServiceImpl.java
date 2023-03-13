@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.convert.AccountConverter;
 import com.tianli.account.entity.AccountUserTransfer;
 import com.tianli.account.mapper.AccountUserTransferMapper;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.AccountUserTransferService;
 import com.tianli.account.vo.AccountUserTransferVO;
 import com.tianli.charge.entity.Order;
@@ -35,7 +36,7 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
     @Resource
     private OrderService orderService;
     @Resource
-    private AccountBalanceServiceImpl accountBalanceService;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private AccountConverter accountConverter;
 

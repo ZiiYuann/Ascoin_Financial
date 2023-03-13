@@ -4,16 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.entity.AccountBalance;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.query.RedeemQuery;
 import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.RedisService;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.product.dto.PurchaseResultDto;
-import com.tianli.product.dto.RedeemResultDto;
-import com.tianli.product.entity.ProductHoldRecord;
 import com.tianli.product.afinancial.dto.IncomeDto;
 import com.tianli.product.afinancial.entity.FinancialProduct;
 import com.tianli.product.afinancial.entity.FinancialRecord;
@@ -25,6 +22,9 @@ import com.tianli.product.afinancial.query.PurchaseQuery;
 import com.tianli.product.afinancial.vo.ExpectIncomeVO;
 import com.tianli.product.afund.entity.FundRecord;
 import com.tianli.product.afund.service.IFundRecordService;
+import com.tianli.product.dto.PurchaseResultDto;
+import com.tianli.product.dto.RedeemResultDto;
+import com.tianli.product.entity.ProductHoldRecord;
 import com.tianli.product.service.FinancialProductService;
 import com.tianli.product.service.FundProductService;
 import com.tianli.product.service.ProductHoldRecordService;
@@ -50,7 +50,7 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
     @Resource
     private FinancialProductService financialProductService;
     @Resource
-    private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private IFundRecordService fundRecordService;
     @Resource
@@ -211,7 +211,7 @@ public abstract class AbstractProductOperation<M extends BaseMapper<T>, T> exten
      * @param amount       申购金额
      */
     public void baseValidRemainAmount(Long uid, String currencyCoin, BigDecimal amount) {
-        AccountBalance accountBalanceBalance = accountBalanceServiceImpl.getAndInit(uid, currencyCoin);
+        AccountBalance accountBalanceBalance = accountBalanceService.getAndInit(uid, currencyCoin);
         if (accountBalanceBalance.getRemain().compareTo(amount) < 0) {
             ErrorCodeEnum.INSUFFICIENT_BALANCE.throwException();
         }

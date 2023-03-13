@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.MoreObjects;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.vo.UserAssetsVO;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.service.AddressService;
@@ -139,9 +139,9 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     public RecordIncomeVO recordIncome(Long uid, Long recordId) {
-        FinancialRecord record = financialRecordService.selectById(recordId, uid);
-        RecordIncomeVO incomeByRecordIdVO = financialConverter.toIncomeByRecordIdVO(record);
-        FinancialProduct product = financialProductService.getById(record.getProductId());
+        FinancialRecord financialRecord = financialRecordService.selectById(recordId, uid);
+        RecordIncomeVO incomeByRecordIdVO = financialConverter.toIncomeByRecordIdVO(financialRecord);
+        FinancialProduct product = financialProductService.getById(financialRecord.getProductId());
 
         LambdaQueryWrapper<FinancialIncomeDaily> incomeDailyQuery = new LambdaQueryWrapper<FinancialIncomeDaily>().eq(FinancialIncomeDaily::getUid, uid)
                 .eq(FinancialIncomeDaily::getRecordId, recordId)
@@ -156,14 +156,14 @@ public class FinancialServiceImpl implements FinancialService {
 
         incomeByRecordIdVO.setAccrueIncomeFee(Optional.ofNullable(incomeAccrue.getIncomeAmount()).orElse(BigDecimal.ZERO));
         incomeByRecordIdVO.setYesterdayIncomeFee(yesterdayIncomeFee);
-        incomeByRecordIdVO.setRecordStatus(record.getStatus());
-        incomeByRecordIdVO.setAutoRenewal(record.isAutoRenewal());
-        incomeByRecordIdVO.setProductId(record.getProductId());
+        incomeByRecordIdVO.setRecordStatus(financialRecord.getStatus());
+        incomeByRecordIdVO.setAutoRenewal(financialRecord.isAutoRenewal());
+        incomeByRecordIdVO.setProductId(financialRecord.getProductId());
         incomeByRecordIdVO.setMaxRate(product.getMaxRate());
         incomeByRecordIdVO.setMinRate(product.getMinRate());
         incomeByRecordIdVO.setRateType(product.getRateType());
         incomeByRecordIdVO.setRate(product.getRate());
-        incomeByRecordIdVO.setEarningRate(financialProductService.incomeRate(uid, record.getProductId(), recordId));
+        incomeByRecordIdVO.setEarningRate(financialProductService.incomeRate(uid, financialRecord.getProductId(), recordId));
         incomeByRecordIdVO.setNewUser(financialRecordService.isNewUser(uid));
         incomeByRecordIdVO.setProductStatus(product.getStatus());
 
@@ -281,7 +281,7 @@ public class FinancialServiceImpl implements FinancialService {
         records.sort((a, b) -> {
             BigDecimal hold1 = MoreObjects.firstNonNull(a.getHoldAmount(), BigDecimal.ZERO);
             BigDecimal hold2 = MoreObjects.firstNonNull(b.getHoldAmount(), BigDecimal.ZERO);
-            return -hold1.compareTo(hold2);
+            return hold2.compareTo(hold1);
         });
 
         return financialProductVOIPage;
@@ -477,7 +477,7 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     public UserAmountDetailsVO userAmountDetailsVO(Long uid) {
-        var userAssetsVO = accountBalanceServiceImpl.getAllUserAssetsVO(uid);
+        var userAssetsVO = accountBalanceService.getAllUserAssetsVO(uid);
         BigDecimal dollarRecharge = orderService.uAmount(uid, ChargeType.recharge);
         BigDecimal dollarWithdraw = orderService.uAmount(uid, ChargeType.withdraw);
         FundRecordQuery fundRecordQuery = new FundRecordQuery();
@@ -526,7 +526,7 @@ public class FinancialServiceImpl implements FinancialService {
                 .eq(FinancialProduct::getStatus, ProductStatus.open)
                 .eq(FinancialProduct::isDeleted, false)
                 .orderByAsc(FinancialProduct::getType) // 活期优先
-                .orderByDesc(FinancialProduct::getRate); // 年化利率降序;
+                .orderByDesc(FinancialProduct::getRate); // 年化利率降序
         return getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), productType, query).getRecords();
     }
 
@@ -541,16 +541,16 @@ public class FinancialServiceImpl implements FinancialService {
         Boolean isNewUser = financialRecordService.isNewUser(uid);
 
         // 如果是新用户直接返回空map，减少无效查询
-        Map<Long, Long> firstProcessRecordMap = isNewUser ? Collections.emptyMap() :
+        Map<Long, Long> firstProcessRecordMap = Boolean.TRUE.equals(isNewUser) ? Collections.emptyMap() :
                 financialRecordService.firstProcessRecordMap(productIds, uid);
-        Map<Long, BigDecimal> useFinancialPersonQuotaMap = isNewUser ? Collections.emptyMap() :
+        Map<Long, BigDecimal> useFinancialPersonQuotaMap = Boolean.TRUE.equals(isNewUser) ? Collections.emptyMap() :
                 financialRecordService.getUseQuota(productIds, uid);
 
         return list.convert(product -> {
             BigDecimal totalQuota = product.getTotalQuota();
             BigDecimal personQuota = product.getPersonQuota();
             BigDecimal useQuota = MoreObjects.firstNonNull(product.getUseQuota(), BigDecimal.ZERO);
-            var accountBalance = accountBalanceServiceImpl.getAndInit(uid, product.getCoin());
+            var accountBalance = accountBalanceService.getAndInit(uid, product.getCoin());
             FinancialProductVO financialProductVO = financialConverter.toFinancialProductVO(product);
 
             // 设置额度信息
@@ -587,7 +587,7 @@ public class FinancialServiceImpl implements FinancialService {
             }
             // 设置假数据（基金不设置）
             BigDecimal baseDataAmount = getBaseDataAmount(product.getId(), totalQuota, useQuota);
-            if (Objects.nonNull(baseDataAmount) & !ProductType.fund.equals(product.getType())) {
+            if (Objects.nonNull(baseDataAmount) && !ProductType.fund.equals(product.getType())) {
                 financialProductVO.setUseQuota(useQuota.add(baseDataAmount));
                 financialProductVO.setBaseUseQuota(baseDataAmount);
             }
@@ -746,7 +746,7 @@ public class FinancialServiceImpl implements FinancialService {
 
 
     @Resource
-    private AccountBalanceServiceImpl accountBalanceServiceImpl;
+    private AccountBalanceService accountBalanceService;
     @Resource
     private RequestInitService requestInitService;
     @Resource
@@ -785,8 +785,6 @@ public class FinancialServiceImpl implements FinancialService {
     private CoinService coinService;
     @Resource
     private ChainConverter chainConverter;
-    @Resource
-    private com.tianli.account.service.AccountBalanceService accountBalanceService;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
     @Resource
