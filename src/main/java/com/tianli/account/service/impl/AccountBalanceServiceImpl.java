@@ -249,6 +249,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
                     .balance(BigDecimal.ZERO)
                     .freeze(BigDecimal.ZERO)
                     .remain(BigDecimal.ZERO)
+                    .pledgeFreeze(BigDecimal.ZERO)
                     .build();
             final AccountBalance accountBalanceBalanceFinal = accountBalanceBalance;
             accountBalanceMapper.insert(accountBalanceBalanceFinal);
