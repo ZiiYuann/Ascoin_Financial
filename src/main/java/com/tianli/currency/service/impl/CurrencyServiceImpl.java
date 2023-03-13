@@ -51,6 +51,11 @@ public class CurrencyServiceImpl implements CurrencyService {
     public BigDecimal huobiUsdtRate(String coinName) {
         coinName = Optional.ofNullable(coinName).orElseThrow(NullPointerException::new);
         coinName = coinName.toLowerCase(Locale.ROOT);
+
+        if ("usdt".equalsIgnoreCase(coinName)) {
+            return BigDecimal.ONE;
+        }
+
         try {
             return BigDecimal.valueOf(digitalCurrencyExchange.coinUsdtPriceBnb(coinName));
         } catch (Exception e) {
