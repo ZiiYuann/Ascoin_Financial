@@ -161,7 +161,7 @@ public class OpenApiRedController {
                 , "https://www.assurepro.io/AssureRedpacket/index.html");
         String html = rpcService.html(url);
         html = html.replace("$[username]", userInfoDTO.getNickname());
-        html = html.replace("$[shareMoney]", redEnvelope.getAmount().toPlainString() + redEnvelope.getCoin().toUpperCase(Locale.ROOT));
+        html = html.replace("$[shareMoney]", redEnvelope.getCoin().toUpperCase(Locale.ROOT));
         return html;
     }
 
