@@ -49,22 +49,8 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public BigDecimal huobiUsdtRate(String coinName) {
-        Optional.ofNullable(coinName).orElseThrow(NullPointerException::new);
-
+        coinName = Optional.ofNullable(coinName).orElseThrow(NullPointerException::new);
         coinName = coinName.toLowerCase(Locale.ROOT);
-        if ("usdt".equalsIgnoreCase(coinName)) {
-            return BigDecimal.ONE;
-        }
-        if ("usdc".equalsIgnoreCase(coinName)) {
-            return BigDecimal.ONE;
-        }
-
-        try {
-            return BigDecimal.valueOf(digitalCurrencyExchange.coinUsdtPriceHuobi(coinName));
-        } catch (Exception e) {
-            log.error("huobi没有对应货币价格：" + coinName);
-        }
-
         try {
             return BigDecimal.valueOf(digitalCurrencyExchange.coinUsdtPriceBnb(coinName));
         } catch (Exception e) {
@@ -75,6 +61,12 @@ public class CurrencyServiceImpl implements CurrencyService {
             return BigDecimal.valueOf(digitalCurrencyExchange.coinUsdtPriceOkx(coinName));
         } catch (Exception e) {
             log.error("欧易没有对应货币价格：" + coinName);
+        }
+
+        try {
+            return BigDecimal.valueOf(digitalCurrencyExchange.coinUsdtPriceHuobi(coinName));
+        } catch (Exception e) {
+            log.error("huobi没有对应货币价格：" + coinName);
         }
 
         throw ErrorCodeEnum.COIN_RATE_ERROR.generalException();
