@@ -52,4 +52,7 @@ public class RedisConstants {
 
     public static final String BORROW_TASK_INTEREST = "task:borrow:interest:";
 
+    public static final String WITHDRAW_ORDER_TASK = "task:withdraw:";
+
+
 }

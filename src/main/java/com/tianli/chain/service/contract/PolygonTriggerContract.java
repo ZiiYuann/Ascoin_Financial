@@ -6,7 +6,9 @@ import com.tianli.mconfig.ConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.JsonRpc2_0Web3j;
+import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
 import org.web3j.protocol.http.HttpService;
 
 import java.io.IOException;
@@ -24,7 +26,7 @@ public class PolygonTriggerContract extends Web3jContractOperation {
     private final JsonRpc2_0Web3j web3j;
 
     @Autowired
-    public PolygonTriggerContract(ConfigService configService, @Value("${rpc.polygon.url}")String url) {
+    public PolygonTriggerContract(ConfigService configService, @Value("${rpc.polygon.url}")String url) throws IOException {
         this.configService = configService;
         this.web3j = new JsonRpc2_0Web3j(new HttpService(url));
     }

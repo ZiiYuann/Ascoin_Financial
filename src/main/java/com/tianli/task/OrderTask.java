@@ -2,6 +2,7 @@ package com.tianli.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tianli.account.enums.AccountChangeType;
+import com.tianli.chain.enums.TransactionStatus;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.service.contract.ContractOperation;
 import com.tianli.charge.entity.Order;
@@ -97,8 +98,8 @@ public class OrderTask {
             String txid = orderAdvance.getTxid();
             NetworkType network = orderAdvance.getNetwork();
             ContractOperation contract = contractAdapter.getOne(network);
-            boolean success = contract.successByHash(txid);
-            if (success) {
+            TransactionStatus transactionStatus = contract.successByHash(txid);
+            if (TransactionStatus.SUCCESS.equals(transactionStatus)) {
                 webHookService.dingTalkSend("奇怪的申购订单" + orderAdvance.getTxid(), new RuntimeException());
             }
         }

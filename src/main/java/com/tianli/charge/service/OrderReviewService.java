@@ -64,6 +64,17 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         return orderReviewVO;
     }
 
+    @Transactional
+    public void withdrawChainFail(String orderNO) {
+        Order order = orderService.getByOrderNo(orderNO);
+        order.setStatus(ChargeStatus.chain_fail);
+        order.setCompleteTime(LocalDateTime.now());
+        orderService.updateById(order);
+
+        accountBalanceServiceImpl.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), order.getOrderNo()
+                , "提现上链失败");
+    }
+
     public void review(OrderReviewQuery query) {
         Order order = orderService.getByOrderNo(query.getOrderNo());
         OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());

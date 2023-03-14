@@ -9,6 +9,8 @@ import com.tianli.chain.dto.BtcBalance;
 import com.tianli.chain.dto.DesignBtcTx;
 import com.tianli.chain.dto.RawTransaction;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.enums.ChainType;
+import com.tianli.chain.enums.TransactionStatus;
 import com.tianli.chain.service.UutokenHttpService;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.NetworkType;
@@ -116,9 +118,8 @@ public class BtcOperation extends AbstractContractOperation {
     }
 
     @Override
-    public boolean successByHash(String hash) {
-        RawTransaction rawtransaction = getrawtransaction(hash);
-        return rawtransaction != null;
+    public TransactionStatus successByHash(String hash) {
+        return null;
     }
 
     @Override

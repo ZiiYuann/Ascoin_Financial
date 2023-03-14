@@ -92,6 +92,7 @@ public enum ErrorCodeEnum {
     WEB3J_DECIMALS(3111, "获取合约小数点位数失败"),
     IMPUTATION_NOT_NEED(3112, "本次不需要归集"),
     WITHDRAW_BLACK(3113, "账户异常被封"),
+    SIGN_EXPIRE(3114, "签名过期"),
 
 
     /*** －－－－－－业务错误码-现货交易－－－－－－*/

@@ -14,6 +14,7 @@ import com.tianli.chain.entity.WalletImputation;
 import com.tianli.chain.entity.WalletImputationLog;
 import com.tianli.chain.entity.WalletImputationLogAppendix;
 import com.tianli.chain.enums.ImputationStatus;
+import com.tianli.chain.enums.TransactionStatus;
 import com.tianli.chain.mapper.WalletImputationMapper;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.service.contract.ContractOperation;
@@ -338,7 +339,8 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         String txid = walletImputationLog.getTxid();
         ContractOperation contractOperation = baseContractService.getOne(network);
 
-        ImputationStatus status = contractOperation.successByHash(txid) ? ImputationStatus.success : ImputationStatus.fail;
+        ImputationStatus status = TransactionStatus.SUCCESS.equals(contractOperation.successByHash(txid))
+                ? ImputationStatus.success : ImputationStatus.fail;
 
         // 更新信息
         LocalDateTime now = LocalDateTime.now();

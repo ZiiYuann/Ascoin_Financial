@@ -3,6 +3,7 @@ package com.tianli.chain.service.contract;
 import com.google.gson.Gson;
 import com.tianli.chain.dto.TransactionReceiptLogDTO;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.enums.TransactionStatus;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.tool.time.TimeTool;
@@ -188,12 +189,23 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
     }
 
     @Override
-    public boolean successByHash(String hash) {
+    public TransactionStatus successByHash(String hash) {
         EthGetTransactionReceipt ethGetTransactionReceipt = getTransactionByHash(hash);
+
         if (Objects.isNull(ethGetTransactionReceipt.getResult())) {
-            return false;
+            return TransactionStatus.PENDING;
         }
-        return "0x1".equals(ethGetTransactionReceipt.getResult().getStatus());
+
+        if ("0x1".equals(ethGetTransactionReceipt.getResult().getStatus())){
+            return TransactionStatus.SUCCESS;
+        }
+
+
+        if ("0x0".equals(ethGetTransactionReceipt.getResult().getStatus())){
+            return TransactionStatus.FAIL;
+        }
+        
+        throw ErrorCodeEnum.SYSTEM_ERROR.generalException();
     }
 
 

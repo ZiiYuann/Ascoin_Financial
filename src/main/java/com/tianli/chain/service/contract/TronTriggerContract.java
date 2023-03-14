@@ -3,6 +3,7 @@ package com.tianli.chain.service.contract;
 import cn.hutool.json.JSONUtil;
 import com.google.protobuf.ByteString;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.enums.TransactionStatus;
 import com.tianli.chain.web3j.SignTransactionResult;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.NetworkType;
@@ -210,16 +211,20 @@ public class TronTriggerContract extends AbstractContractOperation {
     }
 
     @Override
-    public boolean successByHash(String hash) {
+    public TransactionStatus successByHash(String hash) {
         byte[] decode = Hex.decode(hash);
         Protocol.Transaction transaction =
                 blockingStub.getTransactionById(GrpcAPI.BytesMessage.newBuilder().setValue(ByteString.copyFrom(decode)).build());
 
         if (CollectionUtils.isEmpty(transaction.getRetList())) {
-            return false;
+            return TransactionStatus.FAIL;
         }
         int status = transaction.getRet(0).getContractRetValue();
-        return status == Protocol.Transaction.Result.contractResult.SUCCESS_VALUE;
+        if (status == Protocol.Transaction.Result.contractResult.SUCCESS_VALUE) {
+            return TransactionStatus.SUCCESS;
+        }
+
+        return TransactionStatus.FAIL;
     }
 
     @Override
