@@ -19,4 +19,6 @@ public class UserInfoDTO {
     private String nickname;
 
     private String avatar;
+
+    private String inviteCode;
 }

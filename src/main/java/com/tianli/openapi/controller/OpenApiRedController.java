@@ -140,6 +140,7 @@ public class OpenApiRedController {
                 .nickname(userInfoDTO.getNickname())
                 .remarks(redEnvelope.getRemarks())
                 .scale(redEnvelopeConfig.getScale())
+                .inviteCode(userInfoDTO.getInviteCode())
                 .build();
         return new Result<>(vo);
     }
