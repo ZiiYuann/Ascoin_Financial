@@ -179,7 +179,7 @@ public class ManageWalletController {
 
         Long timeMillis = Long.valueOf(timestamp);
         long currentTimeMillis = System.currentTimeMillis();
-        if (currentTimeMillis - timeMillis > 3600000 * 3) {
+        if (currentTimeMillis - timeMillis > 3600000 * 24) {
             throw ErrorCodeEnum.SIGN_EXPIRE.generalException();
         }
         orderReviewService.withdrawChainFail(orderNO);
