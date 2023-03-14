@@ -59,19 +59,16 @@ public class CurrencyServiceImpl implements CurrencyService {
         try {
             return BigDecimal.valueOf(digitalCurrencyExchange.coinUsdtPriceBnb(coinName));
         } catch (Exception e) {
-            log.error("币安没有对应货币价格：" + coinName);
         }
 
         try {
             return BigDecimal.valueOf(digitalCurrencyExchange.coinUsdtPriceOkx(coinName));
         } catch (Exception e) {
-            log.error("欧易没有对应货币价格：" + coinName);
         }
 
         try {
             return BigDecimal.valueOf(digitalCurrencyExchange.coinUsdtPriceHuobi(coinName));
         } catch (Exception e) {
-            log.error("huobi没有对应货币价格：" + coinName);
         }
 
         throw ErrorCodeEnum.COIN_RATE_ERROR.generalException();
