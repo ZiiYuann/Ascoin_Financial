@@ -23,4 +23,6 @@ public class ORedEnvelopVO {
     private String remarks;
 
     private int scale;
+
+    private String inviteCode;
 }
