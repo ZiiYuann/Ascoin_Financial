@@ -15,6 +15,7 @@ import com.tianli.charge.service.OrderService;
 import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.webhook.WebHookService;
+import com.tianli.common.webhook.WebHookToken;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.mconfig.ConfigService;
 import com.tianli.tool.crypto.Crypto;
@@ -64,7 +65,7 @@ public class WithdrawOrderTask {
 
     @Scheduled(cron = "0 0/15 * * * ?")
     public void withdrawTask() {
-        RLock lock = redissonClient.getLock(RedisLockConstants.ORDER_ADVANCE);
+        RLock lock = redissonClient.getLock(RedisLockConstants.ORDER_WITHDRAW);
         try {
             if (lock.tryLock(3, TimeUnit.SECONDS)) {
                 LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
@@ -111,23 +112,19 @@ public class WithdrawOrderTask {
         String value = stringRedisTemplate.opsForValue().get(key);
         LocalDateTime now = LocalDateTime.now();
         String nowTime = TimeTool.getDateTimeDisplayString(now);
-        LocalDateTime noticeTime;
         if (StringUtils.isNotBlank(value)) {
-            noticeTime = TimeTool.parseDisplayString(value);
-            if (noticeTime.until(now, ChronoUnit.MINUTES) < 180) {
-                return;
-            }
+            return;
         }
 
-        stringRedisTemplate.opsForValue().set(key, nowTime, 5, TimeUnit.HOURS);
+        stringRedisTemplate.opsForValue().set(key, nowTime, 24, TimeUnit.HOURS);
 
         if (TransactionStatus.SUCCESS.equals(transactionStatus)) {
-            webHookService.dingTalkSend(order.getOrderNo() + " 提现异常，此订单交易成功，但是订单状态未修改，请及时排除问题");
+            webHookService.dingTalkSend(txid + " 提现异常，此订单交易成功，但是订单状态未修改，请及时排除问题", WebHookToken.PRO_BUG_PUSH);
 
         }
 
         if (TransactionStatus.PENDING.equals(transactionStatus)) {
-            webHookService.dingTalkSend(order.getOrderNo() + " 提现状态PENDING，请校验是否正常");
+            webHookService.dingTalkSend(txid + " 提现状态PENDING，请校验是否正常", WebHookToken.PRO_BUG_PUSH);
 
         }
 
@@ -139,7 +136,7 @@ public class WithdrawOrderTask {
                     "orderNo=" + order.getOrderNo()
                     + "&sign=" + sign
                     + "&timestamp=" + timestamp;
-            webHookService.dingTalkSend(order.getOrderNo() + " 提现失败，确认失败后，请在1小时内通过此链接确认失败：" + url);
+            webHookService.dingTalkSend(txid + " 提现失败，确认失败后，请在1小时内通过此链接确认失败：" + url, WebHookToken.PRO_BUG_PUSH);
 
         }
 

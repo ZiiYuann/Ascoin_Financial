@@ -35,7 +35,9 @@ public class RedisLockConstants {
     public static String RED_ENVELOPE_EXPIRATION = "red:envelope:expiration:";
 
 
-    public static String ORDER_ADVANCE = "order:advance";
+    public static final String ORDER_ADVANCE = "order:advance";
+
+    public static final String ORDER_WITHDRAW = "order:withdraw";
 
     public static final String LOCK_REWARD = "lock:reward:";
 
