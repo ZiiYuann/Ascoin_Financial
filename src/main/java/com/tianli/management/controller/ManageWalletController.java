@@ -20,6 +20,7 @@ import com.tianli.charge.service.OrderService;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
+import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.management.query.FinancialChargeQuery;
 import com.tianli.management.query.WalletImputationLogQuery;
@@ -30,6 +31,8 @@ import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import com.tianli.sso.permission.admin.AdminContent;
+import com.tianli.tool.crypto.Crypto;
+import org.bouncycastle.crypto.util.DigestFactory;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.web.bind.annotation.*;
@@ -159,6 +162,28 @@ public class ManageWalletController {
             lock.unlock();
         }
         return Result.success();
+    }
+
+    /**
+     * 【云钱包提币管理】上链失败确认
+     */
+
+    @GetMapping("/chainFail/confirm")
+    public Result<Void> chainFailConfirm(@RequestParam("sign") String sign,
+                                         @RequestParam("timestamp") String timestamp,
+                                         @RequestParam("orderNo") String orderNO) {
+
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "VxaVdCoah9kZSCMdxAgMBAAE", timestamp).equals(sign)) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
+        }
+
+        Long timeMillis = Long.valueOf(timestamp);
+        long currentTimeMillis = System.currentTimeMillis();
+        if (currentTimeMillis - timeMillis > 3600000 * 3) {
+            throw ErrorCodeEnum.SIGN_EXPIRE.generalException();
+        }
+        orderReviewService.withdrawChainFail(orderNO);
+        return new Result<>();
     }
 
     /**

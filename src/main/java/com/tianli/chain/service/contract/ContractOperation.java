@@ -1,6 +1,7 @@
 package com.tianli.chain.service.contract;
 
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.enums.TransactionStatus;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.exception.Result;
 
@@ -56,7 +57,7 @@ public interface ContractOperation {
      * @param hash 交易hash
      * @return 交易状态
      */
-    boolean successByHash(String hash);
+    TransactionStatus successByHash(String hash);
 
 
     /**
