@@ -135,8 +135,7 @@ public class WithdrawOrderTask {
                     "orderNo=" + order.getOrderNo()
                     + "&sign=" + sign
                     + "&timestamp=" + timestamp;
-            webHookService.dingTalkSend(txid + " 提现失败，确认失败后，请在1小时内通过此链接确认失败：" + url, WebHookToken.PRO_BUG_PUSH);
-
+            webHookService.dingTalkSend(txid + " 提现失败，确认失败后，请在24小时内通过此链接确认失败：" + url, WebHookToken.PRO_BUG_PUSH);
         }
 
         if (transactionStatus == null) {
