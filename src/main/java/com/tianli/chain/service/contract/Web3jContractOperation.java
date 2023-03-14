@@ -151,7 +151,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
      * @param operation 操作信息
      * @return 结果
      */
-    private String sendRawTransaction(BigInteger nonce, Long chainId, String to, String data, BigInteger value,
+    public String sendRawTransaction(BigInteger nonce, Long chainId, String to, String data, BigInteger value,
                                       String gas, BigInteger gasLimit, String password, String operation) {
         log.info("gas:{}, limit: {}", gas, gasLimit);
 
