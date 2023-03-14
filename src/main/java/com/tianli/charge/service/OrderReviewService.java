@@ -71,8 +71,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         order.setCompleteTime(LocalDateTime.now());
         orderService.updateById(order);
 
-        accountBalanceServiceImpl.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), order.getOrderNo()
-                , "提现上链失败");
+        accountBalanceService.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), order.getOrderNo());
     }
 
     public void review(OrderReviewQuery query) {
