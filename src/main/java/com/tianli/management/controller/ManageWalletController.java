@@ -119,6 +119,13 @@ public class ManageWalletController {
         return Result.success().setData(chargeService.selectOrderChargeInfoVOPage(page.page(), query));
     }
 
+    @DeleteMapping("order")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result<Void> orderDelete(@RequestParam("id") Long id) {
+        orderService.removeById(id);
+        return new Result<>();
+    }
+
     /**
      * 【云钱包提币管理】上方统计
      */
