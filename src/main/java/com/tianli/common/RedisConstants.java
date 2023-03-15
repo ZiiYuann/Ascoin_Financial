@@ -48,4 +48,7 @@ public class RedisConstants {
 
     public static final String HOT_WALLET_BALANCE = "hot:wallet:balance";
 
+    public static final String WITHDRAW_ORDER_TASK = "task:withdraw:";
+
+
 }

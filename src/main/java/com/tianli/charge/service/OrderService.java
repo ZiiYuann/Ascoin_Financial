@@ -214,6 +214,13 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
         }
     }
 
+    public void chainFail(String orderNo,LocalDateTime now) {
+        int i = orderMapper.chainFail(orderNo,now);
+        if (i != 1) {
+            throw ErrorCodeEnum.TRADE_FAIL.generalException();
+        }
+    }
+
     @Resource
     private OrderMapper orderMapper;
     @Resource

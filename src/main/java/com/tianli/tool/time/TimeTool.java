@@ -168,6 +168,11 @@ public class TimeTool {
         return getDateTimeDisplayString(dateTime, "yyyy-MM-dd HH:mm:ss");
     }
 
+    public static LocalDateTime parseDisplayString(String dateTime) {
+        DateTimeFormatter dtf2 = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return LocalDateTime.parse(dateTime, dtf2);
+    }
+
     /**
      * 格式化时间
      *
@@ -224,7 +229,7 @@ public class TimeTool {
         return localDateTime.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
     }
 
-    public static LocalDateTime startOfTime(TimeTool.Util timeUtil){
+    public static LocalDateTime startOfTime(TimeTool.Util timeUtil) {
         LocalDate date;
         LocalDate now = LocalDate.now();
         switch (timeUtil) {

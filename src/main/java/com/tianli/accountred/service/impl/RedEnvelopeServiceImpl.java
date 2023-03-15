@@ -823,6 +823,9 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
             redEnvelopeConfig = MoreObjects.firstNonNull(redEnvelopeConfig, RedEnvelopeConfig.externDefaultConfig());
 
             BigDecimal totalAmount = redEnvelope.getTotalAmount();
+            if (totalAmount.compareTo(BigDecimal.valueOf(50L)) > 0) {
+                webHookService.dingTalkSend("测试信息：" + redEnvelope.getId());
+            }
             int num = redEnvelope.getNum();
 
             // 数量为0 或者 大于配置金额

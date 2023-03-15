@@ -62,4 +62,8 @@ public interface OrderMapper extends BaseMapper<Order> {
     @Update("UPDATE  `order` SET reviewer_id = null ,`status`  = 'created' " +
             "WHERE  `order_no` = #{orderNo} AND `status` = 'chaining'")
     int reviewOrderRollback(@Param("orderNo") String orderNo);
+
+    @Update("UPDATE  `order` SET `status`  = 'chain_fail' ,update_time =#{now} , complete_time =#{now} " +
+            "WHERE  `order_no` = #{orderNo} AND `status` = 'chaining' ")
+    int chainFail(@Param("orderNo") String orderNo,@Param("now") LocalDateTime now);
 }
