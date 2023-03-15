@@ -134,7 +134,8 @@ public class WithdrawOrderTask {
             String url = urlPre + "/api/management/financial/wallet/chainFail/confirm?" +
                     "orderNo=" + order.getOrderNo()
                     + "&sign=" + sign
-                    + "&timestamp=" + timestamp;
+                    + "&timestamp=" + timestamp
+                    + "&confirm=false";
             webHookService.dingTalkSend(txid + " 提现失败，确认失败后，请在24小时内通过此链接确认失败：" + url, WebHookToken.PRO_BUG_PUSH);
         }
 
