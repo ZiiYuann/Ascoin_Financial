@@ -173,10 +173,14 @@ public class ManageWalletController {
      */
 
     @GetMapping("/chainFail/confirm")
-    public Result<Void> chainFailConfirm(@RequestParam("sign") String sign,
-                                         @RequestParam("timestamp") String timestamp,
-                                         @RequestParam("orderNo") String orderNO) {
+    public Result<String> chainFailConfirm(@RequestParam("sign") String sign,
+                                           @RequestParam("timestamp") String timestamp,
+                                           @RequestParam("orderNo") String orderNO,
+                                           @RequestParam(value = "confirm", required = false) Boolean confirm) {
 
+        if (!Boolean.TRUE.equals(confirm)) {
+            return new Result<>();
+        }
         if (!Crypto.hmacToString(DigestFactory.createSHA256(), "VxaVdCoah9kZSCMdxAgMBAAE", timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
@@ -187,7 +191,7 @@ public class ManageWalletController {
             throw ErrorCodeEnum.SIGN_EXPIRE.generalException();
         }
         orderReviewService.withdrawChainFail(orderNO);
-        return new Result<>();
+        return Result.success("修改订单状态成功");
     }
 
     /**
