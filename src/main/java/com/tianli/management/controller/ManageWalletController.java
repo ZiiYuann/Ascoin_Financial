@@ -7,6 +7,7 @@ import com.tianli.account.service.AccountBalanceOperationLogService;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.AccountBalanceSimpleVO;
 import com.tianli.account.vo.OrderChargeTypeVO;
+import com.tianli.account.vo.WalletChargeFlowVo;
 import com.tianli.chain.entity.ChainCallbackLog;
 import com.tianli.chain.entity.WalletImputation;
 import com.tianli.chain.entity.WalletImputationLog;
@@ -27,6 +28,7 @@ import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.service.IOrderChargeTypeService;
 import com.tianli.charge.service.OrderReviewService;
 import com.tianli.charge.service.OrderService;
+import com.tianli.charge.vo.OperationTypeVo;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderReviewVO;
 import com.tianli.common.PageQuery;
@@ -311,8 +313,8 @@ public class ManageWalletController {
      * @return
      */
     @GetMapping("/walletChargeFlow/list")
-    public Result capitalFlowList(PageQuery<AccountBalanceOperationLog> pageQuery, WalletChargeFlowQuery walletChargeFlowQuery) {
-        return Result.instance().setData(logService.capitalFlowList(pageQuery, walletChargeFlowQuery));
+    public Result<IPage<WalletChargeFlowVo>> capitalFlowList(PageQuery<AccountBalanceOperationLog> pageQuery, WalletChargeFlowQuery walletChargeFlowQuery) {
+        return new Result<>(logService.capitalFlowList(pageQuery, walletChargeFlowQuery));
     }
 
     /**
