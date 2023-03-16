@@ -355,6 +355,10 @@ public class FinancialServiceImpl implements FinancialService {
                     .remainAmount(userAssetsVO.getRemainAmount())
                     .balanceAmount(userAssetsVO.getBalanceAmount())
                     .fundHoldAmount(userAssetsVO.getFundHoldAmount())
+                    /**
+                     * 云钱包用户管理加入理财资产字段
+                     */
+                    .financialHoldAmount(userAssetsVO.getFinancialHoldAmount())
                     .borrowAmount(BigDecimal.ZERO)
                     .fundIncomeAmount(fundIncomeMap.get(uid1))
                     .build();

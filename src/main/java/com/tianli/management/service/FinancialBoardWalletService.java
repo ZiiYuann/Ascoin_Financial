@@ -270,6 +270,10 @@ public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalle
                 .build();
     }
 
+    /**
+     *
+     2023-03-13需求变更，总资产等于云钱包资产，不包含理财等其他资产
+     */
     private BoardAssetsVO getByHotWalletBoardDto(String createTime, HotWalletBoardDto dto) {
         var accountAmounts = dto.getAccountBalances().stream()
                 .map(vo -> new AmountDto(vo.getBalanceAmount(), vo.getCoin())).collect(Collectors.toList());
@@ -279,8 +283,8 @@ public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalle
                 .accrueRechargeFee(currencyService.calDollarAmount(dto.getRechargeAmounts()))
                 .totalAssets(BigDecimal.ZERO
                         .add(currencyService.calDollarAmount(accountAmounts))
-                        .add(currencyService.calDollarAmount(dto.getFinancialAmounts()))
-                        .add(currencyService.calDollarAmount(dto.getFundAmounts()))
+//                        .add(currencyService.calDollarAmount(dto.getFinancialAmounts()))
+//                        .add(currencyService.calDollarAmount(dto.getFundAmounts()))
                 )
                 .build();
     }

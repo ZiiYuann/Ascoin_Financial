@@ -92,4 +92,10 @@ public class FinancialUserInfoVO {
      */
     @BigDecimalFormat("0.00")
     private BigDecimal financialIncomeAmount;
+
+    /**
+     * 理财持有
+     */
+    @BigDecimalFormat("0.00")
+    private  BigDecimal financialHoldAmount;
 }

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianli.account.mapper.AccountBalanceOperationLogMapper">
+
+    <select id="list" parameterType="com.tianli.management.query.WalletChargeFlowQuery" resultType="com.tianli.account.vo.WalletChargeFlowVo">
+        SELECT
+        abol.id,
+        abol.uid,
+        abol.coin,
+        abol.charge_type,
+        abol.order_no,
+        abol.amount,
+        abol.create_time,
+        abol.balance,
+        abol.freeze,
+        abol.remain,
+        abol.log_type,
+        act.operation_type,
+        act.operation_group,
+        act.name as chargeTypeName
+        FROM
+        account_balance_operation_log abol
+        left join order_charge_type act ON abol.charge_type = act.type
+        where abol.charge_type!=#{param1}
+             <if test="param.uid !=null and param.uid !=''">
+                 and abol.uid=#{param.uid}
+             </if>
+             <if test="param.coin !=null and param.coin !=''">
+                 and abol.coin=#{param.coin}
+             </if>
+             <if test="param.operationGroup !=null and param.operationGroup !='' and param.withdrawType==null">
+                 and act.operation_group=#{param.operationGroup}
+             </if>
+             <if test="param.withdrawType !=null and param.withdrawType !=''">
+                 and abol.log_type=#{param.withdrawType} and abol.charge_type=#{param2}
+             </if>
+            <if test="param.withdrawType =='' and param.type!=''">
+                and abol.charge_type=#{param.type}
+            </if>
+             <if test="param.operationType !=null and param.operationType !='' ">
+                 and act.operation_type=#{param.operationType}
+             </if>
+             <if test="param.startTime != null">
+                 and abol.create_time &gt; #{param.startTime}
+             </if>
+             <if test="param.endTime != null">
+                and abol.create_time &lt; #{param.endTime}
+             </if>
+    </select>
+
+
+
+</mapper>

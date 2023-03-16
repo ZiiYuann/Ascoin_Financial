@@ -2,7 +2,11 @@ package com.tianli.management.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.entity.AccountBalanceOperationLog;
+import com.tianli.account.service.AccountBalanceOperationLogService;
+import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.AccountBalanceSimpleVO;
+import com.tianli.account.vo.OrderChargeTypeVO;
 import com.tianli.chain.entity.ChainCallbackLog;
 import com.tianli.chain.entity.WalletImputation;
 import com.tianli.chain.entity.WalletImputationLog;
@@ -19,6 +23,7 @@ import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.service.ChargeService;
+import com.tianli.charge.service.IOrderChargeTypeService;
 import com.tianli.charge.service.OrderReviewService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.charge.vo.OrderChargeInfoVO;
@@ -27,10 +32,7 @@ import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
-import com.tianli.management.query.FinancialChargeQuery;
-import com.tianli.management.query.WalletImputationLogQuery;
-import com.tianli.management.query.WalletImputationManualQuery;
-import com.tianli.management.query.WalletImputationQuery;
+import com.tianli.management.query.*;
 import com.tianli.management.service.ServiceFeeService;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.ImputationAmountVO;
@@ -76,6 +78,13 @@ public class ManageWalletController {
     private ServiceFeeService serviceFeeService;
     @Resource
     private OrderService orderService;
+
+    @Resource
+    private AccountBalanceOperationLogService logService;
+
+
+    @Resource
+    private IOrderChargeTypeService orderChargeTypeService;
 
     /**
      * 【云钱包充值记录】列表
@@ -286,6 +295,27 @@ public class ManageWalletController {
     public Result<Void> withdrawServiceFeeInit() {
         serviceFeeService.init();
         return Result.success();
+    }
+
+    /**
+     * 【云钱包资金流水】列表
+     *
+     * @param walletChargeFlowQuery
+     * @return
+     */
+    @GetMapping("/walletChargeFlow/list")
+    public Result capitalFlowList(PageQuery<AccountBalanceOperationLog> pageQuery, WalletChargeFlowQuery walletChargeFlowQuery) {
+        return Result.instance().setData(logService.capitalFlowList(pageQuery, walletChargeFlowQuery));
+    }
+
+    /**
+     * 【云钱包资金流水】获取所有的操作类型
+     *
+     * @return
+     */
+    @GetMapping("/chargeType/List")
+    public Result<List<OrderChargeTypeVO>> chargeTypeList() {
+        return Result.instance().setData(orderChargeTypeService.chargeTypeList());
     }
 
 }
