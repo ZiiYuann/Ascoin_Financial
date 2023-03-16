@@ -339,6 +339,6 @@ public class ManageWalletController {
         for (OperationTypeEnum value : OperationTypeEnum.values()) {
             map.put(value.getEnName(),value.getName());
         }
-        return Result.instance().setData(map);
+        return new Result<>(map);
     }
 }
