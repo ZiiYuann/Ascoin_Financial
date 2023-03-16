@@ -1,9 +1,12 @@
 package com.tianli.account.controller;
 
 import com.google.common.base.MoreObjects;
+import com.tianli.account.entity.AccountBalanceOperationLog;
+import com.tianli.account.query.AccountDetailsNewQuery;
 import com.tianli.account.query.AccountDetailsQuery;
 import com.tianli.account.query.IdsQuery;
 import com.tianli.account.service.impl.AccountBalanceServiceImpl;
+import com.tianli.account.vo.OrderChargeTypeVO;
 import com.tianli.address.service.AddressService;
 import com.tianli.account.vo.TransactionGroupTypeVO;
 import com.tianli.address.mapper.Address;
@@ -14,6 +17,7 @@ import com.tianli.chain.service.CoinService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeGroup;
 import com.tianli.charge.service.ChargeService;
+import com.tianli.charge.service.IOrderChargeTypeService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
@@ -51,6 +55,9 @@ public class AccountController {
     private WebHookService webHookService;
     @Resource
     private CoinService coinService;
+
+    @Resource
+    private IOrderChargeTypeService orderChargeTypeService;
 
 
     /**
@@ -216,6 +223,27 @@ public class AccountController {
     public Result<List<TransactionGroupTypeVO>> transactionType() {
         Long uid = requestInitService.uid();
         return new Result<>(chargeService.listTransactionGroupType(uid, List.of(ChargeGroup.receive, ChargeGroup.pay)));
+    }
+
+
+    /**
+     * 【云钱包】流水新交易类型
+     */
+    @GetMapping("/transaction/newType")
+    public Result<List<OrderChargeTypeVO>> newType() {
+        Long uid = requestInitService.uid();
+        return new Result<>(orderChargeTypeService.listChargeType(uid));
+    }
+
+    /**
+     * 【云钱包】币别详情下方流水列表
+     */
+    @GetMapping("/balance/newDetails")
+    public Result accountNewDetails(PageQuery<AccountBalanceOperationLog> pageQuery, AccountDetailsNewQuery query) {
+        Long uid = requestInitService.uid();
+//        Long uid=1737483724589629442l;
+        query = MoreObjects.firstNonNull(query, new AccountDetailsNewQuery());
+        return Result.instance().setData(chargeService.newPageByChargeGroup(uid, query, pageQuery.page()));
     }
 
 }

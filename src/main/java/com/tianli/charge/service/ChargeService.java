@@ -5,11 +5,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.base.MoreObjects;
+import com.tianli.account.entity.AccountBalanceOperationLog;
 import com.tianli.account.entity.AccountUserTransfer;
-import com.tianli.account.enums.AccountChangeType;
+import com.tianli.account.enums.*;
+import com.tianli.account.query.AccountDetailsNewQuery;
 import com.tianli.account.query.AccountDetailsQuery;
+import com.tianli.account.service.AccountBalanceOperationLogService;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.AccountUserTransferService;
+import com.tianli.account.vo.AccountBalanceOperationLogVo;
 import com.tianli.account.vo.TransactionGroupTypeVO;
 import com.tianli.account.vo.TransactionTypeVO;
 import com.tianli.address.mapper.Address;
@@ -85,6 +90,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class ChargeService extends ServiceImpl<OrderMapper, Order> {
+
+    @Resource
+    AccountBalanceOperationLogService logService;
 
     private static final List<TransactionGroupTypeVO> transactionGroupTypeVOs = new ArrayList<>(2);
 
@@ -619,6 +627,119 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             }
             return orderChargeInfoVO;
         });
+    }
+
+    /**
+     * 获取分页数据 2023-03-13需求改动
+     * 查询account_balance_operation_log表
+     */
+    public IPage<AccountBalanceOperationLogVo> newPageByChargeGroup(Long uid, AccountDetailsNewQuery query, Page<AccountBalanceOperationLog> page) {
+        LambdaQueryWrapper<AccountBalanceOperationLog> wrapper = new LambdaQueryWrapper<AccountBalanceOperationLog>()
+                .eq(AccountBalanceOperationLog::getUid, uid)
+                .orderByDesc(AccountBalanceOperationLog::getCreateTime)
+                .orderByDesc(AccountBalanceOperationLog::getId);
+
+
+        //提币类型的需要根据两个字段查询
+        if (CollectionUtils.isNotEmpty(query.getChargeType())) {
+            if (query.getChargeType().contains(WithdrawChargeTypeEnum.withdraw.name())) {
+                List<String> withdrawTypes = query.getChargeType().stream().filter(chargeType -> chargeType.contains(WithdrawChargeTypeEnum.withdraw.name())).collect(Collectors.toList());
+                wrapper.eq(AccountBalanceOperationLog::getChargeType, WithdrawChargeTypeEnum.withdraw.name())
+                        .eq(AccountBalanceOperationLog::getLogType, WithdrawChargeTypeEnum.getTypeByDesc(withdrawTypes.get(0)));
+            }
+            wrapper.or().in(AccountBalanceOperationLog::getChargeType, query.getChargeType());
+        }
+
+        if (StringUtils.isNotBlank(query.getCoin())) {
+            wrapper = wrapper.eq(AccountBalanceOperationLog::getCoin, query.getCoin());
+        }
+
+        if (Objects.nonNull(query.getStartTime()) && Objects.nonNull(query.getEndTime())) {
+            wrapper.between(AccountBalanceOperationLog::getCreateTime, query.getStartTime(), query.getEndTime());
+        }
+        if (Objects.nonNull(query.getStartTime()) && Objects.isNull(query.getEndTime())) {
+            wrapper.gt(AccountBalanceOperationLog::getCreateTime, query.getStartTime());
+        }
+        if (Objects.isNull(query.getStartTime()) && Objects.nonNull(query.getEndTime())) {
+            wrapper.lt(AccountBalanceOperationLog::getCreateTime, query.getEndTime());
+        }
+
+        Page<AccountBalanceOperationLog> logPages = logService.page(page, wrapper);
+        return logPages.convert(logPage -> {
+            return log2VO(logPage);
+        });
+    }
+
+
+    /**
+     * 封装AccountBalanceOperationLogVo
+     *
+     * @param log
+     * @return
+     */
+    public AccountBalanceOperationLogVo log2VO(AccountBalanceOperationLog log) {
+        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Order::getOrderNo, log.getOrderNo());
+        Order order = orderService.getOne(wrapper);
+        MoreObjects.firstNonNull(order, new Order());
+        AccountBalanceOperationLogVo logVo = new AccountBalanceOperationLogVo();
+        logVo.setId(log.getId());
+        logVo.setUid(log.getUid());
+        logVo.setOrderNo(log.getOrderNo());
+        ChargeType chargeType = log.getChargeType();
+        logVo.setNewChargeType(NewChargeType.getInstance(chargeType));
+        NewChargeType newChargeType = logVo.getNewChargeType();
+        //提币状态分离
+        if (newChargeType.name().equals(WithdrawChargeTypeEnum.withdraw.getType())) {
+            if (log.getLogType().name().equals(WithdrawChargeTypeEnum.withdraw_success.getType())) {
+                //只有提币成功、提币失败（链上失败）有详情，提币冻结（即提币中）、提币失败（审核拒绝）都是没有详情的
+                logVo.setStatus(NewChargeStatus.withdraw_success);
+                logVo.setIsSeeDetails(1);
+            } else if (log.getLogType().name().equals(WithdrawChargeTypeEnum.withdraw_failed.getType())) {
+                logVo.setStatus(NewChargeStatus.withdraw_failed);
+                if (WithdrawFailedDes.CHAINFAIL.equals(log.getDes())) {
+                    logVo.setIsSeeDetails(1);
+                }
+            } else {
+                logVo.setStatus(NewChargeStatus.withdraw_freeze);
+            }
+        } else {
+            logVo.setStatus(NewChargeStatus.getInstance(order.getStatus()));
+        }
+        logVo.setCreateTime(log.getCreateTime());
+        logVo.setCompleteTime(order.getCompleteTime());
+        logVo.setAmount(log.getAmount());
+        logVo.setCoin(log.getCoin());
+        logVo.setServiceAmount(order.getServiceAmount());
+        logVo.setUpdateTime(order.getUpdateTime());
+        logVo.setRelatedId(order.getRelatedId());
+        logVo.setDes(log.getDes());
+        NewChargeType type = logVo.getNewChargeType();
+        if (NewChargeType.transaction_reward.equals(type)) {
+            int i = orderRewardRecordService.recordCountThisHour(logVo.getUid(), logVo.getCreateTime());
+            logVo.setRemarks("已发放" + i + "笔");
+            logVo.setRemarksEn(i + " Receiving Record(s)");
+        }
+
+        if (!NewChargeType.transaction_reward.equals(type)) {
+            NewChargeRemarks remarks = NewChargeRemarks.getInstance(logVo.getNewChargeType(), logVo.getStatus());
+            logVo.setRemarks(remarks.getRemarks());
+            logVo.setRemarksEn(remarks.getRemarksEn());
+        }
+
+        if (NewChargeType.user_credit_in.equals(type) || NewChargeType.user_credit_out.equals(type) ||
+                ChargeType.credit_out.equals(type) || ChargeType.credit_in.equals(type)) {
+            AccountUserTransfer accountUserTransfer =
+                    accountUserTransferService.getByExternalPk(logVo.getRelatedId());
+
+            Optional.ofNullable(accountUserTransfer)
+                    .ifPresent(a -> logVo.setOrderOtherInfoVo(OrderOtherInfoVo.builder()
+                            .transferExternalPk(a.getExternalPk())
+                            .build()));
+
+        }
+
+        return logVo;
     }
 
 

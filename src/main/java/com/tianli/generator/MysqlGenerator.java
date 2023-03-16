@@ -30,7 +30,7 @@ public class MysqlGenerator {
     /**
      * 需生成数据库表
      */
-    private static final String[] TABLE_ARR = new String[]{"fund_review"};
+    private static final String[] TABLE_ARR = new String[]{"order_charge_type"};
 
     public static void main(String[] args) {
         generator();
@@ -96,14 +96,14 @@ public class MysqlGenerator {
             }
         });
         dsc.setDriverName("com.mysql.cj.jdbc.Driver");
-        dsc.setUsername("financial");
-        dsc.setPassword("@tianli123456TL");
-        dsc.setUrl("jdbc:mysql://rm-6we8u0l05o7z6tf76jo.mysql.japan.rds.aliyuncs.com:3306/financial?characterEncoding=UTF-8");
+        dsc.setUsername("root");
+        dsc.setPassword("root12345");
+        dsc.setUrl("jdbc:mysql://localhost:3306/red?characterEncoding=UTF-8");
         mpg.setDataSource(dsc);
 
         // 包配置
         PackageConfig pc = new PackageConfig();
-        pc.setParent("com.tianli.fund");
+        pc.setParent("com.tianli.charge");
         pc.setController("controller");
         pc.setEntity("entity");
         pc.setMapper("dao");

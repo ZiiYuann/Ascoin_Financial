@@ -1,7 +1,10 @@
 package com.tianli.account.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.account.entity.AccountBalanceOperationLog;
+import com.tianli.account.vo.WalletChargeFlowVo;
+import com.tianli.management.query.WalletChargeFlowQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -38,6 +41,9 @@ public interface AccountBalanceOperationLogMapper extends BaseMapper<AccountBala
 
     @Select("select ifnull(sum(`amount`), 0) from `account_balance_operation` where `uid` = #{uid} and `des` = '利息'")
     BigInteger selectSumMiningAmount(Long uid);
+
+    IPage<WalletChargeFlowVo> list(@Param("page") IPage<AccountBalanceOperationLog> logIPage,
+                                   @Param("param") WalletChargeFlowQuery walletChargeFlowQuery, @Param("param1")String excludeType, @Param("param2")String withDraw);
 
     class GenerateSQL{
         private SQL countSQL(Long uid, String phone, String bet_id, String startTime, String endTime){
