@@ -57,8 +57,9 @@ public class ManagerRedEnvelopeController {
      * @return
      */
     @GetMapping("/details")
-    public Result details(@RequestParam("coin") String coin) {
-        RedEnvelopeConfig one = redEnvelopeConfigService.getDetails(coin, RedEnvelopeChannel.EXTERN);
+    public Result details(@RequestParam("coin") String coin,
+                          @RequestParam("channel") RedEnvelopeChannel channel) {
+        RedEnvelopeConfig one = redEnvelopeConfigService.getDetails(coin, channel);
         return Result.success(one);
     }
 }

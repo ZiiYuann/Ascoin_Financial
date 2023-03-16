@@ -118,13 +118,12 @@ public class WithdrawOrderTask {
         stringRedisTemplate.opsForValue().set(key, nowTime, 24, TimeUnit.HOURS);
 
         if (TransactionStatus.SUCCESS.equals(transactionStatus)) {
-            webHookService.dingTalkSend(txid + " 提现异常，此订单交易成功，但是订单状态未修改，请及时排除问题", WebHookToken.PRO_BUG_PUSH);
+            webHookService.dingTalkSend(txid + " 提现异常，此订单交易成功，但是订单状态未修改，请及时排除问题", WebHookToken.FINANCIAL_PRODUCT);
 
         }
 
         if (TransactionStatus.PENDING.equals(transactionStatus)) {
-            webHookService.dingTalkSend(txid + " 提现状态PENDING，请校验是否正常", WebHookToken.PRO_BUG_PUSH);
-
+            webHookService.dingTalkSend(txid + " 提现状态PENDING，请校验是否正常", WebHookToken.FINANCIAL_PRODUCT);
         }
 
         if (TransactionStatus.FAIL.equals(transactionStatus)) {
@@ -136,7 +135,7 @@ public class WithdrawOrderTask {
                     + "&sign=" + sign
                     + "&timestamp=" + timestamp
                     + "&confirm=false";
-            webHookService.dingTalkSend(txid + " 提现失败，确认失败后，请在24小时内通过此链接确认失败：" + url, WebHookToken.PRO_BUG_PUSH);
+            webHookService.dingTalkSend(txid + " 提现失败，确认失败后，请在24小时内通过此链接确认失败：" + url, WebHookToken.FINANCIAL_PRODUCT);
         }
 
         if (transactionStatus == null) {
