@@ -422,9 +422,11 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
     public OrderChargeInfoVO chargeOrderDetails(Long uid, String orderNo) {
 
-        LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
-                .eq(Order::getUid, uid)
-                .eq(Order::getOrderNo, orderNo);
+        LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>();
+        if (Objects.nonNull(uid)) {
+            queryWrapper .eq(Order::getUid, uid);
+        }
+        queryWrapper .eq(Order::getOrderNo, orderNo);
         Order order = orderService.getOne(queryWrapper);
 
         return getOrderChargeInfoVO(order);

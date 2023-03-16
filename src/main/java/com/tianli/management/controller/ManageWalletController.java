@@ -48,10 +48,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author lzy
@@ -334,11 +331,22 @@ public class ManageWalletController {
      * @return
      */
     @GetMapping("/operationType/List")
-    public Result<Map<String, String>> operationTypeList() {
-        Map<String, String> map = new HashMap<>();
+    public Result<List<OperationTypeVo>> operationTypeList() {
+        List<OperationTypeVo> list = new ArrayList<>();
         for (OperationTypeEnum value : OperationTypeEnum.values()) {
-            map.put(value.getEnName(),value.getName());
+            list.add(new OperationTypeVo(){{
+                setName(value.getName());
+                setEnName(value.getEnName());
+            }});
         }
-        return new Result<>(map);
+        return new Result<>(list);
+    }
+
+    /**
+     * 【云钱包资金流水】流水详情【充值、提币】
+     */
+    @GetMapping("/details/{orderNo}")
+    public Result chargeOrderDetails(@PathVariable String orderNo) {
+        return Result.instance().setData(chargeService.chargeOrderDetails(null, orderNo));
     }
 }
