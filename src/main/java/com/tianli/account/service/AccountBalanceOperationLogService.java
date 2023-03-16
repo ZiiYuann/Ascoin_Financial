@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.entity.AccountBalanceOperationLog;
+import com.tianli.account.enums.AccountOperationType;
 import com.tianli.charge.enums.ChargeTypeGroupEnum;
 import com.tianli.charge.enums.NewChargeType;
 import com.tianli.charge.enums.WithdrawChargeTypeEnum;

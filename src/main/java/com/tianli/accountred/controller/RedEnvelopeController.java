@@ -188,7 +188,7 @@ public class RedEnvelopeController {
         String rid = redEnvelopeSpiltDTO.getRid();
         RedEnvelope redEnvelope = redEnvelopeService.getWithCache(Long.valueOf(rid));
         CoinBase coinBase = coinBaseService.getByName(redEnvelope.getCoin());
-        var result = RedEnvelopeExchangeCodeVO1.builder()
+        RedEnvelopeExchangeCodeVO1 result  = RedEnvelopeExchangeCodeVO1.builder()
                 .coin(redEnvelope.getCoin())
                 .coinUrl(coinBase.getLogo())
                 .receiveAmount(redEnvelopeSpiltDTO.getAmount())
