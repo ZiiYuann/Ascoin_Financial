@@ -7,14 +7,9 @@ import com.tianli.account.query.AccountDetailsNewQuery;
 import com.tianli.account.query.AccountDetailsQuery;
 import com.tianli.account.query.IdsQuery;
 import com.tianli.account.service.AccountBalanceService;
-import com.tianli.account.vo.AccountBalanceMainPageVO;
-import com.tianli.account.vo.AccountBalanceVO;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
-import com.tianli.account.vo.OrderChargeTypeVO;
+import com.tianli.account.vo.*;
 import com.tianli.address.service.AddressService;
-import com.tianli.account.vo.TransactionGroupTypeVO;
 import com.tianli.address.mapper.Address;
-import com.tianli.address.service.AddressService;
 import com.tianli.address.vo.AddressVO;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.enums.ChainType;
@@ -255,11 +250,11 @@ public class AccountController {
      * 【云钱包】币别详情下方流水列表
      */
     @GetMapping("/balance/newDetails")
-    public Result accountNewDetails(PageQuery<AccountBalanceOperationLog> pageQuery, AccountDetailsNewQuery query) {
+    public Result<IPage<AccountBalanceOperationLogVo>> accountNewDetails(PageQuery<AccountBalanceOperationLog> pageQuery, AccountDetailsNewQuery query) {
         Long uid = requestInitService.uid();
 //        Long uid=1737483724589629442l;
         query = MoreObjects.firstNonNull(query, new AccountDetailsNewQuery());
-        return Result.instance().setData(chargeService.newPageByChargeGroup(uid, query, pageQuery.page()));
+        return new Result<>(chargeService.newPageByChargeGroup(uid, query, pageQuery.page()));
     }
 
 }

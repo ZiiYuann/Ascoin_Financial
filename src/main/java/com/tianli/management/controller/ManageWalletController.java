@@ -315,7 +315,7 @@ public class ManageWalletController {
      */
     @GetMapping("/chargeType/List")
     public Result<List<OrderChargeTypeVO>> chargeTypeList() {
-        return Result.instance().setData(orderChargeTypeService.chargeTypeList());
+        return Result.success(orderChargeTypeService.chargeTypeList());
     }
 
 }
