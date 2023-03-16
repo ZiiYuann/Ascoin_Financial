@@ -140,7 +140,6 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
 
         // 审核不通过需要解冻金额
         if (!query.isPass()) {
-            orderService.reviewOrder(order.getOrderNo(), orderReview.getId());
             accountBalanceServiceImpl.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount()
                     , order.getOrderNo(), "提现申请未通过");
             order.setStatus(ChargeStatus.review_fail);
