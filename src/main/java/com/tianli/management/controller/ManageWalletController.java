@@ -21,6 +21,7 @@ import com.tianli.chain.vo.WalletImputationLogVO;
 import com.tianli.chain.vo.WalletImputationVO;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.enums.OperationTypeEnum;
 import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.service.IOrderChargeTypeService;
@@ -47,7 +48,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -325,4 +328,17 @@ public class ManageWalletController {
         return Result.success(orderChargeTypeService.chargeTypeList());
     }
 
+    /**
+     * 【云钱包资金流水】获取所有的操作分类
+     *
+     * @return
+     */
+    @GetMapping("/operationType/List")
+    public Result<Map<String, String>> operationTypeList() {
+        Map<String, String> map = new HashMap<>();
+        for (OperationTypeEnum value : OperationTypeEnum.values()) {
+            map.put(value.getEnName(),value.getName());
+        }
+        return Result.instance().setData(map);
+    }
 }
