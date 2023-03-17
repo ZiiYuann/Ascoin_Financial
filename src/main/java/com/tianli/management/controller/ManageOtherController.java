@@ -2,6 +2,7 @@ package com.tianli.management.controller;
 
 import com.tianli.account.query.IdsQuery;
 import com.tianli.accountred.service.RedEnvelopeConfigService;
+import com.tianli.accountred.service.RedEnvelopeSpiltGetRecordService;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.other.entity.Banner;
@@ -28,6 +29,8 @@ public class ManageOtherController {
     @Resource
     private BannerService bannerService;
     @Resource
+    private RedEnvelopeSpiltGetRecordService redEnvelopeSpiltGetRecordService;
+    @Resource
     private RedEnvelopeConfigService redEnvelopeConfigService;
 
     @GetMapping("/banner/list")
@@ -53,9 +56,15 @@ public class ManageOtherController {
     @PostMapping("/red/config")
     @AdminPrivilege(and = Privilege.理财配置)
     public Result redConfig(@RequestBody RedEnvelopeConfigIoUQuery query) {
-        redEnvelopeConfigService.saveOrUpdate(null,query);
+        redEnvelopeConfigService.saveOrUpdate(null, query);
         return Result.success();
     }
 
+    @PostMapping("/red/compensate")
+    @AdminPrivilege(and = Privilege.理财配置)
+    public Result<Void> redCompensate(@RequestBody Long id) {
+        redEnvelopeSpiltGetRecordService.compensate(id);
+        return new Result<>();
+    }
 
 }
