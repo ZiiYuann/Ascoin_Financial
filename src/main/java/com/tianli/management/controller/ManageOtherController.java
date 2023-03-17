@@ -62,7 +62,7 @@ public class ManageOtherController {
 
     @PostMapping("/red/compensate")
     @AdminPrivilege(and = Privilege.理财配置)
-    public Result<Void> redCompensate(@RequestBody Long id) {
+    public Result<Void> redCompensate(@RequestParam Long id) {
         redEnvelopeSpiltGetRecordService.compensate(id);
         return new Result<>();
     }
