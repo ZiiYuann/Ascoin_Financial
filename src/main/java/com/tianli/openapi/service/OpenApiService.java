@@ -80,14 +80,14 @@ public class OpenApiService {
             return new IdDto(rewardRecord.getId());
         }
 
-        OrderRewardRecord orderRewardRecord = insertOrderRecord(query);
-        long recordId = orderRewardRecord.getId();
-        LocalDateTime orderDateTime = orderRewardRecord.getGiveTime();
-
-        LocalDateTime hour = TimeTool.hour(orderDateTime);
         String key = RedisLockConstants.LOCK_REWARD + query.getUid() + ":" + query.getCoin();
         RLock rLock = redissonClient.getLock(key);
         try {
+            OrderRewardRecord orderRewardRecord = insertOrderRecord(query);
+            long recordId = orderRewardRecord.getId();
+            LocalDateTime orderDateTime = orderRewardRecord.getGiveTime();
+            LocalDateTime hour = TimeTool.hour(orderDateTime);
+
             boolean lock = rLock.tryLock(2L, TimeUnit.SECONDS);
             if (!lock) {
                 webHookService.dingTalkSend("交易奖励获取锁超时" + key);
@@ -123,12 +123,13 @@ public class OpenApiService {
                     , query.getAmount(), order.getOrderNo());
 
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             e.printStackTrace();
         } finally {
             assert rLock != null;
             rLock.unlock();
         }
-        return new IdDto(recordId);
+        throw ErrorCodeEnum.SYSTEM_ERROR.generalException();
     }
 
     public TransferResultDto transfer(UserTransferQuery query) {

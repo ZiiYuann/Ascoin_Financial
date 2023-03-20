@@ -101,12 +101,11 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
                 .type(strategy.getReviewType().getType())
                 .createTime(now).build();
         orderReviewMapper.insert(orderReview);
-
+        orderService.reviewOrder(order.getOrderNo(), orderReview.getId());
 
         // 审核通过需要上链 如果传入的hash值为空说明是自动转账
         if ((OrderReviewStrategy.AUTO_REVIEW_AUTO_TRANSFER.equals(strategy) || OrderReviewStrategy.MANUAL_REVIEW_AUTO_TRANSFER.equals(strategy)) &&
                 query.isPass() && StringUtils.isBlank(query.getHash())) {
-            orderService.reviewOrder(order.getOrderNo(), orderReview.getId());
             // 主动提交事务
             platformTransactionManager.commit(transactionStatus);
 

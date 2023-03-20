@@ -84,4 +84,6 @@ public interface RedEnvelopeSpiltGetRecordService {
      */
     BigDecimal receivedAmount(Long rid);
 
+    void compensate(Long id);
+
 }

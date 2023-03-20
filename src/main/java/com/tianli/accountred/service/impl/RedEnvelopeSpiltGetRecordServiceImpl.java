@@ -19,6 +19,7 @@ import com.tianli.accountred.vo.RedEnvelopeSpiltGetRecordVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisConstants;
+import com.tianli.sqs.context.RedEnvelopeContext;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -172,6 +173,21 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
     @Override
     public BigDecimal receivedAmount(Long rid) {
         return MoreObjects.firstNonNull(baseMapper.receivedAmount(rid), BigDecimal.ZERO);
+    }
+
+    @Override
+    @Transactional
+    public void compensate(Long id) {
+        RedEnvelopeSpiltGetRecord redEnvelopeSpiltGetRecord = this.getById(id);
+        redEnvelopeService.asynGet(RedEnvelopeContext.builder()
+                .rid(redEnvelopeSpiltGetRecord.getRid())
+                .uuid(redEnvelopeSpiltGetRecord.getSRid())
+                .uid(redEnvelopeSpiltGetRecord.getUid())
+                .shortUid(redEnvelopeSpiltGetRecord.getShortUid())
+                .exchangeCode(redEnvelopeSpiltGetRecord.getExchangeCode())
+                .deviceNumber(redEnvelopeSpiltGetRecord.getDeviceNumber())
+                .build()
+        );
     }
 
 }
