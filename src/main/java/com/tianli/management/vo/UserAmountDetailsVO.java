@@ -53,4 +53,14 @@ public class UserAmountDetailsVO {
      */
     private BigDecimal dollarFundIncome;
 
+    /**
+     * 交易奖励
+     */
+    private BigDecimal dollerReward;
+
+    /**
+     * 免gas费
+     */
+    private BigDecimal dollerReturngas;
+
 }

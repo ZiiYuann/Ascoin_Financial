@@ -484,6 +484,8 @@ public class FinancialServiceImpl implements FinancialService {
         var userAssetsVO = accountBalanceService.getAllUserAssetsVO(uid);
         BigDecimal dollarRecharge = orderService.uAmount(uid, ChargeType.recharge);
         BigDecimal dollarWithdraw = orderService.uAmount(uid, ChargeType.withdraw);
+        BigDecimal dollerReward=orderService.uAmount(uid,ChargeType.transaction_reward);
+        BigDecimal dollerReturngas = orderService.uAmount(uid, ChargeType.return_gas);
         FundRecordQuery fundRecordQuery = new FundRecordQuery();
         fundRecordQuery.setUid(uid);
 
@@ -501,6 +503,8 @@ public class FinancialServiceImpl implements FinancialService {
                 .dollarFinancial(userAssetsVO.getFinancialHoldAmount())
                 .dollarFinancialIncome(dollarFinancialIncome)
                 .dollarFundIncome(dollarFundIncome)
+                .dollerReward(dollerReward)
+                .dollerReturngas(dollerReturngas)
                 .build();
     }
 
