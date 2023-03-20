@@ -34,7 +34,7 @@
              <if test="param.withdrawType !=null and param.withdrawType !=''">
                  and abol.log_type=#{param.withdrawType} and abol.charge_type=#{param2}
              </if>
-            <if test="param.withdrawType =='' and param.type!=''">
+            <if test="param.withdrawType ==null and param.type!=null">
                 and abol.charge_type=#{param.type}
             </if>
              <if test="param.operationType !=null and param.operationType !='' ">
