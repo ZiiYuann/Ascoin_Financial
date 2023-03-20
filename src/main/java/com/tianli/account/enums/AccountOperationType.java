@@ -10,5 +10,9 @@ public enum AccountOperationType {
     freeze,    // 冻结
     unfreeze,  // 解冻
     decrease,  // 非冻结扣除
+    withdraw, //
+    pledge_freeze,
+    pledge_unfreeze,
+    pledge_reduce
 }
 

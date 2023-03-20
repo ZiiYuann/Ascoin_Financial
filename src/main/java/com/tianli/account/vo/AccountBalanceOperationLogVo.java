@@ -111,4 +111,14 @@ public class AccountBalanceOperationLogVo  {
      */
     private int isSeeDetails;
 
+    /**
+     * 所属组
+     */
+    private String group;
+
+    /**
+     * 所属组英文
+     */
+    private String groupEn;
+
 }

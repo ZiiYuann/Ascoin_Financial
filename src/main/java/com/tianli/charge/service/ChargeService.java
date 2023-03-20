@@ -15,6 +15,7 @@ import com.tianli.account.service.AccountBalanceOperationLogService;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.AccountUserTransferService;
 import com.tianli.account.vo.AccountBalanceOperationLogVo;
+import com.tianli.account.vo.OrderChargeTypeVO;
 import com.tianli.account.vo.TransactionGroupTypeVO;
 import com.tianli.account.vo.TransactionTypeVO;
 import com.tianli.address.mapper.Address;
@@ -35,6 +36,7 @@ import com.tianli.chain.service.contract.ContractOperation;
 import com.tianli.charge.converter.ChargeConverter;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.entity.OrderChargeInfo;
+import com.tianli.charge.entity.OrderChargeType;
 import com.tianli.charge.enums.*;
 import com.tianli.charge.mapper.OrderMapper;
 import com.tianli.charge.query.OrderReviewQuery;
@@ -93,6 +95,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
     @Resource
     AccountBalanceOperationLogService logService;
+
+    @Resource
+    IOrderChargeTypeService iOrderChargeTypeService;
 
     private static final List<TransactionGroupTypeVO> transactionGroupTypeVOs = new ArrayList<>(2);
 
@@ -644,7 +649,9 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         //提币类型的需要根据两个字段查询
         if (CollectionUtils.isNotEmpty(query.getChargeType())) {
-            if (query.getChargeType().contains(WithdrawChargeTypeEnum.withdraw.name())) {
+            if (query.getChargeType().contains(WithdrawChargeTypeEnum.withdraw_success.name())||
+                    query.getChargeType().contains(WithdrawChargeTypeEnum.withdraw_failed.name())||
+            query.getChargeType().contains(WithdrawChargeTypeEnum.withdraw_freeze.name())) {
                 List<String> withdrawTypes = query.getChargeType().stream().filter(chargeType -> chargeType.contains(WithdrawChargeTypeEnum.withdraw.name())).collect(Collectors.toList());
                 wrapper.eq(AccountBalanceOperationLog::getChargeType, WithdrawChargeTypeEnum.withdraw.name())
                         .eq(AccountBalanceOperationLog::getLogType, WithdrawChargeTypeEnum.getTypeByDesc(withdrawTypes.get(0)));
@@ -666,9 +673,10 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             wrapper.lt(AccountBalanceOperationLog::getCreateTime, query.getEndTime());
         }
 
+
         Page<AccountBalanceOperationLog> logPages = logService.page(page, wrapper);
         return logPages.convert(logPage -> {
-            return log2VO(logPage);
+            return   log2VO(logPage);
         });
     }
 
@@ -708,6 +716,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         } else {
             logVo.setStatus(NewChargeStatus.getInstance(order.getStatus()));
         }
+
         logVo.setCreateTime(log.getCreateTime());
         logVo.setCompleteTime(order.getCompleteTime());
         logVo.setAmount(log.getAmount());
@@ -716,6 +725,11 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         logVo.setUpdateTime(order.getUpdateTime());
         logVo.setRelatedId(order.getRelatedId());
         logVo.setDes(log.getDes());
+        LambdaQueryWrapper<OrderChargeType> wrapper1 = new LambdaQueryWrapper<>();
+        wrapper1.eq(OrderChargeType::getType,logVo.getNewChargeType());
+        OrderChargeType orderChargeType = iOrderChargeTypeService.getOne(wrapper1);
+        logVo.setGroupEn(orderChargeType.getOperationGroup());
+        logVo.setGroup(ChargeTypeGroupEnum.getTypeGroup(orderChargeType.getOperationGroup()));
         NewChargeType type = logVo.getNewChargeType();
         if (NewChargeType.transaction_reward.equals(type)) {
             int i = orderRewardRecordService.recordCountThisHour(logVo.getUid(), logVo.getCreateTime());
