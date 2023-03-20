@@ -105,7 +105,7 @@ public class AccountController {
         Long uid = requestInitService.uid();
         Address address = addressService.get(uid);
         if (Objects.isNull(address)) {
-            ErrorCodeEnum.ACCOUNT_NOT_ACTIVE.throwException();
+            address = addressService.activityAccount(uid);
         }
         return Result.success(AddressVO.trans(address));
     }

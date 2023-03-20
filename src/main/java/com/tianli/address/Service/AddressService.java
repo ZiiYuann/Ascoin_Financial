@@ -140,7 +140,9 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
     public String get(long uid, ChainType chain) {
         Address address = get(uid);
         if (address == null) {
-            throw ErrorCodeEnum.ACCOUNT_NOT_ACTIVE.generalException();
+            AddressService bean = Optional.ofNullable(ApplicationContextTool.getBean(AddressService.class))
+                    .orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
+            address = bean.activityAccount(uid);
         }
         if (ChainType.ETH.equals(chain)) {
             return address.getEth();
