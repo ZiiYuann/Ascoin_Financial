@@ -155,7 +155,7 @@ public class ManageWalletController {
     @PostMapping("/order/withdraw/review")
     @AdminPrivilege
     public Result orderReview(@RequestBody @Valid OrderReviewQuery query) {
-        String nickname = AdminContent.get().getNickname();
+        String nickname = AdminContent.get().getUsername();
         Long aid = AdminContent.get().getAid();
         query.setRid(aid);
         query.setReviewBy(nickname);
