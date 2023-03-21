@@ -9,17 +9,21 @@ import com.tianli.exception.ErrorCodeEnum;
  */
 public enum ChargeTypeGroupEnum {
 
-    recharge("充值"),
+    recharge("充值",1),
 
-    withdraw("提币"),
+    withdraw("提币",2),
 
-    receive("转入"),
-    pay("转出");
+    in("转入",3),
+
+    out("转出",4);
 
     private String typeGroup;
 
-    private ChargeTypeGroupEnum(String typeGroup) {
+    private Integer order;
+
+    private ChargeTypeGroupEnum(String typeGroup,Integer order) {
         this.typeGroup = typeGroup;
+        this.order=order;
     }
 
 
@@ -62,4 +66,21 @@ public enum ChargeTypeGroupEnum {
         throw ErrorCodeEnum.SYSTEM_ERROR.generalException();
     }
 
+    public static Integer getOrder(String name){
+        ChargeTypeGroupEnum[] values = ChargeTypeGroupEnum.values();
+        for (ChargeTypeGroupEnum value : values) {
+            if (value.name().equals(name)) {
+                return value.getOrder();
+            }
+        }
+        throw ErrorCodeEnum.SYSTEM_ERROR.generalException();
+    }
+
+    public Integer getOrder() {
+        return order;
+    }
+
+    public void setOrder(Integer order) {
+        this.order = order;
+    }
 }

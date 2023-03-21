@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -46,8 +47,10 @@ public class OrderChargeTypeServiceImpl extends ServiceImpl<OrderChargeTypeMappe
             orderChargeTypeVO.setGroupEn(entry.getKey());
             orderChargeTypeVO.setGroup(ChargeTypeGroupEnum.getTypeGroup(entry.getKey()));
             orderChargeTypeVO.setOrderChargeTypes(entry.getValue());
+            orderChargeTypeVO.setOrder(ChargeTypeGroupEnum.getOrder(entry.getKey()));
             orderChargeTypeVOS.add(orderChargeTypeVO);
         }
+        orderChargeTypeVOS = orderChargeTypeVOS.stream().sorted(Comparator.comparing(OrderChargeTypeVO::getOrder)).collect(Collectors.toList());
         return orderChargeTypeVOS;
     }
 

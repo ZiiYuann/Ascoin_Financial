@@ -23,6 +23,8 @@ public class OrderChargeTypeVO {
 
     private List<OrderChargeType> orderChargeTypes;
 
+    private Integer order;
+
 
     public String getGroup() {
         return group;
@@ -54,5 +56,13 @@ public class OrderChargeTypeVO {
 
     public void setGroupEn(String groupEn) {
         this.groupEn = groupEn;
+    }
+
+    public Integer getOrder() {
+        return order;
+    }
+
+    public void setOrder(Integer order) {
+        this.order = order;
     }
 }
