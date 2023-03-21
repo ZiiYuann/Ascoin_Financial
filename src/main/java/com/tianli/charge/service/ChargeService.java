@@ -455,6 +455,16 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         orderChargeInfoVO.setLogo(coinBase.getLogo());
         orderChargeInfoVO.setNetworkType(orderChargeInfo.getNetwork());
         orderChargeInfoVO.setRealAmount(order.getAmount().subtract(order.getServiceAmount()));
+        if (orderChargeInfoVO.getType().equals(ChargeType.withdraw)&&orderChargeInfoVO.getStatus().equals(NewChargeStatus.chain_success)){
+            orderChargeInfoVO.setNewChargeType(NewChargeType.withdraw_success);
+            orderChargeInfoVO.setNewChargeTypeName(NewChargeType.withdraw_success.getNameZn());
+            orderChargeInfoVO.setNewChargeTypeNameEn(NewChargeType.withdraw_success.getNameEn());
+        }
+        if (orderChargeInfoVO.getType().equals(ChargeType.recharge)&&orderChargeInfoVO.getStatus().equals(NewChargeStatus.chain_success)){
+            orderChargeInfoVO.setNewChargeType(NewChargeType.recharge);
+            orderChargeInfoVO.setNewChargeTypeName(NewChargeType.recharge.getNameZn());
+            orderChargeInfoVO.setNewChargeTypeNameEn(NewChargeType.recharge.getNameEn());
+        }
         return orderChargeInfoVO;
     }
 
@@ -704,17 +714,24 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             if (log.getLogType().name().equals(WithdrawChargeTypeEnum.withdraw_success.getType())) {
                 //只有提币成功、提币失败（链上失败）有详情，提币冻结（即提币中）、提币失败（审核拒绝）都是没有详情的
                 logVo.setStatus(NewChargeStatus.withdraw_success);
-                logVo.setIsSeeDetails(1);
+                logVo.setNewChargeType(NewChargeType.withdraw_success);
+                logVo.setNewChargeTypeName(NewChargeType.withdraw_success.getNameZn());
+                logVo.setNewChargeTypeNameEn(NewChargeType.withdraw_success.getNameEn());
             } else if (log.getLogType().name().equals(WithdrawChargeTypeEnum.withdraw_failed.getType())) {
                 logVo.setStatus(NewChargeStatus.withdraw_failed);
-                if (WithdrawFailedDes.CHAINFAIL.equals(log.getDes())) {
-                    logVo.setIsSeeDetails(1);
-                }
+                logVo.setNewChargeType(NewChargeType.withdraw_failed);
+                logVo.setNewChargeTypeName(NewChargeType.withdraw_failed.getNameZn());
+                logVo.setNewChargeTypeNameEn(NewChargeType.withdraw_failed.getNameEn());
             } else {
                 logVo.setStatus(NewChargeStatus.withdraw_freeze);
+                logVo.setNewChargeType(NewChargeType.withdraw_freeze);
+                logVo.setNewChargeTypeName(NewChargeType.withdraw_freeze.getNameZn());
+                logVo.setNewChargeTypeNameEn(NewChargeType.withdraw_freeze.getNameEn());
             }
         } else {
             logVo.setStatus(NewChargeStatus.getInstance(order.getStatus()));
+            logVo.setNewChargeTypeName(NewChargeType.getInstance(chargeType).getNameZn());
+            logVo.setNewChargeTypeNameEn(NewChargeType.getInstance(chargeType).getNameEn());
         }
 
         logVo.setCreateTime(log.getCreateTime());
@@ -724,7 +741,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         logVo.setServiceAmount(order.getServiceAmount());
         logVo.setUpdateTime(order.getUpdateTime());
         logVo.setRelatedId(order.getRelatedId());
-        logVo.setDes(log.getDes());
         LambdaQueryWrapper<OrderChargeType> wrapper1 = new LambdaQueryWrapper<>();
         wrapper1.eq(OrderChargeType::getType,logVo.getNewChargeType());
         OrderChargeType orderChargeType = iOrderChargeTypeService.getOne(wrapper1);

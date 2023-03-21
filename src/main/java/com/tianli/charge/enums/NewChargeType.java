@@ -17,6 +17,10 @@ public enum NewChargeType {
 
     recharge("Deposition", "充值成功"),
     withdraw("Withdraw", "提币"),
+    withdraw_success("Withdraw Success","提币成功"),
+    withdraw_failed("Withdraw Failed","提币失败"),
+    withdraw_freeze("Withdraw Freeze","提币冻结"),
+
     income("Earnings", "收益"),
     purchase("Subscription", "理财申购"),
     fund_purchase("Fund Subscription", "基金申购"),

@@ -3,6 +3,7 @@ package com.tianli.charge.vo;
 import com.tianli.charge.enums.ChargeGroup;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.enums.NewChargeType;
 import com.tianli.common.blockchain.NetworkType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,6 +32,8 @@ public class OrderChargeInfoVO {
      * 交易类型
      */
     private ChargeType type;
+
+    private NewChargeType newChargeType;
 
     /**
      * 交易状态
@@ -96,6 +99,10 @@ public class OrderChargeInfoVO {
     private String logo;
 
     private String typeName;
+
+    private String newChargeTypeName;
+
+    private String newChargeTypeNameEn;
 
     private String typeNameEn;
 
