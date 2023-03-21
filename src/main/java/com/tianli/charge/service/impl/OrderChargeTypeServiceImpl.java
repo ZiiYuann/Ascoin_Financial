@@ -43,7 +43,8 @@ public class OrderChargeTypeServiceImpl extends ServiceImpl<OrderChargeTypeMappe
         List<OrderChargeTypeVO> orderChargeTypeVOS = new ArrayList<>();
         for (Map.Entry<String, List<OrderChargeType>> entry : groupByTypes.entrySet()) {
             OrderChargeTypeVO orderChargeTypeVO = new OrderChargeTypeVO();
-            orderChargeTypeVO.setGroup(entry.getKey());
+            orderChargeTypeVO.setGroupEn(entry.getKey());
+            orderChargeTypeVO.setGroup(ChargeTypeGroupEnum.getTypeGroup(entry.getKey()));
             orderChargeTypeVO.setOrderChargeTypes(entry.getValue());
             orderChargeTypeVOS.add(orderChargeTypeVO);
         }
