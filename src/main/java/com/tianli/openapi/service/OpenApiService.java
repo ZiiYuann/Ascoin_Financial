@@ -121,7 +121,7 @@ public class OpenApiService {
 
             accountBalanceService.increase(query.getUid(), query.getType(), query.getCoin()
                     , query.getAmount(), order.getOrderNo());
-
+            return new IdDto(recordId);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             e.printStackTrace();
