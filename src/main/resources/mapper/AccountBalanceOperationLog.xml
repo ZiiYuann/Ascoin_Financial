@@ -114,7 +114,7 @@
         <if test="param.endTime !=null">
             and create_time &lt; #{param.endTime}
         </if>
-        <if test="param.chargeType !=null">
+        <if test="param.chargeType !=null  and param.chargeType.size()>0">
             and charge_type in
             <foreach collection="param.chargeType" index="index" item="item" open="(" separator="," close=")">
                 #{item}
