@@ -52,6 +52,8 @@ public interface OrderMapper extends BaseMapper<Order> {
 
     List<AmountDto> amounts(OrderMQuery query);
 
+    List<AmountDto> amountsByChargeTypes(OrderMQuery query);
+
     @Update("UPDATE  `order` SET  amount = amount + #{amount} WHERE id = #{id}")
     int addAmount(@Param("id") Long id, @Param("amount") BigDecimal amount);
 

@@ -15,7 +15,10 @@ import com.tianli.chain.converter.ChainConverter;
 import com.tianli.chain.entity.CoinBase;
 import com.tianli.chain.service.CoinBaseService;
 import com.tianli.chain.service.CoinService;
+import com.tianli.charge.entity.OrderChargeType;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.enums.ChargeTypeGroupEnum;
+import com.tianli.charge.service.IOrderChargeTypeService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.RedisConstants;
 import com.tianli.currency.service.CurrencyService;
@@ -72,6 +75,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class FinancialServiceImpl implements FinancialService {
+
+    @Resource
+    IOrderChargeTypeService iOrderChargeTypeService;
 
 
     @Override
@@ -484,6 +490,17 @@ public class FinancialServiceImpl implements FinancialService {
         var userAssetsVO = accountBalanceService.getAllUserAssetsVO(uid);
         BigDecimal dollarRecharge = orderService.uAmount(uid, ChargeType.recharge);
         BigDecimal dollarWithdraw = orderService.uAmount(uid, ChargeType.withdraw);
+        //统计转入和转出
+        LambdaQueryWrapper<OrderChargeType> inWrapper = new LambdaQueryWrapper<>();
+        inWrapper.eq(OrderChargeType::getOperationGroup, ChargeTypeGroupEnum.in.name());
+        List<OrderChargeType> inlist = iOrderChargeTypeService.list(inWrapper);
+        List<String> inChargeTypes = inlist.stream().map(OrderChargeType::getType).collect(Collectors.toList());
+        LambdaQueryWrapper<OrderChargeType> outWrapper = new LambdaQueryWrapper<>();
+        outWrapper.eq(OrderChargeType::getOperationGroup, ChargeTypeGroupEnum.out.name());
+        List<OrderChargeType> outlist = iOrderChargeTypeService.list(outWrapper);
+        List<String> outChargeTypes = outlist.stream().map(OrderChargeType::getType).collect(Collectors.toList());
+        BigDecimal dollerIn = orderService.uAmountByChargeTypes(uid, inChargeTypes);
+        BigDecimal dollerOut = orderService.uAmountByChargeTypes(uid, outChargeTypes);
         BigDecimal dollerReward=orderService.uAmount(uid,ChargeType.transaction_reward);
         BigDecimal dollerReturngas = orderService.uAmount(uid, ChargeType.return_gas);
         FundRecordQuery fundRecordQuery = new FundRecordQuery();
@@ -505,6 +522,8 @@ public class FinancialServiceImpl implements FinancialService {
                 .dollarFundIncome(dollarFundIncome)
                 .dollerReward(dollerReward)
                 .dollerReturngas(dollerReturngas)
+                .dollerIn(dollerIn)
+                .dollerOut(dollerOut)
                 .build();
     }
 

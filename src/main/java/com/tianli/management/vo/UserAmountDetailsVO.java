@@ -63,4 +63,14 @@ public class UserAmountDetailsVO {
      */
     private BigDecimal dollerReturngas;
 
+    /**
+     * 转入
+     */
+    private BigDecimal dollerIn;
+
+    /**
+     * 转出
+     */
+    private BigDecimal dollerOut;
+
 }
