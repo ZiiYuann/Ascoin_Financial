@@ -549,7 +549,7 @@ public class FinancialServiceImpl implements FinancialService {
             BigDecimal dollerOperationType = orderService.uAmountByChargeTypes(uid, orderChargeTypes);
             //去掉借贷的数据
             if (!entry.getKey().equals(OperationTypeEnum.BORROW.getEnName())) {
-                resultMap.put(OperationTypeEnum.getName(entry.getKey()), dollerOperationType.doubleValue());
+                resultMap.put(entry.getKey(), dollerOperationType.doubleValue());
             }
         }
         return resultMap;
