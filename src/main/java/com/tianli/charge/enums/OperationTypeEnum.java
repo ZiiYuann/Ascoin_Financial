@@ -1,6 +1,8 @@
 package com.tianli.charge.enums;
 
 
+import com.tianli.exception.ErrorCodeEnum;
+
 /**
  * @author:yangkang
  * @create: 2023-03-16 14:37
@@ -8,14 +10,14 @@ package com.tianli.charge.enums;
  */
 public enum OperationTypeEnum {
 
-    RECHARGE("recharge","充值"),
-    WITHDRAW("withdraw","提币"),
-    FINANCIAL("financial","理财"),
-    BORROW("borrow","借贷"),
-    EXCHANGE("exchange","交易所"),
-    CHAT("chat","聊天"),
-    ACTIVITY("activity","活动"),
-    GAME("game","游戏");
+    RECHARGE("recharge", "充值"),
+    WITHDRAW("withdraw", "提币"),
+    FINANCIAL("financial", "理财"),
+    BORROW("borrow", "借贷"),
+    EXCHANGE("exchange", "交易所"),
+    CHAT("chat", "聊天"),
+    ACTIVITY("activity", "活动"),
+    GAME("game", "游戏");
 
 
     private String enName;
@@ -23,9 +25,9 @@ public enum OperationTypeEnum {
     private String name;
 
 
-    private OperationTypeEnum(String enName,String name) {
+    private OperationTypeEnum(String enName, String name) {
         this.name = name;
-        this.enName=enName;
+        this.enName = enName;
     }
 
     public String getName() {
@@ -42,5 +44,15 @@ public enum OperationTypeEnum {
 
     public void setEnName(String enName) {
         this.enName = enName;
+    }
+
+    public static String getName(String enName) {
+        OperationTypeEnum[] values = OperationTypeEnum.values();
+        for (OperationTypeEnum value : values) {
+            if (enName.equals(value.getEnName())) {
+                return value.getName();
+            }
+        }
+        throw ErrorCodeEnum.SYSTEM_ERROR.generalException();
     }
 }

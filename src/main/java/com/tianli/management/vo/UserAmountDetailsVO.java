@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 /**
  * @author chenb
@@ -72,5 +73,10 @@ public class UserAmountDetailsVO {
      * 转出
      */
     private BigDecimal dollerOut;
+
+    /**
+     * 转入、转出详情信息
+     */
+    private Map<String,Map<String,Double>> groupDetails;
 
 }
