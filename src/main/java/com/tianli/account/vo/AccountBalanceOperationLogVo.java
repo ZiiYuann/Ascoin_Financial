@@ -36,6 +36,10 @@ public class AccountBalanceOperationLogVo  {
      */
     private NewChargeType newChargeType;
 
+    private String newChargeTypeName;
+
+    private String newChargeTypeNameEn;
+
     /**
      * 记录类型
      */
@@ -63,11 +67,6 @@ public class AccountBalanceOperationLogVo  {
     private LocalDateTime createTime;
 
 
-
-    /**
-     * 余额变动描述
-     */
-    private String des;
 
     /**
      * 交易状态
@@ -105,11 +104,6 @@ public class AccountBalanceOperationLogVo  {
     private Long relatedId;
 
     private OrderOtherInfoVo orderOtherInfoVo;
-
-    /**
-     * 是否可查看详情 0否 1：是
-     */
-    private int isSeeDetails;
 
     /**
      * 所属组

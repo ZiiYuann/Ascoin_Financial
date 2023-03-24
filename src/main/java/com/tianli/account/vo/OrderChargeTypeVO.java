@@ -17,9 +17,13 @@ import java.util.List;
 public class OrderChargeTypeVO {
     private String group;
 
+    private String groupEn;
+
     private String operationGroupName;
 
     private List<OrderChargeType> orderChargeTypes;
+
+    private Integer order;
 
 
     public String getGroup() {
@@ -44,5 +48,21 @@ public class OrderChargeTypeVO {
 
     public void setOperationGroupName(String operationGroupName) {
         this.operationGroupName = operationGroupName;
+    }
+
+    public String getGroupEn() {
+        return groupEn;
+    }
+
+    public void setGroupEn(String groupEn) {
+        this.groupEn = groupEn;
+    }
+
+    public Integer getOrder() {
+        return order;
+    }
+
+    public void setOrder(Integer order) {
+        this.order = order;
     }
 }

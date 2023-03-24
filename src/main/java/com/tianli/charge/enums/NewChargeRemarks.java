@@ -25,10 +25,10 @@ public enum NewChargeRemarks {
     withdraw_chaining("提币中", "In Withdrawal", NewChargeType.withdraw, NewChargeStatus.chaining),
     withdraw_created("提币中", "In Withdrawal", NewChargeType.withdraw, NewChargeStatus.created),
 
-    withdraw_freeze("提币冻结", "In Withdrawal", NewChargeType.withdraw, NewChargeStatus.withdraw_freeze),
+    withdraw_freeze("提币冻结", "In Withdrawal", NewChargeType.withdraw_freeze, NewChargeStatus.withdraw_freeze),
 
-    withdraw_success("提币成功", "Successful Withdrawal", NewChargeType.withdraw, NewChargeStatus.withdraw_success),
-    withdraw_fail("提币失败", "Failed Withdrawal", NewChargeType.withdraw, NewChargeStatus.withdraw_failed),
+    withdraw_success("提币成功", "Successful Withdrawal", NewChargeType.withdraw_success, NewChargeStatus.withdraw_success),
+    withdraw_fail("提币失败", "Failed Withdrawal", NewChargeType.withdraw_failed, NewChargeStatus.withdraw_failed),
     withdraw_review_fail("审核失败", "Failed Withdrawal", NewChargeType.withdraw, NewChargeStatus.review_fail),
     purchase_chaining("申购中", "In Subscription", NewChargeType.purchase, NewChargeStatus.chaining),
     purchase_created("申购中", "In Subscription", NewChargeType.purchase, NewChargeStatus.created),

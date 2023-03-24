@@ -15,7 +15,11 @@ import com.tianli.chain.converter.ChainConverter;
 import com.tianli.chain.entity.CoinBase;
 import com.tianli.chain.service.CoinBaseService;
 import com.tianli.chain.service.CoinService;
+import com.tianli.charge.entity.OrderChargeType;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.enums.ChargeTypeGroupEnum;
+import com.tianli.charge.enums.OperationTypeEnum;
+import com.tianli.charge.service.IOrderChargeTypeService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.RedisConstants;
 import com.tianli.currency.service.CurrencyService;
@@ -72,6 +76,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class FinancialServiceImpl implements FinancialService {
+
+    @Resource
+    IOrderChargeTypeService iOrderChargeTypeService;
 
 
     @Override
@@ -484,8 +491,27 @@ public class FinancialServiceImpl implements FinancialService {
         var userAssetsVO = accountBalanceService.getAllUserAssetsVO(uid);
         BigDecimal dollarRecharge = orderService.uAmount(uid, ChargeType.recharge);
         BigDecimal dollarWithdraw = orderService.uAmount(uid, ChargeType.withdraw);
+        //统计转入和转出
+        LambdaQueryWrapper<OrderChargeType> inWrapper = new LambdaQueryWrapper<>();
+        inWrapper.eq(OrderChargeType::getOperationGroup, ChargeTypeGroupEnum.in.name());
+        List<OrderChargeType> inlist = iOrderChargeTypeService.list(inWrapper);
+        List<String> inChargeTypes = inlist.stream().map(OrderChargeType::getType).collect(Collectors.toList());
+        LambdaQueryWrapper<OrderChargeType> outWrapper = new LambdaQueryWrapper<>();
+        outWrapper.eq(OrderChargeType::getOperationGroup, ChargeTypeGroupEnum.out.name());
+        List<OrderChargeType> outlist = iOrderChargeTypeService.list(outWrapper);
+        List<String> outChargeTypes = outlist.stream().map(OrderChargeType::getType).collect(Collectors.toList());
+        BigDecimal dollerIn = orderService.uAmountByChargeTypes(uid, inChargeTypes);
+        BigDecimal dollerOut = orderService.uAmountByChargeTypes(uid, outChargeTypes);
         BigDecimal dollerReward=orderService.uAmount(uid,ChargeType.transaction_reward);
         BigDecimal dollerReturngas = orderService.uAmount(uid, ChargeType.return_gas);
+
+        //转入、转出详情
+        Map<String, Double> inDetails = userAmountGroupDetailsVO(uid, ChargeTypeGroupEnum.in.name());
+        Map<String, Double> outDetails = userAmountGroupDetailsVO(uid, ChargeTypeGroupEnum.out.name());
+        Map<String, Map<String, Double>> groupDetailsMap = new HashMap<>();
+        groupDetailsMap.put(ChargeTypeGroupEnum.in.name(), inDetails);
+        groupDetailsMap.put(ChargeTypeGroupEnum.out.name(), outDetails);
+
         FundRecordQuery fundRecordQuery = new FundRecordQuery();
         fundRecordQuery.setUid(uid);
 
@@ -505,7 +531,28 @@ public class FinancialServiceImpl implements FinancialService {
                 .dollarFundIncome(dollarFundIncome)
                 .dollerReward(dollerReward)
                 .dollerReturngas(dollerReturngas)
+                .dollerIn(dollerIn)
+                .dollerOut(dollerOut)
+                .groupDetails(groupDetailsMap)
                 .build();
+    }
+
+    public Map<String, Double> userAmountGroupDetailsVO(Long uid, String chargeGroup) {
+        HashMap<String, Double> resultMap = new HashMap<>();
+
+        LambdaQueryWrapper<OrderChargeType> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(OrderChargeType::getOperationGroup, chargeGroup);
+        List<OrderChargeType> list = iOrderChargeTypeService.list(wrapper);
+        Map<String, List<OrderChargeType>> groupByOperationType = list.stream().collect(Collectors.groupingBy(OrderChargeType::getOperationType));
+        for (Map.Entry<String, List<OrderChargeType>> entry : groupByOperationType.entrySet()) {
+            List<String> orderChargeTypes = entry.getValue().stream().map(OrderChargeType::getType).collect(Collectors.toList());
+            BigDecimal dollerOperationType = orderService.uAmountByChargeTypes(uid, orderChargeTypes);
+            //去掉借贷的数据
+            if (!entry.getKey().equals(OperationTypeEnum.BORROW.getEnName())) {
+                resultMap.put(entry.getKey(), dollerOperationType.doubleValue());
+            }
+        }
+        return resultMap;
     }
 
     @Override

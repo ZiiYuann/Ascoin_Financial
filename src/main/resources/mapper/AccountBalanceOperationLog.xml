@@ -49,5 +49,82 @@
     </select>
 
 
+    <select id="pageList" resultType="com.tianli.account.entity.AccountBalanceOperationLog">
+        SELECT
+        id,
+        uid,
+        account_balance_id,
+        charge_type,
+        log_type,
+        coin,
+        network,
+        order_no,
+        amount,
+        create_time,
+        balance,
+        freeze,
+        remain,
+        des
+        FROM
+        account_balance_operation_log
+        where uid=#{uid}
+        <if test="param.coin !=null and param.coin !=''">
+            and coin=#{param.coin}
+        </if>
+        <if test="param.sepicalType !=null and param.sepicalType !=''">
+            and charge_type='withdraw'
+        </if>
+        <if test="param.startTime !=null">
+            and create_time &gt; #{param.startTime}
+        </if>
+        <if test="param.endTime !=null">
+            and create_time &lt; #{param.endTime}
+        </if>
+        <if test="param.logType !=null and param.logType !=''">
+            and log_type=#{param.logType}
+        </if>
+        <if test="param.sepicalType=null or param.logType ==null ">
+            and charge_type='withdraw_success'
+        </if>
+        union
+        SELECT
+        id,
+        uid,
+        account_balance_id,
+        charge_type,
+        log_type,
+        coin,
+        network,
+        order_no,
+        amount,
+        create_time,
+        balance,
+        freeze,
+        remain,
+        des
+        FROM
+        account_balance_operation_log
+        where uid=#{uid}
+        <if test="param.coin !=null and param.coin !=''">
+            and coin=#{param.coin}
+        </if>
+        <if test="param.startTime !=null">
+            and create_time &gt; #{param.startTime}
+        </if>
+        <if test="param.endTime !=null">
+            and create_time &lt; #{param.endTime}
+        </if>
+        <if test="param.chargeType !=null  and param.chargeType.size()>0">
+            and charge_type in
+            <foreach collection="param.chargeType" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        ORDER BY
+        create_time DESC,
+        id DESC
+    </select>
+
+
 
 </mapper>
