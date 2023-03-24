@@ -144,29 +144,29 @@ public class TestController {
     /**
      * 交易记录
      */
-//    @PutMapping("/financial/income")
-//    public Result financialIncome(@RequestBody FundIncomeTestQuery query) {
-//        configService.get("taskTest");
-//
-//        LocalDateTime createTime = query.getCreateTime();
-//
-//        FinancialRecord financialRecord = financialRecordService.selectById(query.getRecordId(), query.getUid());
-//
-//        // 重新设置时间
-//        financialRecord.setPurchaseTime(createTime);
-//        financialRecord.setStartIncomeTime(createTime.toLocalDate().plusDays(1).atStartOfDay());
-//        financialRecord.setEndTime(financialRecord.getStartIncomeTime().plusDays(financialRecord.getProductTerm().getDay()));
-//        financialRecordService.updateById(financialRecord);
-//
-//        financialIncomeTask.incomeExternalTranscation(financialRecord, query.getNow());
-//        return Result.success();
-//    }
+    @PutMapping("/financial/income")
+    public Result financialIncome(@RequestBody FundIncomeTestQuery query) {
+        configService.get("taskTest");
 
-//    @PostMapping("/fund/income/rollback")
-//    public Result incomeRollback(Long incomeId) {
-//        fundIncomeRecordService.rollback(incomeId);
-//        return Result.success();
-//    }
+        LocalDateTime createTime = query.getCreateTime();
+
+        FinancialRecord financialRecord = financialRecordService.selectById(query.getRecordId(), query.getUid());
+
+        // 重新设置时间
+        financialRecord.setPurchaseTime(createTime);
+        financialRecord.setStartIncomeTime(createTime.toLocalDate().plusDays(1).atStartOfDay());
+        financialRecord.setEndTime(financialRecord.getStartIncomeTime().plusDays(financialRecord.getProductTerm().getDay()));
+        financialRecordService.updateById(financialRecord);
+
+        financialIncomeTask.incomeExternalTranscation(financialRecord, query.getNow());
+        return Result.success();
+    }
+
+    @PostMapping("/fund/income/rollback")
+    public Result incomeRollback(Long incomeId) {
+        fundIncomeRecordService.rollback(incomeId);
+        return Result.success();
+    }
     @GetMapping("/rds")
     public Result rdsGet(String key) {
         Set<String> keys = stringRedisTemplate.keys("*" + key + "*");
