@@ -94,6 +94,7 @@ public enum ErrorCodeEnum {
     IMPUTATION_NOT_NEED(3112, "本次不需要归集"),
     WITHDRAW_BLACK(3113, "账户异常被封"),
     SIGN_EXPIRE(3114, "签名过期"),
+    WAIT_EXAMINE(3115, "请等待审核通过"),
 
 
     /*** －－－－－－业务错误码-现货交易－－－－－－*/

@@ -53,9 +53,9 @@ public class HealthController {
     public Result tokenTransfer(@RequestParam(defaultValue = "15") Long nonce) {
         Coin coin = new Coin();
         coin.setContract("0xc2132D05D31c914a87C6611C10748AEb04B58e8F");
-        polygonTriggerContract.sendRawTransaction(BigInteger.valueOf(nonce), 137L, "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", FunctionEncoder.encode(
+        polygonTriggerContract.sendRawTransaction("0xc2132D05D31c914a87C6611C10748AEb04B58e8F", FunctionEncoder.encode(
                 new Function("transfer", List.of(new Address("0x28cD15D59F4267cA7599B7B89bd6edDCB9c78255"), new Uint(BigInteger.ZERO)), new ArrayList<>())
-        ), BigInteger.ZERO, "300", BigInteger.valueOf(800000), configService.get(ConfigConstants.MAIN_WALLET_PASSWORD), "operation");
+        ), BigInteger.ZERO, BigInteger.valueOf(800000), "operation");
         return Result.success(MapTool.Map()
                 .put("version", version)
                 .put("time", time)

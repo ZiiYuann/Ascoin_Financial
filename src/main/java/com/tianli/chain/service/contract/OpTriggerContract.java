@@ -1,5 +1,6 @@
 package com.tianli.chain.service.contract;
 
+import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.web3j.OpEthGetTransactionReceipt;
 import com.tianli.chain.web3j.OpTransactionReceipt;
 import com.tianli.chain.web3j.OpWeb3j;
@@ -95,6 +96,11 @@ public class OpTriggerContract extends Web3jContractOperation {
     @Override
     protected String getRecycleTriggerAddress() {
         return configService.get(ConfigConstants.OP_TRIGGER_ADDRESS);
+    }
+
+    @Override
+    protected ChainType getChainType() {
+        return ChainType.OPTIMISTIC;
     }
 
     @Override

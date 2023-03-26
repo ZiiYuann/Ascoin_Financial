@@ -3,7 +3,10 @@ package com.tianli.chain.service.contract;
 import com.google.gson.Gson;
 import com.tianli.chain.dto.TransactionReceiptLogDTO;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.enums.TransactionStatus;
+import com.tianli.common.webhook.WebHookService;
+import com.tianli.common.webhook.WebHookToken;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.tool.time.TimeTool;
@@ -28,6 +31,7 @@ import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
 import party.loveit.bip44forjava.utils.Bip44Utils;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -44,34 +48,14 @@ import java.util.stream.Collectors;
 @Component
 public abstract class Web3jContractOperation extends AbstractContractOperation {
 
+    @Resource
+    private WebHookService webHookService;
+
+    static final BigDecimal DEFAULT_LOAD_FACTOR = BigDecimal.valueOf(1.5f);
+
     @Override
     public boolean isValidAddress(String address) {
         return super.validAddress(address);
-    }
-
-    /**
-     * 代币转账
-     */
-    public String tokenTransfer(String to, BigInteger val, Coin coin) {
-        String result = null;
-        try {
-            result = this.sendRawTransactionWithDefaultParam(
-                    coin.getContract(),
-                    FunctionEncoder.encode(
-                            new Function("transfer", List.of(new Address(to), new Uint(val)), new ArrayList<>())
-                    ),
-                    BigInteger.ZERO,
-                    BigInteger.valueOf(Long.parseLong(getTransferGasLimit())),
-                    String.format("转账%s", coin.getName()));
-        } catch (Exception ignored) {
-            log.error("代币转账失败");
-        }
-        return result;
-    }
-
-    public String mainTokenTransfer(String to, BigInteger val, Coin coin) {
-        return sendRawTransactionWithDefaultParam(to, "", val,
-                BigInteger.valueOf(Long.parseLong(getTransferGasLimit())), "主笔转账：" + coin.getName());
     }
 
     /**
@@ -83,109 +67,13 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
         String hash;
         String data = super.buildRecycleData(toAddress, addressIds, tokenContractAddresses);
         try {
-            hash = this.sendRawTransactionWithDefaultParam(this.getRecycleTriggerAddress(), data, BigInteger.ZERO,
-                    BigInteger.valueOf(Long.parseLong(getRecycleGasLimit())).multiply(BigInteger.valueOf(addressIds.size())), "归集: ");
+            hash = this.sendRawTransaction(this.getRecycleTriggerAddress() // 归集
+                    , data, BigInteger.ZERO
+                    , BigInteger.valueOf(Long.parseLong(getRecycleGasLimit())).multiply(BigInteger.valueOf(addressIds.size())), "归集: ");
             return hash;
         } catch (Exception ignored) {
             return null;
         }
-    }
-
-    protected String computeAddress(String walletAddress, BigInteger addressId, String contractAddress) throws IOException {
-        EthCall send = this.getWeb3j().ethCall(Transaction.createEthCallTransaction(null, contractAddress,
-                new DefaultFunctionEncoder().encodeFunction(
-                        new Function("computeAddress", List.of(new Address(walletAddress), new Uint(addressId)),
-                                List.of())
-                )), DefaultBlockParameterName.LATEST).send();
-        Address address = new Address(send.getValue());
-        return address.getValue();
-    }
-
-    /**
-     * 获取地址链上的最新的nance值,防止双花
-     *
-     * @param address eth地址
-     */
-    public Long getNonce(String address) {
-        Long nance = null;
-        try {
-            EthGetTransactionCount send = this.getWeb3j().ethGetTransactionCount(address, DefaultBlockParameterName.PENDING).send();
-            nance = send.getTransactionCount().longValue();
-        } catch (Exception e) {
-            log.error("获取nance失败" + e.getMessage());
-        }
-        return Objects.isNull(nance) ? null : nance;
-    }
-
-
-    /**
-     * 使用系统默认参数 sendRawTransaction
-     *
-     * @param to        代币转帐：代币合约地址   主币转账：to地址         归集：归集合约
-     * @param data      代币转帐：数据         主币转账：null         归集：归集合约
-     * @param value     代币转账：BigInteger.ZERO  主币转账：转账金额           归集：BigInteger.ZERO
-     * @param gasLimit  gas限制
-     * @param operation 操作信息
-     * @return 结果
-     */
-    public String sendRawTransactionWithDefaultParam(String to, String data, BigInteger value, BigInteger gasLimit, String operation) {
-        String password = this.getMainWalletPassword();
-        String address = this.getMainWalletAddress();
-        String gas = this.getGas();
-        BigInteger nonce = BigInteger.valueOf(getNonce(address));
-        Long chainId = this.getChainId();
-        return sendRawTransaction(nonce, chainId, to, data, value, gas, gasLimit, password, operation);
-    }
-
-    /**
-     * 转账
-     *
-     * @param nonce     随机数，防止双花攻击
-     * @param chainId   链id，防止双花攻击
-     * @param to        代币转帐：代币合约地址       主币转账：to地址         归集：归集合约
-     * @param data      代币转帐：数据              主币转账：null           归集：归集数据
-     * @param value     代币转账：BigInteger.ZERO  主币转账：转账金额           归集：BigInteger.ZERO
-     * @param gas       单位：wei 1000000000wei = 1G wei  矿工费 费用越大，区块链优先处理的速度越快 一次交易约消费 21000 G wei ~= 0.000021eth
-     * @param gasLimit  最高的gas限制，如果交易超过了gasLimit则重置，但是已经消费的不会返回
-     * @param password  私钥
-     * @param operation 操作信息
-     * @return 结果
-     */
-    public String sendRawTransaction(BigInteger nonce, Long chainId, String to, String data, BigInteger value,
-                                      String gas, BigInteger gasLimit, String password, String operation) {
-        log.info("gas:{}, limit: {}", gas, gasLimit);
-
-        BigInteger gasPrice = Convert.toWei(gas, Convert.Unit.GWEI).toBigInteger();
-        BigInteger privateKey = Bip44Utils.getPathPrivateKey(Collections.singletonList(password), "m/44'/60'/0'/0/0");
-
-        RawTransaction rawTransaction = RawTransaction.createTransaction(nonce, gasPrice, gasLimit
-                , to, value, data);
-
-        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, chainId, Credentials.create(ECKeyPair.create(privateKey)));
-        String signedTransactionData = Numeric.toHexString(signedMessage);
-        EthSendTransaction send = null;
-        try {
-            send = this.getWeb3j().ethSendRawTransaction(signedTransactionData).send();
-        } catch (IOException e) {
-            log.error(String.format("上链操作[%s], 执行异常 !", operation), e);
-        }
-        if (Objects.isNull(send) || StringUtils.isBlank(send.getTransactionHash())) {
-            log.error("时间: " + TimeTool.getDateTimeDisplayString(LocalDateTime.now()) + ", 上链失败!!  SEND => " + new Gson().toJson(send));
-            return null;
-        }
-
-        log.info("时间: " + TimeTool.getDateTimeDisplayString(LocalDateTime.now()) + ", " + operation + " < HASH: " + send.getTransactionHash() + " >");
-        return send.getTransactionHash();
-    }
-
-    public EthGetTransactionReceipt getTransactionByHash(String hash) {
-        try {
-            return getWeb3j().ethGetTransactionReceipt(hash).send();
-        } catch (IOException e) {
-            e.printStackTrace();
-            log.error("执行查询数据异常, 执行异常 !");
-        }
-        return null;
     }
 
     @Override
@@ -196,18 +84,17 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
             return TransactionStatus.PENDING;
         }
 
-        if ("0x1".equals(ethGetTransactionReceipt.getResult().getStatus())){
+        if ("0x1".equals(ethGetTransactionReceipt.getResult().getStatus())) {
             return TransactionStatus.SUCCESS;
         }
 
 
-        if ("0x0".equals(ethGetTransactionReceipt.getResult().getStatus())){
+        if ("0x0".equals(ethGetTransactionReceipt.getResult().getStatus())) {
             return TransactionStatus.FAIL;
         }
-        
+
         throw ErrorCodeEnum.SYSTEM_ERROR.generalException();
     }
-
 
     @Override
     public BigDecimal mainBalance(String address) {
@@ -244,6 +131,154 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
         );
         balanceOf = list.get(0).getValue().toString();
         return new BigDecimal(balanceOf);
+    }
+
+    /**
+     * 代币转账
+     */
+    @Override
+    public String tokenTransfer(String to, BigInteger val, Coin coin) {
+        String result = null;
+        try {
+            result = this.sendRawTransaction( // 代币
+                    coin.getContract(),
+                    FunctionEncoder.encode(
+                            new Function("transfer", List.of(new Address(to), new Uint(val)), new ArrayList<>())
+                    ),
+                    BigInteger.ZERO,
+                    BigInteger.valueOf(Long.parseLong(getTransferGasLimit())),
+                    String.format("转账%s", coin.getName()));
+        } catch (Exception ignored) {
+            log.error("代币转账失败");
+        }
+        return result;
+    }
+
+    @Override
+    public String mainTokenTransfer(String to, BigInteger val, Coin coin) {
+        return sendRawTransaction(to, "", val, // 主笔
+                BigInteger.valueOf(Long.parseLong(getTransferGasLimit())), "主笔转账：" + coin.getName());
+    }
+
+    /**
+     * 预估矿工费
+     */
+    public BigInteger estimateGas(String from, String to, String gas, BigInteger gasLimit, BigInteger value, String data) {
+        BigInteger gasPrice = Convert.toWei(gas, Convert.Unit.GWEI).toBigInteger();
+        Transaction functionCallTransaction =
+                Transaction.createFunctionCallTransaction(from, null, gasPrice
+                        , gasLimit, to, value, data);
+        try {
+            return getWeb3j().ethEstimateGas(functionCallTransaction).send().getAmountUsed();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * 计算合约地址
+     */
+    protected String computeAddress(String walletAddress, BigInteger addressId, String contractAddress) throws IOException {
+        EthCall send = this.getWeb3j().ethCall(Transaction.createEthCallTransaction(null, contractAddress,
+                new DefaultFunctionEncoder().encodeFunction(
+                        new Function("computeAddress", List.of(new Address(walletAddress), new Uint(addressId)),
+                                List.of())
+                )), DefaultBlockParameterName.LATEST).send();
+        Address address = new Address(send.getValue());
+        return address.getValue();
+    }
+
+    /**
+     * 获取地址链上的最新的nance值,防止双花
+     *
+     * @param address eth地址
+     */
+    public Long getNonce(String address) {
+        Long nance = null;
+        try {
+            EthGetTransactionCount send = this.getWeb3j().ethGetTransactionCount(address, DefaultBlockParameterName.PENDING).send();
+            nance = send.getTransactionCount().longValue();
+        } catch (Exception e) {
+            log.error("获取nance失败" + e.getMessage());
+        }
+        return Objects.isNull(nance) ? null : nance;
+    }
+
+    /**
+     * 转账
+     *
+     * @param to        代币转帐：代币合约地址       主币转账：to地址         归集：归集合约
+     * @param data      代币转帐：数据              主币转账：null           归集：归集数据
+     * @param value     代币转账：BigInteger.ZERO  主币转账：转账金额           归集：BigInteger.ZERO
+     * @param gasLimit  最高的gas限制，如果交易超过了gasLimit则重置，但是已经消费的不会返回
+     * @param operation 操作信息
+     * @return 结果
+     */
+    public String sendRawTransaction(String to, String data, BigInteger value, BigInteger gasLimit, String operation) {
+
+        String mainWalletAddress = this.getMainWalletAddress();
+        // gas 单位：wei 1000000000wei = 1G wei  矿工费 费用越大，区块链优先处理的速度越快 一次交易约消费 21000 G wei ~= 0.000021eth
+        String gas = this.getGas();
+        // nonce 随机数，防止双花攻击
+        BigInteger nonce = BigInteger.valueOf(getNonce(mainWalletAddress));
+        // chainId 链id，防止双花攻击
+        Long chainId = this.getChainId();
+        BigDecimal gasPrice = Convert.toWei(gas, Convert.Unit.GWEI);
+
+        // 预估矿工费
+        BigDecimal estimateGas = new BigDecimal(this.estimateGas(mainWalletAddress, to, "0", null, value, data).toString());
+        BigDecimal preCalGas = estimateGas.multiply(DEFAULT_LOAD_FACTOR);
+
+        BigDecimal mainBalance = mainBalance(this.getMainWalletAddress());
+        BigDecimal preCalBalance = gasPrice.multiply(preCalGas);
+        if (mainBalance.compareTo(preCalBalance) < 0) {
+            ChainType chainType = this.getChainType();
+            String msg = chainType.getDisplay() + "上链失败，主币余额不足，至少需要:" + preCalBalance.toPlainString();
+            webHookService.dingTalkSend(msg, WebHookToken.FINANCIAL_PRODUCT);
+            throw ErrorCodeEnum.generateException(msg);
+        }
+
+        if (gasPrice.toBigInteger().multiply(gasLimit).compareTo(preCalGas.toBigInteger()) < 0) {
+            ChainType chainType = this.getChainType();
+            String msg = String.format("矿工费设置不足  [%s] gas:%s gasLimit:%s 预计算gas:%s"
+                    , chainType.getDisplay(), gas, gasLimit.toString(), preCalGas.toString());
+            webHookService.dingTalkSend(msg, WebHookToken.FINANCIAL_PRODUCT);
+            throw ErrorCodeEnum.generateException(msg);
+        }
+
+        log.info("gas:{}, limit: {}", gas, gasLimit);
+        BigInteger privateKey = Bip44Utils.getPathPrivateKey(Collections.singletonList(this.getMainWalletPassword()
+        ), "m/44'/60'/0'/0/0");
+
+        RawTransaction rawTransaction = RawTransaction.createTransaction(nonce, gasPrice.toBigInteger(), gasLimit
+                , to, value, data);
+
+        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, chainId, Credentials.create(ECKeyPair.create(privateKey)));
+        String signedTransactionData = Numeric.toHexString(signedMessage);
+        EthSendTransaction send = null;
+        try {
+            send = this.getWeb3j().ethSendRawTransaction(signedTransactionData).send();
+        } catch (IOException e) {
+            log.error(String.format("上链操作[%s], 执行异常 !", operation), e);
+        }
+        if (Objects.isNull(send) || StringUtils.isBlank(send.getTransactionHash())) {
+            log.error("时间: " + TimeTool.getDateTimeDisplayString(LocalDateTime.now()) + ", 上链失败!!  SEND => " + new Gson().toJson(send));
+            return null;
+        }
+
+        log.info("时间: " + TimeTool.getDateTimeDisplayString(LocalDateTime.now()) + ", " + operation + " < HASH: " + send.getTransactionHash() + " >");
+        return send.getTransactionHash();
+    }
+
+    public EthGetTransactionReceipt getTransactionByHash(String hash) {
+        try {
+            return getWeb3j().ethGetTransactionReceipt(hash).send();
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("执行查询数据异常, 执行异常 !");
+        }
+        return null;
     }
 
     /**
@@ -345,5 +380,7 @@ public abstract class Web3jContractOperation extends AbstractContractOperation {
     protected abstract String getTransferGasLimit();
 
     protected abstract String getRecycleTriggerAddress();
+
+    protected abstract ChainType getChainType();
 
 }

@@ -3,6 +3,7 @@ package com.tianli.chain.service.contract;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.tianli.chain.dto.EthGasAPIResponse;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.HttpUtils;
 import com.tianli.common.blockchain.NetworkType;
@@ -102,6 +103,11 @@ public class EthTriggerContract extends Web3jContractOperation {
     @Override
     protected String getRecycleTriggerAddress() {
         return configService.get(ConfigConstants.ETH_TRIGGER_ADDRESS);
+    }
+
+    @Override
+    protected ChainType getChainType() {
+        return ChainType.ETH;
     }
 
     /**

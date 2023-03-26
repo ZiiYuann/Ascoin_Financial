@@ -1,5 +1,6 @@
 package com.tianli.chain.service.contract;
 
+import com.tianli.chain.enums.ChainType;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.mconfig.ConfigService;
@@ -75,6 +76,11 @@ public class BscTriggerContract extends Web3jContractOperation {
     @Override
     protected String getRecycleTriggerAddress() {
         return configService.get(ConfigConstants.BSC_TRIGGER_ADDRESS);
+    }
+
+    @Override
+    protected ChainType getChainType() {
+        return ChainType.BSC;
     }
 
     @Override
