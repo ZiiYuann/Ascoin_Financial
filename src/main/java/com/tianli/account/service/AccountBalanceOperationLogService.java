@@ -65,6 +65,7 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
         if (StringUtils.isNotEmpty(walletChargeFlowQuery.getType()) && walletChargeFlowQuery.getType().contains(WithdrawChargeTypeEnum.withdraw.name())) {
             String withdrawType = WithdrawChargeTypeEnum.getTypeByDesc(walletChargeFlowQuery.getType());
             walletChargeFlowQuery.setWithdrawType(withdrawType);
+            walletChargeFlowQuery.setOperationType(null);
         }
         //去掉基金利息类型
         IPage<WalletChargeFlowVo> list = accountBalanceOperationLogMapper.list(pageQuery.page(),

@@ -459,12 +459,12 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         orderChargeInfoVO.setLogo(coinBase.getLogo());
         orderChargeInfoVO.setNetworkType(orderChargeInfo.getNetwork());
         orderChargeInfoVO.setRealAmount(order.getAmount().subtract(order.getServiceAmount()));
-        if (orderChargeInfoVO.getType().equals(ChargeType.withdraw)&&orderChargeInfoVO.getStatus().equals(NewChargeStatus.chain_success)){
+        if (orderChargeInfoVO.getType().equals(ChargeType.withdraw)&&orderChargeInfoVO.getStatus().equals(ChargeStatus.chain_success)){
             orderChargeInfoVO.setNewChargeType(NewChargeType.withdraw_success);
             orderChargeInfoVO.setNewChargeTypeName(NewChargeType.withdraw_success.getNameZn());
             orderChargeInfoVO.setNewChargeTypeNameEn(NewChargeType.withdraw_success.getNameEn());
         }
-        if (orderChargeInfoVO.getType().equals(ChargeType.recharge)&&orderChargeInfoVO.getStatus().equals(NewChargeStatus.chain_success)){
+        if (orderChargeInfoVO.getType().equals(ChargeType.recharge)&&orderChargeInfoVO.getStatus().equals(ChargeStatus.chain_success)){
             orderChargeInfoVO.setNewChargeType(NewChargeType.recharge);
             orderChargeInfoVO.setNewChargeTypeName(NewChargeType.recharge.getNameZn());
             orderChargeInfoVO.setNewChargeTypeNameEn(NewChargeType.recharge.getNameEn());
