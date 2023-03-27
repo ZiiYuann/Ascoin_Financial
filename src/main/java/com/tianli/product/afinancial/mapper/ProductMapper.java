@@ -3,7 +3,7 @@ package com.tianli.product.afinancial.mapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.product.afinancial.entity.FinancialProduct;
 import com.tianli.product.afinancial.query.ProductHoldQuery;
-import com.tianli.product.afinancial.vo.HoldProductVo;
+import com.tianli.product.afinancial.vo.MUserHoldRecordDetailsVO;
 import com.tianli.product.afinancial.vo.TransactionRecordVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -25,8 +25,8 @@ public interface ProductMapper {
      * @param uid 用户id
      * @return 持有列表page
      */
-    IPage<HoldProductVo> holdProductPage(@Param("page") IPage<FinancialProduct> page,
-                                         @Param("query") ProductHoldQuery query);
+    IPage<MUserHoldRecordDetailsVO> holdProductPage(@Param("page") IPage<FinancialProduct> page,
+                                                    @Param("query") ProductHoldQuery query);
 
     /**
      * 获取用户持用产品信息
@@ -34,8 +34,8 @@ public interface ProductMapper {
      * @param uid 用户id
      * @return 持有列表page
      */
-    List<HoldProductVo> holdProducts(@Param("uid") Long uid,
-                                     @Param("productIds") List<Long> productIds);
+    List<MUserHoldRecordDetailsVO> holdProducts(@Param("uid") Long uid,
+                                                @Param("productIds") List<Long> productIds);
 
     /**
      * 获取用户持用id信息

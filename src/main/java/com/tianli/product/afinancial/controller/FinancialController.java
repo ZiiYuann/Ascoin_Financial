@@ -97,7 +97,7 @@ public class FinancialController {
     @GetMapping("/hold")
     public Result myHold(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
         Long uid = requestInitService.uid();
-        return Result.instance().setData(financialService.holdProductPage(pageQuery.page(),
+        return Result.instance().setData(financialService.detailsHoldProductPage(pageQuery.page(),
                 ProductHoldQuery.builder()
                         .productType(productType)
                         .uid(uid)

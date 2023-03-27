@@ -38,7 +38,7 @@ public interface FinancialService {
     /**
      * 我的持有
      */
-    IPage<HoldProductVo> holdProductPage(IPage<FinancialProduct> page, ProductHoldQuery query);
+    IPage<MUserHoldRecordDetailsVO> detailsHoldProductPage(IPage<FinancialProduct> page, ProductHoldQuery query);
 
     /**
      * 我的持有

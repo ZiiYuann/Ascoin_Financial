@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * @since 2022-07-13
  **/
 @Data
-public class HoldProductVo {
+public class MUserHoldRecordDetailsVO {
 
     private Long uid;
 

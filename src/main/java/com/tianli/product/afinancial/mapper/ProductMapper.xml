@@ -2,8 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.tianli.product.afinancial.mapper.ProductMapper">
 
-
-    <select id="holdProductPage" resultType="com.tianli.product.afinancial.vo.HoldProductVo">
+    <select id="holdProductPage" resultType="com.tianli.product.afinancial.vo.MUserHoldRecordDetailsVO">
         SELECT temp.*,
         pro.`name`,
         pro.name_en,
@@ -139,7 +138,7 @@
         </if>
         ) temp ORDER BY time DESC
     </select>
-    <select id="holdProducts" resultType="com.tianli.product.afinancial.vo.HoldProductVo">
+    <select id="holdProducts" resultType="com.tianli.product.afinancial.vo.MUserHoldRecordDetailsVO">
 
         SELECT temp.*,
         pro.`name`,

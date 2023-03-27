@@ -174,9 +174,9 @@ public class FinancialServiceImpl implements FinancialService {
     }
 
     @Override
-    public IPage<HoldProductVo> holdProductPage(IPage<FinancialProduct> page, ProductHoldQuery query) {
-        IPage<HoldProductVo> holdProductVoPage = productMapper.holdProductPage(page, query);
-        holdProductVoPage.convert(holdProductVo -> addHoldIncomeInfo(holdProductVo.getUid(), holdProductVo));
+    public IPage<MUserHoldRecordDetailsVO> detailsHoldProductPage(IPage<FinancialProduct> page, ProductHoldQuery query) {
+        IPage<MUserHoldRecordDetailsVO> holdProductVoPage = productMapper.holdProductPage(page, query);
+        holdProductVoPage.convert(MUserHoldRecordDetailsVO -> addHoldIncomeInfo(MUserHoldRecordDetailsVO.getUid(), MUserHoldRecordDetailsVO));
         holdProductVoPage.convert(this::addOtherInfo);
         return holdProductVoPage;
     }
@@ -188,8 +188,8 @@ public class FinancialServiceImpl implements FinancialService {
 
         var holdProductVoMap = productMapper.holdProducts(uid, productIds)
                 .stream()
-                .map(holdProductVo -> addHoldIncomeInfo(uid, holdProductVo))
-                .collect(Collectors.groupingBy(HoldProductVo::getProductId));
+                .map(MUserHoldRecordDetailsVO -> addHoldIncomeInfo(uid, MUserHoldRecordDetailsVO))
+                .collect(Collectors.groupingBy(MUserHoldRecordDetailsVO::getProductId));
 
         return holdProductIdsPage.convert(productId -> {
             HashMap<String, Object> index = new HashMap<>();
@@ -640,62 +640,62 @@ public class FinancialServiceImpl implements FinancialService {
      * 添加持有的收益信息
      *
      * @param uid           uid
-     * @param holdProductVo 持有基础信息
+     * @param MUserHoldRecordDetailsVO 持有基础信息
      * @return 本身
      */
-    private HoldProductVo addHoldIncomeInfo(Long uid, HoldProductVo holdProductVo) {
+    private MUserHoldRecordDetailsVO addHoldIncomeInfo(Long uid, MUserHoldRecordDetailsVO MUserHoldRecordDetailsVO) {
         IncomeVO incomeVO = new IncomeVO();
-        var accrueIncomeAmount = Objects.isNull(holdProductVo.getAccrueIncomeAmount())
-                ? BigDecimal.ZERO : holdProductVo.getAccrueIncomeAmount();
-        BigDecimal dollarRate = currencyService.getDollarRate(holdProductVo.getCoin());
-        incomeVO.setHoldFee(dollarRate.multiply(holdProductVo.getHoldAmount()));
+        var accrueIncomeAmount = Objects.isNull(MUserHoldRecordDetailsVO.getAccrueIncomeAmount())
+                ? BigDecimal.ZERO : MUserHoldRecordDetailsVO.getAccrueIncomeAmount();
+        BigDecimal dollarRate = currencyService.getDollarRate(MUserHoldRecordDetailsVO.getCoin());
+        incomeVO.setHoldFee(dollarRate.multiply(MUserHoldRecordDetailsVO.getHoldAmount()));
         incomeVO.setAccrueIncomeAmount(accrueIncomeAmount);
         incomeVO.setAccrueIncomeFee(dollarRate.multiply(accrueIncomeAmount));
 
-        if (ProductType.fund.equals(holdProductVo.getProductType())) {
+        if (ProductType.fund.equals(MUserHoldRecordDetailsVO.getProductType())) {
             FundIncomeQuery query = new FundIncomeQuery();
             query.setUid(uid);
             query.setStatus(List.of(FundIncomeStatus.calculated, FundIncomeStatus.wait_audit));
-            query.setFundId(holdProductVo.getRecordId());
+            query.setFundId(MUserHoldRecordDetailsVO.getRecordId());
             BigDecimal waitInterestAmount = fundIncomeRecordService.getAmount(query).stream().map(FundIncomeAmountDTO::getWaitInterestAmount)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             incomeVO.setWaitAuditIncomeAmount(waitInterestAmount);
             incomeVO.setWaitAuditIncomeFee(waitInterestAmount.multiply(dollarRate));
             incomeVO.setDailyIncomeFee(fundProductService
-                    .exceptDailyIncome(uid, holdProductVo.getProductId(), holdProductVo.getRecordId())
+                    .exceptDailyIncome(uid, MUserHoldRecordDetailsVO.getProductId(), MUserHoldRecordDetailsVO.getRecordId())
                     .getExpectIncome().multiply(dollarRate)
             );
         }
-        if (!ProductType.fund.equals(holdProductVo.getProductType())) {
-            incomeVO.setYesterdayIncomeAmount(financialIncomeDailyService.amountYesterday(holdProductVo.getRecordId()));
+        if (!ProductType.fund.equals(MUserHoldRecordDetailsVO.getProductType())) {
+            incomeVO.setYesterdayIncomeAmount(financialIncomeDailyService.amountYesterday(MUserHoldRecordDetailsVO.getRecordId()));
             incomeVO.setDailyIncomeFee(financialProductService
-                    .exceptDailyIncome(uid, holdProductVo.getProductId(), holdProductVo.getRecordId())
+                    .exceptDailyIncome(uid, MUserHoldRecordDetailsVO.getProductId(), MUserHoldRecordDetailsVO.getRecordId())
                     .getExpectIncome().multiply(dollarRate)
             );
         }
 
-        holdProductVo.setIncomeVO(incomeVO);
-        return holdProductVo;
+        MUserHoldRecordDetailsVO.setIncomeVO(incomeVO);
+        return MUserHoldRecordDetailsVO;
     }
 
     /**
      * 添加其他信息
      *
-     * @param holdProductVo 持有基础信息
+     * @param MUserHoldRecordDetailsVO 持有基础信息
      * @return 本身
      */
-    private HoldProductVo addOtherInfo(HoldProductVo holdProductVo) {
-        ProductType productType = holdProductVo.getProductType();
-        LocalDateTime purchaseTime = holdProductVo.getPurchaseTime();
+    private MUserHoldRecordDetailsVO addOtherInfo(MUserHoldRecordDetailsVO MUserHoldRecordDetailsVO) {
+        ProductType productType = MUserHoldRecordDetailsVO.getProductType();
+        LocalDateTime purchaseTime = MUserHoldRecordDetailsVO.getPurchaseTime();
         if (ProductType.fund.equals(productType)) {
-            holdProductVo.setIncomeTime(purchaseTime.toLocalDate().atStartOfDay().plusDays(4));
+            MUserHoldRecordDetailsVO.setIncomeTime(purchaseTime.toLocalDate().atStartOfDay().plusDays(4));
         }
         if (!ProductType.fund.equals(productType)) {
-            holdProductVo.setIncomeTime(purchaseTime.toLocalDate().atStartOfDay().plusDays(PurchaseTerm.NONE.getDay()));
+            MUserHoldRecordDetailsVO.setIncomeTime(purchaseTime.toLocalDate().atStartOfDay().plusDays(PurchaseTerm.NONE.getDay()));
         }
 
-        holdProductVo.setIncomeDays(Duration.between(holdProductVo.getIncomeTime(), LocalDateTime.now()).toDays());
-        return holdProductVo;
+        MUserHoldRecordDetailsVO.setIncomeDays(Duration.between(MUserHoldRecordDetailsVO.getIncomeTime(), LocalDateTime.now()).toDays());
+        return MUserHoldRecordDetailsVO;
     }
 
     /**

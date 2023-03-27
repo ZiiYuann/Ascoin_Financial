@@ -19,7 +19,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MUserHoldRecordVO {
+public class MUserHoldRecordSummaryVO {
 
     private Long uid;
 
@@ -36,6 +36,5 @@ public class MUserHoldRecordVO {
 
     @BigDecimalFormat("0.00")
     private BigDecimal accrueIncomeFee;
-
 
 }

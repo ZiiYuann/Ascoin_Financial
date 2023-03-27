@@ -4,13 +4,13 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.address.mapper.Address;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
-import com.tianli.management.vo.MUserHoldRecordVO;
+import com.tianli.management.vo.MUserHoldRecordSummaryVO;
 import com.tianli.management.vo.MWalletUserManagerDataVO;
 import com.tianli.product.entity.ProductHoldRecord;
 import com.tianli.product.afinancial.entity.FinancialProduct;
 import com.tianli.product.afinancial.query.ProductHoldQuery;
 import com.tianli.product.afinancial.service.FinancialService;
-import com.tianli.product.afinancial.vo.HoldProductVo;
+import com.tianli.product.afinancial.vo.MUserHoldRecordDetailsVO;
 import com.tianli.management.service.ManageUserService;
 import com.tianli.management.vo.MUserListVO;
 import com.tianli.openapi.query.OpenapiAccountQuery;
@@ -44,12 +44,23 @@ public class ManageUserController {
     }
 
     /**
-     * 理财用户管理-持仓用户
+     * 理财用户管理-理财用户列表
      */
-    @GetMapping("/hold/record")
+    @GetMapping("/hold/record/summary")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result<IPage<MUserHoldRecordVO>> holdRecord(ProductHoldQuery query, PageQuery<ProductHoldRecord> page) {
-        return new Result<>(manageUserService.userHoldRecordPage(query, page.page()));
+    public Result<IPage<MUserHoldRecordSummaryVO>> holdRecord(PageQuery<ProductHoldRecord> page
+            , ProductHoldQuery query) {
+        return new Result<>(manageUserService.summaryHoldRecordPage(query, page.page()));
+    }
+
+    /**
+     * 理财用户管理-持仓中
+     */
+    @GetMapping("/hold/record/details")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result<IPage<MUserHoldRecordDetailsVO>> userHold(PageQuery<FinancialProduct> pageQuery
+            , ProductHoldQuery query) {
+        return new Result<>(financialService.detailsHoldProductPage(pageQuery.page(), query));
     }
 
     /**
@@ -57,18 +68,8 @@ public class ManageUserController {
      */
     @GetMapping("/hold/record/data")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result<MUserHoldRecordVO> holdRecordData(ProductHoldQuery query) {
+    public Result<MUserHoldRecordSummaryVO> holdRecordData(ProductHoldQuery query) {
         return new Result<>(manageUserService.userHoldRecordData(query));
-    }
-
-    /**
-     * 理财用户管理-持仓中
-     */
-    @GetMapping("/hold")
-    @AdminPrivilege(and = Privilege.理财管理)
-    public Result<IPage<HoldProductVo>> userHold(PageQuery<FinancialProduct> pageQuery
-            , ProductHoldQuery query) {
-        return new Result<>(financialService.holdProductPage(pageQuery.page(), query));
     }
 
     /**
@@ -103,8 +104,8 @@ public class ManageUserController {
      */
     @GetMapping("/account/sub")
     @AdminPrivilege(and = Privilege.理财管理)
-    public Result statisticsData(Long chatId, Long uid,PageQuery<StatisticsDataDto>pageQuery) {
-        return Result.success(openApiService.accountSubData(chatId,uid, pageQuery));
+    public Result statisticsData(Long chatId, Long uid, PageQuery<StatisticsDataDto> pageQuery) {
+        return Result.success(openApiService.accountSubData(chatId, uid, pageQuery));
     }
 
     @Resource
