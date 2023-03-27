@@ -11,7 +11,7 @@ import com.tianli.product.afinancial.enums.ProductType;
 import com.tianli.product.afinancial.query.ProductHoldQuery;
 import com.tianli.product.afinancial.query.RecordRenewalQuery;
 import com.tianli.product.afinancial.vo.DollarIncomeVO;
-import com.tianli.product.afinancial.vo.HoldProductVo;
+import com.tianli.product.afinancial.vo.MUserHoldRecordDetailsVO;
 import com.tianli.product.service.FinancialProductService;
 import com.tianli.product.afinancial.service.FinancialRecordService;
 import com.tianli.product.afinancial.service.FinancialService;
@@ -100,9 +100,9 @@ public class FinancialController {
      */
     @AppUse
     @GetMapping("/hold")
-    public Result<IPage<HoldProductVo>> myHold(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
+    public Result<IPage<MUserHoldRecordDetailsVO>> myHold(PageQuery<FinancialProduct> pageQuery, ProductType productType) {
         Long uid = requestInitService.uid();
-        return new Result<>(financialService.holdProductPage(pageQuery.page(),
+        return new Result<>(financialService.detailsHoldProductPage(pageQuery.page(),
                 ProductHoldQuery.builder()
                         .productType(productType)
                         .uid(uid)

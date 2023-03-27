@@ -7,7 +7,7 @@ import com.tianli.currency.service.CurrencyService;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.query.FinancialProductIncomeQuery;
 import com.tianli.management.vo.FinancialUserInfoVO;
-import com.tianli.management.vo.MUserHoldRecordVO;
+import com.tianli.management.vo.MUserHoldRecordSummaryVO;
 import com.tianli.management.vo.MUserListVO;
 import com.tianli.product.afinancial.dto.IncomeDto;
 import com.tianli.product.afinancial.enums.ProductType;
@@ -76,7 +76,7 @@ public class ManageUserService {
         });
     }
 
-    public IPage<MUserHoldRecordVO> userHoldRecordPage(ProductHoldQuery query, Page<ProductHoldRecord> page) {
+    public IPage<MUserHoldRecordSummaryVO> summaryHoldRecordPage(ProductHoldQuery query, Page<ProductHoldRecord> page) {
         IPage<UserHoldRecordDto> userHoldRecordDtoIPage = productHoldRecordService.userHoldRecordPage(query, page);
         return userHoldRecordDtoIPage.convert(userHoldRecordDto -> {
             Long uid = userHoldRecordDto.getUid();
@@ -84,14 +84,14 @@ public class ManageUserService {
         });
     }
 
-    public MUserHoldRecordVO userHoldRecordData(ProductHoldQuery query) {
+    public MUserHoldRecordSummaryVO userHoldRecordData(ProductHoldQuery query) {
         var records = productHoldRecordService.userHoldRecordData(query)
                 .stream()
                 .flatMap(r -> r.getRecords().stream()).collect(Collectors.toList());
         return mUserHoldRecordVO(records, null, query.getProductId());
     }
 
-    private MUserHoldRecordVO mUserHoldRecordVO(List<ProductHoldRecord> records, Long uid, Long queryProductId) {
+    private MUserHoldRecordSummaryVO mUserHoldRecordVO(List<ProductHoldRecord> records, Long uid, Long queryProductId) {
         BigDecimal holdFee = BigDecimal.ZERO;
         Map<ProductType, String> holdFeeMap = new HashMap<>(records.size());
         Map<ProductType, BigDecimal> holdFeeBigDecimalMap = new HashMap<>(records.size());
@@ -129,7 +129,7 @@ public class ManageUserService {
 
         }
 
-        return MUserHoldRecordVO.builder()
+        return MUserHoldRecordSummaryVO.builder()
                 .uid(uid)
                 .holdFee(holdFee)
                 .holdFeeMap(holdFeeMap)
