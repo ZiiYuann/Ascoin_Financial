@@ -36,6 +36,7 @@ public class OrderChargeTypeServiceImpl extends ServiceImpl<OrderChargeTypeMappe
     public List<OrderChargeTypeVO> listChargeType(Long uid) {
        boolean isAgent = walletAgentService.isAgent(uid);
         LambdaQueryWrapper<OrderChargeType> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(OrderChargeType::getIsEnable,1);
         if (!isAgent) {
             wrapper.eq(OrderChargeType::getVisibleType, VisibleTypeEnum.normal.getSymbol());
         }

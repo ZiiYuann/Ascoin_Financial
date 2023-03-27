@@ -62,6 +62,11 @@ public class OrderChargeType extends Model<OrderChargeType> {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Long visibleType;
 
+    /**
+     * 是否启用 1:是；0否
+     */
+    private Integer isEnable;
+
 
     @Override
     protected Serializable pkVal() {
