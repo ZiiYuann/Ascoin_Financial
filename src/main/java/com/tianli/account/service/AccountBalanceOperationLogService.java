@@ -81,7 +81,7 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
         return list.convert(walletChargeFlowVo -> {
             {
                 if (walletChargeFlowVo.getChargeType().equals(WithdrawChargeTypeEnum.withdraw.name())) {
-                    walletChargeFlowVo.setOperationType(WithdrawChargeTypeEnum.withdraw.getDescription());
+                    walletChargeFlowVo.setOperationType(WithdrawChargeTypeEnum.withdraw.getType());
                     walletChargeFlowVo.setOperationGroupName(ChargeTypeGroupEnum.withdraw.getTypeGroup());
                     String description = WithdrawChargeTypeEnum.getDescriptionByType(walletChargeFlowVo.getLogType());
                     walletChargeFlowVo.setChargeTypeName(description);
