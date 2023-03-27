@@ -67,6 +67,14 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
             walletChargeFlowQuery.setWithdrawType(withdrawType);
             walletChargeFlowQuery.setOperationType(null);
         }
+        if (StringUtils.isNotEmpty(walletChargeFlowQuery.getOperationType()) && walletChargeFlowQuery.getOperationType().contains(WithdrawChargeTypeEnum.withdraw.name())) {
+            walletChargeFlowQuery.setType(WithdrawChargeTypeEnum.withdraw.name());
+            walletChargeFlowQuery.setOperationType(null);
+        }
+        if (StringUtils.isNotEmpty(walletChargeFlowQuery.getOperationGroup()) && walletChargeFlowQuery.getOperationGroup().contains(WithdrawChargeTypeEnum.withdraw.name())) {
+            walletChargeFlowQuery.setType(WithdrawChargeTypeEnum.withdraw.name());
+            walletChargeFlowQuery.setOperationGroup(null);
+        }
         //去掉基金利息类型
         IPage<WalletChargeFlowVo> list = accountBalanceOperationLogMapper.list(pageQuery.page(),
                 walletChargeFlowQuery,NewChargeType.fund_interest.name(),WithdrawChargeTypeEnum.withdraw.getType());
