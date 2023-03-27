@@ -273,6 +273,7 @@ public class FinancialIncomeTask {
      * 结算操作
      */
     private Order settleOperation(FinancialRecord financialRecord, LocalDateTime incomeTime) {
+        BigDecimal holdAmount = financialRecord.getHoldAmount();
         long id = CommonFunction.generalId();
         Order order = Order.builder()
                 .id(id)
@@ -282,7 +283,7 @@ public class FinancialIncomeTask {
                 .status(ChargeStatus.chain_success)
                 .coin(financialRecord.getCoin())
                 // 结算金额为持有金额
-                .amount(financialRecord.getHoldAmount())
+                .amount(holdAmount)
                 .relatedId(financialRecord.getId())
                 .createTime(incomeTime.plusSeconds(2))
                 .completeTime(incomeTime.plusSeconds(2))
@@ -297,7 +298,7 @@ public class FinancialIncomeTask {
 
         // 增加
         accountBalanceService.increase(financialRecord.getUid(), ChargeType.settle, financialRecord.getCoin()
-                , financialRecord.getHoldAmount(), order.getOrderNo());
+                , holdAmount, order.getOrderNo());
         // 减少产品使用额度
         financialProductService.reduceUseQuota(financialRecord.getProductId(), financialRecord.getHoldAmount());
         productHoldRecordService.delete(financialRecord.getUid(), financialRecord.getProductId(), financialRecord.getId());
