@@ -39,7 +39,8 @@ public class ManagerRedEnvelopeController {
     @AdminPrivilege
     public Result save(@RequestBody @Valid RedEnvelopeConfigIoUQuery query) {
         String nickname = AdminContent.get().getNickname();
-        if (Objects.nonNull(query.getLimitAmount()) && Objects.nonNull(query.getNum())) {
+        if (Objects.nonNull(query.getLimitAmount()) && Objects.nonNull(query.getNum())
+          &&RedEnvelopeChannel.EXTERN.equals(query.getChannel())) {
             BigDecimal divide = query.getLimitAmount().divide(new BigDecimal(query.getNum()));
             if (divide.compareTo(query.getMinAmount()) < 0) {
                 return Result.fail("编辑不合规");
