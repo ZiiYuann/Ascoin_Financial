@@ -276,7 +276,8 @@ public class FinancialServiceImpl implements FinancialService {
         LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
                 .eq(FinancialProduct::getStatus, ProductStatus.open)
                 .orderByAsc(FinancialProduct::getType) // 活期优先
-                .orderByDesc(FinancialProduct::getRate); // 年化利率降序
+                .orderByDesc(FinancialProduct::getRate)
+                .orderByDesc(FinancialProduct :: getId); // 年化利率降序
 
         if (CollectionUtils.isEmpty(holdProductIds)) {
             query = query.notIn(FinancialProduct::getId, holdProductIds);
