@@ -186,10 +186,10 @@ public class FundController {
         List<String> quotas = new ArrayList<>(FundQuota.quotas);
         String dev = configService._get("dev");
         if (StringUtils.isNotBlank(dev)) {
-            quotas.add("0.1");
-            quotas.add("0.2");
-            quotas.add("0.3");
-            quotas.add("0.4");
+            quotas.add("1");
+            quotas.add("5");
+            quotas.add("10");
+            quotas.add("20");
         }
         return Result.success(quotas);
     }
