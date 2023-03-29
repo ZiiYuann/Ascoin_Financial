@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.service.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.entity.CoinBase;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.mapper.CoinMapper;
 import com.tianli.chain.service.CoinBaseService;
@@ -34,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -98,6 +100,18 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
     public void saveOrUpdate(String nickName, CoinIoUQuery query) {
         // 判断是否存在汇率
 //        currencyService.huobiUsdtRate(query.getName().toLowerCase(Locale.ROOT));
+        
+        CoinBase coinBase = coinBaseService.getByName(query.getName());
+        if (Objects.nonNull(coinBase) && coinBase.isMainToken()) {
+            coinBase.setLogo(query.getLogo());
+            coinBase.setUpdateBy(nickName);
+            coinBase.setWeight(query.getWeight());
+            coinBase.setUpdateTime(LocalDateTime.now());
+            coinBaseService.saveOrUpdate(coinBase);
+            return;
+        }
+
+
         // h获取小数点位数
         Integer decimals = contractAdapter.getOne(query.getNetwork()).decimals(query.getContract());
         query.setDecimals(decimals);
