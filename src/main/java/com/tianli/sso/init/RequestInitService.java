@@ -42,7 +42,7 @@ public class RequestInitService {
     public Long uid() {
         Long uid = _uid();
         if (Objects.isNull(uid) && StringUtils.isNotBlank(get().getToken())) ErrorCodeEnum.UNLOIGN.throwException();
-        if (Objects.isNull(uid) && StringUtils.isEmpty(get().getToken()))
+        if (Objects.isNull(uid) && StringUtils.isBlank(get().getToken()))
             ErrorCodeEnum.UNLOIGN_NO_TOKEN.throwException();
         return uid;
     }
@@ -130,11 +130,13 @@ public class RequestInitService {
         if (device_info == null) device_info = "";
         requestInit.setDeviceInfo(device_info);
 
+        String token = httpServletRequest.getHeader("token");
+
         /**
          * 解析用户信息
          */
         SignUserInfo ossUser = userOssService.loginUser();
-        requestInit.setToken(Objects.isNull(ossUser) ? null : ossUser.getToken());
+        requestInit.setToken(token);
         requestInit.setUid(Objects.isNull(ossUser) ? null : ossUser.getUid());
         requestInit.setAddress(Objects.isNull(ossUser) ? null : ossUser.getSignAddress());
         requestInit.setUserInfo(ossUser);
