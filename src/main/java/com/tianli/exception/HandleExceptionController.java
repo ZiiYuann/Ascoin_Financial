@@ -7,7 +7,9 @@ import com.tianli.tool.ApplicationContextTool;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -25,7 +27,9 @@ import java.util.regex.Pattern;
 public class HandleExceptionController {
     @ExceptionHandler(value = {Exception.class})
     public Result resolveException(HttpServletRequest request, Exception e) {
-        if (!(e instanceof ErrCodeException)) {
+        if (!(e instanceof ErrCodeException)
+                && !(e instanceof HttpRequestMethodNotSupportedException)
+                && !(e instanceof MissingRequestHeaderException)) {
             var url = request.getRequestURL().toString();
             Map<String, String[]> parameterMap = request.getParameterMap();
             url = url + "  params:" + JSONUtil.toJsonStr(parameterMap);
@@ -80,7 +84,7 @@ public class HandleExceptionController {
 
 
     @ExceptionHandler(value = CustomException.class)
-    public Result customExceptionHandler(CustomException e){
+    public Result customExceptionHandler(CustomException e) {
         Result result = Result.instance();
         String message = e.getMessage();
         String regEx = "[^0-9]";
@@ -94,7 +98,7 @@ public class HandleExceptionController {
         String transMsg = getEnMsg(substring);
         result.setCode(e.getCode().toString());
         result.setMsg(e.getMessage());
-        result.setEnMsg(message.substring(0,firstChinaChartIndex)+" "+transMsg+""+message.substring(message.indexOf(s)));
+        result.setEnMsg(message.substring(0, firstChinaChartIndex) + " " + transMsg + "" + message.substring(message.indexOf(s)));
         return result;
     }
 
@@ -110,23 +114,26 @@ public class HandleExceptionController {
 
     /**
      * 获取第一个中文字符索引
+     *
      * @param str
      * @return
      */
-    private int getFirstChinaChartIndex(String str){
-        int beginIndex=0;
-        for (int index = 0;index<=str.length()-1;index++) {
+    private int getFirstChinaChartIndex(String str) {
+        int beginIndex = 0;
+        for (int index = 0; index <= str.length() - 1; index++) {
             //将字符串拆开成单个的字符
             String w = str.substring(index, index + 1);
             if (w.compareTo("\u4e00") > 0 && w.compareTo("\u9fa5") < 0) {// \u4e00-\u9fa5 中文汉字的范围
-                beginIndex=index;
+                beginIndex = index;
                 break;
             }
         }
         return beginIndex;
     }
 
-    private static boolean checkIfExistChineseCharacter(String s) { return !(s.length() == s.getBytes().length); }
+    private static boolean checkIfExistChineseCharacter(String s) {
+        return !(s.length() == s.getBytes().length);
+    }
 
     @Resource
     private ErrMsgMappingService errMsgMappingService;
