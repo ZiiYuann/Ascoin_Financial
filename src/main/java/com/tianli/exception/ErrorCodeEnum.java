@@ -8,6 +8,7 @@ public enum ErrorCodeEnum {
     /*** －－－－－－基础错误码－－－－－－*/
     SUCCESS(0, "成功"),
     SYSTEM_ERROR(99, "系统错误"),
+    UNLOIGN_NO_TOKEN(100, "请登录"),
     UNLOIGN(101, "请登录"),
     ARGUEMENT_ERROR(102, "参数错误"),
     ACCESS_DENY(103, "无权限"),
@@ -141,7 +142,7 @@ public enum ErrorCodeEnum {
     NOT_CURRENT_AGENT(3620, "不是当前代理人记录"),
 
     /*** －－－－－－业务错误码-红包相关－－－－－－*/
-    RED_AMOUNT_EXCEED_LIMIT_100(3701, "红包总额价值不得超过100U"),
+    RED_AMOUNT_EXCEED_LIMIT(3701, "红包总额超限"),
     RED_NOT_EXIST(3702, "红包不存在"),
     RED_NOT_EXIST_BLOOM(3702, "红包不存在(bloom)"),
     RED_RECHARGE_NOT_ARRIVE(3703, "链上红包充值未到账或失败，请到账后手动发放"),

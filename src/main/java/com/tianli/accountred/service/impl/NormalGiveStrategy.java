@@ -1,8 +1,15 @@
 package com.tianli.accountred.service.impl;
 
 import com.tianli.accountred.entity.RedEnvelope;
+import com.tianli.accountred.entity.RedEnvelopeConfig;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
+import com.tianli.accountred.enums.RedEnvelopeChannel;
+import com.tianli.accountred.enums.RedEnvelopeType;
+import com.tianli.accountred.service.RedEnvelopeConfigService;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +19,8 @@ import java.util.List;
  * @apiNote
  * @since 2022-10-17
  **/
-public class NormalGiveStrategy extends RedEnvelopeGiveStrategy {
+@Component
+public class NormalGiveStrategy extends RedEnvelopeGiveStrategy implements InitializingBean {
 
     @Override
     protected List<RedEnvelopeSpilt> spiltRedEnvelopeOperation(Long rid, int num, BigDecimal amount) {
@@ -31,4 +39,9 @@ public class NormalGiveStrategy extends RedEnvelopeGiveStrategy {
         return this.spiltRedEnvelopeOperation(redEnvelope.getId(), redEnvelope.getNum(), redEnvelope.getAmount());
     }
 
+    @Override
+    public void afterPropertiesSet() {
+        GiveStrategyAdapter.addStrategy(RedEnvelopeChannel.CHAT, RedEnvelopeType.NORMAL, this);
+        GiveStrategyAdapter.addStrategy(RedEnvelopeChannel.CHAT, RedEnvelopeType.PRIVATE, this);
+    }
 }

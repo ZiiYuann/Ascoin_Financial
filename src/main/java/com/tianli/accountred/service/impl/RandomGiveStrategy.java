@@ -5,7 +5,9 @@ import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeConfig;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
+import com.tianli.accountred.enums.RedEnvelopeType;
 import com.tianli.accountred.service.RedEnvelopeConfigService;
+import org.springframework.beans.factory.InitializingBean;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -21,12 +23,15 @@ import java.util.Random;
  * @apiNote
  * @since 2022-10-17
  **/
-public class RandomGiveStrategy extends RedEnvelopeGiveStrategy {
+@Resource
+public class RandomGiveStrategy extends RedEnvelopeGiveStrategy implements InitializingBean {
+
+    private static final BigDecimal LIMIT_AMOUNT = BigDecimal.valueOf(0.000001);
+
+    private final Random random = new Random();
 
     @Resource
     private RedEnvelopeConfigService redEnvelopeConfigService;
-
-    private static final BigDecimal LIMIT_AMOUNT = BigDecimal.valueOf(0.000001);
 
     protected List<RedEnvelopeSpilt> spiltRedEnvelopeOperation(Long rid, int count, BigDecimal amount, BigDecimal limitAmount) {
         return this.spiltRedEnvelopeOperation(rid, count, amount, limitAmount, 6);
@@ -47,7 +52,6 @@ public class RandomGiveStrategy extends RedEnvelopeGiveStrategy {
         // 最小金额
         limitAmount = MoreObjects.firstNonNull(limitAmount, LIMIT_AMOUNT);
         BigDecimal remain = amount.subtract(limitAmount.multiply(num));
-        final Random random = new Random();
         final BigDecimal hundred = new BigDecimal("100");
         final BigDecimal two = new BigDecimal("2");
         BigDecimal singleAmount;
@@ -83,9 +87,13 @@ public class RandomGiveStrategy extends RedEnvelopeGiveStrategy {
 
     @Override
     protected List<RedEnvelopeSpilt> spiltRedEnvelopeOperation(RedEnvelope redEnvelope) {
-        RedEnvelopeConfig one = redEnvelopeConfigService.getOne(redEnvelope.getCoin(), RedEnvelopeChannel.CHAT);
+        RedEnvelopeConfig one = redEnvelopeConfigService.getOne(redEnvelope.getCoin(), redEnvelope.getChannel());
         return this.spiltRedEnvelopeOperation(redEnvelope.getId(), redEnvelope.getNum()
                 , redEnvelope.getAmount(), one.getMinAmount(), one.getScale());
     }
 
+    @Override
+    public void afterPropertiesSet() {
+        GiveStrategyAdapter.addStrategy(RedEnvelopeChannel.CHAT, RedEnvelopeType.RANDOM, this);
+    }
 }

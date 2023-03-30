@@ -151,7 +151,6 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         verifiers.add(new InviteVerifier());
     }
 
-
     @Override
     @Transactional
     public Result give(Long uid, Long shortUid, RedEnvelopeIoUQuery query) {
@@ -798,9 +797,21 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
             BigDecimal totalAmount = redEnvelope.getTotalAmount();
             String coin = redEnvelope.getCoin();
-            BigDecimal uAmount = currencyService.getDollarRate(coin).multiply(totalAmount);
-            if (uAmount.compareTo(BigDecimal.valueOf(100L)) > 0) {
-                ErrorCodeEnum.RED_AMOUNT_EXCEED_LIMIT_100.throwException();
+            RedEnvelopeConfig redEnvelopeConfig = redEnvelopeConfigService.getOne(redEnvelope.getCoin(), channel);
+            if (totalAmount.compareTo(redEnvelopeConfig.getLimitAmount()) > 0) {
+                ErrorCodeEnum.RED_AMOUNT_EXCEED_LIMIT.throwException();
+            }
+
+            if (RedEnvelopeType.PRIVATE.equals(redEnvelope.getType()) && redEnvelope.getNum() != 1) {
+                ErrorCodeEnum.RED_NUM_ERROR.throwException();
+            }
+
+            if (RedEnvelopeType.NORMAL.equals(redEnvelope.getType())) {
+                int scaleConfig = redEnvelopeConfig.getScale();
+                int scale = RedEnvelopeConfig.getScale(redEnvelope.getAmount());
+                if (scale > scaleConfig) {
+                    ErrorCodeEnum.RED_AMOUNT_ERROR.throwException();
+                }
             }
 
             AccountBalance accountBalance = accountBalanceServiceImpl.getAndInit(uid, coin);
