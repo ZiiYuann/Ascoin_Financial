@@ -8,6 +8,7 @@ import com.tianli.accountred.enums.RedEnvelopeChannel;
 import com.tianli.accountred.enums.RedEnvelopeType;
 import com.tianli.accountred.service.RedEnvelopeConfigService;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -23,7 +24,7 @@ import java.util.Random;
  * @apiNote
  * @since 2022-10-17
  **/
-@Resource
+@Component
 public class RandomGiveStrategy extends RedEnvelopeGiveStrategy implements InitializingBean {
 
     private static final BigDecimal LIMIT_AMOUNT = BigDecimal.valueOf(0.000001);
