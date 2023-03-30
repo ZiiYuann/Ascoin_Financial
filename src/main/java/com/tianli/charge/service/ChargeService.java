@@ -693,17 +693,24 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         NewChargeType newChargeType = logVo.getNewChargeType();
         //提币状态分离
         if (newChargeType.name().equals(WithdrawChargeTypeEnum.withdraw.getType())) {
+            OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
             if (log.getLogType().name().equals(WithdrawChargeTypeEnum.withdraw_success.getType())) {
                 //只有提币成功、提币失败（链上失败）有详情，提币冻结（即提币中）、提币失败（审核拒绝）都是没有详情的
                 logVo.setStatus(NewChargeStatus.withdraw_success);
                 logVo.setNewChargeType(NewChargeType.withdraw_success);
                 logVo.setNewChargeTypeName(NewChargeType.withdraw_success.getNameZn());
                 logVo.setNewChargeTypeNameEn(NewChargeType.withdraw_success.getNameEn());
+                if (Objects.nonNull(orderChargeInfo)){
+                    logVo.setTxid(orderChargeInfo.getTxid());
+                }
             } else if (log.getLogType().name().equals(WithdrawChargeTypeEnum.withdraw_failed.getType())) {
                 logVo.setStatus(NewChargeStatus.withdraw_failed);
                 logVo.setNewChargeType(NewChargeType.withdraw_failed);
                 logVo.setNewChargeTypeName(NewChargeType.withdraw_failed.getNameZn());
                 logVo.setNewChargeTypeNameEn(NewChargeType.withdraw_failed.getNameEn());
+                if (Objects.nonNull(orderChargeInfo)){
+                    logVo.setTxid(orderChargeInfo.getTxid());
+                }
             } else {
                 logVo.setStatus(NewChargeStatus.withdraw_freeze);
                 logVo.setNewChargeType(NewChargeType.withdraw_freeze);

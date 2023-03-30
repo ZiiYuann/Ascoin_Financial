@@ -115,4 +115,9 @@ public class AccountBalanceOperationLogVo  {
      */
     private String groupEn;
 
+    /**
+     * 交易哈希
+     */
+    private String txid;
+
 }
