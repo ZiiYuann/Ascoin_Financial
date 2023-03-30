@@ -60,7 +60,7 @@ public class RedEnvelopeConfig {
         return RedEnvelopeConfig.builder()
                 .num(5000)
                 .limitAmount(BigDecimal.valueOf(100L))
-                .minAmount(BigDecimal.valueOf(0.01))
+                .minAmount(BigDecimal.valueOf(0.000001))
                 .build();
     }
 

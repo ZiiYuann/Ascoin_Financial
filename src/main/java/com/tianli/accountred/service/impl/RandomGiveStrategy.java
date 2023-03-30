@@ -2,8 +2,12 @@ package com.tianli.accountred.service.impl;
 
 import com.google.common.base.MoreObjects;
 import com.tianli.accountred.entity.RedEnvelope;
+import com.tianli.accountred.entity.RedEnvelopeConfig;
 import com.tianli.accountred.entity.RedEnvelopeSpilt;
+import com.tianli.accountred.enums.RedEnvelopeChannel;
+import com.tianli.accountred.service.RedEnvelopeConfigService;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -18,6 +22,9 @@ import java.util.Random;
  * @since 2022-10-17
  **/
 public class RandomGiveStrategy extends RedEnvelopeGiveStrategy {
+
+    @Resource
+    private RedEnvelopeConfigService redEnvelopeConfigService;
 
     private static final BigDecimal LIMIT_AMOUNT = BigDecimal.valueOf(0.000001);
 
@@ -77,8 +84,9 @@ public class RandomGiveStrategy extends RedEnvelopeGiveStrategy {
 
     @Override
     protected List<RedEnvelopeSpilt> spiltRedEnvelopeOperation(RedEnvelope redEnvelope) {
+        RedEnvelopeConfig one = redEnvelopeConfigService.getOne(redEnvelope.getCoin(), RedEnvelopeChannel.CHAT);
         return this.spiltRedEnvelopeOperation(redEnvelope.getId(), redEnvelope.getNum()
-                , redEnvelope.getAmount(), null);
+                , redEnvelope.getAmount(), one.getMinAmount(), one.getScale());
     }
 
 }
