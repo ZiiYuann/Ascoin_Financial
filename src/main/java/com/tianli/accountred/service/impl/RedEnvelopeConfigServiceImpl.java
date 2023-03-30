@@ -52,10 +52,22 @@ public class RedEnvelopeConfigServiceImpl extends ServiceImpl<RedEnvelopeConfigM
 
     @Override
     public RedEnvelopeConfig getOne(String coin, RedEnvelopeChannel channel) {
-        return Optional.ofNullable(this.getOne(new LambdaQueryWrapper<RedEnvelopeConfig>()
-                        .eq(RedEnvelopeConfig::getCoin, coin)
-                        .eq(RedEnvelopeConfig::getChannel, channel)))
-                .orElse(RedEnvelopeConfig.externDefaultConfig());
+        Optional<RedEnvelopeConfig> one = Optional.ofNullable(this.getOne(new LambdaQueryWrapper<RedEnvelopeConfig>()
+                .eq(RedEnvelopeConfig::getCoin, coin)
+                .eq(RedEnvelopeConfig::getChannel, channel)));
+
+        if (one.isPresent()) {
+            return one.get();
+        }
+
+        if (RedEnvelopeChannel.EXTERN.equals(channel)) {
+            return RedEnvelopeConfig.externDefaultConfig();
+        }
+
+        if (RedEnvelopeChannel.CHAT.equals(channel)) {
+            return RedEnvelopeConfig.defaultConfig();
+        }
+        throw new NullPointerException();
     }
 
     @Override
