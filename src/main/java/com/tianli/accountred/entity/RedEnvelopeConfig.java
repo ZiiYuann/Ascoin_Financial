@@ -73,7 +73,11 @@ public class RedEnvelopeConfig {
     }
 
     public int getScale() {
-        String minAmountStr = this.getMinAmount().stripTrailingZeros().toPlainString();
+        return RedEnvelopeConfig.getScale(this.getMinAmount());
+    }
+
+    public static int getScale(BigDecimal amount) {
+        String minAmountStr = amount.stripTrailingZeros().toPlainString();
         int scale = 0;
         int i = minAmountStr.indexOf(".");
         if (i != -1) {

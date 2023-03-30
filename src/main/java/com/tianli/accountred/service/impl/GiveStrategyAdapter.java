@@ -23,14 +23,6 @@ public class GiveStrategyAdapter {
 
     private static final HashMap<String, RedEnvelopeGiveStrategy> GIVE_STRATEGY = new HashMap<>(4);
 
-    static {
-        NormalGiveStrategy normalGiveStrategy = new NormalGiveStrategy();
-        RandomGiveStrategy randomGiveStrategy = new RandomGiveStrategy();
-        GIVE_STRATEGY.put(RedEnvelopeChannel.CHAT.name() + "-" + RedEnvelopeType.NORMAL.name(), normalGiveStrategy);
-        GIVE_STRATEGY.put(RedEnvelopeChannel.CHAT.name() + "-" + RedEnvelopeType.PRIVATE.name(), normalGiveStrategy);
-        GIVE_STRATEGY.put(RedEnvelopeChannel.CHAT.name() + "-" + RedEnvelopeType.RANDOM.name(), randomGiveStrategy);
-    }
-
     /**
      * 策略注册（不依赖Bean的直接在 static注册即可，如果依赖其他Bean 则通过实现InitializingBean或其他方式进行注册）
      *

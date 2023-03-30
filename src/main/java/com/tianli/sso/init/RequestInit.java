@@ -26,4 +26,5 @@ public class RequestInit {
     private String ip = "";
     private Double lat;
     private Double lng;
+    private String token;
 }
