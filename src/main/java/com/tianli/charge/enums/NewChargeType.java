@@ -21,7 +21,7 @@ public enum NewChargeType {
     withdraw_failed("Withdraw Failed","提币失败"),
     withdraw_freeze("Withdraw Freeze","提币冻结"),
 
-    income("Earnings", "收益"),
+    income("Earnings", "理财收益"),
     purchase("Subscription", "理财申购"),
     fund_purchase("Fund Subscription", "基金申购"),
     redeem("Redemption", "赎回"),
@@ -33,6 +33,7 @@ public enum NewChargeType {
     red_give("Send Red Packet", "红包发送"),
     red_get("Red Packet Collection", "红包领取"),
     red_back("Red Packet Refund", "红包退款"),
+    c2c_freeze("C2C freeze","c2c冻结"),
     transaction_reward("Trading Bonus", "交易奖励", AccountChangeType.transaction_reward),
     transfer_increase("Transfer Increase", "划转",AccountChangeType.transfer_increase),
     transfer_reduce("Transfer Reduce", "划转",AccountChangeType.transfer_reduce),
@@ -52,6 +53,8 @@ public enum NewChargeType {
     repay("Repay", "还币",AccountChangeType.recharge),
     pledge("Collateral", "质押",AccountChangeType.borrow_pledge),
     release("Release Pledge", "质押解冻",AccountChangeType.release);
+
+
 
 
     NewChargeType(String nameEn, String nameZn) {
