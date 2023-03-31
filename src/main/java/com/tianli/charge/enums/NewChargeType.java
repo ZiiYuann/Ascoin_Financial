@@ -26,7 +26,7 @@ public enum NewChargeType {
     fund_purchase("Fund Subscription", "基金申购"),
     redeem("Redemption", "赎回"),
     fund_interest("Fund Interest", "基金利息"),
-    settle("Settlement", "结算"),
+    settle("Settlement", "结算本金"),
     agent_fund_sale("Sales Revenue", "用户申购"),
     agent_fund_redeem("Redemption expense", "用户赎回"),
     agent_fund_interest("Interest payments", "利息支付"),
