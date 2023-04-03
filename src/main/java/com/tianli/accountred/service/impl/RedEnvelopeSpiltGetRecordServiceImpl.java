@@ -144,6 +144,7 @@ public class RedEnvelopeSpiltGetRecordServiceImpl extends ServiceImpl<RedEnvelop
         long score = redEnvelopeSpiltGetRecord.getReceiveTime().toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
         String getRecordsKey = RedisConstants.RED_ENVELOPE_RECORD + redEnvelope.getId();
         stringRedisTemplate.opsForZSet().add(getRecordsKey, JSONUtil.toJsonStr(redEnvelopeSpiltGetRecord), score);
+        stringRedisTemplate.expire(getRecordsKey, redEnvelope.getChannel().getExpireDays(), TimeUnit.DAYS);
 
         return redEnvelopeSpiltGetRecord;
     }
