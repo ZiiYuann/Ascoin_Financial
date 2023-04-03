@@ -70,7 +70,7 @@
         des
         FROM
         account_balance_operation_log
-        where uid=#{uid}
+        where uid=#{uid} and charge_type !='fund_redeem'
         <if test="param.coin !=null and param.coin !=''">
             and coin=#{param.coin}
         </if>
@@ -107,7 +107,7 @@
         des
         FROM
         account_balance_operation_log
-        where uid=#{uid}
+        where uid=#{uid} and charge_type !='fund_redeem'
         <if test="param.coin !=null and param.coin !=''">
             and coin=#{param.coin}
         </if>
