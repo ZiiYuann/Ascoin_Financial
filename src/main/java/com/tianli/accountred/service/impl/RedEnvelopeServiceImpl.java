@@ -58,15 +58,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -88,6 +87,8 @@ import static com.tianli.common.ConfigConstants.SYSTEM_URL_PATH_PREFIX;
 public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEnvelope> implements RedEnvelopeService {
 
     public static final String BLOOM = "bloom";
+
+    public static final String RETURN_RECEIVED = "    return 'RECEIVED'\n";
 
     @Resource
     private AccountBalanceServiceImpl accountBalanceServiceImpl;
@@ -325,29 +326,33 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         String receivedUidKey = RedisConstants.SPILT_RED_ENVELOPE_GET + rid + ":" + uid;
         String receivedDeviceKey = RedisConstants.SPILT_RED_ENVELOPE_GET + rid + ":" + query.getDeviceNumber();
         String exchangeCodeKey = RedisConstants.RED_EXTERN_CODE + query.getExchangeCode();
-        String semaphore = RedisConstants.RED_SEMAPHORE + rid + ":" + uid;
+        String semaphore = RedisConstants.RED_SEMAPHORE + rid; // 站外红包信号量设置
         String externKey = RedisConstants.RED_EXTERN + redEnvelope.getId(); //删除缓存 用于减少可领取兑换码缓存
 
         String script =
-                "local externKey = KEYS[4] \n" +
+                "local receivedUidKey = KEYS[1] \n" +
+                        "local exchangeCodeKey = KEYS[2] \n" +
+                        "local semaphore = KEYS[3] \n" +
+                        "local externKey = KEYS[4] \n" +
                         "local externRecordKey = KEYS[5] \n" +
                         "local receivedDeviceKey = KEYS[6] \n" +
+                        "local uid = KEYS[7] \n" +
                         "local oldMember = ARGV[1] \n" +
                         "local newMember = ARGV[2] \n" +
                         "local newMemberScore = ARGV[3] \n" +
-                        "if redis.call('EXISTS', KEYS[1]) > 0 then\n" +
-                        "    return 'RECEIVED'\n" +
+                        "if redis.call('EXISTS', receivedUidKey) > 0 then\n" +
+                        RETURN_RECEIVED +
                         "elseif redis.call('EXISTS', receivedDeviceKey) > 0 then\n" +
-                        "    return 'RECEIVED'\n" +
-                        "elseif redis.call('EXISTS', KEYS[2]) == 0 then\n" +
+                        RETURN_RECEIVED +
+                        "elseif redis.call('EXISTS', exchangeCodeKey) == 0 then\n" +
                         "    return 'FINISH'\n" +
                         "else\n" +
-                        "    redis.call('SET',KEYS[1],'')\n" +
-                        "    redis.call('EXPIRE',KEYS[1],2592000)\n" +
+                        "    redis.call('SET',receivedUidKey,'')\n" +
+                        "    redis.call('EXPIRE',receivedUidKey,2592000)\n" +
                         "    redis.call('SET',receivedDeviceKey,'')\n" +
                         "    redis.call('EXPIRE',receivedDeviceKey,2592000)\n" +
-                        "    redis.call('DEL',KEYS[2])\n" +
-                        "    redis.call('SET',KEYS[3],'')\n" +
+                        "    redis.call('DEL',exchangeCodeKey)\n" +
+                        "    redis.call('SADD',semaphore,uid)\n" +
                         "    redis.call('ZREM',externKey,oldMember)\n" +
                         "    redis.call('ZREM',externRecordKey,oldMember)\n" +
                         "    redis.call('ZADD',externRecordKey,newMemberScore,newMember)\n" +
@@ -358,7 +363,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         String result;
         try {
             result = stringRedisTemplate.opsForValue().getOperations().execute(redisScript
-                    , List.of(receivedUidKey, exchangeCodeKey, semaphore, externKey, externRecordKey, receivedDeviceKey)
+                    , List.of(receivedUidKey, exchangeCodeKey, semaphore, externKey
+                            , externRecordKey, receivedDeviceKey, uid + "")
                     , oldMember, newMember, newMemberScore);
         } catch (Exception e) {
             // 防止由于网络波动导致的红包异常 暂时做通知处理，如果情况比较多，后续进行补偿
@@ -430,17 +436,17 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
         String receivedKey = RedisConstants.SPILT_RED_ENVELOPE_GET + query.getRid() + ":" + uid;
         String spiltRedKey = RedisConstants.RED_CHAT + query.getRid();
-        String semaphore = RedisConstants.RED_SEMAPHORE + query.getRid() + ":" + uid;
+        String semaphore = RedisConstants.RED_SEMAPHORE + query.getRid(); // 聊天红包信号量设置
         // 此lua脚本的用处 1、判断用户是否已经抢过红包 2、判断拆分红包是否还有剩余
         String script =
                 "if redis.call('EXISTS', KEYS[1]) > 0 then\n" +
-                        "    return 'RECEIVED'\n" +
+                        RETURN_RECEIVED +
                         "elseif redis.call('EXISTS', KEYS[2]) == 0 then\n" +
                         "    return 'FINISH'\n" +
                         "else\n" +
                         "    redis.call('SET',KEYS[1],'')\n" +
                         "    redis.call('EXPIRE',KEYS[1],86400)\n" +
-                        "    redis.call('SET',KEYS[3],'')\n" +
+                        "    redis.call('SADD',KEYS[3],KEYS[4])\n" +
                         "    return redis.call('SPOP', KEYS[2])\n" +
                         "end";
         DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
@@ -449,7 +455,7 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         String result;
         try {
             result = stringRedisTemplate.opsForValue().getOperations().execute(redisScript
-                    , List.of(receivedKey, spiltRedKey, semaphore));
+                    , List.of(receivedKey, spiltRedKey, semaphore, uid + ""));
         } catch (Exception e) {
             // 防止由于网络波动导致的红包异常 暂时做通知处理，如果情况比较多，后续进行补偿
             webHookService.dingTalkSend("领取红包状态异常，请及时处理，红包id：" + query.getRid() + " uid：" + uid, e);
@@ -607,8 +613,8 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void redEnvelopeRollback(RedEnvelope redEnvelope, RedEnvelopeStatus status) {
-        String semaphore = RedisConstants.RED_SEMAPHORE + redEnvelope.getId();
-        Set<String> keys = stringRedisTemplate.keys(semaphore + "*");
+        String semaphore = RedisConstants.RED_SEMAPHORE + redEnvelope.getId(); // 回滚判断信号量是否存在
+        Set<String> keys = stringRedisTemplate.opsForSet().members(semaphore);
         if (CollectionUtils.isNotEmpty(keys)) {
             ErrorCodeEnum.RED_TRANSFER_ING.throwException();
         }
