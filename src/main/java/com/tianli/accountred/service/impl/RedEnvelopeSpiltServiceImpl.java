@@ -69,7 +69,7 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
 
     private static final long TIME_BEGIN = 1670774400000L;
 
-    private static MessageDigest md5 = null;
+    private static MessageDigest md5;
 
     private static final String PREFIX = "0x";
 
