@@ -128,8 +128,8 @@ public class RedEnvelopeSpiltServiceImpl extends ServiceImpl<RedEnvelopeSpiltMap
         // 操作账户
         accountBalanceService.increase(uid, ChargeType.red_get, redEnvelope.getCoin()
                 , redEnvelopeSpilt.getAmount(), order.getOrderNo());
-        String semaphore = RedisConstants.RED_SEMAPHORE + redEnvelope.getId() + ":" + uid;
-        stringRedisTemplate.delete(semaphore);
+        String semaphore = RedisConstants.RED_SEMAPHORE + redEnvelope.getId(); // 异步转账完成，删除信号量
+        stringRedisTemplate.opsForSet().remove(semaphore, uid + "");
         return redEnvelopeSpiltGetRecord;
     }
 
