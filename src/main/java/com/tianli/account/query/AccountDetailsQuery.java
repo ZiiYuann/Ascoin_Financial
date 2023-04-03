@@ -1,7 +1,10 @@
 package com.tianli.account.query;
 
+import com.baomidou.mybatisplus.core.enums.SqlKeyword;
 import com.tianli.charge.enums.ChargeGroup;
+import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.common.annotation.QueryWrapperGenerator;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
@@ -19,23 +22,39 @@ import java.util.*;
 @NoArgsConstructor
 public class AccountDetailsQuery {
 
-    private ChargeGroup chargeGroup;
+    @QueryWrapperGenerator(field = "uid")
+    private Long uid;
 
+    @QueryWrapperGenerator(field = "coin")
     private String coin;
 
-    private ChargeType chargeType;
+    @QueryWrapperGenerator(op = SqlKeyword.NE, field = "status")
+    private ChargeStatus status = ChargeStatus.chain_fail;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @QueryWrapperGenerator(op = SqlKeyword.GE, field = "start_time")
     private LocalDateTime startTime;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @QueryWrapperGenerator(op = SqlKeyword.LE, field = "end_time")
     private LocalDateTime endTime;
+
+    @QueryWrapperGenerator(op = SqlKeyword.IN, field = "type")
+    private List<ChargeType> chargeTypes;
+
+    @QueryWrapperGenerator(op = SqlKeyword.DESC, field = "create_time")
+    private Boolean orderByCreateTimeDesc = Boolean.TRUE;
+
+    @QueryWrapperGenerator(op = SqlKeyword.DESC, field = "id")
+    private Boolean orderByIdDesc = Boolean.TRUE;
+
+    private ChargeType chargeType;
+
+    private ChargeGroup chargeGroup;
 
     private List<ChargeGroup> chargeGroups;
 
-    private List<ChargeType> chargeTypes;
-
-    public Set<ChargeType> chargeTypeSet() {
+    public Set<ChargeType> chargeTypes() {
         Set<ChargeType> types = new HashSet<>();
 
         Optional.ofNullable(this.getChargeGroup()).ifPresent(group -> types.addAll(group.getChargeTypes()));

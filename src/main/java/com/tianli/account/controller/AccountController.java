@@ -223,7 +223,8 @@ public class AccountController {
     public Result<IPage<OrderChargeInfoVO>> accountBalanceDetails(PageQuery<Order> pageQuery, AccountDetailsQuery query) {
         Long uid = requestInitService.uid();
         query = MoreObjects.firstNonNull(query, new AccountDetailsQuery());
-        return new Result<>(chargeService.pageByChargeGroup(uid, query, pageQuery.page()));
+        query.setUid(uid);
+        return new Result<>(chargeService.pageByChargeGroup(query, pageQuery.page()));
     }
 
     /**
