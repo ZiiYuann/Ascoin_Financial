@@ -1,6 +1,8 @@
 package com.tianli.charge.enums;
 
 import com.tianli.account.enums.AccountChangeType;
+import com.tianli.account.enums.AccountOperationType;
+import com.tianli.account.query.BalanceOperationChargeTypeQuery;
 import com.tianli.charge.vo.OrderStatusPullVO;
 import com.tianli.exception.ErrorCodeEnum;
 import lombok.Getter;
@@ -51,23 +53,60 @@ public enum ChargeType {
     pledge("Collateral", "锁定质押物", AccountChangeType.borrow_pledge),
     release("Release Pledge", "释放质押物", AccountChangeType.release),
     forced_closeout("Forced Closeout", "强制平仓", AccountChangeType.forced_closeout),
-    auto_re("Automatic replenishment", "自动补仓", AccountChangeType.auto_re)
+    auto_re("Automatic replenishment", "自动补仓", AccountChangeType.auto_re),
 
     // 增加类型需要在 ChargeRemarks 中增加对应的状态和文字，不然会报错
     // 增加类型需要在 ChargeGroup 中增加对应，不然会报错
+
+
+    // 流水特殊处理使用，涉及到特殊的使用需要在AccountDetailsNewQuery.chargeTypeQueries 做处理
+    withdraw_success("Successful Withdrawal", "提币成功", AccountOperationType.reduce),
+    withdraw_failed("Failed Withdrawal", "提币失败", AccountOperationType.unfreeze),
+    withdraw_freeze("Freeze Withdrawal", "提币冻结", AccountOperationType.freeze),
     ;
 
+    public ChargeType accountWrapper(AccountOperationType accountOperationType) {
+        if (withdraw.equals(this)) {
+            if (accountOperationType.equals(withdraw_success.getAccountOperationType())) {
+                return withdraw_success;
+            }
+            if (accountOperationType.equals(withdraw_failed.getAccountOperationType())) {
+                return withdraw_failed;
+            }
+            if (accountOperationType.equals(withdraw_freeze.getAccountOperationType())) {
+                return withdraw_freeze;
+            }
+        }
+
+        return this;
+    }
+
+    public static BalanceOperationChargeTypeQuery balanceOperationChargeTypeQuery(ChargeType chargeType) {
+        if (withdraw_success.equals(chargeType) || withdraw_failed.equals(chargeType) || withdraw_freeze.equals(chargeType)) {
+            return new BalanceOperationChargeTypeQuery(ChargeType.withdraw, chargeType.accountOperationType);
+        }
+        return null;
+    }
+
+    ChargeType(String nameEn, String nameZn, AccountOperationType accountOperationType) {
+        this.nameZn = nameZn;
+        this.nameEn = nameEn;
+        this.accountChangeType = null;
+        this.accountOperationType = accountOperationType;
+    }
 
     ChargeType(String nameEn, String nameZn) {
         this.nameZn = nameZn;
         this.nameEn = nameEn;
         this.accountChangeType = null;
+        this.accountOperationType = null;
     }
 
     ChargeType(String nameEn, String nameZn, AccountChangeType accountChangeType) {
         this.nameZn = nameZn;
         this.nameEn = nameEn;
         this.accountChangeType = accountChangeType;
+        this.accountOperationType = null;
     }
 
 
@@ -77,6 +116,8 @@ public enum ChargeType {
     private final String nameEn;
     @Getter
     private final AccountChangeType accountChangeType;
+    @Getter
+    private final AccountOperationType accountOperationType;
 
 
     public static List<OrderStatusPullVO> orderStatusPull(ChargeType chargeType) {

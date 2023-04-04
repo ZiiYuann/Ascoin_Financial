@@ -252,9 +252,9 @@ public class AccountController {
      * 【云钱包】币别详情下方流水列表
      */
     @GetMapping("/balance/newDetails")
-    public Result<IPage<AccountBalanceOperationLogVo>> accountNewDetails(PageQuery<AccountBalanceOperationLog> pageQuery, AccountDetailsNewQuery query) {
+    public Result<IPage<AccountBalanceOperationLogVO>> accountNewDetails(PageQuery<AccountBalanceOperationLog> pageQuery
+            , AccountDetailsNewQuery query) {
         Long uid = requestInitService.uid();
-//        Long uid=1737483724589629442l;
         query = MoreObjects.firstNonNull(query, new AccountDetailsNewQuery());
         return new Result<>(chargeService.newPageByChargeGroup(uid, query, pageQuery.page()));
     }

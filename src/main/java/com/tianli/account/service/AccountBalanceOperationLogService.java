@@ -6,7 +6,6 @@ import com.tianli.account.entity.AccountBalance;
 import com.tianli.account.entity.AccountBalanceOperationLog;
 import com.tianli.account.enums.AccountOperationType;
 import com.tianli.charge.enums.ChargeTypeGroupEnum;
-import com.tianli.charge.enums.NewChargeType;
 import com.tianli.charge.enums.WithdrawChargeTypeEnum;
 import com.tianli.account.mapper.AccountBalanceOperationLogMapper;
 import com.tianli.account.vo.WalletChargeFlowVo;
@@ -77,7 +76,7 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
         }
         //去掉基金利息类型
         IPage<WalletChargeFlowVo> list = accountBalanceOperationLogMapper.list(pageQuery.page(),
-                walletChargeFlowQuery,NewChargeType.fund_interest.name(),WithdrawChargeTypeEnum.withdraw.getType());
+                walletChargeFlowQuery,ChargeType.fund_interest.name(),WithdrawChargeTypeEnum.withdraw.getType());
         return list.convert(walletChargeFlowVo -> {
             {
                 if (walletChargeFlowVo.getChargeType().equals(WithdrawChargeTypeEnum.withdraw.name())) {

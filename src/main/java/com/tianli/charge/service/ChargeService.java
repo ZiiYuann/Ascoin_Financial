@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.google.common.base.MoreObjects;
+import com.tianli.account.convert.AccountConverter;
 import com.tianli.account.entity.AccountBalanceOperationLog;
 import com.tianli.account.entity.AccountUserTransfer;
 import com.tianli.account.enums.AccountChangeType;
@@ -15,7 +15,7 @@ import com.tianli.account.query.AccountDetailsNewQuery;
 import com.tianli.account.query.AccountDetailsQuery;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.AccountUserTransferService;
-import com.tianli.account.vo.AccountBalanceOperationLogVo;
+import com.tianli.account.vo.AccountBalanceOperationLogVO;
 import com.tianli.account.vo.TransactionGroupTypeVO;
 import com.tianli.account.vo.TransactionTypeVO;
 import com.tianli.address.mapper.Address;
@@ -457,14 +457,14 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         orderChargeInfoVO.setNetworkType(orderChargeInfo.getNetwork());
         orderChargeInfoVO.setRealAmount(order.getAmount().subtract(order.getServiceAmount()));
         if (orderChargeInfoVO.getType().equals(ChargeType.withdraw) && orderChargeInfoVO.getStatus().equals(ChargeStatus.chain_success)) {
-            orderChargeInfoVO.setNewChargeType(NewChargeType.withdraw_success);
-            orderChargeInfoVO.setNewChargeTypeName(NewChargeType.withdraw_success.getNameZn());
-            orderChargeInfoVO.setNewChargeTypeNameEn(NewChargeType.withdraw_success.getNameEn());
+            orderChargeInfoVO.setNewChargeType(ChargeType.withdraw_success);
+            orderChargeInfoVO.setNewChargeTypeName(ChargeType.withdraw_success.getNameZn());
+            orderChargeInfoVO.setNewChargeTypeNameEn(ChargeType.withdraw_success.getNameEn());
         }
         if (orderChargeInfoVO.getType().equals(ChargeType.recharge) && orderChargeInfoVO.getStatus().equals(ChargeStatus.chain_success)) {
-            orderChargeInfoVO.setNewChargeType(NewChargeType.recharge);
-            orderChargeInfoVO.setNewChargeTypeName(NewChargeType.recharge.getNameZn());
-            orderChargeInfoVO.setNewChargeTypeNameEn(NewChargeType.recharge.getNameEn());
+            orderChargeInfoVO.setNewChargeType(ChargeType.recharge);
+            orderChargeInfoVO.setNewChargeTypeName(ChargeType.recharge.getNameZn());
+            orderChargeInfoVO.setNewChargeTypeNameEn(ChargeType.recharge.getNameEn());
         }
         return orderChargeInfoVO;
     }
@@ -627,18 +627,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      * 获取分页数据 2023-03-13需求改动
      * 查询account_balance_operation_log表
      */
-    public IPage<AccountBalanceOperationLogVo> newPageByChargeGroup(Long uid, AccountDetailsNewQuery query, Page<AccountBalanceOperationLog> page) {
-
-        //提币类型的需要根据两个字段查询
-        if (CollectionUtils.isNotEmpty(query.getChargeType())) {
-            if (query.getChargeType().contains(WithdrawChargeTypeEnum.withdraw_success.name()) ||
-                    query.getChargeType().contains(WithdrawChargeTypeEnum.withdraw_failed.name()) ||
-                    query.getChargeType().contains(WithdrawChargeTypeEnum.withdraw_freeze.name())) {
-                List<String> withdrawTypes = query.getChargeType().stream().filter(chargeType -> chargeType.contains(WithdrawChargeTypeEnum.withdraw.name())).collect(Collectors.toList());
-                query.setSepicalType(WithdrawChargeTypeEnum.withdraw.name());
-                query.setLogType(WithdrawChargeTypeEnum.getTypeByDesc(withdrawTypes.get(0)));
-            }
-        }
+    public IPage<AccountBalanceOperationLogVO> newPageByChargeGroup(Long uid, AccountDetailsNewQuery query
+            , Page<AccountBalanceOperationLog> page) {
         Page<AccountBalanceOperationLog> logPages = accountBalanceOperationLogMapper.pageList(page, uid, query);
         return logPages.convert(this::log2VO);
     }
@@ -646,92 +636,26 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
     /**
      * 封装AccountBalanceOperationLogVo
-     *
-     * @param log
-     * @return
      */
-    public AccountBalanceOperationLogVo log2VO(AccountBalanceOperationLog log) {
-        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Order::getOrderNo, log.getOrderNo());
-        Order order = orderService.getOne(wrapper);
-        order = MoreObjects.firstNonNull(order, new Order());
-        AccountBalanceOperationLogVo logVo = new AccountBalanceOperationLogVo();
-        logVo.setId(log.getId());
-        logVo.setUid(log.getUid());
-        logVo.setOrderNo(log.getOrderNo());
+    public AccountBalanceOperationLogVO log2VO(AccountBalanceOperationLog log) {
+        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
+                .eq(Order::getOrderNo, log.getOrderNo());
+        Order order = Optional.ofNullable(orderService.getOne(wrapper)).orElse(new Order());
+
         ChargeType chargeType = log.getChargeType();
-        logVo.setNewChargeType(NewChargeType.getInstance(chargeType));
-        NewChargeType newChargeType = logVo.getNewChargeType();
-        //提币状态分离
-        if (newChargeType.name().equals(WithdrawChargeTypeEnum.withdraw.getType())) {
-            OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
-            if (log.getLogType().name().equals(WithdrawChargeTypeEnum.withdraw_success.getType())) {
-                //只有提币成功、提币失败（链上失败）有详情，提币冻结（即提币中）、提币失败（审核拒绝）都是没有详情的
-                logVo.setStatus(NewChargeStatus.withdraw_success);
-                logVo.setNewChargeType(NewChargeType.withdraw_success);
-                logVo.setNewChargeTypeName(NewChargeType.withdraw_success.getNameZn());
-                logVo.setNewChargeTypeNameEn(NewChargeType.withdraw_success.getNameEn());
-                if (Objects.nonNull(orderChargeInfo)) {
-                    logVo.setTxid(orderChargeInfo.getTxid());
-                }
-            } else if (log.getLogType().name().equals(WithdrawChargeTypeEnum.withdraw_failed.getType())) {
-                logVo.setStatus(NewChargeStatus.withdraw_failed);
-                logVo.setNewChargeType(NewChargeType.withdraw_failed);
-                logVo.setNewChargeTypeName(NewChargeType.withdraw_failed.getNameZn());
-                logVo.setNewChargeTypeNameEn(NewChargeType.withdraw_failed.getNameEn());
-                if (Objects.nonNull(orderChargeInfo)) {
-                    logVo.setTxid(orderChargeInfo.getTxid());
-                }
-            } else {
-                logVo.setStatus(NewChargeStatus.withdraw_freeze);
-                logVo.setNewChargeType(NewChargeType.withdraw_freeze);
-                logVo.setNewChargeTypeName(NewChargeType.withdraw_freeze.getNameZn());
-                logVo.setNewChargeTypeNameEn(NewChargeType.withdraw_freeze.getNameEn());
-            }
-        } else {
-            logVo.setStatus(NewChargeStatus.getInstance(order.getStatus()));
-            logVo.setNewChargeTypeName(NewChargeType.getInstance(chargeType).getNameZn());
-            logVo.setNewChargeTypeNameEn(NewChargeType.getInstance(chargeType).getNameEn());
-        }
+        ChargeType chargeTypeWrapper = chargeType.accountWrapper(log.getLogType());
 
-        logVo.setCreateTime(log.getCreateTime());
-        logVo.setCompleteTime(order.getCompleteTime());
-        logVo.setAmount(log.getAmount());
-        logVo.setCoin(log.getCoin());
-        logVo.setServiceAmount(order.getServiceAmount());
-        logVo.setUpdateTime(order.getUpdateTime());
-        logVo.setRelatedId(order.getRelatedId());
-        LambdaQueryWrapper<OrderChargeType> wrapper1 = new LambdaQueryWrapper<>();
-        wrapper1.eq(OrderChargeType::getType, logVo.getNewChargeType());
-        OrderChargeType orderChargeType = iOrderChargeTypeService.getOne(wrapper1);
-        logVo.setGroupEn(orderChargeType.getOperationGroup());
-        logVo.setGroup(ChargeTypeGroupEnum.getTypeGroup(orderChargeType.getOperationGroup()));
-        NewChargeType type = logVo.getNewChargeType();
-        if (NewChargeType.transaction_reward.equals(type)) {
-            int i = orderRewardRecordService.recordCountThisHour(logVo.getUid(), logVo.getCreateTime());
-            logVo.setRemarks("已发放" + i + "笔");
-            logVo.setRemarksEn(i + " Receiving Record(s)");
-        }
+        AccountBalanceOperationLogVO vo = accountConverter.toAccountBalanceOperationLogVO(order);
+        vo.setNewChargeType(chargeTypeWrapper);
+        vo.setNewChargeTypeName(chargeTypeWrapper.getNameZn());
+        vo.setNewChargeTypeNameEn(chargeTypeWrapper.getNameEn());
 
-        if (!NewChargeType.transaction_reward.equals(type)) {
-            NewChargeRemarks remarks = NewChargeRemarks.getInstance(logVo.getNewChargeType(), logVo.getStatus());
-            logVo.setRemarks(remarks.getRemarks());
-            logVo.setRemarksEn(remarks.getRemarksEn());
-        }
-
-        if (NewChargeType.user_credit_in.equals(type) || NewChargeType.user_credit_out.equals(type) ||
-                NewChargeType.credit_out.equals(type) || NewChargeType.credit_in.equals(type)) {
-            AccountUserTransfer accountUserTransfer =
-                    accountUserTransferService.getByExternalPk(logVo.getRelatedId());
-
-            Optional.ofNullable(accountUserTransfer)
-                    .ifPresent(a -> logVo.setOrderOtherInfoVo(OrderOtherInfoVo.builder()
-                            .transferExternalPk(a.getExternalPk())
-                            .build()));
-
-        }
-
-        return logVo;
+        LambdaQueryWrapper<OrderChargeType> chargeTypeQuery = new LambdaQueryWrapper<>();
+        chargeTypeQuery.eq(OrderChargeType::getType, chargeTypeWrapper);
+        OrderChargeType orderChargeType = iOrderChargeTypeService.getOne(chargeTypeQuery);
+        vo.setGroupEn(orderChargeType.getOperationGroup());
+        vo.setGroup(ChargeTypeGroupEnum.getTypeGroup(orderChargeType.getOperationGroup()));
+        return vo;
     }
 
 
@@ -776,6 +700,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     private AddressService addressService;
     @Resource
     private ChargeConverter chargeConverter;
+    @Resource
+    private AccountConverter accountConverter;
     @Resource
     private OrderService orderService;
     @Resource

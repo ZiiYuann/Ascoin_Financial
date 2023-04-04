@@ -5,18 +5,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tianli.account.entity.AccountBalanceOperationLog;
 import com.tianli.account.query.AccountDetailsNewQuery;
-import com.tianli.account.vo.AccountBalanceOperationLogVo;
 import com.tianli.account.vo.WalletChargeFlowVo;
 import com.tianli.management.query.WalletChargeFlowQuery;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.SelectProvider;
-import org.apache.ibatis.jdbc.SQL;
-
-import java.math.BigInteger;
-import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -29,85 +21,11 @@ import java.time.LocalDateTime;
 @Mapper
 public interface AccountBalanceOperationLogMapper extends BaseMapper<AccountBalanceOperationLog> {
 
-    @Select("select ifnull(sum(`amount`), 0) from `account_balance_operation` where `uid` = #{uid} and `create_time` between #{startTime} and #{endTime} and `des` = '抽水' ")
-    BigInteger selectTotalRebateAmountWithInterval(@Param("uid") long uid, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
-
-    @Select("select ifnull(sum(`amount`), 0) from `account_balance_operation` where `uid` = #{uid} and `des` = '抽水' ")
-    BigInteger selectTotalRebateAmount(@Param("uid") long uid);
-
-    @SelectProvider(type = GenerateSQL.class, method = "countRake")
-    long rakeRecordCount(@Param("uid") Long uid,
-                         @Param("phone") String phone,
-                         @Param("bet_id") String bet_id,
-                         @Param("startTime") String startTime,
-                         @Param("endTime") String endTime);
-
-    @Select("select ifnull(sum(`amount`), 0) from `account_balance_operation` where `uid` = #{uid} and `des` = '利息'")
-    BigInteger selectSumMiningAmount(Long uid);
-
     IPage<WalletChargeFlowVo> list(@Param("page") IPage<AccountBalanceOperationLog> logIPage,
                                    @Param("param") WalletChargeFlowQuery walletChargeFlowQuery, @Param("param1")String excludeType, @Param("param2")String withDraw);
 
 
-    Page<AccountBalanceOperationLog> pageList(@Param("page") IPage<AccountBalanceOperationLog> logIPage,
+    Page<AccountBalanceOperationLog> pageList(@Param("page") IPage<AccountBalanceOperationLog> page,
                                               @Param("uid") Long uid,
                                               @Param("param") AccountDetailsNewQuery query);
-    class GenerateSQL{
-        private SQL countSQL(Long uid, String phone, String bet_id, String startTime, String endTime){
-            SQL sql = new SQL().SELECT("count(1)")
-                    .FROM("(SELECT * FROM account_balance_operation WHERE uid = #{uid} AND des = '抽水') cl")
-                    .LEFT_OUTER_JOIN("`bet` AS b ON replace(cl.sn,'rake_','') = b.id");
-            if(StringUtils.isNotBlank(phone)){
-                sql.WHERE("b.`uid_username` like CONCAT('%',#{phone},'%')");
-            }
-            if(StringUtils.isNotBlank(bet_id)){
-                sql.WHERE("b.`id` like CONCAT('%',#{bet_id},'%')");
-            }
-            if(StringUtils.isNotBlank(startTime)){
-                sql.WHERE("cl.`create_time` >= #{startTime}");
-            }
-            if(StringUtils.isNotBlank(endTime)){
-                sql.WHERE("cl.`create_time` <= #{endTime}");
-            }
-            return sql;
-        }
-
-        public String countRake(@Param("uid") Long uid,
-                                @Param("phone") String phone,
-                                @Param("bet_id") String bet_id,
-                                @Param("startTime") String startTime,
-                                @Param("endTime") String endTime){
-            return countSQL(uid, phone, bet_id, startTime, endTime).toString();
-        }
-
-        private SQL selectSQL(Long uid, String phone, String bet_id, String startTime, String endTime, Integer offset, Integer size){
-            SQL sql = new SQL().SELECT("cl.`id` as id, b.uid_username as username, b.uid_nick as nick, b.uid as uid, " +
-                                        "b.`id` as bet_id, b.amount as amount, cl.amount as rake , cl.create_time as create_time")
-                    .FROM("(SELECT * FROM account_balance_operation WHERE uid = #{uid} AND des = '抽水') cl")
-                    .LEFT_OUTER_JOIN("`bet` AS b ON replace(cl.sn,'rake_','') = b.id");
-            if(StringUtils.isNotBlank(phone)){
-                sql.WHERE("b.`uid_username` like CONCAT('%',#{phone},'%')");
-            }
-            if(StringUtils.isNotBlank(bet_id)){
-                sql.WHERE("b.`id` like CONCAT('%',#{bet_id},'%')");
-            }
-            if(StringUtils.isNotBlank(startTime)){
-                sql.WHERE("cl.`create_time` >= #{startTime}");
-            }
-            if(StringUtils.isNotBlank(endTime)){
-                sql.WHERE("cl.`create_time` <= #{endTime}");
-            }
-            return sql.ORDER_BY("cl.`create_time` DESC").LIMIT("#{offset}, #{size}");
-        }
-
-        public String rakeRecord(@Param("uid") Long uid,
-                                 @Param("phone") String phone,
-                                 @Param("bet_id") String bet_id,
-                                 @Param("startTime") String startTime,
-                                 @Param("endTime") String endTime,
-                                 @Param("offset") Integer offset,
-                                 @Param("size") Integer size){
-            return selectSQL(uid, phone, bet_id, startTime, endTime, offset, size).toString();
-        }
-    }
 }

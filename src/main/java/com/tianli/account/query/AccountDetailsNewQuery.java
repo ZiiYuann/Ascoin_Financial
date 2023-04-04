@@ -1,5 +1,6 @@
 package com.tianli.account.query;
 
+import com.tianli.charge.enums.ChargeType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,7 +8,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author:yangkang
@@ -21,7 +22,7 @@ public class AccountDetailsNewQuery implements Serializable {
 
     private String coin;
 
-    private List<String> chargeType;
+    private List<ChargeType> chargeType;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startTime;
@@ -29,8 +30,22 @@ public class AccountDetailsNewQuery implements Serializable {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
 
-    private String sepicalType;
+    private List<BalanceOperationChargeTypeQuery> chargeTypeQueries;
 
-    private String logType;
+    public void setChargeType(List<ChargeType> chargeType) {
+        List<ChargeType> needRemoveChargeType = new ArrayList<>();
 
+        List<BalanceOperationChargeTypeQuery> queries = new ArrayList<>();
+        chargeType = Optional.ofNullable(chargeType).orElse(Collections.emptyList());
+        chargeType.forEach(type -> {
+            BalanceOperationChargeTypeQuery query = ChargeType.balanceOperationChargeTypeQuery(type);
+            if (Objects.nonNull(query)) {
+                queries.add(query);
+                needRemoveChargeType.add(type);
+            }
+        });
+        chargeType.removeAll(needRemoveChargeType);
+        this.chargeType = chargeType;
+        this.chargeTypeQueries = queries;
+    }
 }
