@@ -2,6 +2,7 @@ package com.tianli.common;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.enums.SqlKeyword;
+import com.google.common.base.CaseFormat;
 import com.tianli.common.annotation.QueryWrapperGenerator;
 import com.tianli.common.query.SelectQuery;
 import lombok.SneakyThrows;
@@ -9,10 +10,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author chenb
@@ -37,15 +35,16 @@ public class QueryWrapperUtils {
             fields.addAll(Arrays.asList(superclass.getDeclaredFields()));
         }
         for (Field field : fields) {
-            String fileName = GET + StringUtils.capitalize(field.getName());
-            Object param = o.getClass().getMethod(fileName).invoke(o);
+            String classFieldName = GET + StringUtils.capitalize(field.getName());
+            Object param = o.getClass().getMethod(classFieldName).invoke(o);
             QueryWrapperGenerator queryWrapperGenerator = field.getDeclaredAnnotation(QueryWrapperGenerator.class);
-            if (Objects.isNull(queryWrapperGenerator) || Objects.isNull(param)) {
+            if (Objects.isNull(queryWrapperGenerator) || Objects.isNull(param)
+                    || (param instanceof String && StringUtils.isBlank((String) param))) {
                 continue;
             }
             SqlKeyword op = queryWrapperGenerator.op();
-
-            String fieldName = queryWrapperGenerator.field();
+            String fieldName = "".equals(queryWrapperGenerator.field()) ?
+                    CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName()) : queryWrapperGenerator.field();
             switch (op) {
                 case EQ:
                     result = result.eq(fieldName, param);
@@ -57,6 +56,7 @@ public class QueryWrapperUtils {
                     result = result.like(fieldName, param);
                     break;
                 case DESC:
+                    assert param instanceof Boolean;
                     Boolean desc = (Boolean) param;
                     result = Boolean.TRUE.equals(desc) ? result.orderByDesc(fieldName) : result.orderByAsc(fieldName);
                     break;
@@ -67,6 +67,7 @@ public class QueryWrapperUtils {
                     result = result.ge(fieldName, param);
                     break;
                 case IN:
+                    assert param instanceof Collection<?>;
                     if (CollectionUtils.isNotEmpty((Collection<?>) param)) {
                         result = result.in(fieldName, ((Collection<?>) param).toArray());
                     }

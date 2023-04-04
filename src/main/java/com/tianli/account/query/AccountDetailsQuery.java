@@ -22,21 +22,21 @@ import java.util.*;
 @NoArgsConstructor
 public class AccountDetailsQuery {
 
-    @QueryWrapperGenerator(field = "uid")
+    @QueryWrapperGenerator
     private Long uid;
 
-    @QueryWrapperGenerator(field = "coin")
+    @QueryWrapperGenerator
     private String coin;
 
-    @QueryWrapperGenerator(op = SqlKeyword.NE, field = "status")
+    @QueryWrapperGenerator(op = SqlKeyword.NE)
     private ChargeStatus status = ChargeStatus.chain_fail;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @QueryWrapperGenerator(op = SqlKeyword.GE, field = "start_time")
+    @QueryWrapperGenerator(op = SqlKeyword.GE, field = "create_time")
     private LocalDateTime startTime;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @QueryWrapperGenerator(op = SqlKeyword.LE, field = "end_time")
+    @QueryWrapperGenerator(op = SqlKeyword.LE, field = "create_time")
     private LocalDateTime endTime;
 
     @QueryWrapperGenerator(op = SqlKeyword.IN, field = "type")

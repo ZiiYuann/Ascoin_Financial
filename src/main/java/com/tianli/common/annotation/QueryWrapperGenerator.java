@@ -13,5 +13,5 @@ public @interface QueryWrapperGenerator {
 
     SqlKeyword op() default SqlKeyword.EQ;
 
-    String field();
+    String field() default "";
 }
