@@ -15,11 +15,11 @@ import java.util.List;
 public enum NewChargeType {
     // recharge 充值 withdraw 提现 income 收益 purchase 申购 redeem 赎回 settle 结算 transfer 转存 borrow借币
 
-    recharge("Deposition", "充值成功"),
+    recharge("Successful Recharge", "充值成功"),
     withdraw("Withdraw", "提币"),
-    withdraw_success("Withdraw Success","提币成功"),
-    withdraw_failed("Withdraw Failed","提币失败"),
-    withdraw_freeze("Withdraw Freeze","提币冻结"),
+    withdraw_success("Successful Withdrawal","提币成功"),
+    withdraw_failed("Failed Withdrawal","提币失败"),
+    withdraw_freeze("Freeze Withdrawal","提币冻结"),
 
     income("Earnings", "理财收益"),
     purchase("Subscription", "理财申购"),
@@ -27,16 +27,16 @@ public enum NewChargeType {
     redeem("Redemption", "赎回"),
     fund_interest("Fund Interest", "基金利息"),
     settle("Settlement", "结算本金"),
-    agent_fund_sale("Sales Revenue", "用户申购"),
-    agent_fund_redeem("Redemption expense", "用户赎回"),
+    agent_fund_sale("User Subscription", "用户申购"),
+    agent_fund_redeem("User Redemptions", "用户赎回"),
     agent_fund_interest("Interest payments", "利息支付"),
-    red_give("Send Red Packet", "红包发送"),
+    red_give("Red Packet Send", "红包发送"),
     red_get("Red Packet Collection", "红包领取"),
     red_back("Red Packet Refund", "红包退款"),
     c2c_freeze("C2C freeze","c2c冻结"),
     transaction_reward("Trading Bonus", "交易奖励", AccountChangeType.transaction_reward),
-    transfer_increase("Transfer Increase", "划转",AccountChangeType.transfer_increase),
-    transfer_reduce("Transfer Reduce", "划转",AccountChangeType.transfer_reduce),
+    transfer_increase("Transfer", "划转",AccountChangeType.transfer_increase),
+    transfer_reduce("Transfer", "划转",AccountChangeType.transfer_reduce),
     return_gas("Return Gas", "免Gas费",AccountChangeType.return_gas),
     gold_exchange("Gold Exchange", "金币兑换",AccountChangeType.gold_exchange),
     // 商户 user_credit_in 加钱 user_credit_out 减钱
