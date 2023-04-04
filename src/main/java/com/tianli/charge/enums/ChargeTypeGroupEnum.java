@@ -9,19 +9,20 @@ import com.tianli.exception.ErrorCodeEnum;
  */
 public enum ChargeTypeGroupEnum {
 
-    recharge("充值",1),
+    recharge( "Recharge","充值",1),
 
-    withdraw("提币",2),
+    withdraw("Withdraw","提币",2),
 
-    in("转入",3),
+    in("Transfer in","转入",3),
 
-    out("转出",4);
+    out("Transfer out","转出",4);
 
+    private String typeGroupEn;
     private String typeGroup;
-
     private Integer order;
 
-    private ChargeTypeGroupEnum(String typeGroup,Integer order) {
+    private ChargeTypeGroupEnum(String typeGroupEn,String typeGroup,Integer order) {
+        this.typeGroupEn=typeGroupEn;
         this.typeGroup = typeGroup;
         this.order=order;
     }
@@ -44,7 +45,7 @@ public enum ChargeTypeGroupEnum {
     public static String getTypeGroup(String name) {
         ChargeTypeGroupEnum[] values = ChargeTypeGroupEnum.values();
         for (ChargeTypeGroupEnum value : values) {
-            if (value.name().equals(name)) {
+            if (value.getTypeGroupEn().equals(name)) {
                 return value.typeGroup;
             }
         }
@@ -69,7 +70,7 @@ public enum ChargeTypeGroupEnum {
     public static Integer getOrder(String name){
         ChargeTypeGroupEnum[] values = ChargeTypeGroupEnum.values();
         for (ChargeTypeGroupEnum value : values) {
-            if (value.name().equals(name)) {
+            if (value.getTypeGroupEn().equals(name)) {
                 return value.getOrder();
             }
         }
@@ -82,5 +83,13 @@ public enum ChargeTypeGroupEnum {
 
     public void setOrder(Integer order) {
         this.order = order;
+    }
+
+    public String getTypeGroupEn() {
+        return typeGroupEn;
+    }
+
+    public void setTypeGroupEn(String typeGroupEn) {
+        this.typeGroupEn = typeGroupEn;
     }
 }
