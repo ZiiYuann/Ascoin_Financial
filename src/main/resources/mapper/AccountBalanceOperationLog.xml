@@ -75,15 +75,19 @@
         and (
         <trim prefix="" prefixOverrides="or">
             <if test="param.chargeType != null and param.chargeType.size() > 0 ">
-                or charge_type in
+                 charge_type in
                 <foreach collection="param.chargeType" index="index" item="item" open="(" separator="," close=")">
                     #{item}
                 </foreach>
             </if>
 
 
-            <if test="param.chargeTypeQueries != null and param.chargeTypeQueries.size() >= 0 ">
-                or
+            <if test="param.chargeTypeQueries != null and param.chargeTypeQueries.size() > 0 ">
+
+                <if test="param.chargeType != null and param.chargeType.size() > 0 ">
+                    or
+                </if>
+
                 <foreach collection="param.chargeTypeQueries" index="index" item="item" open="" separator=" or " close="">
                     ( charge_type = #{item.chargeType} and log_type = #{item.accountOperationType})
                 </foreach>

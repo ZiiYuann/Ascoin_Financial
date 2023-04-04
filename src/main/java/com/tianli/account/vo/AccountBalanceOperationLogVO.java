@@ -1,8 +1,8 @@
 package com.tianli.account.vo;
 
 import com.tianli.account.enums.AccountOperationType;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.NewChargeStatus;
-import com.tianli.charge.enums.NewChargeType;
 import com.tianli.charge.vo.OrderOtherInfoVo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountBalanceOperationLogVo  {
+public class AccountBalanceOperationLogVO {
     /**
      * 主键
      */
@@ -34,7 +34,7 @@ public class AccountBalanceOperationLogVo  {
     /**
      * 新变动类型
      */
-    private NewChargeType newChargeType;
+    private ChargeType newChargeType;
 
     private String newChargeTypeName;
 
