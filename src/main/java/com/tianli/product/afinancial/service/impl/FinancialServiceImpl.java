@@ -507,11 +507,11 @@ public class FinancialServiceImpl implements FinancialService {
         BigDecimal dollerReturngas = orderService.uAmount(uid, ChargeType.return_gas);
 
         //转入、转出详情
-        Map<String, Double> inDetails = userAmountGroupDetailsVO(uid, ChargeTypeGroupEnum.in.name());
-        Map<String, Double> outDetails = userAmountGroupDetailsVO(uid, ChargeTypeGroupEnum.out.name());
+        Map<String, Double> inDetails = userAmountGroupDetailsVO(uid, ChargeTypeGroupEnum.in.getTypeGroupEn());
+        Map<String, Double> outDetails = userAmountGroupDetailsVO(uid, ChargeTypeGroupEnum.out.getTypeGroupEn());
         Map<String, Map<String, Double>> groupDetailsMap = new HashMap<>();
-        groupDetailsMap.put(ChargeTypeGroupEnum.in.name(), inDetails);
-        groupDetailsMap.put(ChargeTypeGroupEnum.out.name(), outDetails);
+        groupDetailsMap.put(ChargeTypeGroupEnum.in.getTypeGroupEn(), inDetails);
+        groupDetailsMap.put(ChargeTypeGroupEnum.out.getTypeGroupEn(), outDetails);
 
         FundRecordQuery fundRecordQuery = new FundRecordQuery();
         fundRecordQuery.setUid(uid);
