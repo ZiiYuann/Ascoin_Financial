@@ -3,11 +3,11 @@ DROP TABLE IF EXISTS `order_charge_type`;
 CREATE TABLE `order_charge_type`
 (
     `id`              int NOT NULL,
-    `type`            varchar(64) CHARACTER DEFAULT NULL COMMENT '交易类型',
-    `name`            varchar(64) CHARACTER DEFAULT NULL COMMENT '名称',
-    `nameEn`          varchar(64) CHARACTER DEFAULT NULL COMMENT '国际化名称',
-    `operation_type`  varchar(64) CHARACTER DEFAULT NULL COMMENT '操作分类(暂时无用)',
-    `operation_group` varchar(64) CHARACTER DEFAULT NULL COMMENT '分组名',
+    `type`            varchar(64) DEFAULT NULL COMMENT '交易类型',
+    `name`            varchar(64) DEFAULT NULL COMMENT '名称',
+    `nameEn`          varchar(64) DEFAULT NULL COMMENT '国际化名称',
+    `operation_type`  varchar(64) DEFAULT NULL COMMENT '操作分类(暂时无用)',
+    `operation_group` varchar(64) DEFAULT NULL COMMENT '分组名',
     `visible_type`    tinyint DEFAULT NULL COMMENT '可见类型 0:代理可见,1用户可见',
     `is_enable`       tinyint DEFAULT NULL COMMENT '是否启用 1:是; 0否',
     PRIMARY KEY (`id`)
