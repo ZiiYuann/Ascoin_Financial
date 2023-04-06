@@ -76,19 +76,17 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
         }
         //去掉基金利息类型
         IPage<WalletChargeFlowVo> list = accountBalanceOperationLogMapper.list(pageQuery.page(),
-                walletChargeFlowQuery,ChargeType.fund_interest.name(),WithdrawChargeTypeEnum.withdraw.getType());
+                walletChargeFlowQuery, ChargeType.fund_interest.name(), WithdrawChargeTypeEnum.withdraw.getType());
         return list.convert(walletChargeFlowVo -> {
-            {
-                if (walletChargeFlowVo.getChargeType().equals(WithdrawChargeTypeEnum.withdraw.name())) {
-                    walletChargeFlowVo.setOperationType(WithdrawChargeTypeEnum.withdraw.getType());
-                    walletChargeFlowVo.setOperationGroupName(ChargeTypeGroupEnum.withdraw.getTypeGroup());
-                    String description = WithdrawChargeTypeEnum.getDescriptionByType(walletChargeFlowVo.getLogType());
-                    walletChargeFlowVo.setChargeTypeName(description);
-                } else {
-                    walletChargeFlowVo.setOperationGroupName(ChargeTypeGroupEnum.getTypeGroup(walletChargeFlowVo.getOperationGroup()));
-                }
-                return walletChargeFlowVo;
+            if (walletChargeFlowVo.getChargeType().equals(WithdrawChargeTypeEnum.withdraw.name())) {
+                walletChargeFlowVo.setOperationType(WithdrawChargeTypeEnum.withdraw.getType());
+                walletChargeFlowVo.setOperationGroupName(ChargeTypeGroupEnum.withdraw.getTypeGroup());
+                String description = WithdrawChargeTypeEnum.getDescriptionByType(walletChargeFlowVo.getLogType());
+                walletChargeFlowVo.setChargeTypeName(description);
+            } else {
+                walletChargeFlowVo.setOperationGroupName(ChargeTypeGroupEnum.getTypeGroup(walletChargeFlowVo.getOperationGroup()));
             }
+            return walletChargeFlowVo;
         });
     }
 }

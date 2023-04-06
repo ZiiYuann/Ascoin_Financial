@@ -609,16 +609,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                 orderChargeInfoVO.setRemarksEn(remarks.getRemarksEn());
             }
 
-            if (ChargeType.user_credit_in.equals(type) || ChargeType.user_credit_out.equals(type) ||
-                    ChargeType.credit_out.equals(type) || ChargeType.credit_in.equals(type)) {
-                AccountUserTransfer accountUserTransfer =
-                        accountUserTransferService.getByExternalPk(charge.getRelatedId());
-                Optional.ofNullable(accountUserTransfer)
-                        .ifPresent(a -> orderChargeInfoVO.setOrderOtherInfoVo(OrderOtherInfoVo.builder()
-                                .transferExternalPk(a.getExternalPk())
-                                .build()));
-
-            }
+            OrderOtherInfoVo orderOtherInfoVo = this.getOrderOtherInfoVO(charge);
+            orderChargeInfoVO.setOrderOtherInfoVo(orderOtherInfoVo);
             return orderChargeInfoVO;
         });
     }
@@ -646,9 +638,6 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         ChargeType chargeTypeWrapper = chargeType.accountWrapper(log.getLogType());
 
         AccountBalanceOperationLogVO vo = accountConverter.toAccountBalanceOperationLogVO(order);
-        if (ChargeType.withdraw.equals(order.getType())) {
-            vo.setStatus(ChargeStatus.valueOf(chargeTypeWrapper.name()));
-        }
         vo.setNewChargeType(chargeTypeWrapper);
         vo.setNewChargeTypeName(chargeTypeWrapper.getNameZn());
         vo.setNewChargeTypeNameEn(chargeTypeWrapper.getNameEn());
@@ -658,7 +647,24 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         OrderChargeType orderChargeType = iOrderChargeTypeService.getOne(chargeTypeQuery);
         vo.setGroupEn(orderChargeType.getOperationGroup());
         vo.setGroup(ChargeTypeGroupEnum.getTypeGroup(orderChargeType.getOperationGroup()));
+
+        vo.setOrderOtherInfoVo(this.getOrderOtherInfoVO(order));
+
         return vo;
+    }
+
+    private OrderOtherInfoVo getOrderOtherInfoVO(Order order) {
+        ChargeType type = order.getType();
+        if (ChargeType.user_credit_in.equals(type) || ChargeType.user_credit_out.equals(type) ||
+                ChargeType.credit_out.equals(type) || ChargeType.credit_in.equals(type)) {
+            OrderOtherInfoVo orderOtherInfoVo = OrderOtherInfoVo.builder().build();
+            AccountUserTransfer accountUserTransfer =
+                    accountUserTransferService.getByExternalPk(order.getRelatedId());
+            Optional.ofNullable(accountUserTransfer)
+                    .ifPresent(a -> orderOtherInfoVo.setTransferExternalPk(a.getExternalPk()));
+            return orderOtherInfoVo;
+        }
+        return null;
     }
 
 
