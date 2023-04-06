@@ -32,7 +32,7 @@
             </if>
 
             <if test="param.accountOperationType != null">
-                and abol.log_type = #{accountOperationType}
+                and abol.log_type = #{param.accountOperationType}
             </if>
             <if test="param.uid !=null and param.uid !=''">
                 and abol.uid=#{param.uid}
