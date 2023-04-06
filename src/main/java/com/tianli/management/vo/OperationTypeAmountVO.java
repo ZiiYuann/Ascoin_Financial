@@ -1,6 +1,5 @@
 package com.tianli.management.vo;
 
-import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.OperationTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

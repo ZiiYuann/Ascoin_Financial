@@ -509,6 +509,11 @@ public class FinancialServiceImpl implements FinancialService {
                 OperationTypeEnum key = entry.getKey();
                 List<ChargeType> chargeTypes = entry.getValue()
                         .stream().map(OrderChargeType::getType).collect(Collectors.toList());
+
+                if (ChargeTypeGroupEnum.WITHDRAW.equals(chargeTypeGroup)){
+                    chargeTypes = List.of(ChargeType.withdraw);
+                }
+
                 BigDecimal fee = orderService.uAmount(OrderMQuery.builder().uid(uid)
                         .chargeTypes(chargeTypes).build());
 
