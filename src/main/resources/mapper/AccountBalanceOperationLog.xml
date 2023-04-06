@@ -31,7 +31,7 @@
                 and act.operation_group = #{param.operationGroup}
             </if>
 
-            <if test="param.accountOperationType != null and param.accountOperationType != ''">
+            <if test="param.accountOperationType != null">
                 and abol.log_type = #{accountOperationType}
             </if>
             <if test="param.uid !=null and param.uid !=''">
