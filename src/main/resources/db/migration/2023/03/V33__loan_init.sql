@@ -1,27 +1,3 @@
-ALTER TABLE `account_balance`
-    ADD INDEX `balance`(`balance` DESC) USING BTREE;
-
-ALTER TABLE `account_balance_operation_log` MODIFY COLUMN `id` bigint NOT NULL FIRST;
-ALTER TABLE `account_balance_operation_log` MODIFY COLUMN `uid` bigint NOT NULL AFTER `id`;
-ALTER TABLE `account_balance_operation_log` MODIFY COLUMN `account_balance_id` bigint NOT NULL AFTER `uid`;
-ALTER TABLE `account_balance_operation_log` MODIFY COLUMN `charge_type` varchar (20) NOT NULL AFTER `account_balance_id`;
-ALTER TABLE `account_balance_operation_log` MODIFY COLUMN `coin` varchar (20) NOT NULL AFTER `charge_type`;
-ALTER TABLE `account_balance_operation_log`
-    ADD INDEX `normal_index`(`uid` ASC, `charge_type` ASC, `log_type` ASC) USING BTREE;
-ALTER TABLE `account_balance_operation_log`
-    ADD PRIMARY KEY (`id`) USING BTREE;
-
-ALTER TABLE `coin_review_config` MODIFY COLUMN `times_limit` int NOT NULL COMMENT '次数限制' AFTER `hour_limit`;
-
-ALTER TABLE `exception_msg` DROP INDEX `index`;
-ALTER TABLE `exception_msg` MODIFY COLUMN `id` bigint NOT NULL FIRST;
-ALTER TABLE `exception_msg`
-    ADD PRIMARY KEY (`id`) USING BTREE;
-
-ALTER TABLE `financial_board_product` DROP PRIMARY KEY;
-ALTER TABLE `financial_board_product`
-    ADD PRIMARY KEY (`create_time`) USING BTREE;
-
 ALTER TABLE `financial_record`
     ADD COLUMN `pledge` tinyint NULL DEFAULT 0 COMMENT '是否被质押' AFTER `local_purchase`;
 
