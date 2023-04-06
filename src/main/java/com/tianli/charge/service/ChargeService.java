@@ -648,6 +648,12 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         vo.setGroupEn(orderChargeType.getOperationGroup().getTypeGroupEn());
         vo.setGroup(orderChargeType.getOperationGroup().getTypeGroup());
 
+        if (!ChargeType.transaction_reward.equals(chargeType)) {
+            ChargeRemarks remarks = ChargeRemarks.getInstance(chargeType, order.getStatus());
+            vo.setRemarks(remarks.getRemarks());
+            vo.setRemarksEn(remarks.getRemarksEn());
+        }
+
         vo.setOrderOtherInfoVo(this.getOrderOtherInfoVO(order));
         if (ChargeType.withdraw.equals(chargeType) || ChargeType.recharge.equals(chargeType)) {
             OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
