@@ -10,6 +10,8 @@ import com.tianli.account.query.BalanceOperationChargeTypeQuery;
 import com.tianli.account.vo.WalletChargeFlowVo;
 import com.tianli.charge.entity.OrderChargeType;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.enums.ChargeTypeGroupEnum;
+import com.tianli.charge.enums.OperationTypeEnum;
 import com.tianli.charge.mapper.OrderChargeTypeMapper;
 import com.tianli.charge.service.IOrderChargeTypeService;
 import com.tianli.common.CommonFunction;
@@ -84,11 +86,17 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
         if (Objects.nonNull(query.getOperationGroup())) {
             orderChargeTypes = orderChargeTypes.stream()
                     .filter(o -> query.getOperationGroup().equals(o.getOperationGroup())).collect(Collectors.toList());
+            if (ChargeTypeGroupEnum.WITHDRAW.equals(query.getOperationGroup())) {
+                query.setType(ChargeType.withdraw);
+            }
         }
 
         if (Objects.nonNull(query.getOperationType())) {
             orderChargeTypes = orderChargeTypes.stream()
                     .filter(o -> query.getOperationType().equals(o.getOperationType())).collect(Collectors.toList());
+            if (OperationTypeEnum.WITHDRAW.equals(query.getOperationType())) {
+                query.setType(ChargeType.withdraw);
+            }
         }
 
         List<ChargeType> chargeTypes =
