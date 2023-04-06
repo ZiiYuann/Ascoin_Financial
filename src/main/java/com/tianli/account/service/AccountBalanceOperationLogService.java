@@ -38,7 +38,7 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
     /**
      * 添加余额操作日志
      */
-    public void save(AccountBalance accountBalance, ChargeType type, String coin, NetworkType networkType
+    public AccountBalanceOperationLog save(AccountBalance accountBalance, ChargeType type, String coin, NetworkType networkType
             , BigDecimal amount, String sn, AccountOperationType accountOperationType) {
         AccountBalanceOperationLog currencyLog = AccountBalanceOperationLog.builder()
                 .id(CommonFunction.generalId())
@@ -57,6 +57,7 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
                 .createTime(LocalDateTime.now())
                 .build();
         accountBalanceOperationLogMapper.insert(currencyLog);
+        return currencyLog;
     }
 
 
@@ -70,7 +71,7 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
             walletChargeFlowQuery.setType(WithdrawChargeTypeEnum.withdraw.name());
             walletChargeFlowQuery.setOperationType(null);
         }
-        if (StringUtils.isNotEmpty(walletChargeFlowQuery.getOperationGroup()) && walletChargeFlowQuery.getOperationGroup().contains(WithdrawChargeTypeEnum.withdraw.name())) {
+        if (StringUtils.isNotEmpty(walletChargeFlowQuery.getOperationGroup()) &&  StringUtils.containsIgnoreCase(walletChargeFlowQuery.getOperationGroup(),WithdrawChargeTypeEnum.withdraw.name())) {
             walletChargeFlowQuery.setType(WithdrawChargeTypeEnum.withdraw.name());
             walletChargeFlowQuery.setOperationGroup(null);
         }
