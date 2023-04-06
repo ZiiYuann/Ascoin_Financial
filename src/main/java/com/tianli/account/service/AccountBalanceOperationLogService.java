@@ -100,7 +100,7 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
         List<ChargeType> chargeTypes =
                 orderChargeTypes.stream().map(OrderChargeType::getType).collect(Collectors.toList());
 
-        if (Objects.isNull(query.getOperationType()) || Objects.isNull(query.getOperationGroup()) ||
+        if (Objects.isNull(query.getOperationType()) && Objects.isNull(query.getOperationGroup()) &&
                 Objects.isNull(query.getType())) {
             chargeTypes.add(ChargeType.withdraw);
         }
