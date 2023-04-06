@@ -1,5 +1,6 @@
 package com.tianli.account.vo;
 
+import com.tianli.account.enums.AccountOperationType;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.ChargeTypeGroupEnum;
 import com.tianli.charge.enums.OperationTypeEnum;
@@ -74,7 +75,7 @@ public class WalletChargeFlowVo {
 
     private LocalDateTime createTime;
 
-    private String logType;
+    private AccountOperationType logType;
 
     /**
      * 二级分类名称
