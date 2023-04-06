@@ -128,14 +128,6 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         // 布隆过滤器，防止缓存击穿
         final RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConstants.RED_ENVELOPE + BLOOM);
 
-        // 修改红包序列化
-        List<RedEnvelope> redEnvelopes = redEnvelopeMapper.selectList(new LambdaQueryWrapper<RedEnvelope>()
-                .select(RedEnvelope::getId)
-                .ge(RedEnvelope::getCreateTime, LocalDateTime.now().plusHours(-25)));
-        List<String> deleteKeys = redEnvelopes.stream().map(redEnvelope -> RedisConstants.RED_ENVELOPE + redEnvelope.getId())
-                .collect(Collectors.toList());
-        stringRedisTemplate.delete(deleteKeys);
-
         if (bloomFilter.isExists()) {
             return;
         }

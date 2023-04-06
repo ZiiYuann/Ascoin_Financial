@@ -12,7 +12,6 @@ import com.tianli.charge.entity.OrderChargeType;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.ChargeTypeGroupEnum;
 import com.tianli.charge.enums.OperationTypeEnum;
-import com.tianli.charge.mapper.OrderChargeTypeMapper;
 import com.tianli.charge.service.IOrderChargeTypeService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
@@ -24,7 +23,6 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -101,7 +99,12 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
 
         List<ChargeType> chargeTypes =
                 orderChargeTypes.stream().map(OrderChargeType::getType).collect(Collectors.toList());
-        chargeTypes.add(ChargeType.withdraw);
+
+        if (Objects.isNull(query.getOperationType()) || Objects.isNull(query.getOperationGroup()) ||
+                Objects.isNull(query.getType())) {
+            chargeTypes.add(ChargeType.withdraw);
+        }
+
         if (Objects.nonNull(query.getType())) {
             chargeTypes = List.of(query.getType());
         }
