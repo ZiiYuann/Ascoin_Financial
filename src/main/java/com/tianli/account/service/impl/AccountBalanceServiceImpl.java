@@ -407,13 +407,12 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
                 .map(AccountBalanceVO::getDollarPledgeFreeze)
                 .reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.DOWN);
 
-        //总资产去掉理财的金额
-        BigDecimal assets = totalBalance.add(fundHoldAmount);
+        //去掉理财的金额
+        BigDecimal assets = totalBalance.add(financialHoldAmount).add(fundHoldAmount);
 
         return UserAssetsVO.builder().uid(uid)
                 .assets(assets)
-                //理财资产包含理财和基金
-                .financialHoldAmount(financialHoldAmount.add(fundHoldAmount))
+                .financialHoldAmount(financialHoldAmount)
                 .fundHoldAmount(fundHoldAmount)
                 .purchaseAmount(purchaseAmount)
                 .balanceAmount(totalBalance)

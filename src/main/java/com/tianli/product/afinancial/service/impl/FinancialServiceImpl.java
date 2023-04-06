@@ -359,7 +359,7 @@ public class FinancialServiceImpl implements FinancialService {
                     .currentAmount(currentAmount.getOrDefault(uid1, BigDecimal.ZERO))
                     .fixedAmount(fixedAmount.getOrDefault(uid1, BigDecimal.ZERO))
                     .financialIncomeAmount(financialIncomeMap.getOrDefault(uid1, BigDecimal.ZERO))
-                    .assets(userAssetsVO.getAssets())
+                    .assets(userAssetsVO.getAssets().subtract(userAssetsVO.getFinancialHoldAmount()))
                     .freezeAmount(userAssetsVO.getFreezeAmount())
                     .remainAmount(userAssetsVO.getRemainAmount())
                     .balanceAmount(userAssetsVO.getBalanceAmount())
@@ -367,7 +367,7 @@ public class FinancialServiceImpl implements FinancialService {
                     /**
                      * 云钱包用户管理加入理财资产字段
                      */
-                    .financialHoldAmount(userAssetsVO.getFinancialHoldAmount())
+                    .financialHoldAmount(userAssetsVO.getFinancialHoldAmount().add(userAssetsVO.getFundHoldAmount()))
                     .borrowAmount(BigDecimal.ZERO)
                     .fundIncomeAmount(fundIncomeMap.get(uid1))
                     .build();
