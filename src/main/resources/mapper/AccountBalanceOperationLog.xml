@@ -28,7 +28,7 @@
                 and abol.charge_type = #{param.type}
             </if>
             <if test="param.operationGroup != null ">
-                and act.operation_group = #{operationGroup}
+                and act.operation_group = #{param.operationGroup}
             </if>
 
             <if test="param.accountOperationType != null and param.accountOperationType != ''">
