@@ -30,6 +30,6 @@ public class OrderMQuery {
 
     private LocalDateTime endTime;
 
-    private List<String> chargeTypes;
+    private List<ChargeType> chargeTypes;
 
 }

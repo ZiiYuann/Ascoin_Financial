@@ -1,5 +1,8 @@
 package com.tianli.account.vo;
 
+import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.enums.ChargeTypeGroupEnum;
+import com.tianli.charge.enums.OperationTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,7 +27,7 @@ public class WalletChargeFlowVo {
     /**
      * 二级分类
      */
-    private String chargeType;
+    private ChargeType chargeType;
 
     /**
      * 订单id
@@ -54,7 +57,7 @@ public class WalletChargeFlowVo {
     /**
      * 操作类型组:recharge;withdraw;receive;pay
      */
-    private String operationGroup;
+    private ChargeTypeGroupEnum operationGroup;
 
     /**
      * 操作类型组名： 充值;提币；转入；转出
@@ -64,7 +67,9 @@ public class WalletChargeFlowVo {
     /**
      * 操作分类
      */
-    private String operationType;
+    private OperationTypeEnum operationType;
+
+    private String operationTypeName;
 
 
     private LocalDateTime createTime;
@@ -76,5 +81,11 @@ public class WalletChargeFlowVo {
      */
     private String chargeTypeName;
 
+    public String getOperationGroupName() {
+        return operationGroup.getTypeGroup();
+    }
 
+    public String getOperationTypeName() {
+        return operationType.getName();
+    }
 }

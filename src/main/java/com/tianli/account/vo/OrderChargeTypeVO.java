@@ -1,6 +1,8 @@
 package com.tianli.account.vo;
 
 import com.tianli.charge.entity.OrderChargeType;
+import com.tianli.charge.enums.ChargeTypeGroupEnum;
+import com.tianli.charge.enums.OperationTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,57 +14,31 @@ import java.util.List;
  * @create: 2023-03-10 16:41
  * @Description: OrderChargeType VO
  */
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderChargeTypeVO {
+
+    private ChargeTypeGroupEnum chargeTypeGroup;
+
     private String group;
 
     private String groupEn;
-
-    private String operationGroupName;
 
     private List<OrderChargeType> orderChargeTypes;
 
     private Integer order;
 
 
-    public String getGroup() {
-        return group;
-    }
-
-    public void setGroup(String group) {
-        this.group = group;
-    }
-
-    public List<OrderChargeType> getOrderChargeTypes() {
-        return orderChargeTypes;
-    }
-
-    public void setOrderChargeTypes(List<OrderChargeType> orderChargeTypes) {
-        this.orderChargeTypes = orderChargeTypes;
-    }
-
-    public String getOperationGroupName() {
-        return operationGroupName;
-    }
-
-    public void setOperationGroupName(String operationGroupName) {
-        this.operationGroupName = operationGroupName;
-    }
-
     public String getGroupEn() {
-        return groupEn;
+        return chargeTypeGroup.getTypeGroupEn();
     }
 
-    public void setGroupEn(String groupEn) {
-        this.groupEn = groupEn;
+    public String getGroup() {
+        return chargeTypeGroup.getTypeGroup();
     }
 
     public Integer getOrder() {
-        return order;
-    }
-
-    public void setOrder(Integer order) {
-        this.order = order;
+        return chargeTypeGroup.getOrder();
     }
 }

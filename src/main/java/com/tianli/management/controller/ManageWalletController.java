@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.entity.AccountBalanceOperationLog;
 import com.tianli.account.service.AccountBalanceOperationLogService;
-import com.tianli.account.service.impl.AccountBalanceServiceImpl;
 import com.tianli.account.vo.AccountBalanceSimpleVO;
 import com.tianli.account.vo.OrderChargeTypeVO;
 import com.tianli.account.vo.WalletChargeFlowVo;
@@ -28,7 +27,7 @@ import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.service.IOrderChargeTypeService;
 import com.tianli.charge.service.OrderReviewService;
 import com.tianli.charge.service.OrderService;
-import com.tianli.charge.vo.OperationTypeVo;
+import com.tianli.charge.vo.OperationTypeVO;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderReviewVO;
 import com.tianli.common.PageQuery;
@@ -313,7 +312,8 @@ public class ManageWalletController {
      * @return
      */
     @GetMapping("/walletChargeFlow/list")
-    public Result<IPage<WalletChargeFlowVo>> capitalFlowList(PageQuery<AccountBalanceOperationLog> pageQuery, WalletChargeFlowQuery walletChargeFlowQuery) {
+    public Result<IPage<WalletChargeFlowVo>> capitalFlowList(PageQuery<AccountBalanceOperationLog> pageQuery,
+                                                             WalletChargeFlowQuery walletChargeFlowQuery) {
         return new Result<>(logService.capitalFlowList(pageQuery, walletChargeFlowQuery));
     }
 
@@ -322,9 +322,9 @@ public class ManageWalletController {
      *
      * @return
      */
-    @GetMapping("/chargeType/List")
+    @GetMapping("/chargeType/list")
     public Result<List<OrderChargeTypeVO>> chargeTypeList() {
-        return Result.success(orderChargeTypeService.chargeTypeList());
+        return Result.success(orderChargeTypeService.orderChargeTypeVOs());
     }
 
     /**
@@ -332,14 +332,15 @@ public class ManageWalletController {
      *
      * @return
      */
-    @GetMapping("/operationType/List")
-    public Result<List<OperationTypeVo>> operationTypeList() {
-        List<OperationTypeVo> list = new ArrayList<>();
+    @GetMapping("/operationType/list")
+    public Result<List<OperationTypeVO>> operationTypeList() {
+        List<OperationTypeVO> list = new ArrayList<>();
         for (OperationTypeEnum value : OperationTypeEnum.values()) {
-            list.add(new OperationTypeVo(){{
-                setName(value.getName());
-                setEnName(value.getEnName());
-            }});
+            OperationTypeVO operationTypeVo = new OperationTypeVO();
+            operationTypeVo.setOperationType(value);
+            operationTypeVo.setName(value.getName());
+            operationTypeVo.setNameEn(value.getNameEn());
+            list.add(operationTypeVo);
         }
         return new Result<>(list);
     }

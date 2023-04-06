@@ -645,8 +645,8 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         LambdaQueryWrapper<OrderChargeType> chargeTypeQuery = new LambdaQueryWrapper<>();
         chargeTypeQuery.eq(OrderChargeType::getType, chargeTypeWrapper);
         OrderChargeType orderChargeType = iOrderChargeTypeService.getOne(chargeTypeQuery);
-        vo.setGroupEn(orderChargeType.getOperationGroup());
-        vo.setGroup(ChargeTypeGroupEnum.getTypeGroup(orderChargeType.getOperationGroup()));
+        vo.setGroupEn(orderChargeType.getOperationGroup().getTypeGroupEn());
+        vo.setGroup(orderChargeType.getOperationGroup().getTypeGroup());
 
         vo.setOrderOtherInfoVo(this.getOrderOtherInfoVO(order));
 

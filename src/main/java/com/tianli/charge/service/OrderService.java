@@ -173,12 +173,6 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
         return currencyService.calDollarAmount(amountDtos);
     }
 
-    public BigDecimal uAmountByChargeTypes(Long uid, List<String> inChargeTypes) {
-        OrderMQuery query = OrderMQuery.builder().uid(uid).chargeTypes(inChargeTypes).build();
-        List<AmountDto> amountDtos = orderMapper.amountsByChargeTypes(query);
-        return currencyService.calDollarAmount(amountDtos);
-    }
-
     public BigDecimal uAmount(List<Long> uids, ChargeType chargeType) {
         if (CollectionUtils.isEmpty(uids)) {
             return BigDecimal.ZERO;

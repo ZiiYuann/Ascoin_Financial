@@ -1,5 +1,9 @@
 package com.tianli.management.query;
 
+import com.tianli.account.enums.AccountOperationType;
+import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.enums.ChargeTypeGroupEnum;
+import com.tianli.charge.enums.OperationTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,19 +33,18 @@ public class WalletChargeFlowQuery implements Serializable {
     private String coin;
 
     /**
-     * 操作类型
+     * 操作组
      */
-    private String operationGroup;
+    private ChargeTypeGroupEnum operationGroup;
 
     /**
      * 操作分类
      */
-    private String operationType;
+    private OperationTypeEnum operationType;
 
-    /**
-     * 二级分类
-     */
-    private String type;
+    private ChargeType type;
+
+    private AccountOperationType accountOperationType;
 
     /**
      * 开始时间
@@ -54,11 +57,5 @@ public class WalletChargeFlowQuery implements Serializable {
      */
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
-
-    /**
-     * 提币类型:提币成功；提币失败；提币冻结
-     */
-    private String withdrawType;
-
 
 }

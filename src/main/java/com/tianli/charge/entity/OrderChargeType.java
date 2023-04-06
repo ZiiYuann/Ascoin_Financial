@@ -5,6 +5,9 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.enums.ChargeTypeGroupEnum;
+import com.tianli.charge.enums.OperationTypeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -31,7 +34,7 @@ public class OrderChargeType extends Model<OrderChargeType> {
     /**
      * 交易类型
      */
-    private String type;
+    private ChargeType type;
 
     /**
      * 交易名称
@@ -47,14 +50,13 @@ public class OrderChargeType extends Model<OrderChargeType> {
     /**
      * 操作分类(暂时无用)
      */
-//    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String operationType;
+    private OperationTypeEnum operationType;
 
     /**
      * 操作类型组名
      */
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String operationGroup;
+    private ChargeTypeGroupEnum operationGroup;
 
     /**
      * 可见类型 0:代理可见,1用户可见

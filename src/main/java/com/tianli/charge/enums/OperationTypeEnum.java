@@ -1,7 +1,7 @@
 package com.tianli.charge.enums;
 
 
-import com.tianli.exception.ErrorCodeEnum;
+import lombok.Getter;
 
 /**
  * @author:yangkang
@@ -20,39 +20,16 @@ public enum OperationTypeEnum {
     GAME("game", "游戏");
 
 
-    private String enName;
+    @Getter
+    private String nameEn;
 
+    @Getter
     private String name;
 
 
-    private OperationTypeEnum(String enName, String name) {
+    OperationTypeEnum(String nameEn, String name) {
         this.name = name;
-        this.enName = enName;
+        this.nameEn = nameEn;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEnName() {
-        return enName;
-    }
-
-    public void setEnName(String enName) {
-        this.enName = enName;
-    }
-
-    public static String getName(String enName) {
-        OperationTypeEnum[] values = OperationTypeEnum.values();
-        for (OperationTypeEnum value : values) {
-            if (enName.equals(value.getEnName())) {
-                return value.getName();
-            }
-        }
-        throw ErrorCodeEnum.SYSTEM_ERROR.generalException();
-    }
 }

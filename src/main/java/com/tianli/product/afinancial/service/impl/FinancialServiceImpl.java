@@ -19,6 +19,7 @@ import com.tianli.charge.entity.OrderChargeType;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.ChargeTypeGroupEnum;
 import com.tianli.charge.enums.OperationTypeEnum;
+import com.tianli.charge.query.OrderMQuery;
 import com.tianli.charge.service.IOrderChargeTypeService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.RedisConstants;
@@ -78,7 +79,7 @@ import java.util.stream.Collectors;
 public class FinancialServiceImpl implements FinancialService {
 
     @Resource
-    IOrderChargeTypeService iOrderChargeTypeService;
+    IOrderChargeTypeService orderChargeTypeService;
 
 
     @Override
@@ -277,7 +278,7 @@ public class FinancialServiceImpl implements FinancialService {
                 .eq(FinancialProduct::getStatus, ProductStatus.open)
                 .orderByAsc(FinancialProduct::getType) // 活期优先
                 .orderByDesc(FinancialProduct::getRate)
-                .orderByDesc(FinancialProduct :: getId); // 年化利率降序
+                .orderByDesc(FinancialProduct::getId); // 年化利率降序
 
         if (CollectionUtils.isEmpty(holdProductIds)) {
             query = query.notIn(FinancialProduct::getId, holdProductIds);
@@ -490,70 +491,49 @@ public class FinancialServiceImpl implements FinancialService {
     @Override
     public UserAmountDetailsVO userAmountDetailsVO(Long uid) {
         var userAssetsVO = accountBalanceService.getAllUserAssetsVO(uid);
-        BigDecimal dollarRecharge = orderService.uAmount(uid, ChargeType.recharge);
-        BigDecimal dollarWithdraw = orderService.uAmount(uid, ChargeType.withdraw);
-        //统计转入和转出
-        LambdaQueryWrapper<OrderChargeType> inWrapper = new LambdaQueryWrapper<>();
-        inWrapper.eq(OrderChargeType::getOperationGroup, ChargeTypeGroupEnum.in.name());
-        List<OrderChargeType> inlist = iOrderChargeTypeService.list(inWrapper);
-        List<String> inChargeTypes = inlist.stream().map(OrderChargeType::getType).collect(Collectors.toList());
-        LambdaQueryWrapper<OrderChargeType> outWrapper = new LambdaQueryWrapper<>();
-        outWrapper.eq(OrderChargeType::getOperationGroup, ChargeTypeGroupEnum.out.name());
-        List<OrderChargeType> outlist = iOrderChargeTypeService.list(outWrapper);
-        List<String> outChargeTypes = outlist.stream().map(OrderChargeType::getType).collect(Collectors.toList());
-        BigDecimal dollerIn = orderService.uAmountByChargeTypes(uid, inChargeTypes);
-        BigDecimal dollerOut = orderService.uAmountByChargeTypes(uid, outChargeTypes);
-        BigDecimal dollerReward=orderService.uAmount(uid,ChargeType.transaction_reward);
-        BigDecimal dollerReturngas = orderService.uAmount(uid, ChargeType.return_gas);
 
-        //转入、转出详情
-        Map<String, Double> inDetails = userAmountGroupDetailsVO(uid, ChargeTypeGroupEnum.in.getTypeGroupEn());
-        Map<String, Double> outDetails = userAmountGroupDetailsVO(uid, ChargeTypeGroupEnum.out.getTypeGroupEn());
-        Map<String, Map<String, Double>> groupDetailsMap = new HashMap<>();
-        groupDetailsMap.put(ChargeTypeGroupEnum.in.getTypeGroupEn(), inDetails);
-        groupDetailsMap.put(ChargeTypeGroupEnum.out.getTypeGroupEn(), outDetails);
+        List<OrderChargeType> orderChargeTypes = orderChargeTypeService.list();
 
-        FundRecordQuery fundRecordQuery = new FundRecordQuery();
-        fundRecordQuery.setUid(uid);
+        Map<ChargeTypeGroupEnum, List<OrderChargeType>> typeMapByGroup =
+                orderChargeTypes.stream().collect(Collectors.groupingBy(OrderChargeType::getOperationGroup));
 
-        BigDecimal dollarFinancialIncome = financialIncomeAccrueService.getAccrueDollarAmount(uid, null);
-        FundIncomeQuery fundIncomeQuery = new FundIncomeQuery();
-        fundIncomeQuery.setUid(uid);
-        fundIncomeQuery.setStatus(List.of(FundIncomeStatus.audit_success));
-        BigDecimal dollarFundIncome = fundIncomeRecordService.amountDollar(fundIncomeQuery);
+
+        List<OperationGroupAmountVO> operationGroupAmountVOS = new ArrayList<>();
+        for (ChargeTypeGroupEnum chargeTypeGroup : ChargeTypeGroupEnum.values()) {
+
+            List<OrderChargeType> typesByGroupType = typeMapByGroup.get(chargeTypeGroup);
+
+            Map<OperationTypeEnum, List<OrderChargeType>> typeMapByOperationType =
+                    typesByGroupType.stream().collect(Collectors.groupingBy(OrderChargeType::getOperationType));
+            List<OperationTypeAmountVO> operationTypeAmountVOs = typeMapByOperationType.entrySet().stream().map(entry -> {
+                OperationTypeEnum key = entry.getKey();
+                List<ChargeType> chargeTypes = entry.getValue()
+                        .stream().map(OrderChargeType::getType).collect(Collectors.toList());
+                BigDecimal fee = orderService.uAmount(OrderMQuery.builder().uid(uid)
+                        .chargeTypes(chargeTypes).build());
+
+                return OperationTypeAmountVO.builder()
+                        .fee(fee)
+                        .operationType(key)
+                        .build();
+            }).collect(Collectors.toList());
+
+            BigDecimal fee = operationTypeAmountVOs.stream().map(OperationTypeAmountVO::getFee)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            operationGroupAmountVOS.add(OperationGroupAmountVO.builder()
+                    .fee(fee)
+                    .operationTypeAmountVOS(operationTypeAmountVOs)
+                    .operationGroup(chargeTypeGroup)
+                    .build());
+        }
+
 
         return UserAmountDetailsVO.builder()
                 .dollarBalance(userAssetsVO.getBalanceAmount())
-                .dollarRecharge(dollarRecharge)
-                .dollarWithdraw(dollarWithdraw)
-                .dollarFund(userAssetsVO.getFundHoldAmount())
-                .dollarFinancial(userAssetsVO.getFinancialHoldAmount())
-                .dollarFinancialIncome(dollarFinancialIncome)
-                .dollarFundIncome(dollarFundIncome)
-                .dollerReward(dollerReward)
-                .dollerReturngas(dollerReturngas)
-                .dollerIn(dollerIn)
-                .dollerOut(dollerOut)
-                .groupDetails(groupDetailsMap)
+                .operationGroupAmountVOS(operationGroupAmountVOS)
                 .build();
-    }
 
-    public Map<String, Double> userAmountGroupDetailsVO(Long uid, String chargeGroup) {
-        HashMap<String, Double> resultMap = new HashMap<>();
-
-        LambdaQueryWrapper<OrderChargeType> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(OrderChargeType::getOperationGroup, chargeGroup);
-        List<OrderChargeType> list = iOrderChargeTypeService.list(wrapper);
-        Map<String, List<OrderChargeType>> groupByOperationType = list.stream().collect(Collectors.groupingBy(OrderChargeType::getOperationType));
-        for (Map.Entry<String, List<OrderChargeType>> entry : groupByOperationType.entrySet()) {
-            List<String> orderChargeTypes = entry.getValue().stream().map(OrderChargeType::getType).collect(Collectors.toList());
-            BigDecimal dollerOperationType = orderService.uAmountByChargeTypes(uid, orderChargeTypes);
-            //去掉借贷的数据
-            if (!entry.getKey().equals(OperationTypeEnum.BORROW.getEnName())) {
-                resultMap.put(entry.getKey(), dollerOperationType.doubleValue());
-            }
-        }
-        return resultMap;
     }
 
     @Override
@@ -657,7 +637,7 @@ public class FinancialServiceImpl implements FinancialService {
             financialProductVO.setSettleTime(startIncomeTime.plusDays(product.getTerm().getDay()));
 
             financialProductVO.setNewUser(isNewUser);
-            financialProductVO. setCoins(coinService.pushCoinsWithCache(product.getCoin()).stream()
+            financialProductVO.setCoins(coinService.pushCoinsWithCache(product.getCoin()).stream()
                     .map(chainConverter::toCoinVO).collect(Collectors.toList()));
 
             return financialProductVO;
@@ -708,7 +688,7 @@ public class FinancialServiceImpl implements FinancialService {
     /**
      * 添加持有的收益信息
      *
-     * @param uid           uid
+     * @param uid                      uid
      * @param MUserHoldRecordDetailsVO 持有基础信息
      * @return 本身
      */

@@ -9,13 +9,13 @@ import com.tianli.exception.ErrorCodeEnum;
  */
 public enum ChargeTypeGroupEnum {
 
-    recharge( "Recharge","充值",1),
+    RECHARGE( "Recharge","充值",1),
 
-    withdraw("Withdraw","提币",2),
+    WITHDRAW("Withdraw","提币",2),
 
-    in("Transfer in","转入",3),
+    IN("Transfer in","转入",3),
 
-    out("Transfer out","转出",4);
+    OUT("Transfer out","转出",4);
 
     private String typeGroupEn;
     private String typeGroup;

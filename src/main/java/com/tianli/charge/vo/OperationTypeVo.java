@@ -1,5 +1,6 @@
 package com.tianli.charge.vo;
 
+import com.tianli.charge.enums.OperationTypeEnum;
 import lombok.Data;
 
 /**
@@ -8,8 +9,11 @@ import lombok.Data;
  * @Description: 操作分类vo
  */
 @Data
-public class OperationTypeVo {
+public class OperationTypeVO {
+
+    private OperationTypeEnum operationType;
+
     private String name;
 
-    private String enName;
+    private String nameEn;
 }

@@ -22,7 +22,7 @@ import org.apache.ibatis.annotations.Param;
 public interface AccountBalanceOperationLogMapper extends BaseMapper<AccountBalanceOperationLog> {
 
     IPage<WalletChargeFlowVo> list(@Param("page") IPage<AccountBalanceOperationLog> logIPage,
-                                   @Param("param") WalletChargeFlowQuery walletChargeFlowQuery, @Param("param1")String excludeType, @Param("param2")String withDraw);
+                                   @Param("param") WalletChargeFlowQuery walletChargeFlowQuery);
 
 
     Page<AccountBalanceOperationLog> pageList(@Param("page") IPage<AccountBalanceOperationLog> page,

@@ -6,6 +6,7 @@ import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.management.vo.MUserHoldRecordSummaryVO;
 import com.tianli.management.vo.MWalletUserManagerDataVO;
+import com.tianli.management.vo.UserAmountDetailsVO;
 import com.tianli.product.entity.ProductHoldRecord;
 import com.tianli.product.afinancial.entity.FinancialProduct;
 import com.tianli.product.afinancial.query.ProductHoldQuery;
@@ -86,8 +87,8 @@ public class ManageUserController {
      */
     @GetMapping("/details/{uid}")
     @AdminPrivilege(and = Privilege.理财管理, api = "/management/financial/user/details/uid")
-    public Result details(@PathVariable Long uid) {
-        return Result.success().setData(financialService.userAmountDetailsVO(uid));
+    public Result<UserAmountDetailsVO> details(@PathVariable Long uid) {
+        return Result.success(financialService.userAmountDetailsVO(uid));
     }
 
     /**
