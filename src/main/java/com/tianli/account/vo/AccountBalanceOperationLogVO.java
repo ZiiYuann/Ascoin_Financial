@@ -1,8 +1,8 @@
 package com.tianli.account.vo;
 
 import com.tianli.account.enums.AccountOperationType;
+import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
-import com.tianli.charge.enums.NewChargeStatus;
 import com.tianli.charge.vo.OrderOtherInfoVo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -66,12 +66,10 @@ public class AccountBalanceOperationLogVO {
      */
     private LocalDateTime createTime;
 
-
-
     /**
      * 交易状态
      */
-    private NewChargeStatus status;
+    private ChargeStatus status;
 
     /**
      * 交易完成时间

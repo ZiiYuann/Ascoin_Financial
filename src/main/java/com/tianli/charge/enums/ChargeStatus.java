@@ -8,10 +8,17 @@ public enum ChargeStatus {
     // 充值                                                       充值成功      充值失败
     // 提币      待审核             审核成功                         提币成功      提币失败
 
+    // 订单日志专用
+    withdraw_success,//提币成功
+    withdraw_failed,//提币失败
+    withdraw_freeze,//提币冻结
+
 
     created, // 新创建/待审核
     review_fail, // 审核失败
     chaining, // 进行中
     chain_fail, // 失败
     chain_success; // 成功
+
+
 }
