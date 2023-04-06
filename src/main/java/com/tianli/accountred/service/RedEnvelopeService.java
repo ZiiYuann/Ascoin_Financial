@@ -22,6 +22,10 @@ import java.time.LocalDateTime;
  **/
 public interface RedEnvelopeService extends IService<RedEnvelope> {
 
+    void initBloomFilter();
+
+    void deleteBloomFilter();
+
     /**
      * 发红包(对于上链红包来说还有二次调用)
      *

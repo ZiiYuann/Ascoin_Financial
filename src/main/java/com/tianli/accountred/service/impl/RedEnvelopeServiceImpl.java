@@ -138,6 +138,12 @@ public class RedEnvelopeServiceImpl extends ServiceImpl<RedEnvelopeMapper, RedEn
         ids.forEach(bloomFilter::add);
     }
 
+    @Override
+    public void deleteBloomFilter() {
+        final RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConstants.RED_ENVELOPE + BLOOM);
+        bloomFilter.delete();
+    }
+
     @PostConstruct
     public void initRedEnvelopeVerifier() {
         verifiers.add(new ChatVerifier());

@@ -234,6 +234,7 @@ public class TestController {
         return Result.success().setData(redEnvelopeService.get(uid, shortUid, query));
     }
 
+
     @PostMapping("/pledge/cal")
     public Result<Void> pledgeCal() {
         borrowTask.task();
@@ -249,6 +250,19 @@ public class TestController {
     @PostMapping("/pledge/entrust")
     public Result<Void> pledge() {
         borrowTask.entrust();
+        return new Result<>();
+    }
+
+    @PostMapping("/red/bloom/delete")
+    public Result redBloomDelete() {
+        redEnvelopeService.deleteBloomFilter();
+        return new Result<>();
+
+    }
+
+    @PostMapping("/red/bloom/init")
+    public Result redBloomInit() {
+        redEnvelopeService.initBloomFilter();
         return new Result<>();
     }
 }
