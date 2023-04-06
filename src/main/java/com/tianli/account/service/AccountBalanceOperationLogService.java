@@ -114,6 +114,7 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
             chargeType = chargeType.accountWrapper(walletChargeFlowVo.getLogType());
 
             OrderChargeType orderChargeType = orderChargeTypeMap.get(chargeType);
+            walletChargeFlowVo.setChargeType(chargeType);
             walletChargeFlowVo.setChargeTypeName(walletChargeFlowVo.getChargeType().getNameZn());
             walletChargeFlowVo.setOperationGroup(orderChargeType.getOperationGroup());
             walletChargeFlowVo.setOperationType(orderChargeType.getOperationType());

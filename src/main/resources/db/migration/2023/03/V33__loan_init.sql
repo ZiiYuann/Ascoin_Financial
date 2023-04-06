@@ -23,8 +23,6 @@ ALTER TABLE `exception_msg`
 ALTER TABLE `financial_board_product` DROP PRIMARY KEY;
 ALTER TABLE `financial_board_product`
     ADD PRIMARY KEY (`create_time`) USING BTREE;
-?
-?
 
 ALTER TABLE `financial_record`
     ADD COLUMN `pledge` tinyint NULL DEFAULT 0 COMMENT '是否被质押' AFTER `local_purchase`;
