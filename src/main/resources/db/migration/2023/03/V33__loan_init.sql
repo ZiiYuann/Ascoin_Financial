@@ -1,6 +1,4 @@
 ALTER TABLE `account_balance`
-    ADD COLUMN `pledge_freeze` decimal(20, 8) NOT NULL DEFAULT 0.00000000 COMMENT '质押冻结' AFTER `remain`;
-ALTER TABLE `account_balance`
     ADD INDEX `balance`(`balance` DESC) USING BTREE;
 
 ALTER TABLE `account_balance_operation_log` MODIFY COLUMN `id` bigint NOT NULL FIRST;
