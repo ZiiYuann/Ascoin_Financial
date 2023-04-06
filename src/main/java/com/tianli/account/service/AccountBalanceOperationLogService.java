@@ -8,7 +8,12 @@ import com.tianli.account.enums.AccountOperationType;
 import com.tianli.account.mapper.AccountBalanceOperationLogMapper;
 import com.tianli.account.query.BalanceOperationChargeTypeQuery;
 import com.tianli.account.vo.WalletChargeFlowVo;
+import com.tianli.charge.entity.OrderChargeType;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.enums.ChargeTypeGroupEnum;
+import com.tianli.charge.enums.OperationTypeEnum;
+import com.tianli.charge.mapper.OrderChargeTypeMapper;
+import com.tianli.charge.service.IOrderChargeTypeService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.NetworkType;
@@ -18,7 +23,10 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -33,6 +41,8 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
 
     @Resource
     private AccountBalanceOperationLogMapper accountBalanceOperationLogMapper;
+    @Resource
+    private IOrderChargeTypeService orderChargeTypeService;
 
     /**
      * 添加余额操作日志
@@ -64,15 +74,49 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
             , WalletChargeFlowQuery query) {
         BalanceOperationChargeTypeQuery balanceOperationChargeTypeQuery =
                 ChargeType.balanceOperationChargeTypeQuery(query.getType());
-        if (Objects.nonNull(balanceOperationChargeTypeQuery)){
+
+        if (Objects.nonNull(balanceOperationChargeTypeQuery)) {
             query.setType(balanceOperationChargeTypeQuery.getChargeType());
             query.setAccountOperationType(balanceOperationChargeTypeQuery.getAccountOperationType());
         }
 
+        List<OrderChargeType> orderChargeTypes = orderChargeTypeService.list();
+        var orderChargeTypeMap = orderChargeTypes.stream().collect(Collectors.toMap(OrderChargeType::getType, o -> o));
+
+        if (Objects.nonNull(query.getOperationGroup())) {
+            orderChargeTypes = orderChargeTypes.stream()
+                    .filter(o -> query.getOperationGroup().equals(o.getOperationGroup())).collect(Collectors.toList());
+            if (ChargeTypeGroupEnum.WITHDRAW.equals(query.getOperationGroup())) {
+                query.setType(ChargeType.withdraw);
+            }
+        }
+
+        if (Objects.nonNull(query.getOperationType())) {
+            orderChargeTypes = orderChargeTypes.stream()
+                    .filter(o -> query.getOperationType().equals(o.getOperationType())).collect(Collectors.toList());
+            if (OperationTypeEnum.WITHDRAW.equals(query.getOperationType())) {
+                query.setType(ChargeType.withdraw);
+            }
+        }
+
+        List<ChargeType> chargeTypes =
+                orderChargeTypes.stream().map(OrderChargeType::getType).collect(Collectors.toList());
+        chargeTypes.add(ChargeType.withdraw);
+        if (Objects.nonNull(query.getType())) {
+            chargeTypes = List.of(query.getType());
+        }
+
+        query.setTypes(chargeTypes);
         IPage<WalletChargeFlowVo> list = accountBalanceOperationLogMapper.list(pageQuery.page(), query);
 
         return list.convert(walletChargeFlowVo -> {
+            ChargeType chargeType = walletChargeFlowVo.getChargeType();
+            chargeType = chargeType.accountWrapper(walletChargeFlowVo.getLogType());
+
+            OrderChargeType orderChargeType = orderChargeTypeMap.get(chargeType);
             walletChargeFlowVo.setChargeTypeName(walletChargeFlowVo.getChargeType().getNameZn());
+            walletChargeFlowVo.setOperationGroup(orderChargeType.getOperationGroup());
+            walletChargeFlowVo.setOperationType(orderChargeType.getOperationType());
             return walletChargeFlowVo;
         });
     }

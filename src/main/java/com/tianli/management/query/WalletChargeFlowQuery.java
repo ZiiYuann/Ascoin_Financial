@@ -11,6 +11,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author:yangkang
@@ -41,6 +42,8 @@ public class WalletChargeFlowQuery implements Serializable {
      * 操作分类
      */
     private OperationTypeEnum operationType;
+
+    private List<ChargeType> types;
 
     private ChargeType type;
 
