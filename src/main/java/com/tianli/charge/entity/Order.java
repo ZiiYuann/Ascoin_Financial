@@ -79,6 +79,8 @@ public class Order {
      */
     private Long relatedId;
 
+    private String relatedRemarks;
+
     /**
      * 审核信息关联ID
      */
@@ -100,6 +102,8 @@ public class Order {
      * 订单完成时间
      */
     private LocalDateTime completeTime;
+
+
 
     public static Order success(Long uid, ChargeType chargeType, String coin, BigDecimal amount, Long relatedId) {
         Order order = Order.generate(uid, chargeType, coin, amount, relatedId);

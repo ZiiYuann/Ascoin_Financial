@@ -57,5 +57,5 @@ public class RedisConstants {
 
     public static final String WITHDRAW_ORDER_TASK = "task:withdraw:";
 
-
+    public static final String ACCOUNT_TRANSFER_ADDRESS_BOOK = "account:transfer:book:";
 }

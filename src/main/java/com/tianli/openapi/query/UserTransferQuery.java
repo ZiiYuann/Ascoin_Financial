@@ -30,4 +30,6 @@ public class UserTransferQuery {
     private Long relatedId;
 
     private ChargeType chargeType;
+
+
 }
