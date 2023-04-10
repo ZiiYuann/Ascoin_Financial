@@ -17,7 +17,7 @@ import java.util.List;
 public enum ChargeType {
     // recharge 充值 withdraw 提现 income 收益 purchase 申购 redeem 赎回 settle 结算 transfer 转存 borrow借币
 
-    recharge("Deposition", "充值"),
+    recharge("Deposition", "充值成功"),
     withdraw("Withdraw", "提币"),
     income("Earnings", "收益"),
     purchase("Subscription", "申购"),
