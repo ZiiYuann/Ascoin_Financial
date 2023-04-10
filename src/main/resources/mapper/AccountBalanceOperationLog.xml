@@ -21,7 +21,7 @@
         where
         <trim prefixOverrides="and">
             <if test="param.types != null and param.types.size() > 0 ">
-               and abol.charge_type in
+                and abol.charge_type in
                 <foreach collection="param.types" index="index" item="item" open="(" separator="," close=")">
                     #{item}
                 </foreach>
@@ -50,28 +50,29 @@
 
     <select id="pageList" resultType="com.tianli.account.entity.AccountBalanceOperationLog">
         SELECT
-        id,
-        uid,
-        account_balance_id,
-        charge_type,
-        log_type,
-        coin,
-        network,
-        order_no,
-        amount,
-        create_time,
-        balance,
-        freeze,
-        remain,
-        des
+        abol.id,
+        abol.uid,
+        abol.account_balance_id,
+        abol.charge_type,
+        abol.log_type,
+        abol.coin,
+        abol.network,
+        abol.order_no,
+        abol.amount,
+        abol.create_time,
+        abol.balance,
+        abol.freeze,
+        abol.remain,
+        abol.des
         FROM
-        account_balance_operation_log
-        where uid=#{uid}
+        account_balance_operation_log abol
+        LEFT JOIN `order` o on abol.order_no = o.order_no
+        where abol.uid=#{uid}
         <if test="(param.chargeType != null and param.chargeType.size() > 0) or (param.chargeTypeQueries != null and param.chargeTypeQueries.size() > 0)">
             and (
 
             <if test="param.chargeType != null and param.chargeType.size() > 0 ">
-                charge_type in
+                abol.charge_type in
                 <foreach collection="param.chargeType" index="index" item="item" open="(" separator="," close=")">
                     #{item}
                 </foreach>
@@ -86,21 +87,25 @@
 
                 <foreach collection="param.chargeTypeQueries" index="index" item="item" open="" separator=" or "
                          close="">
-                    ( charge_type = #{item.chargeType} and log_type = #{item.accountOperationType})
+                    ( abol.charge_type = #{item.chargeType} and abol.log_type = #{item.accountOperationType}
+                        <if test="item.accountOperationType.name() == 'freeze'">
+                            and o.status in ('created','chaining')
+                        </if>
+                        )
                 </foreach>
             </if>
             )
         </if>
         <if test="param.coin != null and param.coin != ''">
-            and coin=#{param.coin}
+            and abol.coin=#{param.coin}
         </if>
 
         <if test="param.startTime !=null">
-            and create_time &gt; #{param.startTime}
+            and abol.create_time &gt; #{param.startTime}
         </if>
 
         <if test="param.endTime !=null">
-            and create_time &lt; #{param.endTime}
+            and abol.create_time &lt; #{param.endTime}
         </if>
         ORDER BY
         create_time DESC,

@@ -14,4 +14,6 @@ public class BalanceOperationChargeTypeQuery {
     private ChargeType chargeType;
 
     private AccountOperationType accountOperationType;
+
+//    sb 老阿姨产品设计sb需求 ，抄人家币安都抄的四不像 还不如我设计的
 }

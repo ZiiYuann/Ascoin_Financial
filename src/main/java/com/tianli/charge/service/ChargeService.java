@@ -621,6 +621,12 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      */
     public IPage<AccountBalanceOperationLogVO> newPageByChargeGroup(Long uid, AccountDetailsNewQuery query
             , Page<AccountBalanceOperationLog> page) {
+        List<ChargeType> types = new ArrayList<>(List.of(ChargeType.values()));
+        types.remove(ChargeType.withdraw);
+
+        if (Objects.isNull(query.getChargeType())){
+            query.setChargeType(types);
+        }
         Page<AccountBalanceOperationLog> logPages = accountBalanceOperationLogMapper.pageList(page, uid, query);
         return logPages.convert(this::log2VO);
     }
