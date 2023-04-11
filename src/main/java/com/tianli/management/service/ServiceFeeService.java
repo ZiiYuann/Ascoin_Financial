@@ -7,6 +7,7 @@ import com.tianli.management.vo.BoardServiceFeeVO;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * @author chenb
@@ -37,5 +38,5 @@ public interface ServiceFeeService extends IService<ServiceFee> {
      */
     BoardServiceFeeVO board(TimeQuery timeQuery, Byte type);
 
-    BigDecimal serviceFee(Byte type,LocalDate startTime, LocalDate endTime);
+    BigDecimal serviceFee(Byte type, LocalDateTime startTime, LocalDateTime endTime);
 }
