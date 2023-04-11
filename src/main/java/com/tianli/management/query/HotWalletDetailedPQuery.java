@@ -3,6 +3,7 @@ package com.tianli.management.query;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.management.enums.HotWalletOperationType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
  * @since 2022-08-18
  **/
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class HotWalletDetailedPQuery {

@@ -12,7 +12,7 @@ import com.tianli.charge.entity.OrderChargeType;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.ChargeTypeGroupEnum;
 import com.tianli.charge.enums.OperationTypeEnum;
-import com.tianli.charge.service.IOrderChargeTypeService;
+import com.tianli.charge.service.OrderChargeTypeService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
 import com.tianli.common.blockchain.NetworkType;
@@ -40,7 +40,7 @@ public class AccountBalanceOperationLogService extends ServiceImpl<AccountBalanc
     @Resource
     private AccountBalanceOperationLogMapper accountBalanceOperationLogMapper;
     @Resource
-    private IOrderChargeTypeService orderChargeTypeService;
+    private OrderChargeTypeService orderChargeTypeService;
 
     /**
      * 添加余额操作日志
