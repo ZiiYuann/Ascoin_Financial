@@ -20,6 +20,7 @@ import com.tianli.common.Constants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.management.converter.ManagementConverter;
+import com.tianli.management.dto.AmountDto;
 import com.tianli.management.entity.ServiceFee;
 import com.tianli.management.mapper.ServiceFeeMapper;
 import com.tianli.management.query.TimeQuery;
@@ -144,7 +145,7 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
                 .in(Order::getStatus, List.of(ChargeStatus.chain_success, ChargeStatus.chain_fail));
 
         if (Objects.nonNull(startTime) && Objects.nonNull(endTime)) {
-            queryWrapper = queryWrapper.between(Order:: getCompleteTime, startTime, endTime);
+            queryWrapper = queryWrapper.between(Order::getCompleteTime, startTime, endTime);
         }
 
         if (Objects.nonNull(startTime) && Objects.isNull(endTime)) {
@@ -268,6 +269,30 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
         result.setFees(new ArrayList<>(withdrawServiceFeeVOMap.values()));
         result.setSummaryFees(new ArrayList<>(allSummaryFee));
         return result;
+    }
+
+    @Override
+    public BigDecimal serviceFee(Byte type, LocalDate startTime, LocalDate endTime) {
+        LambdaQueryWrapper<ServiceFee> queryWrapper = new LambdaQueryWrapper<>();
+
+        Optional.ofNullable(type).ifPresent(v -> queryWrapper.eq(ServiceFee::getType, v));
+        Optional.ofNullable(startTime).ifPresent(v -> queryWrapper.ge(ServiceFee::getCreateTime, v));
+        Optional.ofNullable(endTime).ifPresent(v -> queryWrapper.le(ServiceFee::getCreateTime, v));
+
+
+        List<ServiceFee> fees = this.list(queryWrapper);
+
+        List<AmountDto> amountDtos = fees.stream().collect(Collectors.groupingBy(ServiceFee::getCoin))
+                .entrySet().stream().map(entry -> {
+                    String coin = entry.getKey();
+                    List<ServiceFee> value = entry.getValue();
+
+                    BigDecimal amount = value.stream().map(ServiceFee::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    return new AmountDto(amount, coin);
+                }).collect(Collectors.toList());
+
+        return currencyService.calDollarAmount(amountDtos);
     }
 
     @Data

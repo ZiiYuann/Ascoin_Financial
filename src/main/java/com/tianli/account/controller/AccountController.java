@@ -18,7 +18,7 @@ import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeGroup;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.vo.OrderChargeInfoVO;
-import com.tianli.charge.service.IOrderChargeTypeService;
+import com.tianli.charge.service.OrderChargeTypeService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.annotation.AppUse;
 import com.tianli.common.blockchain.NetworkType;
@@ -59,7 +59,7 @@ public class AccountController {
     private CoinService coinService;
 
     @Resource
-    private IOrderChargeTypeService orderChargeTypeService;
+    private OrderChargeTypeService orderChargeTypeService;
 
 
     /**

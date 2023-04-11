@@ -20,7 +20,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.ChargeTypeGroupEnum;
 import com.tianli.charge.enums.OperationTypeEnum;
 import com.tianli.charge.query.OrderMQuery;
-import com.tianli.charge.service.IOrderChargeTypeService;
+import com.tianli.charge.service.OrderChargeTypeService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.RedisConstants;
 import com.tianli.currency.service.CurrencyService;
@@ -79,7 +79,7 @@ import java.util.stream.Collectors;
 public class FinancialServiceImpl implements FinancialService {
 
     @Resource
-    IOrderChargeTypeService orderChargeTypeService;
+    OrderChargeTypeService orderChargeTypeService;
 
 
     @Override

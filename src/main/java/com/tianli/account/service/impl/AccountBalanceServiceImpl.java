@@ -466,6 +466,15 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         return accountBalanceSimpleVOS;
     }
 
+    @Override
+    public BigDecimal userBalance() {
+
+        List<AccountBalanceSimpleVO> accountBalanceSimpleVOS = this.accountBalanceSimpleVOs();
+
+        return accountBalanceSimpleVOS.stream().map(AccountBalanceSimpleVO::getBalanceDollarAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     /**
      * 校验币别是否有效 暂时只支持 usdt、usdc、bnb bsc主币、eth eth主币
      *

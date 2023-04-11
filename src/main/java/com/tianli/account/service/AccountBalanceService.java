@@ -151,5 +151,6 @@ public interface AccountBalanceService {
      */
     List<AccountBalanceSimpleVO> accountBalanceSimpleVOs();
 
+    BigDecimal userBalance();
 
 }

@@ -95,7 +95,7 @@ import java.util.stream.Collectors;
 public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
     @Resource
-    IOrderChargeTypeService iOrderChargeTypeService;
+    OrderChargeTypeService orderChargeTypeService;
 
     @Resource
     AccountBalanceOperationLogMapper accountBalanceOperationLogMapper;
@@ -645,7 +645,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
         LambdaQueryWrapper<OrderChargeType> chargeTypeQuery = new LambdaQueryWrapper<>();
         chargeTypeQuery.eq(OrderChargeType::getType, chargeTypeWrapper);
-        OrderChargeType orderChargeType = iOrderChargeTypeService.getOne(chargeTypeQuery);
+        OrderChargeType orderChargeType = orderChargeTypeService.getOne(chargeTypeQuery);
         vo.setGroupEn(orderChargeType.getOperationGroup().getTypeGroupEn());
         vo.setGroup(orderChargeType.getOperationGroup().getTypeGroup());
 
