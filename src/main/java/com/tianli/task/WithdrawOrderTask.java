@@ -122,20 +122,20 @@ public class WithdrawOrderTask {
             webHookService.dingTalkSend(txid + " 提现异常，此订单交易成功，但是订单状态未修改，请及时排除问题", WebHookToken.FINANCIAL_PRODUCT);
 
         }
+        String urlPre = configService.getOrDefault(SYSTEM_URL_PATH_PREFIX, "https://www.assureadd.com");
+        String timestamp = System.currentTimeMillis() + "";
+        String sign = Crypto.hmacToString(DigestFactory.createSHA256(), "VxaVdCoah9kZSCMdxAgMBAAE", timestamp);
+        String url = urlPre + "/api/management/financial/wallet/chainFail/confirm?" +
+                "orderNo=" + order.getOrderNo()
+                + "&sign=" + sign
+                + "&timestamp=" + timestamp
+                + "&confirm=false";
 
         if (TransactionStatus.PENDING.equals(transactionStatus)) {
-            webHookService.dingTalkSend(txid + " 提现状态PENDING，请校验是否正常", WebHookToken.FINANCIAL_PRODUCT);
+            webHookService.dingTalkSend(txid + " 提现状态PENDING，请校验是否正常,请在24小时内通过此链接确认失败：" + url, WebHookToken.FINANCIAL_PRODUCT);
         }
 
         if (TransactionStatus.FAIL.equals(transactionStatus)) {
-            String urlPre = configService.getOrDefault(SYSTEM_URL_PATH_PREFIX, "https://www.assureadd.com");
-            String timestamp = System.currentTimeMillis() + "";
-            String sign = Crypto.hmacToString(DigestFactory.createSHA256(), "VxaVdCoah9kZSCMdxAgMBAAE", timestamp);
-            String url = urlPre + "/api/management/financial/wallet/chainFail/confirm?" +
-                    "orderNo=" + order.getOrderNo()
-                    + "&sign=" + sign
-                    + "&timestamp=" + timestamp
-                    + "&confirm=false";
             webHookService.dingTalkSend(txid + " 提现失败，确认失败后，请在24小时内通过此链接确认失败：" + url, WebHookToken.FINANCIAL_PRODUCT);
         }
 
@@ -144,5 +144,16 @@ public class WithdrawOrderTask {
         }
     }
 
+    public static void main(String[] args) {
+        String urlPre = "https://www.assureadd.com";
+        String timestamp = System.currentTimeMillis() + "";
+        String sign = Crypto.hmacToString(DigestFactory.createSHA256(), "VxaVdCoah9kZSCMdxAgMBAAE", timestamp);
+        String url = urlPre + "/api/management/financial/wallet/chainFail/confirm?" +
+                "orderNo=" + "{}"
+                + "&sign=" + sign
+                + "&timestamp=" + timestamp
+                + "&confirm=false";
+        System.out.println(url);
+    }
 
 }
