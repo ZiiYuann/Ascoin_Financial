@@ -452,7 +452,7 @@ public class OpenApiService {
         }
 
         if (walletBoardType.equals(WalletBoardType.IN)) {
-            BigDecimal withdrawServiceFee = serviceFeeService.serviceFee((byte) 0, startTime.toLocalDate(), endTime.toLocalDate());
+            BigDecimal withdrawServiceFee = serviceFeeService.serviceFee((byte) 0, startTime, endTime);
 
             orderMQuery.setChargeTypes(List.of(ChargeType.fund_interest));
             BigDecimal fundIncomeFee = orderService.uAmount(orderMQuery);
@@ -464,7 +464,7 @@ public class OpenApiService {
         }
 
         if (walletBoardType.equals(WalletBoardType.OUT)) {
-            BigDecimal recycleServiceFee = serviceFeeService.serviceFee((byte) 1, startTime.toLocalDate(), endTime.toLocalDate());
+            BigDecimal recycleServiceFee = serviceFeeService.serviceFee((byte) 1, startTime, endTime);
 
             orderMQuery.setChargeTypes(List.of(ChargeType.income));
             BigDecimal financialIncomeFee = orderService.uAmount(orderMQuery);

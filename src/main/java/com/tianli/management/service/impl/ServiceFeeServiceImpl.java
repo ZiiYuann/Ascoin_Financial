@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -272,12 +273,12 @@ public class ServiceFeeServiceImpl extends ServiceImpl<ServiceFeeMapper, Service
     }
 
     @Override
-    public BigDecimal serviceFee(Byte type, LocalDate startTime, LocalDate endTime) {
+    public BigDecimal serviceFee(Byte type, LocalDateTime startTime, LocalDateTime endTime) {
         LambdaQueryWrapper<ServiceFee> queryWrapper = new LambdaQueryWrapper<>();
 
         Optional.ofNullable(type).ifPresent(v -> queryWrapper.eq(ServiceFee::getType, v));
-        Optional.ofNullable(startTime).ifPresent(v -> queryWrapper.ge(ServiceFee::getCreateTime, v));
-        Optional.ofNullable(endTime).ifPresent(v -> queryWrapper.le(ServiceFee::getCreateTime, v));
+        Optional.ofNullable(startTime).ifPresent(v -> queryWrapper.ge(ServiceFee::getCreateTime, v.toLocalDate()));
+        Optional.ofNullable(endTime).ifPresent(v -> queryWrapper.le(ServiceFee::getCreateTime, v.toLocalDate()));
 
 
         List<ServiceFee> fees = this.list(queryWrapper);
