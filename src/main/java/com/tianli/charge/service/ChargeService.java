@@ -644,6 +644,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         ChargeType chargeTypeWrapper = chargeType.accountWrapper(log.getLogType());
 
         AccountBalanceOperationLogVO vo = accountConverter.toAccountBalanceOperationLogVO(order);
+        vo.setAmount(log.getAmount());
         vo.setNewChargeType(chargeTypeWrapper);
         vo.setNewChargeTypeName(chargeTypeWrapper.getNameZn());
         vo.setNewChargeTypeNameEn(chargeTypeWrapper.getNameEn());
