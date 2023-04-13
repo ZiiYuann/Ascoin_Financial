@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -275,12 +276,19 @@ public class AccountController {
     }
 
     @PostMapping("/transfer")
-    public Result<Void> transfer(AccountTransferQuery query) {
+    public Result<AccountTransferVO> transfer(AccountTransferQuery query) {
         // todo 校验聊天id
         Long uid = requestInitService.uid();
         Long chatId = requestInitService.userInfo().getChatId();
         if (Objects.isNull(chatId)) {
             ErrorCodeEnum.ACCOUNT_ERROR.throwException();
+        }
+
+        String repeatCheckKey = RedisConstants.ACCOUNT_TRANSFER_REPEAT
+                + query.getToChatId() + ":" + query.getCoin() + ":" + query.getAmount().toPlainString();
+        if (query.isRepeatCheck()) {
+            String s = stringRedisTemplate.opsForValue().get(repeatCheckKey);
+            return Result.success(AccountTransferVO.builder().repeat(Objects.isNull(s)).build());
         }
 
         UserTransferQuery userTransferQuery = UserTransferQuery.builder()
@@ -291,14 +299,14 @@ public class AccountController {
                 .chargeType(ChargeType.transfer_reduce).build();
         accountUserTransferService.transfer(userTransferQuery);
 
-
         if (query.isAddressBook()) {
             String addressBookRemarks = MoreObjects.firstNonNull(query.getAddressBookRemarks(), query.getToChatId() + "");
             AddressBookDTO addressBookDTO = AddressBookDTO.builder().chatId(query.getToChatId()).remarks(addressBookRemarks).build();
             stringRedisTemplate.opsForList().rightPush(RedisConstants.ACCOUNT_TRANSFER_ADDRESS_BOOK + uid, JSONUtil.toJsonStr(addressBookDTO));
         }
 
-        return new Result<>();
+        stringRedisTemplate.opsForValue().set(repeatCheckKey, "transfer", 5, TimeUnit.MINUTES);
+        return new Result<>(new AccountTransferVO());
     }
 
 

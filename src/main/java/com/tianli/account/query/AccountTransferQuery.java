@@ -27,4 +27,6 @@ public class AccountTransferQuery {
     private boolean addressBook;
 
     private String addressBookRemarks;
+
+    private boolean repeatCheck;
 }
