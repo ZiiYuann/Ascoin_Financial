@@ -17,6 +17,7 @@ import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.vo.OrderReviewVO;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.webhook.WebHookService;
+import com.tianli.common.webhook.WebHookToken;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.entity.HotWalletDetailed;
 import com.tianli.management.enums.HotWalletOperationType;
@@ -189,7 +190,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
         if (Objects.isNull(query.getHash()) && query.isPass()
                 && balance.compareTo(orderChargeInfo.getFee()) < 0) {
             webHookService.dingTalkSend("热钱包余额不足：" + coin.getNetwork().name() + ":" + coin.getName() + "钱包余额：" + balance.stripTrailingZeros().toPlainString() +
-                    " 提币金额：" + orderChargeInfo.getFee().stripTrailingZeros().toPlainString());
+                    " 提币金额：" + orderChargeInfo.getFee().stripTrailingZeros().toPlainString(), WebHookToken.FINANCIAL_PRODUCT);
             if (query.isAutoPass()) {
                 return false;
             }

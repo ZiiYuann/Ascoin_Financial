@@ -30,6 +30,7 @@ import com.tianli.product.afund.query.FundRecordQuery;
 import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.tool.ApplicationContextTool;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -252,7 +253,11 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
                     .pledgeFreeze(BigDecimal.ZERO)
                     .build();
             final AccountBalance accountBalanceBalanceFinal = accountBalanceBalance;
-            accountBalanceMapper.insert(accountBalanceBalanceFinal);
+            try {
+                accountBalanceMapper.insert(accountBalanceBalanceFinal);
+            } catch (DuplicateKeyException duplicateKeyException) {
+                accountBalanceBalance = accountBalanceMapper.get(uid, coinName);
+            }
         }
         return accountBalanceBalance;
     }
