@@ -256,7 +256,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
             try {
                 accountBalanceMapper.insert(accountBalanceBalanceFinal);
             } catch (DuplicateKeyException duplicateKeyException) {
-                accountBalanceBalance = accountBalanceMapper.get(uid, coinName);
+                return accountBalanceBalance;
             }
         }
         return accountBalanceBalance;
