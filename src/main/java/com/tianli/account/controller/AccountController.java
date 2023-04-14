@@ -266,13 +266,21 @@ public class AccountController {
 
 
     @GetMapping("/transfer/book")
-    public Result<List<AddressBookDTO>> transferBoos() {
+    public Result<Set<AddressBookDTO>> transferBook() {
         Long uid = requestInitService.uid();
-        String key = RedisConstants.ACCOUNT_TRANSFER_ADDRESS_BOOK + uid;
-        List<String> range = stringRedisTemplate.opsForList().range(key, 0, -1);
-        range = Optional.ofNullable(range).orElse(Collections.emptyList());
-        List<AddressBookDTO> result = range.stream().map(str -> JSONUtil.toBean(str, AddressBookDTO.class)).collect(Collectors.toList());
+        String key = RedisConstants.ACCOUNT_TRANSFER_ADDRESS_BOOK + uid; // 获取
+        Set<String> range = stringRedisTemplate.opsForZSet().range(key, 0, -1);
+        range = Optional.ofNullable(range).orElse(Collections.emptySet());
+        Set<AddressBookDTO> result = range.stream().map(str -> JSONUtil.toBean(str, AddressBookDTO.class)).collect(Collectors.toSet());
         return Result.success(result);
+    }
+
+    @DeleteMapping("/transfer/book")
+    public Result<Void> transferBookDelete(@RequestBody IdsQuery idsQuery) {
+        Long uid = requestInitService.uid();
+        String key = RedisConstants.ACCOUNT_TRANSFER_ADDRESS_BOOK + uid; // 删除
+        stringRedisTemplate.opsForZSet().removeRange(key, idsQuery.getId(), idsQuery.getId());
+        return Result.success();
     }
 
     @PostMapping("/transfer")
@@ -302,7 +310,9 @@ public class AccountController {
         if (query.isAddressBook()) {
             String addressBookRemarks = MoreObjects.firstNonNull(query.getAddressBookRemarks(), query.getToChatId() + "");
             AddressBookDTO addressBookDTO = AddressBookDTO.builder().chatId(query.getToChatId()).remarks(addressBookRemarks).build();
-            stringRedisTemplate.opsForList().rightPush(RedisConstants.ACCOUNT_TRANSFER_ADDRESS_BOOK + uid, JSONUtil.toJsonStr(addressBookDTO));
+            stringRedisTemplate.opsForZSet()
+                    .add(RedisConstants.ACCOUNT_TRANSFER_ADDRESS_BOOK + uid // 新增
+                            , JSONUtil.toJsonStr(addressBookDTO), query.getToChatId());
         }
 
         stringRedisTemplate.opsForValue().set(repeatCheckKey, "transfer", 5, TimeUnit.MINUTES);
