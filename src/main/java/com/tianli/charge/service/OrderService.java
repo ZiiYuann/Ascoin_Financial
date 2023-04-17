@@ -14,7 +14,6 @@ import com.tianli.charge.query.OrderMQuery;
 import com.tianli.charge.query.ServiceAmountQuery;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.vo.OrderSettleRecordVO;
-import com.tianli.common.CommonFunction;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.product.afinancial.enums.ProductType;
@@ -162,7 +161,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
         return currencyService.calDollarAmount(amountDtos);
     }
 
-    public BigDecimal serviceAmountDollarSumByCompleteTime(ServiceAmountQuery serviceAmountQuery) {
+    public BigDecimal serviceAmountDollar(ServiceAmountQuery serviceAmountQuery) {
         List<AmountDto> amountDtos = orderMapper.serviceAmountSumByCompleteTime(serviceAmountQuery);
         return currencyService.calDollarAmount(amountDtos);
     }

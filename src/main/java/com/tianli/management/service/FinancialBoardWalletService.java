@@ -86,9 +86,9 @@ public class FinancialBoardWalletService extends ServiceImpl<FinancialBoardWalle
 
         BigInteger activeWalletCount = addressService.activeCount(startTime, entTime);
         // 暂时只有提币存在手续费
-        BigDecimal totalServiceAmount = orderService.serviceAmountDollarSumByCompleteTime(serviceAmountQuery);
+        BigDecimal totalServiceAmount = orderService.serviceAmountDollar(serviceAmountQuery);
         serviceAmountQuery.setCoin("usdt");
-        BigDecimal usdtServiceAmount = orderService.serviceAmountDollarSumByCompleteTime(serviceAmountQuery);
+        BigDecimal usdtServiceAmount = orderService.serviceAmountDollar(serviceAmountQuery);
 
         financialBoardWallet.setRechargeAmount(rechargeAmount);
         financialBoardWallet.setWithdrawAmount(withdrawAmount);

@@ -12,6 +12,7 @@ import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.ChargeTypeGroupEnum;
 import com.tianli.charge.query.OrderMQuery;
+import com.tianli.charge.query.ServiceAmountQuery;
 import com.tianli.charge.service.OrderChargeTypeService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
@@ -452,8 +453,8 @@ public class OpenApiService {
         }
 
         if (walletBoardType.equals(WalletBoardType.IN)) {
-            BigDecimal withdrawServiceFee = serviceFeeService.serviceFee((byte) 0, startTime, endTime);
-
+            BigDecimal withdrawServiceFee = orderService.serviceAmountDollar(ServiceAmountQuery.builder()
+                    .chargeType(ChargeType.withdraw).endTime(endTime).startTime(startTime).build());
             orderMQuery.setChargeTypes(List.of(ChargeType.fund_interest));
             BigDecimal fundIncomeFee = orderService.uAmount(orderMQuery);
 
