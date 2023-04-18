@@ -466,12 +466,13 @@ public class OpenApiService {
 
         if (walletBoardType.equals(WalletBoardType.OUT)) {
             BigDecimal recycleServiceFee = serviceFeeService.serviceFee((byte) 1, startTime, endTime);
+            BigDecimal transferServiceFee = serviceFeeService.serviceFee((byte) 0, startTime, endTime);
 
             orderMQuery.setChargeTypes(List.of(ChargeType.income));
             BigDecimal financialIncomeFee = orderService.uAmount(orderMQuery);
 
             return WalletBoardDTO.builder()
-                    .recycleServiceFee(recycleServiceFee)
+                    .serviceFee(recycleServiceFee.add(transferServiceFee))
                     .financialIncomeFee(financialIncomeFee)
                     .build();
         }

@@ -24,7 +24,7 @@ public class WalletBoardDTO {
     private BigDecimal financialIncomeFee;
 
     // 归集 + 转账矿工费
-    private BigDecimal recycleServiceFee;
+    private BigDecimal serviceFee;
 
     // WORK
     // 钱包当前余额
