@@ -23,7 +23,11 @@ public class AccountUserTransferVO {
 
     private Long transferUid;
 
+    private Long transferChatId;
+
     private Long receiveUid;
+
+    private Long receiveChatId;
 
     private String coin;
 

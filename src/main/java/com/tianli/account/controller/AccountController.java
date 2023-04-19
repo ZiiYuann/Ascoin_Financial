@@ -22,12 +22,16 @@ import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.service.IOrderChargeTypeService;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisConstants;
+import com.tianli.common.RedisLockConstants;
 import com.tianli.common.annotation.AppUse;
 import com.tianli.common.blockchain.NetworkType;
+import com.tianli.common.lock.RedissonClientTool;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
 import com.tianli.openapi.query.UserTransferQuery;
+import com.tianli.rpc.RpcService;
+import com.tianli.rpc.dto.UserInfoDTO;
 import com.tianli.sso.init.RequestInitService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -66,6 +70,10 @@ public class AccountController {
     private IOrderChargeTypeService orderChargeTypeService;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private RpcService rpcService;
+    @Resource
+    private RedissonClientTool redissonClientTool;
 
     /**
      * 激活钱包
@@ -279,17 +287,22 @@ public class AccountController {
     public Result<Void> transferBookDelete(@RequestBody IdsQuery idsQuery) {
         Long uid = requestInitService.uid();
         String key = RedisConstants.ACCOUNT_TRANSFER_ADDRESS_BOOK + uid; // 删除
-        stringRedisTemplate.opsForZSet().removeRange(key, idsQuery.getId(), idsQuery.getId());
+        stringRedisTemplate.opsForZSet().removeRangeByScore(key, idsQuery.getId(), idsQuery.getId());
         return Result.success();
     }
 
     @PostMapping("/transfer")
-    public Result<AccountTransferVO> transfer(AccountTransferQuery query) {
-        // todo 校验聊天id
+    public Result<AccountTransferVO> transfer(@RequestBody AccountTransferQuery query) {
+
         Long uid = requestInitService.uid();
         Long chatId = requestInitService.userInfo().getChatId();
         if (Objects.isNull(chatId)) {
             ErrorCodeEnum.ACCOUNT_ERROR.throwException();
+        }
+
+        UserInfoDTO userInfoDTO = rpcService.userInfoDTOChatId(query.getToChatId());
+        if (Objects.isNull(userInfoDTO)) {
+            throw ErrorCodeEnum.USER_NOT_FUND_CHAT.generalException();
         }
 
         String repeatCheckKey = RedisConstants.ACCOUNT_TRANSFER_REPEAT
@@ -300,12 +313,17 @@ public class AccountController {
         }
 
         UserTransferQuery userTransferQuery = UserTransferQuery.builder()
+                .receiveChatId(userInfoDTO.getChatId())
+                .transferChatId(chatId)
                 .transferUid(uid)
-                .receiveUid(null)
+                .receiveUid(userInfoDTO.getId())
                 .amount(query.getAmount())
                 .coin(query.getCoin())
                 .chargeType(ChargeType.transfer_reduce).build();
-        accountUserTransferService.transfer(userTransferQuery);
+
+        String key = RedisLockConstants.LOCK_TRANSFER + uid;
+
+        redissonClientTool.tryLock(key, () -> accountUserTransferService.transfer(userTransferQuery), ErrorCodeEnum.SYSTEM_BUSY);
 
         if (query.isAddressBook()) {
             String addressBookRemarks = MoreObjects.firstNonNull(query.getAddressBookRemarks(), query.getToChatId() + "");

@@ -10,12 +10,14 @@ import com.tianli.account.convert.AccountConverter;
 import com.tianli.account.entity.AccountBalanceOperationLog;
 import com.tianli.account.entity.AccountUserTransfer;
 import com.tianli.account.enums.AccountChangeType;
+import com.tianli.account.enums.RelatedRemarks;
 import com.tianli.account.mapper.AccountBalanceOperationLogMapper;
 import com.tianli.account.query.AccountDetailsNewQuery;
 import com.tianli.account.query.AccountDetailsQuery;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.AccountUserTransferService;
 import com.tianli.account.vo.AccountBalanceOperationLogVO;
+import com.tianli.account.vo.AccountUserTransferVO;
 import com.tianli.account.vo.TransactionGroupTypeVO;
 import com.tianli.account.vo.TransactionTypeVO;
 import com.tianli.address.mapper.Address;
@@ -624,7 +626,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         List<ChargeType> types = new ArrayList<>(List.of(ChargeType.values()));
         types.remove(ChargeType.withdraw);
 
-        if (Objects.isNull(query.getChargeType())){
+        if (Objects.isNull(query.getChargeType())) {
             query.setChargeType(types);
         }
         Page<AccountBalanceOperationLog> logPages = accountBalanceOperationLogMapper.pageList(page, uid, query);
@@ -664,6 +666,14 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         if (ChargeType.withdraw.equals(chargeType) || ChargeType.recharge.equals(chargeType)) {
             OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
             Optional.ofNullable(orderChargeInfo).ifPresent(o -> vo.setTxid(o.getTxid()));
+        }
+
+        if ((ChargeType.transfer_reduce.equals(chargeType) || ChargeType.transfer_increase.equals(chargeType))
+                && RelatedRemarks.USER_TRANSFER.name().equals(order.getRelatedRemarks())) {
+            AccountUserTransferVO accountUserTransferVO = accountUserTransferService.getVOById(order.getRelatedId());
+            vo.setOrderOtherInfoVo(OrderOtherInfoVo.builder()
+                    .accountUserTransferVO(accountUserTransferVO)
+                    .build());
         }
 
         return vo;

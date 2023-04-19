@@ -64,6 +64,7 @@ public enum ErrorCodeEnum {
     CURRENCY_NOT_SUPPORT(2017, "币别尚未支持"),
     ACCOUNT_ACTIVATE_UID_NULL(2018, "激活uid参数为null"),
     CHARGE_ADDRESS_NOT_FOUND(2019, "充值地址获取失败"),
+    USER_NOT_FUND_CHAT(2020, "chatId不存在"),
 
     /*** －－－－－－业务错误码-余额相关－－－－－－*/
     CREDIT_LACK(2100, "额度不足"),

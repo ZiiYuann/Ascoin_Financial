@@ -43,4 +43,6 @@ public class RedisLockConstants {
 
     public static final String LOCK_BORROW = "lock:borrow:";
 
+    public static final String LOCK_TRANSFER = "lock:transfer:";
+
 }
