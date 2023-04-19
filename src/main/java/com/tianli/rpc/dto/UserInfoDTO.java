@@ -21,4 +21,7 @@ public class UserInfoDTO {
     private String avatar;
 
     private String inviteCode;
+
+    private Long chatId;
+
 }

@@ -79,6 +79,22 @@ public class RpcService {
         throw ErrorCodeEnum.NETWORK_ERROR.generalException();
     }
 
+    public UserInfoDTO userInfoDTOChatId(Long chatId) {
+        String walletNewsServerUrl = configService.getOrDefault(WALLET_NEWS_SERVER_URL
+                , "https://wallet-news.giantdt.com") + "/api/user/info/chat/" + chatId;
+        CloseableHttpClient client = HttpClients.createDefault();
+        HttpGet httpGet = new HttpGet(walletNewsServerUrl);
+        httpGet.setHeader("Content-Type", "application/json; charset=UTF-8");
+        try {
+            HttpResponse httpResponse = client.execute(httpGet);
+            String s = EntityUtils.toString(httpResponse.getEntity());
+            return JSONUtil.parseObj(s).getJSONObject("data").toBean(UserInfoDTO.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        throw ErrorCodeEnum.NETWORK_ERROR.generalException();
+    }
+
     public String html(String url) {
         CloseableHttpClient client = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(url);

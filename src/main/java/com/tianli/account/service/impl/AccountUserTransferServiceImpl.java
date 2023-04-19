@@ -88,7 +88,9 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
         AccountUserTransfer accountUserTransfer = AccountUserTransfer.builder()
                 .id(accountUserTransferId)
                 .transferUid(query.getTransferUid())
+                .transferChatId(query.getTransferChatId())
                 .receiveUid(query.getReceiveUid())
+                .receiveChatId(query.getReceiveChatId())
                 .amount(amount)
                 .coin(coin)
                 .transferOrderNo(orderNo)
@@ -101,6 +103,12 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
     public AccountUserTransferVO getVOByExternalPk(Long externalPk) {
         return accountConverter.toAccountUserTransferVO(this.getOne(new LambdaQueryWrapper<AccountUserTransfer>()
                 .eq(AccountUserTransfer::getExternalPk, externalPk)));
+    }
+
+    @Override
+    public AccountUserTransferVO getVOById(Long id) {
+        return accountConverter.toAccountUserTransferVO(this.getOne(new LambdaQueryWrapper<AccountUserTransfer>()
+                .eq(AccountUserTransfer::getId, id)));
     }
 
     private String transferOperation(
@@ -133,6 +141,7 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
                 .coin(coin)
                 .amount(amount)
                 .relatedId(accountUserTransferId)
+                .relatedRemarks(relatedRemarks)
                 .completeTime(now).build();
 
         orderService.save(transferOrder);

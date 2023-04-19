@@ -17,4 +17,6 @@ public interface AccountUserTransferService extends IService<AccountUserTransfer
     AccountUserTransfer transfer(UserTransferQuery query);
 
     AccountUserTransferVO getVOByExternalPk(Long externalPk);
+
+    AccountUserTransferVO getVOById(Long id);
 }
