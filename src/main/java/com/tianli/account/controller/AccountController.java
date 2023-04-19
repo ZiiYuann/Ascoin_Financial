@@ -1,12 +1,12 @@
 package com.tianli.account.controller;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.base.MoreObjects;
 import com.tianli.account.entity.AccountBalanceOperationLog;
-import com.tianli.account.query.AccountDetailsNewQuery;
-import com.tianli.account.query.AccountDetailsQuery;
-import com.tianli.account.query.IdsQuery;
+import com.tianli.account.query.*;
 import com.tianli.account.service.AccountBalanceService;
+import com.tianli.account.service.AccountUserTransferService;
 import com.tianli.account.vo.*;
 import com.tianli.address.service.AddressService;
 import com.tianli.address.mapper.Address;
@@ -16,25 +16,28 @@ import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.service.CoinService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeGroup;
+import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.service.OrderChargeTypeService;
 import com.tianli.common.PageQuery;
+import com.tianli.common.RedisConstants;
 import com.tianli.common.annotation.AppUse;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.openapi.query.UserTransferQuery;
 import com.tianli.sso.init.RequestInitService;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author chenb
@@ -57,10 +60,12 @@ public class AccountController {
     private WebHookService webHookService;
     @Resource
     private CoinService coinService;
-
+    @Resource
+    private AccountUserTransferService accountUserTransferService;
     @Resource
     private OrderChargeTypeService orderChargeTypeService;
-
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 激活钱包
@@ -258,5 +263,61 @@ public class AccountController {
         query = MoreObjects.firstNonNull(query, new AccountDetailsNewQuery());
         return new Result<>(chargeService.newPageByChargeGroup(uid, query, pageQuery.page()));
     }
+
+
+    @GetMapping("/transfer/book")
+    public Result<Set<AddressBookDTO>> transferBook() {
+        Long uid = requestInitService.uid();
+        String key = RedisConstants.ACCOUNT_TRANSFER_ADDRESS_BOOK + uid; // 获取
+        Set<String> range = stringRedisTemplate.opsForZSet().range(key, 0, -1);
+        range = Optional.ofNullable(range).orElse(Collections.emptySet());
+        Set<AddressBookDTO> result = range.stream().map(str -> JSONUtil.toBean(str, AddressBookDTO.class)).collect(Collectors.toSet());
+        return Result.success(result);
+    }
+
+    @DeleteMapping("/transfer/book")
+    public Result<Void> transferBookDelete(@RequestBody IdsQuery idsQuery) {
+        Long uid = requestInitService.uid();
+        String key = RedisConstants.ACCOUNT_TRANSFER_ADDRESS_BOOK + uid; // 删除
+        stringRedisTemplate.opsForZSet().removeRange(key, idsQuery.getId(), idsQuery.getId());
+        return Result.success();
+    }
+
+    @PostMapping("/transfer")
+    public Result<AccountTransferVO> transfer(AccountTransferQuery query) {
+        // todo 校验聊天id
+        Long uid = requestInitService.uid();
+        Long chatId = requestInitService.userInfo().getChatId();
+        if (Objects.isNull(chatId)) {
+            ErrorCodeEnum.ACCOUNT_ERROR.throwException();
+        }
+
+        String repeatCheckKey = RedisConstants.ACCOUNT_TRANSFER_REPEAT
+                + query.getToChatId() + ":" + query.getCoin() + ":" + query.getAmount().toPlainString();
+        if (query.isRepeatCheck()) {
+            String s = stringRedisTemplate.opsForValue().get(repeatCheckKey);
+            return Result.success(AccountTransferVO.builder().repeat(Objects.isNull(s)).build());
+        }
+
+        UserTransferQuery userTransferQuery = UserTransferQuery.builder()
+                .transferUid(uid)
+                .receiveUid(null)
+                .amount(query.getAmount())
+                .coin(query.getCoin())
+                .chargeType(ChargeType.transfer_reduce).build();
+        accountUserTransferService.transfer(userTransferQuery);
+
+        if (query.isAddressBook()) {
+            String addressBookRemarks = MoreObjects.firstNonNull(query.getAddressBookRemarks(), query.getToChatId() + "");
+            AddressBookDTO addressBookDTO = AddressBookDTO.builder().chatId(query.getToChatId()).remarks(addressBookRemarks).build();
+            stringRedisTemplate.opsForZSet()
+                    .add(RedisConstants.ACCOUNT_TRANSFER_ADDRESS_BOOK + uid // 新增
+                            , JSONUtil.toJsonStr(addressBookDTO), query.getToChatId());
+        }
+
+        stringRedisTemplate.opsForValue().set(repeatCheckKey, "transfer", 5, TimeUnit.MINUTES);
+        return new Result<>(new AccountTransferVO());
+    }
+
 
 }

@@ -1,5 +1,6 @@
 package com.tianli.chain.service.contract;
 
+import com.tianli.chain.enums.ChainType;
 import com.tianli.common.ConfigConstants;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.mconfig.ConfigService;
@@ -93,6 +94,11 @@ public class PolygonTriggerContract extends Web3jContractOperation {
     @Override
     protected String getRecycleTriggerAddress() {
         return configService.get(ConfigConstants.POLYGON_TRIGGER_ADDRESS);
+    }
+
+    @Override
+    protected ChainType getChainType() {
+        return ChainType.POLYGON;
     }
 
     @Override

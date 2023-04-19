@@ -2,6 +2,7 @@ package com.tianli.chain.service.contract;
 
 import com.tianli.chain.dto.TransactionReceiptLogDTO;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.enums.ChainType;
 import com.tianli.common.blockchain.NetworkType;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.exception.ErrorCodeEnum;
@@ -92,5 +93,10 @@ public class TronWeb3jContract extends Web3jContractOperation {
     @Override
     protected String getRecycleTriggerAddress() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected ChainType getChainType() {
+        return ChainType.TRON;
     }
 }

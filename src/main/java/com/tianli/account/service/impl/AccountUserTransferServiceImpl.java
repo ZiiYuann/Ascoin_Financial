@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.account.convert.AccountConverter;
 import com.tianli.account.entity.AccountUserTransfer;
+import com.tianli.account.enums.RelatedRemarks;
 import com.tianli.account.mapper.AccountUserTransferMapper;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.AccountUserTransferService;
@@ -65,21 +66,21 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
             orderNo = transferOperation(accountUserTransferId,
                     query.getTransferUid(), ChargeType.credit_out,
                     query.getReceiveUid(), ChargeType.user_credit_in,
-                    coin, amount);
+                    coin, amount, null);
         }
 
         if (ChargeType.user_credit_out.equals(query.getChargeType())) {
             orderNo = transferOperation(accountUserTransferId,
                     query.getTransferUid(), ChargeType.user_credit_out,
                     query.getReceiveUid(), ChargeType.credit_in,
-                    coin, amount);
+                    coin, amount, null);
         }
 
         if (ChargeType.transfer_reduce.equals(query.getChargeType())) {
             orderNo = transferOperation(accountUserTransferId,
                     query.getTransferUid(), ChargeType.transfer_reduce,
                     query.getReceiveUid(), ChargeType.transfer_increase,
-                    coin, amount);
+                    coin, amount, RelatedRemarks.USER_TRANSFER.name());
         }
 
         orderNo = Optional.ofNullable(orderNo).orElseThrow(ErrorCodeEnum.TRANSFER_ERROR::generalException);
@@ -106,7 +107,7 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
             Long accountUserTransferId,
             Long decreaseUid, ChargeType decreaseType,
             Long increaseUid, ChargeType increaseType,
-            String coin, BigDecimal amount) {
+            String coin, BigDecimal amount, String relatedRemarks) {
         LocalDateTime now = LocalDateTime.now();
         long tId = CommonFunction.generalId();
         long rId = CommonFunction.generalId();
@@ -120,6 +121,7 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
                 .coin(coin)
                 .amount(amount)
                 .relatedId(accountUserTransferId)
+                .relatedRemarks(relatedRemarks)
                 .completeTime(now).build();
 
         Order receiveOrder = Order.builder()

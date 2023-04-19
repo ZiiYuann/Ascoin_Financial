@@ -86,9 +86,7 @@ public interface ContractOperation {
 
     BigDecimal getConsumeFee(String hash) throws IOException;
 
-    /**
-     * @param chain todo 类型需要修改
-     * @return boolean
-     */
     boolean matchByChain(NetworkType chain);
+
+
 }

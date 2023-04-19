@@ -1,5 +1,6 @@
 package com.tianli.chain.service.contract;
 
+import com.tianli.chain.enums.ChainType;
 import com.tianli.chain.web3j.ArbitrumEthGetTransactionReceipt;
 import com.tianli.chain.web3j.ArbitrumTransactionReceipt;
 import com.tianli.chain.web3j.ArbitrumWeb3j;
@@ -97,6 +98,12 @@ public class ArbitrumTriggerContract extends Web3jContractOperation {
     }
 
     @Override
+    protected ChainType getChainType() {
+        return ChainType.ARBITRUM;
+    }
+
+
+    @Override
     public boolean matchByChain(NetworkType chain) {
         return NetworkType.erc20_arbitrum.equals(chain);
     }
@@ -109,4 +116,5 @@ public class ArbitrumTriggerContract extends Web3jContractOperation {
         BigInteger transactionFee = arbitrumReceipt.getEffectiveGasPrice().multiply(arbitrumReceipt.getGasUsed());
         return new BigDecimal(transactionFee).movePointLeft(18);
     }
+
 }

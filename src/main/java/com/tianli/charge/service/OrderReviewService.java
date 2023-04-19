@@ -68,7 +68,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
     @Transactional
     public void withdrawChainFail(String orderNO) {
         Order order = orderService.getByOrderNo(orderNO);
-        orderService.chainFail(orderNO,LocalDateTime.now());
+        orderService.chainFail(orderNO, LocalDateTime.now());
         accountBalanceService.unfreeze(order.getUid(), ChargeType.withdraw, order.getCoin(), order.getAmount(), order.getOrderNo());
     }
 
@@ -120,7 +120,7 @@ public class OrderReviewService extends ServiceImpl<OrderReviewMapper, OrderRevi
                 // 提交事务之后抛出异常
                 orderService.reviewOrderRollback(order.getOrderNo());
                 platformTransactionManager.commit(transactionStatus);
-                throw ErrorCodeEnum.UPLOAD_CHAIN_ERROR.generalException();
+                throw ErrorCodeEnum.WAIT_EXAMINE.generalException();
             }
             orderChargeInfoService.updateTxid(orderChargeInfo.getId(), txid);
             platformTransactionManager.commit(transactionStatus);
