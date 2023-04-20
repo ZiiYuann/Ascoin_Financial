@@ -22,4 +22,6 @@ public class IdsQuery {
 
     private Long uid;
 
+    private Long chatId;
+
 }

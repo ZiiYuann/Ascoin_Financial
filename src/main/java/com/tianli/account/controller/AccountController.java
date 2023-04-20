@@ -291,6 +291,15 @@ public class AccountController {
         return Result.success();
     }
 
+    @PostMapping("/transfer/check")
+    public Result<Void> transferCheck(@RequestBody IdsQuery idsQuery) {
+        UserInfoDTO userInfoDTO = rpcService.userInfoDTOChatId(idsQuery.getChatId());
+        if (Objects.isNull(userInfoDTO)) {
+            ErrorCodeEnum.ACCOUNT_ERROR.throwException();
+        }
+        return Result.success();
+    }
+
     @PostMapping("/transfer")
     public Result<AccountTransferVO> transfer(@RequestBody AccountTransferQuery query) {
 
