@@ -106,7 +106,13 @@ public class HotWalletDetailedServiceImpl extends ServiceImpl<HotWalletDetailedM
             hotWalletBalanceVO.setChain(chainType);
             hotWalletBalanceVOS.add(hotWalletBalanceVO);
         }
-        return hotWalletBalanceVOS;
+        return hotWalletBalanceVOS.stream().collect(Collectors.groupingBy(HotWalletBalanceVO::getCoinName
+                , Collectors.summingDouble(hotWalletBalance -> hotWalletBalance.getAmount().doubleValue())))
+                .entrySet().stream().map(entrySet ->
+                        HotWalletBalanceVO.builder()
+                                .CoinName(entrySet.getKey())
+                                .amount(BigDecimal.valueOf(entrySet.getValue())).build())
+                .collect(Collectors.toList());
     }
 
     @Override
