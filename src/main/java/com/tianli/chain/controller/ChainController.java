@@ -77,7 +77,11 @@ public class ChainController {
             CoinMapVO coinMapVO = new CoinMapVO();
             coinMapVO.setName(key);
             value.sort(Comparator.comparing(coin -> coin.getChain().getSequence()));
-            value.forEach(e -> e.setChainName(e.getChain().getDisplay()));
+            value.forEach(e -> {
+                e.setChainName(e.getChain().getDisplay());
+                e.setNetworkDesc(e.getNetwork().getDesc());
+                e.setNetworkShortName(e.getNetwork().getShortName());
+            });
             coinMapVO.setCoins(value);
             coinMapVO.setCoinUrl(coinBaseService.getByName(key).getLogo());
             coinMapVO.setWithdrawDecimals(value.get(0).getWithdrawDecimals());

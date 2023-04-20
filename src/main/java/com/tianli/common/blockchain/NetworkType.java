@@ -7,27 +7,33 @@ import lombok.Getter;
 public enum NetworkType {
     // erc20 以太坊公链代币标准 trc20 波场公链代币标准 bep20 币安链代币标准
     // 以太坊公链代币标准
-    erc20(ChainType.ETH),
+    erc20(ChainType.ETH, "Ethereum", "ERC20"),
     // 波场公链代币标准
-    trc20(ChainType.TRON),
+    trc20(ChainType.TRON, "TRON", "TRC20"),
     // 币安链代币标准
-    bep20(ChainType.BSC),
+    bep20(ChainType.BSC, "BNB Chain", "BEP20"),
 
-    erc20_polygon(ChainType.POLYGON),
-    erc20_optimistic(ChainType.OPTIMISTIC),
-    erc20_arbitrum(ChainType.ARBITRUM);
+    erc20_polygon(ChainType.POLYGON, "Polygon", "Polygon"),
+    erc20_optimistic(ChainType.OPTIMISTIC, "Optimism", "Optimism"),
+    erc20_arbitrum(ChainType.ARBITRUM, "Arbitrum", "Arbitrum");
 //    btc(ChainType.BTC);
 
-    NetworkType(ChainType chainType){
+    NetworkType(ChainType chainType, String networkDesc, String shortName) {
         this.chainType = chainType;
+        this.desc = networkDesc;
+        this.shortName = shortName;
     }
 
     @Getter
     private final ChainType chainType;
+    @Getter
+    private final String desc;
+    @Getter
+    private final String shortName;
 
-     public static NetworkType getInstance(ChainType chainType) {
-        for (NetworkType networkType : NetworkType.values()){
-            if(networkType.chainType.equals(chainType)){
+    public static NetworkType getInstance(ChainType chainType) {
+        for (NetworkType networkType : NetworkType.values()) {
+            if (networkType.chainType.equals(chainType)) {
                 return networkType;
             }
         }
