@@ -35,6 +35,10 @@ public class CoinVO {
 
     private NetworkType network;
 
+    private String networkDesc;
+
+    private String networkShortName;
+
     private boolean mainToken;
 
     private String mainCoin;
