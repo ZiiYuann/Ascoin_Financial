@@ -60,4 +60,9 @@ public interface HotWalletDetailedService extends IService<HotWalletDetailed> {
      */
     void delete(Long id);
 
+    /**
+     * 主币余额
+     * @return
+     */
+    List<HotWalletBalanceVO> mainBalance();
 }

@@ -38,6 +38,7 @@ import com.tianli.management.query.*;
 import com.tianli.management.service.ServiceFeeService;
 import com.tianli.management.vo.FinancialSummaryDataVO;
 import com.tianli.management.vo.ImputationAmountVO;
+import com.tianli.management.vo.WalletImputationStatVO;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.Privilege;
 import com.tianli.sso.permission.admin.AdminContent;
@@ -221,6 +222,15 @@ public class ManageWalletController {
     }
 
     /**
+     * 【云钱包归集】归集列表 按币名分组
+     */
+    @GetMapping("/imputation/stat")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result<IPage<WalletImputationStatVO>> imputationStat(PageQuery<WalletImputation> page, WalletImputationQuery query) {
+        return Result.success(walletImputationService.walletImputationStat(page.page(), query));
+    }
+
+    /**
      * 【云钱包归集】待归集金额
      */
     @GetMapping("/imputation/amount")
@@ -236,6 +246,16 @@ public class ManageWalletController {
     @AdminPrivilege(and = Privilege.理财管理)
     public Result<Void> imputation(@RequestBody WalletImputationManualQuery query) {
         walletImputationService.imputationOperation(query);
+        return Result.success();
+    }
+
+    /**
+     * 【云钱包归集】一键归集
+     */
+    @PostMapping("/all/imputation")
+    @AdminPrivilege(and = Privilege.理财管理)
+    public Result<Void> allImputation(@RequestBody WalletImputationQuery query) {
+        walletImputationService.allImputation(query);
         return Result.success();
     }
 
