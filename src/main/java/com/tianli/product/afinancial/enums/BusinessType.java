@@ -8,5 +8,6 @@ public enum BusinessType {
     limited,
     // 新用户福利
     benefits,
-    share500USDT
+    share500USDT,
+    FBBANK
 }
