@@ -3,6 +3,7 @@ package com.tianli.management.vo;
 import com.tianli.chain.enums.ChainType;
 import com.tianli.common.blockchain.NetworkType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -17,6 +18,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class HotWalletBalanceVO {
 
     private String CoinName;
