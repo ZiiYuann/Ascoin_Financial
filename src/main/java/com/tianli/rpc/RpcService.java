@@ -91,6 +91,8 @@ public class RpcService {
             return JSONUtil.parseObj(s).getJSONObject("data").toBean(UserInfoDTO.class);
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (NullPointerException nep) {
+            return null;
         }
         throw ErrorCodeEnum.NETWORK_ERROR.generalException();
     }
