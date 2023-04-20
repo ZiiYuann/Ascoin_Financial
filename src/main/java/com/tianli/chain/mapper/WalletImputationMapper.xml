@@ -35,7 +35,7 @@
     <select id="selectImputationStat" resultType="com.tianli.management.vo.WalletImputationStatVO">
         SELECT
             coin,
-            ifnull(SUM(amount),0) waitImputationAmount,
+            sum(if(`status` = 'wait',amount,0)) waitImputationAmount,
             count(*) imputationAddressNum
         FROM
             wallet_imputation

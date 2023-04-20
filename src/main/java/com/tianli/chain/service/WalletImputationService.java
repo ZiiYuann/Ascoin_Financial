@@ -1,5 +1,6 @@
 package com.tianli.chain.service;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -154,7 +155,6 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
      * 归集列表统计数据
      */
     public IPage<WalletImputationStatVO> walletImputationStat(IPage<WalletImputation> page, WalletImputationQuery query) {
-        query.setStatus(ImputationStatus.wait);
         return walletImputationMapper.selectImputationStat(page, query);
     }
 
@@ -164,8 +164,10 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
     public void allImputation(WalletImputationQuery query){
         List<Long> ids = this.lambdaQuery()
                 .select(WalletImputation::getId)
+                .like(StrUtil.isNotBlank(query.getUid()),WalletImputation::getUid,query.getUid())
                 .eq(WalletImputation::getNetwork, query.getNetwork())
                 .eq(WalletImputation::getCoin, query.getCoin())
+                .eq(WalletImputation::getStatus,ImputationStatus.wait)
                 .list().stream().map(WalletImputation::getId).collect(Collectors.toList());
         WalletImputationManualQuery imputationManualQuery = WalletImputationManualQuery.builder().imputationIds(ids).build();
         imputationOperation(imputationManualQuery);
