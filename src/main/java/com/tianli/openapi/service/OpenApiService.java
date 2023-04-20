@@ -18,6 +18,7 @@ import com.tianli.common.RedisLockConstants;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.query.FinancialProductIncomeQuery;
+import com.tianli.openapi.query.OpenapiC2CQuery;
 import com.tianli.product.afinancial.service.FinancialIncomeAccrueService;
 import com.tianli.openapi.dto.IdDto;
 import com.tianli.openapi.dto.StatisticsDataDto;
@@ -67,6 +68,9 @@ public class OpenApiService {
     private RedissonClient redissonClient;
     @Resource
     private WebHookService webHookService;
+
+    @Resource
+    private IC2cTransferRecordService cTransferRecordService;
 
     @Transactional
     public IdDto reward(OpenapiOperationQuery query) {
@@ -387,4 +391,11 @@ public class OpenApiService {
     public AccountUserTransferVO transferOrder(Long externalPk) {
         return accountUserTransferService.getVOByExternalPk(externalPk);
     }
+
+
+    public IdDto c2cTransfer(OpenapiC2CQuery query){
+        return cTransferRecordService.c2cTransfer(query);
+    }
+
+
 }

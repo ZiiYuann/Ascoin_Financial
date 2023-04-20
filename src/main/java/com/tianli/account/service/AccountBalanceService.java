@@ -152,4 +152,15 @@ public interface AccountBalanceService {
     List<AccountBalanceSimpleVO> accountBalanceSimpleVOs();
 
 
+    /**
+     * c2c转入
+     * @return
+     */
+    void c2cTransferIn(long uid, ChargeType type, String coin, BigDecimal amount, String sn, NetworkType networkType);
+
+    /*
+     C2C转出
+     */
+    void c2cTransferOut(long uid, ChargeType type, String coin, BigDecimal amount, String sn, NetworkType networkType);
+
 }
