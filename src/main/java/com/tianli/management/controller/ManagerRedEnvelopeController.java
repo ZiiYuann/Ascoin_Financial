@@ -1,20 +1,25 @@
 package com.tianli.management.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tianli.accountred.entity.RedEnvelope;
 import com.tianli.accountred.entity.RedEnvelopeConfig;
 import com.tianli.accountred.enums.RedEnvelopeChannel;
+import com.tianli.accountred.enums.RedEnvelopeStatus;
 import com.tianli.accountred.service.RedEnvelopeConfigService;
-import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.accountred.service.RedEnvelopeService;
+import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
 import com.tianli.other.query.RedEnvelopeConfigIoUQuery;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.admin.AdminContent;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author chenb
@@ -27,7 +32,8 @@ public class ManagerRedEnvelopeController {
 
     @Resource
     RedEnvelopeConfigService redEnvelopeConfigService;
-
+    @Resource
+    private RedEnvelopeService redEnvelopeService;
 
     /**
      * 新增或更新红包配置信息
@@ -62,6 +68,16 @@ public class ManagerRedEnvelopeController {
                           @RequestParam("channel") RedEnvelopeChannel channel) {
         RedEnvelopeConfig one = redEnvelopeConfigService.getDetails(coin, channel);
         return Result.success(one);
+    }
+
+    /**
+     * 站外红包详情
+     */
+    @GetMapping("/records")
+    public Result<IPage<RedEnvelope>> records(@RequestParam("status") RedEnvelopeStatus status, PageQuery<RedEnvelope> pageQuery) {
+        LambdaQueryWrapper<RedEnvelope> queryWrapper = new LambdaQueryWrapper<>();
+        Optional.ofNullable(status).ifPresent(s -> queryWrapper.eq(RedEnvelope::getStatus, status));
+        return Result.success(redEnvelopeService.page(pageQuery.page(), queryWrapper));
     }
 }
 
