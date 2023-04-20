@@ -295,7 +295,7 @@ public class AccountController {
     public Result<Void> transferCheck(@RequestBody IdsQuery idsQuery) {
         UserInfoDTO userInfoDTO = rpcService.userInfoDTOChatId(idsQuery.getChatId());
         if (Objects.isNull(userInfoDTO)) {
-            ErrorCodeEnum.ACCOUNT_ERROR.throwException();
+            ErrorCodeEnum.USER_NOT_FUND_CHAT.throwException();
         }
         return Result.success();
     }
