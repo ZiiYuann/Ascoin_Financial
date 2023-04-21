@@ -475,6 +475,31 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+
+    @Override
+    @Transactional
+    public void c2cTransferIn(long uid, ChargeType type, String coin, BigDecimal amount, String sn, NetworkType networkType){
+        getAndInit(uid, coin);
+        if (accountBalanceMapper.increase(uid, amount, coin) <= 0L) {
+            ErrorCodeEnum.CREDIT_LACK.throwException();
+        }
+        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.increase);
+    }
+
+    @Override
+    @Transactional
+    public void  c2cTransferOut(long uid, ChargeType type, String coin, BigDecimal amount, String sn, NetworkType networkType){
+        this.validBlackUser(uid);
+        getAndInit(uid, coin);
+        if (accountBalanceMapper.decrease(uid, amount, coin) <= 0L) {
+            ErrorCodeEnum.CREDIT_LACK.throwException();
+        }
+        AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.decrease);
+    }
+
+
     /**
      * 校验币别是否有效 暂时只支持 usdt、usdc、bnb bsc主币、eth eth主币
      *

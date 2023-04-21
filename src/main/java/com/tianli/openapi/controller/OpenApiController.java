@@ -14,6 +14,7 @@ import com.tianli.openapi.dto.IdDto;
 import com.tianli.openapi.dto.TransferResultDto;
 import com.tianli.openapi.dto.WalletBoardDTO;
 import com.tianli.openapi.enums.WalletBoardType;
+import com.tianli.openapi.query.OpenapiC2CQuery;
 import com.tianli.openapi.query.OpenapiOperationQuery;
 import com.tianli.openapi.query.UserTransferQuery;
 import com.tianli.openapi.service.OpenApiService;
@@ -221,6 +222,40 @@ public class OpenApiController {
         }
         return Result.success(openApiService.walletBoardDTO(walletBoardType,query));
     }
+
+    /**
+     * c2c划转
+     * @param query
+     * @param sign
+     * @param timestamp
+     * @return
+     */
+    @PostMapping("/c2c/transfer")
+    public Result<IdDto>  c2cTransfer(@RequestBody  @Valid OpenapiC2CQuery query, @RequestHeader("sign") String sign,
+                                                         @RequestHeader("timestamp") String timestamp){
+
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
+        }
+        return Result.success(openApiService.c2cTransfer(query));
+
+    }
+
+
+    /**
+     * 获取用户币种余额
+     */
+    @GetMapping("/balances")
+    public Result<AccountBalanceVO> accountSingleCoin(@RequestParam("uid") Long uid,@RequestParam("coin") String coin,
+                                                  @RequestHeader("sign") String sign,
+                                                  @RequestHeader("timestamp") String timestamp) {
+
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
+        }
+        return Result.success(accountBalanceService.accountSingleCoin(uid,coin));
+    }
+
 
 
 }

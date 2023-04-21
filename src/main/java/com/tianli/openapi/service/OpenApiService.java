@@ -22,6 +22,7 @@ import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
+import com.tianli.openapi.query.OpenapiC2CQuery;
 import com.tianli.management.query.HotWalletDetailedPQuery;
 import com.tianli.management.service.HotWalletDetailedService;
 import com.tianli.management.service.ServiceFeeService;
@@ -90,6 +91,9 @@ public class OpenApiService {
     private IFundRecordService fundRecordService;
     @Resource
     private FinancialRecordService financialRecordService;
+
+    @Resource
+    private IC2cTransferRecordService cTransferRecordService;
 
     @Transactional
     public IdDto reward(OpenapiOperationQuery query) {
@@ -410,6 +414,13 @@ public class OpenApiService {
     public AccountUserTransferVO transferOrder(Long externalPk) {
         return accountUserTransferService.getVOByExternalPk(externalPk);
     }
+
+
+    public IdDto c2cTransfer(OpenapiC2CQuery query){
+        return cTransferRecordService.c2cTransfer(query);
+    }
+
+
 
 
     public WalletBoardDTO walletBoardDTO(WalletBoardType walletBoardType, FinancialBoardQuery financialBoardQuery) {

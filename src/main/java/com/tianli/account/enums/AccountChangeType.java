@@ -65,6 +65,13 @@ public enum AccountChangeType {
     advance_borrow("ABO"),
     //还币
     advance_repay("ARP"),
+
+    //c2c转入
+    c2c_transfer_in("C2CTSI"),
+    //c2c转出
+    c2c_transfer_out("C2CTSO")
+
+
     ;
 
     AccountChangeType(String prefix) {

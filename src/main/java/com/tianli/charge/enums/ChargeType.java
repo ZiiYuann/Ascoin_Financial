@@ -55,6 +55,10 @@ public enum ChargeType {
     forced_closeout("Forced Closeout", "强制平仓", AccountChangeType.forced_closeout,ChargeTypeGroupEnum.IN),
     auto_re("Automatic replenishment", "自动补仓", AccountChangeType.auto_re,ChargeTypeGroupEnum.OUT),
 
+    c2c_transfer_in("C2C Transfer In","c2c转入",AccountChangeType.c2c_transfer_in),
+
+    c2c_transfer_out("C2C Transfer Out","c2c转出",AccountChangeType.c2c_transfer_out),
+
     // 增加类型需要在 ChargeRemarks 中增加对应的状态和文字，不然会报错
     // 增加类型需要在 ChargeGroup 中增加对应，不然会报错
 
