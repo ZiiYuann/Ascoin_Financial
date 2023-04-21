@@ -71,7 +71,7 @@ public class ManageProductController {
      * 产品列表
      */
     @GetMapping("/products")
-    @AdminPrivilege(and = Privilege.理财配置)
+    //@AdminPrivilege(and = Privilege.理财配置)
     public Result<IPage<MFinancialProductVO>> products(PageQuery<FinancialProduct> page, FinancialProductsQuery query) {
         IPage<MFinancialProductVO> financialProductVOIPage = financialProductService.mSelectListByQuery(page.page(), query);
         return new Result<>(financialProductVOIPage);
@@ -128,6 +128,11 @@ public class ManageProductController {
         Boolean recommend = jsonObject.get("recommend", Boolean.class);
         financialProductService.modifyRecommend(id, recommend, recommendWeight);
         return new Result<>();
+    }
+
+    @GetMapping("/product/businessTypes")
+    public Result business(){
+        return Result.success(financialService.businessTypes());
     }
 
 

@@ -272,6 +272,7 @@ public class FinancialProductService extends AbstractProductOperation<FinancialP
                 mFinancialProductVO.setLadderRates(financialProductLadderRateService.listByProductId(index.getId())
                         .stream().map(financialConverter::toProductLadderRateVO).collect(Collectors.toList()));
             }
+            mFinancialProductVO.setBusinessTypeName(mFinancialProductVO.getBusinessType().getName());
             return mFinancialProductVO;
         });
     }
