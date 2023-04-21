@@ -300,24 +300,51 @@ public class FinancialServiceImpl implements FinancialService {
 
     @Override
     public List<RecommendProductVO> recommendProducts() {
+        Long uid = requestInitService.uid();
         String cache = stringRedisTemplate.opsForValue().get(RedisConstants.RECOMMEND_PRODUCT);
+        List<RecommendProductVO> recommendProductVOS;
         if (Objects.nonNull(cache)) {
-            return JSONUtil.toList(cache, RecommendProductVO.class);
+
+            recommendProductVOS = JSONUtil.toList(cache, RecommendProductVO.class);
+        }else {
+            LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
+                    .eq(FinancialProduct::getStatus, ProductStatus.open)
+                    .eq(FinancialProduct::isRecommend, true)
+                    .orderByDesc(FinancialProduct::getRecommendWeight)
+                    .orderByDesc(FinancialProduct::getRate); // 年化利率降序
+
+            recommendProductVOS = financialProductService.list(query)
+                    .stream().map(financialConverter::toRecommendProductVO)
+                    .collect(Collectors.toList());
+
+            stringRedisTemplate.opsForValue() // 设置缓存
+                    .set(RedisConstants.RECOMMEND_PRODUCT, JSONUtil.toJsonStr(recommendProductVOS), 1, TimeUnit.DAYS);
         }
 
-        LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
-                .eq(FinancialProduct::getStatus, ProductStatus.open)
-                .eq(FinancialProduct::isRecommend, true)
-                .orderByDesc(FinancialProduct::getRecommendWeight)
-                .orderByDesc(FinancialProduct::getRate); // 年化利率降序
+        recommendProductVOS.forEach( recommendProductVO -> recommendProductVO.setRecordId(this.getHoldRecordId(uid,recommendProductVO.getId(),recommendProductVO.getType())));
 
-        List<RecommendProductVO> result = financialProductService.list(query)
-                .stream().map(financialConverter::toRecommendProductVO)
-                .collect(Collectors.toList());
+        return recommendProductVOS ;
+    }
 
-        stringRedisTemplate.opsForValue() // 设置缓存
-                .set(RedisConstants.RECOMMEND_PRODUCT, JSONUtil.toJsonStr(result), 1, TimeUnit.DAYS);
-        return result;
+    private Long getHoldRecordId(Long uid, Long productId, ProductType productType) {
+
+        if (ProductType.fund.equals(productType)) {
+            List<FundRecord> fundRecords = fundRecordService.listByUidAndProductId(uid, productId);
+            if (CollectionUtils.isNotEmpty(fundRecords)) {
+                return fundRecords.get(0).getId();
+            }
+        }
+
+        if (!ProductType.fund.equals(productType)) {
+            var financialRecordOptional = financialRecordService.selectList(uid, productType, RecordStatus.PROCESS)
+                    .stream().filter(f -> productId.equals(f.getProductId()) ).findFirst();
+            if (financialRecordOptional.isPresent()) {
+                return financialRecordOptional.get().getId();
+            }
+        }
+
+        return null;
+
     }
 
     @Override
