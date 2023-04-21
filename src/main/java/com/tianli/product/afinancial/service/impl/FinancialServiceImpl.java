@@ -336,9 +336,10 @@ public class FinancialServiceImpl implements FinancialService {
         }
 
         if (!ProductType.fund.equals(productType)) {
-            List<FinancialRecord> financialRecords = financialRecordService.selectList(uid, productType, RecordStatus.PROCESS);
-            if (CollectionUtils.isNotEmpty(financialRecords)) {
-                return financialRecords.get(0).getId();
+            var financialRecordOptional = financialRecordService.selectList(uid, productType, RecordStatus.PROCESS)
+                    .stream().filter(f -> productId.equals(f.getProductId()) ).findFirst();
+            if (financialRecordOptional.isPresent()) {
+                return financialRecordOptional.get().getId();
             }
         }
 
