@@ -318,7 +318,7 @@ public class AccountController {
                 + query.getToChatId() + ":" + query.getCoin() + ":" + query.getAmount().toPlainString();
         if (query.isRepeatCheck()) {
             String s = stringRedisTemplate.opsForValue().get(repeatCheckKey);
-            return Result.success(AccountTransferVO.builder().repeat(Objects.isNull(s)).build());
+            return Result.success(AccountTransferVO.builder().repeat(Objects.nonNull(s)).build());
         }
 
         UserTransferQuery userTransferQuery = UserTransferQuery.builder()
