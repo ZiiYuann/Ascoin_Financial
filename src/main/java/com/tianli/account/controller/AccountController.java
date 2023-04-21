@@ -18,8 +18,8 @@ import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeGroup;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.ChargeService;
-import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.charge.service.OrderChargeTypeService;
+import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisConstants;
 import com.tianli.common.RedisLockConstants;
@@ -318,7 +318,7 @@ public class AccountController {
                 + query.getToChatId() + ":" + query.getCoin() + ":" + query.getAmount().toPlainString();
         if (query.isRepeatCheck()) {
             String s = stringRedisTemplate.opsForValue().get(repeatCheckKey);
-            return Result.success(AccountTransferVO.builder().repeat(Objects.nonNull(s)).build());
+            return Result.success(AccountTransferVO.builder().repeat(Objects.isNull(s)).build());
         }
 
         UserTransferQuery userTransferQuery = UserTransferQuery.builder()

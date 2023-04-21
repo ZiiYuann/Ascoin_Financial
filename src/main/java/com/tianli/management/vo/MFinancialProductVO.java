@@ -51,6 +51,8 @@ public class MFinancialProductVO {
 
     private BusinessType businessType;
 
+    private String businessTypeName;
+
     /**
      * 参考年化
      */
