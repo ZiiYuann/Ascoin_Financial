@@ -1,7 +1,9 @@
 package com.tianli.chain.service;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tianli.address.service.AddressService;
 import com.tianli.address.mapper.Address;
@@ -33,6 +35,7 @@ import com.tianli.management.query.WalletImputationManualQuery;
 import com.tianli.management.query.WalletImputationQuery;
 import com.tianli.management.service.HotWalletDetailedService;
 import com.tianli.management.vo.ImputationAmountVO;
+import com.tianli.management.vo.WalletImputationStatVO;
 import com.tianli.task.RetryScheduledExecutor;
 import com.tianli.task.RetryTaskInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -146,6 +149,28 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
         queryWrapper = queryWrapper.orderByDesc(WalletImputation::getAmount);
 
         return walletImputationMapper.selectPage(page, queryWrapper).convert(chainConverter::toWalletImputationVO);
+    }
+
+    /**
+     * 归集列表统计数据
+     */
+    public IPage<WalletImputationStatVO> walletImputationStat(IPage<WalletImputation> page, WalletImputationQuery query) {
+        return walletImputationMapper.selectImputationStat(page, query);
+    }
+
+    /**
+     * 一键归集
+     */
+    public void allImputation(WalletImputationQuery query){
+        List<Long> ids = this.lambdaQuery()
+                .select(WalletImputation::getId)
+                .like(StrUtil.isNotBlank(query.getUid()),WalletImputation::getUid,query.getUid())
+                .eq(WalletImputation::getNetwork, query.getNetwork())
+                .eq(WalletImputation::getCoin, query.getCoin())
+                .eq(WalletImputation::getStatus,ImputationStatus.wait)
+                .list().stream().map(WalletImputation::getId).collect(Collectors.toList());
+        WalletImputationManualQuery imputationManualQuery = WalletImputationManualQuery.builder().imputationIds(ids).build();
+        imputationOperation(imputationManualQuery);
     }
 
     /**

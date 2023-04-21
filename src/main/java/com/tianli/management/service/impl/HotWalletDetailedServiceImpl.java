@@ -86,6 +86,36 @@ public class HotWalletDetailedServiceImpl extends ServiceImpl<HotWalletDetailedM
     }
 
     @Override
+    public List<HotWalletBalanceVO> mainBalance() {
+        List<Coin> coins = coinService.pushCoinsWithCache();
+        var coinMap = coins.stream().collect(Collectors.groupingBy(Coin::getChain));
+        List<HotWalletBalanceVO> hotWalletBalanceVOS = new ArrayList<>();
+        for (var entry : coinMap.entrySet()) {
+            var coinList = entry.getValue();
+            coinList.sort(Comparator.comparing(Coin::getName));
+            var chainType = entry.getKey();
+            // 设置主币信息
+            Coin mainCoin = coinService.mainToken(chainType, chainType.getMainToken());
+            ContractOperation contract = contractAdapter.getOne(mainCoin.getNetwork());
+            String address = addressService.getAddress(chainType);
+            BigDecimal amount = TokenAdapter.alignment(mainCoin, contract.mainBalance(address));
+
+            HotWalletBalanceVO hotWalletBalanceVO = new HotWalletBalanceVO();
+            hotWalletBalanceVO.setAmount(amount);
+            hotWalletBalanceVO.setCoinName(mainCoin.getName());
+            hotWalletBalanceVO.setChain(chainType);
+            hotWalletBalanceVOS.add(hotWalletBalanceVO);
+        }
+        return hotWalletBalanceVOS.stream().collect(Collectors.groupingBy(HotWalletBalanceVO::getCoinName
+                , Collectors.summingDouble(hotWalletBalance -> hotWalletBalance.getAmount().doubleValue())))
+                .entrySet().stream().map(entrySet ->
+                        HotWalletBalanceVO.builder()
+                                .CoinName(entrySet.getKey())
+                                .amount(BigDecimal.valueOf(entrySet.getValue())).build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public IPage<HotWalletDetailedVO> pageByQuery(Page<HotWalletDetailed> page, HotWalletDetailedPQuery query) {
         return baseMapper.pageByQuery(page, query).convert(managementConverter::toHotWalletDetailedVO);
     }

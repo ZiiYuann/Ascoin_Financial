@@ -92,7 +92,9 @@
         LEFT JOIN order_review review on review.id = o.reviewer_id
         WHERE 1 = 1
         <include refid="FinancialChargeQuery"/>
-
+        ORDER BY
+            case o.status when 'chaining' then 0 else 1 end,
+            o.update_time DESC
 
     </select>
 
@@ -105,7 +107,7 @@
         WHERE 1 = 1
         AND o.status = 'chain_success'
         <include refid="FinancialChargeQuery"/>
-
+        ORDER BY o.update_time DESC
     </select>
 
     <select id="serviceAmountSumByCompleteTime" resultType="com.tianli.management.dto.AmountDto">
@@ -189,7 +191,6 @@
             AND review.type = #{query.reviewType}
         </if>
 
-        ORDER BY o.update_time DESC
 
     </sql>
 </mapper>

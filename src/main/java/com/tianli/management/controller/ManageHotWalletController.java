@@ -77,4 +77,14 @@ public class ManageHotWalletController {
         return new Result<>(hotWalletDetailedService.balance());
     }
 
+
+    /**
+     * 【热钱包管理】主币余额
+     */
+    @GetMapping("/detailed/main/balance")
+    //@AdminPrivilege(and = Privilege.理财管理)
+    public Result<List<HotWalletBalanceVO>> mainBalance() {
+        return new Result<>(hotWalletDetailedService.mainBalance());
+    }
+
 }
