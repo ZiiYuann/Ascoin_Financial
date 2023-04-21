@@ -24,7 +24,7 @@ import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.OperationTypeEnum;
 import com.tianli.charge.query.OrderReviewQuery;
 import com.tianli.charge.service.ChargeService;
-import com.tianli.charge.service.IOrderChargeTypeService;
+import com.tianli.charge.service.OrderChargeTypeService;
 import com.tianli.charge.service.OrderReviewService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.charge.vo.OperationTypeVO;
@@ -86,7 +86,7 @@ public class ManageWalletController {
 
 
     @Resource
-    private IOrderChargeTypeService orderChargeTypeService;
+    private OrderChargeTypeService orderChargeTypeService;
 
     /**
      * 【云钱包充值记录】列表
@@ -170,7 +170,7 @@ public class ManageWalletController {
     @PostMapping("/order/withdraw/review")
     @AdminPrivilege
     public Result<Void> orderReview(@RequestBody @Valid OrderReviewQuery query) {
-        String nickname = AdminContent.get().getNickname();
+        String nickname = AdminContent.get().getUsername();
         Long aid = AdminContent.get().getAid();
         query.setRid(aid);
         query.setReviewBy(nickname);

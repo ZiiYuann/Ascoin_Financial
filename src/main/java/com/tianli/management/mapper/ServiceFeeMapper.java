@@ -27,4 +27,6 @@ public interface ServiceFeeMapper extends BaseMapper<ServiceFee> {
      * @return 手续费集合
      */
     List<ServiceFee> getTotalAmount(@Param("query") TimeQuery query, @Param("type") byte type);
+
+
 }

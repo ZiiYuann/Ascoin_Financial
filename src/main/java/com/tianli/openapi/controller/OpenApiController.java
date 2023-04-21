@@ -8,9 +8,12 @@ import com.tianli.charge.service.ChargeService;
 import com.tianli.charge.vo.OrderChargeInfoVO;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.exception.Result;
+import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.UidsQuery;
 import com.tianli.openapi.dto.IdDto;
 import com.tianli.openapi.dto.TransferResultDto;
+import com.tianli.openapi.dto.WalletBoardDTO;
+import com.tianli.openapi.enums.WalletBoardType;
 import com.tianli.openapi.query.OpenapiOperationQuery;
 import com.tianli.openapi.query.UserTransferQuery;
 import com.tianli.openapi.service.OpenApiService;
@@ -32,6 +35,8 @@ import java.util.Objects;
 @RequestMapping("/openapi")
 public class OpenApiController {
 
+    private static final String SIGN_KEY = "vUfV1n#JdyG^oKCb";
+
     @Resource
     private OpenApiService openApiService;
     @Resource
@@ -48,7 +53,7 @@ public class OpenApiController {
                                 @RequestHeader("timestamp") String timestamp) {
 
 
-        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), SIGN_KEY, timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
 
@@ -60,10 +65,10 @@ public class OpenApiController {
      */
     @PostMapping("/transfer")
     public Result<IdDto> transfer(@RequestBody @Valid OpenapiOperationQuery query,
-                           @RequestHeader("sign") String sign,
-                           @RequestHeader("timestamp") String timestamp) {
+                                  @RequestHeader("sign") String sign,
+                                  @RequestHeader("timestamp") String timestamp) {
 
-        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), SIGN_KEY, timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
 
@@ -77,7 +82,7 @@ public class OpenApiController {
     public Result<TransferResultDto> userTransfer(@RequestBody @Valid UserTransferQuery query,
                                                   @RequestHeader("sign") String sign,
                                                   @RequestHeader("timestamp") String timestamp) {
-        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), SIGN_KEY, timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
         return new Result<>(openApiService.transfer(query));
@@ -86,29 +91,14 @@ public class OpenApiController {
     /**
      * 余额
      */
-    @GetMapping("/balances/{uid}")
+    @GetMapping({"/balances/{uid}", "/orders/withdraw/{uid}"})
     public Result<List<AccountBalanceVO>> balance(@PathVariable Long uid,
                                                   @RequestHeader("sign") String sign,
                                                   @RequestHeader("timestamp") String timestamp) {
 
-        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), SIGN_KEY, timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
-        return Result.success(accountBalanceService.accountList(uid));
-    }
-
-    /**
-     * 提现记录
-     */
-    @GetMapping("/orders/withdraw/{uid}")
-    public Result<List<AccountBalanceVO>> withdrawRecords(@PathVariable Long uid,
-                                  @RequestHeader("sign") String sign,
-                                  @RequestHeader("timestamp") String timestamp) {
-
-        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
-            throw ErrorCodeEnum.SIGN_ERROR.generalException();
-        }
-
         return Result.success(accountBalanceService.accountList(uid));
     }
 
@@ -120,7 +110,7 @@ public class OpenApiController {
                                            @RequestHeader("sign") String sign,
                                            @RequestHeader("timestamp") String timestamp) {
 
-        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), SIGN_KEY, timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
         return Result.success(chargeService.chargeOrderDetails(id));
@@ -134,7 +124,7 @@ public class OpenApiController {
                                                        @RequestHeader("sign") String sign,
                                                        @RequestHeader("timestamp") String timestamp) {
 
-        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), SIGN_KEY, timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
         return new Result<>(openApiService.transferOrder(externalPk));
@@ -147,7 +137,7 @@ public class OpenApiController {
     public Result<UserAssetsVO> assets(@PathVariable Long uid,
                                        @RequestHeader("sign") String sign,
                                        @RequestHeader("timestamp") String timestamp) {
-        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), SIGN_KEY, timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
         return Result.success(accountBalanceService.getAllUserAssetsVO(uid));
@@ -158,13 +148,13 @@ public class OpenApiController {
      */
     @PostMapping("/assets/uids")
     public Result<UserAssetsVO> assetsUids(@RequestBody(required = false) UidsQuery query,
-                             @RequestHeader("sign") String sign,
-                             @RequestHeader("timestamp") String timestamp) {
+                                           @RequestHeader("sign") String sign,
+                                           @RequestHeader("timestamp") String timestamp) {
 
         if (Objects.isNull(query)) {
             return Result.success();
         }
-        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), SIGN_KEY, timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
         return Result.success(accountBalanceService.getAllUserAssetsVO(query.getUids()));
@@ -175,12 +165,12 @@ public class OpenApiController {
      */
     @PostMapping("/assets/map")
     public Result<List<UserAssetsVO>> assetsMap(@RequestBody(required = false) UidsQuery query,
-                            @RequestHeader("sign") String sign,
-                            @RequestHeader("timestamp") String timestamp) {
+                                                @RequestHeader("sign") String sign,
+                                                @RequestHeader("timestamp") String timestamp) {
         if (Objects.isNull(query)) {
             return Result.success();
         }
-        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), SIGN_KEY, timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
         return Result.success(accountBalanceService.getUserAssetsVOMap(query.getUids()));
@@ -194,7 +184,7 @@ public class OpenApiController {
                                   @RequestHeader("sign") String sign,
                                   @RequestHeader("timestamp") String timestamp) {
 
-        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), SIGN_KEY, timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
         openApiService.returnGas(query);
@@ -209,13 +199,28 @@ public class OpenApiController {
                                      @RequestHeader("sign") String sign,
                                      @RequestHeader("timestamp") String timestamp) {
 
-        if (!Crypto.hmacToString(DigestFactory.createSHA256(), "vUfV1n#JdyG^oKCb", timestamp).equals(sign)) {
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), SIGN_KEY, timestamp).equals(sign)) {
             throw ErrorCodeEnum.SIGN_ERROR.generalException();
         }
         openApiService.goldExchange(query);
         return new Result<>();
     }
 
+
+    /**
+     * 热钱包展板
+     */
+    @GetMapping("/wallet/board")
+    public Result<WalletBoardDTO> goldExchange(FinancialBoardQuery query,
+                                               WalletBoardType walletBoardType,
+                                               @RequestHeader("sign") String sign,
+                                               @RequestHeader("timestamp") String timestamp) {
+
+        if (!Crypto.hmacToString(DigestFactory.createSHA256(), SIGN_KEY, timestamp).equals(sign)) {
+            throw ErrorCodeEnum.SIGN_ERROR.generalException();
+        }
+        return Result.success(openApiService.walletBoardDTO(walletBoardType,query));
+    }
 
 
 }

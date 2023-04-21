@@ -3,19 +3,15 @@ package com.tianli.management.service.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tianli.account.service.AccountBalanceService;
 import com.tianli.address.service.AddressService;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.service.CoinService;
 import com.tianli.chain.service.contract.ContractAdapter;
 import com.tianli.chain.service.contract.ContractOperation;
-import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.currency.enums.TokenAdapter;
 import com.tianli.currency.service.CurrencyService;
 import com.tianli.exception.ErrorCodeEnum;
-import com.tianli.product.afinancial.service.FinancialRecordService;
-import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.management.converter.ManagementConverter;
 import com.tianli.management.entity.HotWalletDetailed;
 import com.tianli.management.enums.HotWalletOperationType;
@@ -26,14 +22,16 @@ import com.tianli.management.service.HotWalletDetailedService;
 import com.tianli.management.vo.HotWalletBalanceVO;
 import com.tianli.management.vo.HotWalletDetailedSummaryDataVO;
 import com.tianli.management.vo.HotWalletDetailedVO;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -55,16 +53,6 @@ public class HotWalletDetailedServiceImpl extends ServiceImpl<HotWalletDetailedM
     private CurrencyService currencyService;
     @Resource
     private CoinService coinService;
-    @Resource
-    private StringRedisTemplate stringRedisTemplate;
-    @Resource
-    private OrderService orderService;
-    @Resource
-    private AccountBalanceService accountBalanceService;
-    @Resource
-    private FinancialRecordService financialRecordService;
-    @Resource
-    private IFundRecordService fundRecordService;
 
     @Transactional
     @Override
@@ -133,7 +121,7 @@ public class HotWalletDetailedServiceImpl extends ServiceImpl<HotWalletDetailedM
     }
 
     @Override
-    public HotWalletDetailedSummaryDataVO SummaryData(HotWalletDetailedPQuery query) {
+    public HotWalletDetailedSummaryDataVO summaryData(HotWalletDetailedPQuery query) {
 
         query.setType(HotWalletOperationType.recharge);
         BigDecimal rechargeAmountDollar = currencyService.calDollarAmount(baseMapper.summaryDataByQuery(query));
@@ -196,5 +184,25 @@ public class HotWalletDetailedServiceImpl extends ServiceImpl<HotWalletDetailedM
         return hotWalletBalanceVOS;
     }
 
+    @Override
+    public BigDecimal balanceFee() {
+        List<BigDecimal> balanceFees = new ArrayList<>();
+        List<HotWalletBalanceVO> balance = this.balance();
+
+        balance.forEach(b -> {
+
+            String mainCoin = b.getCoinName();
+            BigDecimal mainCoinRate = currencyService.getDollarRate(mainCoin);
+            balanceFees.add(mainCoinRate.multiply(b.getAmount()));
+
+            b.getTokens().forEach(token -> {
+                String tokenCoin = token.getCoinName();
+                BigDecimal tokenCoinRate = currencyService.getDollarRate(tokenCoin);
+                balanceFees.add(tokenCoinRate.multiply(token.getAmount()));
+            });
+        });
+
+        return balanceFees.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 
 }

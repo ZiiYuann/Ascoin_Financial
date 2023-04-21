@@ -11,6 +11,7 @@ import com.tianli.management.vo.HotWalletBalanceVO;
 import com.tianli.management.vo.HotWalletDetailedSummaryDataVO;
 import com.tianli.management.vo.HotWalletDetailedVO;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface HotWalletDetailedService extends IService<HotWalletDetailed> {
@@ -21,7 +22,7 @@ public interface HotWalletDetailedService extends IService<HotWalletDetailed> {
      * @param query 请求参数
      * @return vo
      */
-    HotWalletDetailedSummaryDataVO SummaryData(HotWalletDetailedPQuery query);
+    HotWalletDetailedSummaryDataVO summaryData(HotWalletDetailedPQuery query);
 
     /**
      * 热钱包余额
@@ -29,6 +30,11 @@ public interface HotWalletDetailedService extends IService<HotWalletDetailed> {
      * @return 余额列表
      */
     List<HotWalletBalanceVO> balance();
+
+    /**
+     * 热钱包余额 u
+     */
+    BigDecimal balanceFee();
 
     /**
      * 明细列表

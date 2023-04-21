@@ -65,7 +65,7 @@ public class ManageHotWalletController {
     @GetMapping("/detailed/data")
     @AdminPrivilege(and = Privilege.理财管理)
     public Result<HotWalletDetailedSummaryDataVO> summaryData(HotWalletDetailedPQuery query) {
-        return new Result<>(hotWalletDetailedService.SummaryData(query));
+        return new Result<>(hotWalletDetailedService.summaryData(query));
     }
 
     /**

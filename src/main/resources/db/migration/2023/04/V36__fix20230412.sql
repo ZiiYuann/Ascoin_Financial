@@ -1,0 +1,1 @@
+UPDATE `coin_base` SET  `main_token` = 1 WHERE `name` = 'trx';

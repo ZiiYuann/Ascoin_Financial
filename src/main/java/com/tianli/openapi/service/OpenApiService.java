@@ -10,14 +10,25 @@ import com.tianli.account.vo.AccountUserTransferVO;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.enums.ChargeTypeGroupEnum;
 import com.tianli.charge.query.OrderMQuery;
+import com.tianli.charge.query.ServiceAmountQuery;
+import com.tianli.charge.service.OrderChargeTypeService;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
 import com.tianli.common.PageQuery;
 import com.tianli.common.RedisLockConstants;
 import com.tianli.common.webhook.WebHookService;
 import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.management.query.FinancialBoardQuery;
 import com.tianli.management.query.FinancialProductIncomeQuery;
+import com.tianli.management.query.HotWalletDetailedPQuery;
+import com.tianli.management.service.HotWalletDetailedService;
+import com.tianli.management.service.ServiceFeeService;
+import com.tianli.management.vo.HotWalletDetailedSummaryDataVO;
+import com.tianli.openapi.dto.WalletBoardDTO;
+import com.tianli.openapi.enums.WalletBoardType;
+import com.tianli.product.afinancial.query.FinancialRecordQuery;
 import com.tianli.product.afinancial.service.FinancialIncomeAccrueService;
 import com.tianli.openapi.dto.IdDto;
 import com.tianli.openapi.dto.StatisticsDataDto;
@@ -26,7 +37,9 @@ import com.tianli.openapi.entity.OrderRewardRecord;
 import com.tianli.openapi.query.OpenapiAccountQuery;
 import com.tianli.openapi.query.OpenapiOperationQuery;
 import com.tianli.openapi.query.UserTransferQuery;
-import com.tianli.product.afinancial.service.FinancialIncomeAccrueService;
+import com.tianli.product.afinancial.service.FinancialRecordService;
+import com.tianli.product.afund.query.FundRecordQuery;
+import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.rpc.RpcService;
 import com.tianli.rpc.dto.InviteDTO;
 import com.tianli.tool.time.TimeTool;
@@ -67,6 +80,16 @@ public class OpenApiService {
     private RedissonClient redissonClient;
     @Resource
     private WebHookService webHookService;
+    @Resource
+    private HotWalletDetailedService hotWalletDetailedService;
+    @Resource
+    private OrderChargeTypeService orderChargeTypeService;
+    @Resource
+    private ServiceFeeService serviceFeeService;
+    @Resource
+    private IFundRecordService fundRecordService;
+    @Resource
+    private FinancialRecordService financialRecordService;
 
     @Transactional
     public IdDto reward(OpenapiOperationQuery query) {
@@ -386,5 +409,93 @@ public class OpenApiService {
 
     public AccountUserTransferVO transferOrder(Long externalPk) {
         return accountUserTransferService.getVOByExternalPk(externalPk);
+    }
+
+
+    public WalletBoardDTO walletBoardDTO(WalletBoardType walletBoardType, FinancialBoardQuery financialBoardQuery) {
+        financialBoardQuery.calTime();
+        LocalDateTime startTime = financialBoardQuery.getStartTime();
+        LocalDateTime endTime = financialBoardQuery.getEndTime();
+
+        OrderMQuery orderMQuery = OrderMQuery.builder().startTime(startTime)
+                .endTime(endTime).build();
+
+        if (walletBoardType.equals(WalletBoardType.WORK)) {
+            BigDecimal balanceFee = hotWalletDetailedService.balanceFee();
+
+            HotWalletDetailedSummaryDataVO hotWalletDetailedSummaryDataVO =
+                    hotWalletDetailedService.summaryData(HotWalletDetailedPQuery.builder()
+                            .startTime(startTime)
+                            .endTime(endTime).build());
+
+
+            orderMQuery.setChargeTypes(orderChargeTypeService.chargeTypes(ChargeTypeGroupEnum.IN));
+            BigDecimal inFee = orderService.uAmount(orderMQuery);
+
+            orderMQuery.setChargeTypes(orderChargeTypeService.chargeTypes(ChargeTypeGroupEnum.OUT));
+            BigDecimal outFee = orderService.uAmount(orderMQuery);
+
+            orderMQuery.setChargeTypes(orderChargeTypeService.chargeTypes(ChargeTypeGroupEnum.RECHARGE));
+            BigDecimal rechargeFee = orderService.uAmount(orderMQuery);
+
+            orderMQuery.setChargeTypes(orderChargeTypeService.chargeTypes(ChargeTypeGroupEnum.WITHDRAW));
+            BigDecimal withdrawFee = orderService.uAmount(orderMQuery);
+
+            return WalletBoardDTO.builder()
+                    .balanceFee(balanceFee)
+                    .inFee(inFee)
+                    .outFee(outFee)
+                    .withdrawFee(withdrawFee)
+                    .rechargeFee(rechargeFee)
+                    .platformRechargeFee(hotWalletDetailedSummaryDataVO.getRechargeAmountDollar())
+                    .platformWithdrawFee(hotWalletDetailedSummaryDataVO.getWithdrawAmountDollar())
+                    .build();
+        }
+
+        if (walletBoardType.equals(WalletBoardType.IN)) {
+            BigDecimal withdrawServiceFee = orderService.serviceAmountDollar(ServiceAmountQuery.builder()
+                    .chargeType(ChargeType.withdraw).endTime(endTime).startTime(startTime).build());
+            orderMQuery.setChargeTypes(List.of(ChargeType.fund_interest));
+            BigDecimal fundIncomeFee = orderService.uAmount(orderMQuery);
+
+            return WalletBoardDTO.builder()
+                    .withdrawServiceFee(withdrawServiceFee)
+                    .fundIncomeFee(fundIncomeFee)
+                    .build();
+        }
+
+        if (walletBoardType.equals(WalletBoardType.OUT)) {
+            BigDecimal recycleServiceFee = serviceFeeService.serviceFee((byte) 1, startTime, endTime);
+            BigDecimal transferServiceFee = serviceFeeService.serviceFee((byte) 0, startTime, endTime);
+
+            orderMQuery.setChargeTypes(List.of(ChargeType.income));
+            BigDecimal financialIncomeFee = orderService.uAmount(orderMQuery);
+
+            return WalletBoardDTO.builder()
+                    .serviceFee(recycleServiceFee.add(transferServiceFee))
+                    .financialIncomeFee(financialIncomeFee)
+                    .build();
+        }
+
+        if (walletBoardType.equals(WalletBoardType.USER_WALLET)) {
+            BigDecimal userBalanceFee = accountBalanceService.userBalance();
+            return WalletBoardDTO.builder()
+                    .userBalanceFee(userBalanceFee)
+                    .build();
+        }
+
+        if (walletBoardType.equals(WalletBoardType.USER_FINANCIAL)) {
+            // 基金持有
+            BigDecimal fundHoldAmount = fundRecordService.dollarHold(new FundRecordQuery());
+            // 理财持有
+            BigDecimal financialHoldAmount = financialRecordService.dollarHold(new FinancialRecordQuery());
+
+            return WalletBoardDTO.builder()
+                    .holdFee(fundHoldAmount.add(financialHoldAmount))
+                    .build();
+        }
+
+        return null;
+
     }
 }

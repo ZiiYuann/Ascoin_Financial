@@ -30,6 +30,7 @@ import com.tianli.product.afund.query.FundRecordQuery;
 import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.tool.ApplicationContextTool;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,7 +95,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.increase);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn, AccountOperationType.increase);
     }
 
 
@@ -121,7 +122,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.freeze);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn, AccountOperationType.freeze);
 
     }
 
@@ -153,7 +154,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.freeze);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn, AccountOperationType.freeze);
     }
 
     @Transactional
@@ -165,7 +166,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
             ErrorCodeEnum.CREDIT_LACK.throwException();
         }
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.reduce);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn, AccountOperationType.reduce);
     }
 
     /**
@@ -185,7 +186,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         }
 
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.unfreeze);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn, AccountOperationType.unfreeze);
     }
 
     /**
@@ -204,7 +205,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         }
 
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.unfreeze);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn, AccountOperationType.unfreeze);
     }
 
     @Override
@@ -222,7 +223,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         }
 
         AccountBalance accountBalance = accountBalanceMapper.get(uid, coin);
-        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn,AccountOperationType.reduce);
+        accountBalanceOperationLogService.save(accountBalance, type, coin, networkType, amount, sn, AccountOperationType.reduce);
     }
 
 
@@ -252,7 +253,11 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
                     .pledgeFreeze(BigDecimal.ZERO)
                     .build();
             final AccountBalance accountBalanceBalanceFinal = accountBalanceBalance;
-            accountBalanceMapper.insert(accountBalanceBalanceFinal);
+            try {
+                accountBalanceMapper.insert(accountBalanceBalanceFinal);
+            } catch (DuplicateKeyException duplicateKeyException) {
+                return accountBalanceBalance;
+            }
         }
         return accountBalanceBalance;
     }
@@ -354,7 +359,7 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
         CoinBase coinBase = validCurrencyToken(coinName);
 
         var bean = Optional.ofNullable(ApplicationContextTool.getBean(AccountBalanceService.class))
-                .orElseThrow(ErrorCodeEnum.SYSTEM_ERROR :: generalException);
+                .orElseThrow(ErrorCodeEnum.SYSTEM_ERROR::generalException);
 
         AccountBalanceVO accountBalanceVO = accountConverter.toVO(bean.getAndInit(uid, coinName));
         BigDecimal dollarRate = currencyService.getDollarRate(accountBalanceVO.getCoin());
@@ -459,6 +464,15 @@ public class AccountBalanceServiceImpl extends ServiceImpl<AccountBalanceMapper,
             accountBalanceSimpleVO.setBalanceDollarAmount(accountBalanceSimpleVO.getBalanceAmount().multiply(rate));
         });
         return accountBalanceSimpleVOS;
+    }
+
+    @Override
+    public BigDecimal userBalance() {
+
+        List<AccountBalanceSimpleVO> accountBalanceSimpleVOS = this.accountBalanceSimpleVOs();
+
+        return accountBalanceSimpleVOS.stream().map(AccountBalanceSimpleVO::getBalanceDollarAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     /**

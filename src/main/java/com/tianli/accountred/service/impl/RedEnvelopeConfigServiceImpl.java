@@ -32,7 +32,7 @@ public class RedEnvelopeConfigServiceImpl extends ServiceImpl<RedEnvelopeConfigM
     @Override
     @Transactional
     public void saveOrUpdate(String nickName, RedEnvelopeConfigIoUQuery query) {
-        RedEnvelopeConfig redEnvelopeConfig = baseMapper.selectByName(query.getCoin());
+        RedEnvelopeConfig redEnvelopeConfig = baseMapper.selectByName(query.getCoin(), query.getChannel());
         RedEnvelopeConfig config = RedEnvelopeConfig.builder()
                 .coin(query.getCoin())
                 .channel(query.getChannel())
@@ -46,7 +46,9 @@ public class RedEnvelopeConfigServiceImpl extends ServiceImpl<RedEnvelopeConfigM
         } else {
             config.setUpdateBy(nickName);
             config.setUpdateTime(LocalDateTime.now());
-            baseMapper.update(config, new LambdaQueryWrapper<RedEnvelopeConfig>().eq(RedEnvelopeConfig::getCoin, query.getCoin()));
+            baseMapper.update(config, new LambdaQueryWrapper<RedEnvelopeConfig>()
+                    .eq(RedEnvelopeConfig::getCoin, query.getCoin())
+                    .eq(RedEnvelopeConfig::getChannel, query.getChannel()));
         }
     }
 

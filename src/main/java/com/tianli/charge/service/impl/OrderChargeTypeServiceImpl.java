@@ -1,23 +1,20 @@
 package com.tianli.charge.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.account.vo.OrderChargeTypeVO;
+import com.tianli.charge.entity.OrderChargeType;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.enums.ChargeTypeGroupEnum;
 import com.tianli.charge.enums.OperationTypeEnum;
 import com.tianli.charge.enums.VisibleTypeEnum;
-import com.tianli.account.vo.OrderChargeTypeVO;
-import com.tianli.charge.entity.OrderChargeType;
 import com.tianli.charge.mapper.OrderChargeTypeMapper;
-import com.tianli.charge.service.IOrderChargeTypeService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.charge.service.OrderChargeTypeService;
 import com.tianli.management.service.IWalletAgentService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -30,10 +27,18 @@ import java.util.stream.Collectors;
  */
 @Service
 public class OrderChargeTypeServiceImpl extends ServiceImpl<OrderChargeTypeMapper, OrderChargeType>
-        implements IOrderChargeTypeService {
+        implements OrderChargeTypeService {
+
+    private static final Map<ChargeTypeGroupEnum, List<ChargeType>> chargeTypesByLevel3Group;
 
     @Resource
     IWalletAgentService walletAgentService;
+
+    static {
+        ArrayList<ChargeType> chargeTypes = new ArrayList<>(List.of(ChargeType.values()));
+        chargeTypesByLevel3Group = chargeTypes.stream().filter(type -> Objects.nonNull(type.getLevel3Group()))
+                .collect(Collectors.groupingBy(ChargeType::getLevel3Group));
+    }
 
     @Override
     public List<OrderChargeTypeVO> listChargeType(Long uid) {
@@ -73,9 +78,11 @@ public class OrderChargeTypeServiceImpl extends ServiceImpl<OrderChargeTypeMappe
         return orderChargeTypeVOS;
     }
 
+    @Override
     public List<ChargeType> chargeTypes(ChargeTypeGroupEnum chargeTypeGroup) {
-        return this.baseMapper.chargeTypes(chargeTypeGroup);
+        return chargeTypesByLevel3Group.get(chargeTypeGroup);
     }
+
 
     @Override
     public List<ChargeType> chargeTypes(OperationTypeEnum operationType) {
