@@ -55,6 +55,7 @@ import com.tianli.product.afund.service.IFundIncomeRecordService;
 import com.tianli.product.afund.service.IFundRecordService;
 import com.tianli.product.service.FinancialProductService;
 import com.tianli.product.service.FundProductService;
+import com.tianli.product.vo.BusinessTypeVO;
 import com.tianli.sso.init.RequestInitService;
 import com.tianli.tool.time.TimeTool;
 import lombok.extern.slf4j.Slf4j;
@@ -554,6 +555,15 @@ public class FinancialServiceImpl implements FinancialService {
                 .businessType(product.getBusinessType())
                 .newUser(newUser)
                 .type(product.getType()).build();
+    }
+
+    @Override
+    public List<BusinessTypeVO> businessTypes() {
+      return Arrays.stream(BusinessType.values()).map(businessType ->
+              BusinessTypeVO.builder()
+                      .code(businessType.getCode())
+                      .name(businessType.getName()).build())
+              .collect(Collectors.toList());
     }
 
     private List<FinancialProductVO> getFinancialProductVOs(Long productId) {
