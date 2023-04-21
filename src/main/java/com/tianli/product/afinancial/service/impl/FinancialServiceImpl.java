@@ -305,8 +305,6 @@ public class FinancialServiceImpl implements FinancialService {
         if (Objects.nonNull(cache)) {
 
             recommendProductVOS = JSONUtil.toList(cache, RecommendProductVO.class);
-
-            return recommendProductVOS;
         }else {
             LambdaQueryWrapper<FinancialProduct> query = new LambdaQueryWrapper<FinancialProduct>()
                     .eq(FinancialProduct::getStatus, ProductStatus.open)
