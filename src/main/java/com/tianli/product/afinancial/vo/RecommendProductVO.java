@@ -47,4 +47,6 @@ public class RecommendProductVO {
 
     private byte rateType;
 
+    private Long recordId;
+
 }
