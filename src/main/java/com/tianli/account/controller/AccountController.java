@@ -333,7 +333,7 @@ public class AccountController {
                 .receiveUid(userInfoDTO.getId())
                 .amount(query.getAmount())
                 .coin(query.getCoin())
-                .chargeType(ChargeType.withdraw_success).build();
+                .chargeType(ChargeType.withdraw).build();
 
         String key = RedisLockConstants.LOCK_TRANSFER + uid;
 

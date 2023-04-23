@@ -84,7 +84,7 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
         }
 
         //ID转账
-        if (ChargeType.withdraw_success.equals(query.getChargeType())) {
+        if (ChargeType.withdraw.equals(query.getChargeType())) {
             orderNo = transferOperation(accountUserTransferId,
                     query.getTransferUid(), ChargeType.withdraw,
                     query.getReceiveUid(), ChargeType.recharge,
