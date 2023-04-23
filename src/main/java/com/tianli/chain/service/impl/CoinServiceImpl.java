@@ -265,6 +265,8 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
         coin.setWithdrawDecimals(query.getWithdrawDecimals());
         coin.setWithdrawMin(query.getWithdrawMin());
         coin.setWithdrawFixedAmount(query.getWithdrawFixedAmount());
+        coin.setAssureWithdrawMin(query.getAssureWithdrawMin());
+        coin.setAssureWithdrawDecimals(query.getAssureWithdrawDecimals());
         this.updateById(coin);
     }
 

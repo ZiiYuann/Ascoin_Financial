@@ -80,7 +80,7 @@ public class ManageCoinController {
     }
 
     /**
-     * 币别上架
+     * 币别列表
      */
     @AdminPrivilege
     @GetMapping("/list")
