@@ -83,6 +83,14 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
                     coin, amount, RelatedRemarks.USER_TRANSFER.name());
         }
 
+        //ID转账
+        if (ChargeType.withdraw_success.equals(query.getChargeType())) {
+            orderNo = transferOperation(accountUserTransferId,
+                    query.getTransferUid(), ChargeType.withdraw_success,
+                    query.getReceiveUid(), ChargeType.recharge,
+                    coin, amount, RelatedRemarks.USER_TRANSFER.name());
+        }
+
         orderNo = Optional.ofNullable(orderNo).orElseThrow(ErrorCodeEnum.TRANSFER_ERROR::generalException);
 
         AccountUserTransfer accountUserTransfer = AccountUserTransfer.builder()

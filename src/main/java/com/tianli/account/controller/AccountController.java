@@ -300,6 +300,11 @@ public class AccountController {
         return Result.success();
     }
 
+    /**
+     * id 转账
+     * @param query
+     * @return
+     */
     @PostMapping("/transfer")
     public Result<AccountTransferVO> transfer(@RequestBody AccountTransferQuery query) {
 
@@ -316,7 +321,7 @@ public class AccountController {
 
         String repeatCheckKey = RedisConstants.ACCOUNT_TRANSFER_REPEAT
                 + query.getToChatId() + ":" + query.getCoin() + ":" + query.getAmount().toPlainString();
-        if (query.isRepeatCheck()) {
+        if (query.isRepeatCheck() && Boolean.TRUE.equals(stringRedisTemplate.hasKey(repeatCheckKey))) {
             String s = stringRedisTemplate.opsForValue().get(repeatCheckKey);
             return Result.success(AccountTransferVO.builder().repeat(Objects.isNull(s)).build());
         }
@@ -328,7 +333,7 @@ public class AccountController {
                 .receiveUid(userInfoDTO.getId())
                 .amount(query.getAmount())
                 .coin(query.getCoin())
-                .chargeType(ChargeType.transfer_reduce).build();
+                .chargeType(ChargeType.withdraw_success).build();
 
         String key = RedisLockConstants.LOCK_TRANSFER + uid;
 
