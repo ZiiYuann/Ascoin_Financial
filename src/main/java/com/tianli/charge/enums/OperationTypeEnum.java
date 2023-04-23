@@ -17,7 +17,8 @@ public enum OperationTypeEnum {
     EXCHANGE("exchange", "交易所"),
     CHAT("chat", "聊天"),
     ACTIVITY("activity", "活动"),
-    GAME("game", "游戏");
+    GAME("game", "游戏"),
+    C2C("c2c","c2c");
 
 
     @Getter
