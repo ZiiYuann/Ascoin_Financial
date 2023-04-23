@@ -69,9 +69,12 @@ public enum AccountChangeType {
     //c2c转入
     c2c_transfer_in("C2CTSI"),
     //c2c转出
-    c2c_transfer_out("C2CTSO")
+    c2c_transfer_out("C2CTSO"),
 
 
+    //assure提币充值
+    assure_withdraw("AWD"),
+    assure_recharge("ARE")
     ;
 
     AccountChangeType(String prefix) {
