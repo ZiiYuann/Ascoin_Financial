@@ -33,6 +33,7 @@ import com.tianli.openapi.query.UserTransferQuery;
 import com.tianli.rpc.RpcService;
 import com.tianli.rpc.dto.UserInfoDTO;
 import com.tianli.sso.init.RequestInitService;
+import com.tianli.sso.init.SignUserInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -333,7 +334,7 @@ public class AccountController {
                 .receiveUid(userInfoDTO.getId())
                 .amount(query.getAmount())
                 .coin(query.getCoin())
-                .chargeType(ChargeType.withdraw).build();
+                .chargeType(ChargeType.assure_withdraw).build();
 
         String key = RedisLockConstants.LOCK_TRANSFER + uid;
 

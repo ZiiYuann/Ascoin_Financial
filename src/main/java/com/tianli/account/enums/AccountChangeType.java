@@ -65,6 +65,9 @@ public enum AccountChangeType {
     advance_borrow("ABO"),
     //还币
     advance_repay("ARP"),
+    //assure提币充值
+    assure_withdraw("AWD"),
+    assure_recharge("ARE")
     ;
 
     AccountChangeType(String prefix) {
