@@ -54,6 +54,9 @@ public enum ChargeType {
     release("Release Pledge", "释放质押物", AccountChangeType.release,ChargeTypeGroupEnum.IN),
     forced_closeout("Forced Closeout", "强制平仓", AccountChangeType.forced_closeout,ChargeTypeGroupEnum.IN),
     auto_re("Automatic replenishment", "自动补仓", AccountChangeType.auto_re,ChargeTypeGroupEnum.OUT),
+    //assure 提币 充值
+    assure_withdraw("Withdraw", "提币成功", AccountChangeType.assure_withdraw,ChargeTypeGroupEnum.WITHDRAW),
+    assure_recharge("Deposition", "充值成功", AccountChangeType.assure_recharge,ChargeTypeGroupEnum.RECHARGE),
 
     c2c_transfer_in("C2C Transfer In","c2c转入",AccountChangeType.c2c_transfer_in,ChargeTypeGroupEnum.IN),
 

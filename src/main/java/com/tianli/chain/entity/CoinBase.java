@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -46,5 +47,12 @@ public class CoinBase {
     private boolean mainToken;
 
     private boolean display;
+
+    /**
+     * assureId转账配置
+     */
+    private int withdrawDecimals;
+
+    private BigDecimal withdrawMin;
 
 }

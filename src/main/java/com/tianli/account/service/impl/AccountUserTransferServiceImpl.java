@@ -14,8 +14,10 @@ import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.charge.service.OrderService;
 import com.tianli.common.CommonFunction;
+import com.tianli.common.RedisConstants;
 import com.tianli.exception.ErrorCodeEnum;
 import com.tianli.openapi.query.UserTransferQuery;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +42,8 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
     private AccountBalanceService accountBalanceService;
     @Resource
     private AccountConverter accountConverter;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     public AccountUserTransfer getByExternalPk(Long id) {
 
@@ -51,6 +55,7 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
     @Override
     @Transactional
     public AccountUserTransfer transfer(UserTransferQuery query) {
+        validBlackUser(query.getReceiveUid());
         if (Objects.nonNull(query.getRelatedId())) {
             AccountUserTransfer accountUserTransfer = this.baseMapper.selectOne(new LambdaQueryWrapper<AccountUserTransfer>()
                     .eq(AccountUserTransfer::getExternalPk, query.getRelatedId()));
@@ -80,6 +85,14 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
             orderNo = transferOperation(accountUserTransferId,
                     query.getTransferUid(), ChargeType.transfer_reduce,
                     query.getReceiveUid(), ChargeType.transfer_increase,
+                    coin, amount, RelatedRemarks.USER_TRANSFER.name());
+        }
+
+        //ID转账
+        if (ChargeType.assure_withdraw.equals(query.getChargeType())) {
+            orderNo = transferOperation(accountUserTransferId,
+                    query.getTransferUid(), ChargeType.assure_withdraw,
+                    query.getReceiveUid(), ChargeType.assure_recharge,
                     coin, amount, RelatedRemarks.USER_TRANSFER.name());
         }
 
@@ -152,5 +165,12 @@ public class AccountUserTransferServiceImpl extends ServiceImpl<AccountUserTrans
         accountBalanceService.increase(increaseUid, increaseType, coin, amount
                 , receiveOrder.getOrderNo());
         return transferOrder.getOrderNo();
+    }
+
+    private void validBlackUser(Long uid) {
+        Boolean member = stringRedisTemplate.opsForSet().isMember(RedisConstants.WITHDRAW_BLACK, uid + "");
+        if (Objects.nonNull(member) && Boolean.TRUE.equals(member)) {
+            ErrorCodeEnum.WITHDRAW_BLACK.throwException();
+        }
     }
 }

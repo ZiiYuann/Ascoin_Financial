@@ -1,9 +1,11 @@
 package com.tianli.chain.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tianli.chain.converter.CoinConverter;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.entity.CoinBase;
 import com.tianli.chain.enums.ChainType;
@@ -12,8 +14,12 @@ import com.tianli.chain.service.CoinBaseService;
 import com.tianli.chain.service.CoinService;
 import com.tianli.common.Constants;
 import com.tianli.common.RedisConstants;
+import com.tianli.exception.ErrorCodeEnum;
+import com.tianli.management.query.CoinBaseWithdrawQuery;
 import com.tianli.management.query.CoinIoUQuery;
+import com.tianli.management.query.CoinWithdrawQuery;
 import com.tianli.management.query.CoinsQuery;
+import com.tianli.management.vo.CoinBaseVO;
 import com.tianli.management.vo.MCoinListVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -42,6 +48,8 @@ public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> i
     private CoinBaseMapper coinBaseMapper;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
+    @Resource
+    private CoinConverter coinConverter;
 
     @Override
     @Transactional
@@ -71,6 +79,22 @@ public class CoinBaseServiceImpl extends ServiceImpl<CoinBaseMapper, CoinBase> i
     @Override
     public IPage<MCoinListVO> list(Page<Coin> page, CoinsQuery query) {
         return coinBaseMapper.coins(page, query);
+    }
+
+    @Override
+    public IPage<CoinBaseVO> baseList(Page<CoinBase> page, CoinsQuery query) {
+        return this.page(page,new LambdaQueryWrapper<CoinBase>()
+                .like(StrUtil.isNotBlank(query.getName()), CoinBase::getName,query.getName()))
+                .convert(coinConverter::toCoinBaseVo);
+    }
+
+    @Override
+    public void updateConfig(CoinBaseWithdrawQuery query) {
+        CoinBase coinBase = this.getById(query.getName());
+        if (Objects.isNull(coinBase)) ErrorCodeEnum.throwException("币种不存在");
+        coinBase.setWithdrawDecimals(query.getWithdrawDecimals());
+        coinBase.setWithdrawMin(query.getWithdrawMin());
+        this.updateById(coinBase);
     }
 
     @Override

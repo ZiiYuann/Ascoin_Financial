@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * @author chenb
@@ -30,4 +31,5 @@ public class CoinWithdrawQuery {
 
     @NotNull(message = "提现手续费不允许为空")
     private BigDecimal withdrawFixedAmount;
+
 }

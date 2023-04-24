@@ -59,7 +59,8 @@ public enum ChargeRemarks {
     PLEDGE_SUCCESS("锁定质押物", "Locked collaterals", ChargeType.pledge, ChargeStatus.chain_success),
     RELEASE_SUCCESS("释放质押物", "Released collaterals", ChargeType.release, ChargeStatus.chain_success),
     AUTO_RE_SUCCESS("补仓成功", "Successful position filling", ChargeType.auto_re, ChargeStatus.chain_success),
-    FORCED_CLOSEOUT_SUCCESS("平仓完成", "Closeout completed", ChargeType.forced_closeout, ChargeStatus.chain_success),
+    assure_withdraw_success("提币成功", "Successful Withdrawal", ChargeType.assure_withdraw, ChargeStatus.chain_success),
+    assure_recharge_success("充值成功", "Successful Recharge", ChargeType.assure_recharge, ChargeStatus.chain_success),
 
     ;
 

@@ -56,5 +56,4 @@ public class Coin {
 
     private BigDecimal withdrawFixedAmount;
 
-
 }
