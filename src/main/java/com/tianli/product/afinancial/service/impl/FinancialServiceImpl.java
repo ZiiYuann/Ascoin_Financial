@@ -664,11 +664,11 @@ public class FinancialServiceImpl implements FinancialService {
                 financialProductVO.setSellOut(useQuota.compareTo(totalQuota) >= 0);
             }
             // 设置假数据（基金不设置）
-            BigDecimal baseDataAmount = getBaseDataAmount(product.getId(), totalQuota, useQuota);
+            /*BigDecimal baseDataAmount = getBaseDataAmount(product.getId(), totalQuota, useQuota);
             if (Objects.nonNull(baseDataAmount) && !ProductType.fund.equals(product.getType())) {
                 financialProductVO.setUseQuota(useQuota.add(baseDataAmount));
                 financialProductVO.setBaseUseQuota(baseDataAmount);
-            }
+            }*/
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime startIncomeTime = now.plusDays(1);
             // 开始记息时间
