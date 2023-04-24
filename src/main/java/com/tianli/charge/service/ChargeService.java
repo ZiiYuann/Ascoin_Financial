@@ -476,12 +476,18 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             AccountUserTransfer accountUserTransfer = accountUserTransferService.getByExternalPk(order.getRelatedId());
             orderChargeInfoVO =  OrderChargeInfoVO.builder()
                     .id(order.getId())
+                    .orderNo(order.getOrderNo())
                     .coin(coinBase.getName())
                     .logo(coinBase.getLogo())
+                    .amount(order.getAmount())
+                    .completeTime(order.getCompleteTime())
                     .fromAddress(accountUserTransfer.getTransferChatId().toString())
                     .toAddress(accountUserTransfer.getReceiveChatId().toString())
-                    .type(order.getType())
+                    .newChargeType(order.getType())
+                    .newChargeTypeName(order.getType().getNameZn())
+                    .newChargeTypeNameEn(order.getType().getNameEn())
                     .createTime(accountUserTransfer.getCreateTime())
+                    .status(order.getStatus())
                     .build();
         }
         return orderChargeInfoVO;
