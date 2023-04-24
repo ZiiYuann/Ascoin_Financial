@@ -699,6 +699,14 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
                     .build());
         }
 
+        if ((ChargeType.assure_recharge.equals(chargeType) || ChargeType.assure_withdraw.equals(chargeType))
+                && RelatedRemarks.USER_TRANSFER.name().equals(order.getRelatedRemarks())) {
+            AccountUserTransferVO accountUserTransferVO = accountUserTransferService.getVOById(order.getRelatedId());
+            vo.setOrderOtherInfoVo(OrderOtherInfoVo.builder()
+                    .accountUserTransferVO(accountUserTransferVO)
+                    .build());
+        }
+
         return vo;
     }
 
