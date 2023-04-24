@@ -21,7 +21,7 @@ public class AccountTransferQuery {
     @NotBlank
     private String coin;
 
-    @DecimalMin("0.00000001")
+    @DecimalMin("0.00")
     private BigDecimal amount;
 
     private boolean addressBook;
