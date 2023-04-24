@@ -44,11 +44,4 @@ public class MCoinListVO {
 
     private BigDecimal withdrawFixedAmount;
 
-    /**
-     * assureId转账配置
-     */
-    private int assureWithdrawDecimals;
-
-    private BigDecimal assureWithdrawMin;
-
 }

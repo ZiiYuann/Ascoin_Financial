@@ -56,12 +56,4 @@ public class Coin {
 
     private BigDecimal withdrawFixedAmount;
 
-    /**
-     * assureId转账配置
-     */
-    private int assureWithdrawDecimals;
-
-    private BigDecimal assureWithdrawMin;
-
-
 }

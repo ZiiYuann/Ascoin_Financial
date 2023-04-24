@@ -5,8 +5,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianli.chain.entity.Coin;
 import com.tianli.chain.entity.CoinBase;
+import com.tianli.management.query.CoinBaseWithdrawQuery;
 import com.tianli.management.query.CoinIoUQuery;
+import com.tianli.management.query.CoinWithdrawQuery;
 import com.tianli.management.query.CoinsQuery;
+import com.tianli.management.vo.CoinBaseVO;
 import com.tianli.management.vo.MCoinListVO;
 
 import java.util.List;
@@ -35,6 +38,19 @@ public interface CoinBaseService extends IService<CoinBase> {
      * @return 列表
      */
     IPage<MCoinListVO> list(Page<Coin> page, CoinsQuery query);
+
+
+    /**
+     * 分页列表
+     *
+     * @param page  分页参数
+     * @param query 请求参数
+     * @return 列表
+     */
+    IPage<CoinBaseVO> baseList(Page<CoinBase> page, CoinsQuery query);
+
+
+    void updateConfig(CoinBaseWithdrawQuery query);
 
 
     /**
