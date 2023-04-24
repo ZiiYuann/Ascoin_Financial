@@ -3,6 +3,7 @@ package com.tianli.product.afinancial.vo;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.tianli.chain.vo.CoinVO;
+import com.tianli.management.vo.ProductLadderRateVO;
 import com.tianli.product.afinancial.enums.*;
 import lombok.Data;
 
@@ -158,6 +159,11 @@ public class FinancialProductVO {
      * 币别信息
      */
     private List<CoinVO> coins;
+
+    /**
+     * 阶梯化利率
+     */
+    private List<ProductLadderRateVO> ladderRates;
 
 
 }

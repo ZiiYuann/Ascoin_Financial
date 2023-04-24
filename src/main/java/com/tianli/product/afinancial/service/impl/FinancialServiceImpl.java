@@ -487,14 +487,15 @@ public class FinancialServiceImpl implements FinancialService {
                 getFinancialProductVOIPage(new Page<>(1, Integer.MAX_VALUE), null, query);
 
         List<FinancialProductVO> productVOS = financialProductVOIPage.getRecords();
-        FinancialProductVO productVO = productVOS.get(0);
+        productVOS.forEach(product -> {
+            if (product.getRateType() == 1) {
+                product.setLadderRates(financialProductLadderRateService.listByProductId(product.getId())
+                        .stream().map(financialConverter::toProductLadderRateVO).collect(Collectors.toList()));
+            }
+        });
         FixedProductsPurchaseVO fixedProductsPurchaseVO = new FixedProductsPurchaseVO();
         fixedProductsPurchaseVO.setProducts(productVOS);
         fixedProductsPurchaseVO.setTerms(productVOS.stream().map(FinancialProductVO::getTerm).collect(Collectors.toList()));
-        if (productVO.getRateType() == 1) {
-            fixedProductsPurchaseVO.setLadderRates(financialProductLadderRateService.listByProductId(productVO.getId())
-                    .stream().map(financialConverter::toProductLadderRateVO).collect(Collectors.toList()));
-        }
         return fixedProductsPurchaseVO;
     }
 
