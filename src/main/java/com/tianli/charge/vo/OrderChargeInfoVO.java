@@ -5,6 +5,7 @@ import com.tianli.charge.enums.ChargeStatus;
 import com.tianli.charge.enums.ChargeType;
 import com.tianli.common.blockchain.NetworkType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class OrderChargeInfoVO {
 
     private Long id;

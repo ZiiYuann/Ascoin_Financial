@@ -442,31 +442,47 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
 
     private OrderChargeInfoVO getOrderChargeInfoVO(Order order) {
         order = Optional.ofNullable(order).orElseThrow(ErrorCodeEnum.ARGUEMENT_ERROR::generalException);
-        if (!ChargeType.recharge.equals(order.getType()) && !ChargeType.withdraw.equals(order.getType())) {
+        if (!ChargeType.recharge.equals(order.getType())
+                && !ChargeType.withdraw.equals(order.getType())
+                && !ChargeType.assure_withdraw.equals(order.getType())
+                && !ChargeType.assure_recharge.equals(order.getType())) {
             ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         }
         CoinBase coinBase = coinBaseService.getByName(order.getCoin());
-
-        OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
-        orderChargeInfo = Optional.ofNullable(orderChargeInfo).orElse(new OrderChargeInfo());
-
-        OrderChargeInfoVO orderChargeInfoVO = chargeConverter.toVO(order);
-        orderChargeInfoVO.setFromAddress(orderChargeInfo.getFromAddress());
-        orderChargeInfoVO.setToAddress(orderChargeInfo.getToAddress());
-        orderChargeInfoVO.setTxid(orderChargeInfo.getTxid());
-        orderChargeInfoVO.setCreateTime(orderChargeInfo.getCreateTime());
-        orderChargeInfoVO.setLogo(coinBase.getLogo());
-        orderChargeInfoVO.setNetworkType(orderChargeInfo.getNetwork());
-        orderChargeInfoVO.setRealAmount(order.getAmount().subtract(order.getServiceAmount()));
-        if (orderChargeInfoVO.getType().equals(ChargeType.withdraw) && orderChargeInfoVO.getStatus().equals(ChargeStatus.chain_success)) {
-            orderChargeInfoVO.setNewChargeType(ChargeType.withdraw_success);
-            orderChargeInfoVO.setNewChargeTypeName(ChargeType.withdraw_success.getNameZn());
-            orderChargeInfoVO.setNewChargeTypeNameEn(ChargeType.withdraw_success.getNameEn());
+        OrderChargeInfoVO orderChargeInfoVO = null;
+        if(ChargeType.recharge.equals(order.getType()) || ChargeType.withdraw.equals(order.getType())) {
+            OrderChargeInfo orderChargeInfo = orderChargeInfoService.getById(order.getRelatedId());
+            orderChargeInfo = Optional.ofNullable(orderChargeInfo).orElse(new OrderChargeInfo());
+            orderChargeInfoVO = chargeConverter.toVO(order);
+            orderChargeInfoVO.setFromAddress(orderChargeInfo.getFromAddress());
+            orderChargeInfoVO.setToAddress(orderChargeInfo.getToAddress());
+            orderChargeInfoVO.setTxid(orderChargeInfo.getTxid());
+            orderChargeInfoVO.setCreateTime(orderChargeInfo.getCreateTime());
+            orderChargeInfoVO.setLogo(coinBase.getLogo());
+            orderChargeInfoVO.setNetworkType(orderChargeInfo.getNetwork());
+            orderChargeInfoVO.setRealAmount(order.getAmount().subtract(order.getServiceAmount()));
+            if (orderChargeInfoVO.getType().equals(ChargeType.withdraw) && orderChargeInfoVO.getStatus().equals(ChargeStatus.chain_success)) {
+                orderChargeInfoVO.setNewChargeType(ChargeType.withdraw_success);
+                orderChargeInfoVO.setNewChargeTypeName(ChargeType.withdraw_success.getNameZn());
+                orderChargeInfoVO.setNewChargeTypeNameEn(ChargeType.withdraw_success.getNameEn());
+            }
+            if (orderChargeInfoVO.getType().equals(ChargeType.recharge) && orderChargeInfoVO.getStatus().equals(ChargeStatus.chain_success)) {
+                orderChargeInfoVO.setNewChargeType(ChargeType.recharge);
+                orderChargeInfoVO.setNewChargeTypeName(ChargeType.recharge.getNameZn());
+                orderChargeInfoVO.setNewChargeTypeNameEn(ChargeType.recharge.getNameEn());
+            }
         }
-        if (orderChargeInfoVO.getType().equals(ChargeType.recharge) && orderChargeInfoVO.getStatus().equals(ChargeStatus.chain_success)) {
-            orderChargeInfoVO.setNewChargeType(ChargeType.recharge);
-            orderChargeInfoVO.setNewChargeTypeName(ChargeType.recharge.getNameZn());
-            orderChargeInfoVO.setNewChargeTypeNameEn(ChargeType.recharge.getNameEn());
+        if(ChargeType.assure_withdraw.equals(order.getType()) || ChargeType.assure_recharge.equals(order.getType())) {
+            AccountUserTransfer accountUserTransfer = accountUserTransferService.getByExternalPk(order.getRelatedId());
+            orderChargeInfoVO =  OrderChargeInfoVO.builder()
+                    .id(order.getId())
+                    .coin(coinBase.getName())
+                    .logo(coinBase.getLogo())
+                    .fromAddress(accountUserTransfer.getTransferChatId().toString())
+                    .toAddress(accountUserTransfer.getReceiveChatId().toString())
+                    .type(order.getType())
+                    .createTime(accountUserTransfer.getCreateTime())
+                    .build();
         }
         return orderChargeInfoVO;
     }

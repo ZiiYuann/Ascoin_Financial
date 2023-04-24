@@ -89,7 +89,7 @@ public class ManageCoinController {
     /**
      * 基础币别列表
      */
-    //@AdminPrivilege
+    @AdminPrivilege
     @GetMapping("/base/list")
     public Result<Object> baseList(PageQuery<CoinBase> pageQuery, CoinsQuery query) {
         return Result.success().setData(coinBaseService.baseList(pageQuery.page(), query));
@@ -110,7 +110,7 @@ public class ManageCoinController {
     /**
      * Assure提币配置
      */
-    //@AdminPrivilege
+    @AdminPrivilege
     @PostMapping("/base/withdraw")
     public Result updateConfig(@RequestBody @Valid CoinBaseWithdrawQuery query) {
         coinBaseService.updateConfig(query);
