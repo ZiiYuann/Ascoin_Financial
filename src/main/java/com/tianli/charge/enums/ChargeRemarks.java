@@ -62,6 +62,10 @@ public enum ChargeRemarks {
     assure_withdraw_success("提币成功", "Successful Withdrawal", ChargeType.assure_withdraw, ChargeStatus.chain_success),
     assure_recharge_success("充值成功", "Successful Recharge", ChargeType.assure_recharge, ChargeStatus.chain_success),
 
+    c2c_transfer_in("c2c转入", "C2C Transfer In", ChargeType.c2c_transfer_in, ChargeStatus.chain_success),
+
+    c2c_transfer_out("c2c转出", "C2C Transfer Out", ChargeType.c2c_transfer_out, ChargeStatus.chain_success),
+
     ;
 
     ChargeRemarks(String remarks, String remarksEn, ChargeType type, ChargeStatus status) {
