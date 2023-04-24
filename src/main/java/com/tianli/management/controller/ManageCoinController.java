@@ -1,16 +1,14 @@
 package com.tianli.management.controller;
 
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.entity.CoinBase;
 import com.tianli.chain.query.CoinReviewConfigIoUQuery;
 import com.tianli.chain.service.CoinBaseService;
 import com.tianli.chain.service.CoinReviewConfigService;
 import com.tianli.chain.service.CoinService;
 import com.tianli.common.PageQuery;
 import com.tianli.exception.Result;
-import com.tianli.management.query.CoinIoUQuery;
-import com.tianli.management.query.CoinStatusQuery;
-import com.tianli.management.query.CoinWithdrawQuery;
-import com.tianli.management.query.CoinsQuery;
+import com.tianli.management.query.*;
 import com.tianli.sso.permission.AdminPrivilege;
 import com.tianli.sso.permission.admin.AdminContent;
 import org.springframework.web.bind.annotation.*;
@@ -89,6 +87,15 @@ public class ManageCoinController {
     }
 
     /**
+     * 基础币别列表
+     */
+    //@AdminPrivilege
+    @GetMapping("/base/list")
+    public Result<Object> baseList(PageQuery<CoinBase> pageQuery, CoinsQuery query) {
+        return Result.success().setData(coinBaseService.baseList(pageQuery.page(), query));
+    }
+
+    /**
      * 币别提币配置
      */
     @AdminPrivilege
@@ -97,6 +104,16 @@ public class ManageCoinController {
         String nickname = AdminContent.get().getNickname();
         coinService.withdrawConfig(nickname, query);
         coinService.deletePushListCache();
+        return Result.success();
+    }
+
+    /**
+     * Assure提币配置
+     */
+    //@AdminPrivilege
+    @PostMapping("/base/withdraw")
+    public Result updateConfig(@RequestBody @Valid CoinBaseWithdrawQuery query) {
+        coinBaseService.updateConfig(query);
         return Result.success();
     }
 
