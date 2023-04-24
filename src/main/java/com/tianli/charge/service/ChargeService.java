@@ -476,12 +476,18 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
             AccountUserTransfer accountUserTransfer = accountUserTransferService.getByExternalPk(order.getRelatedId());
             orderChargeInfoVO =  OrderChargeInfoVO.builder()
                     .id(order.getId())
+                    .orderNo(order.getOrderNo())
                     .coin(coinBase.getName())
                     .logo(coinBase.getLogo())
+                    .amount(order.getAmount())
+                    .completeTime(order.getCompleteTime())
                     .fromAddress(accountUserTransfer.getTransferChatId().toString())
                     .toAddress(accountUserTransfer.getReceiveChatId().toString())
-                    .type(order.getType())
+                    .newChargeType(order.getType())
+                    .newChargeTypeName(order.getType().getNameZn())
+                    .newChargeTypeNameEn(order.getType().getNameEn())
                     .createTime(accountUserTransfer.getCreateTime())
+                    .status(order.getStatus())
                     .build();
         }
         return orderChargeInfoVO;
@@ -686,6 +692,14 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         }
 
         if ((ChargeType.transfer_reduce.equals(chargeType) || ChargeType.transfer_increase.equals(chargeType))
+                && RelatedRemarks.USER_TRANSFER.name().equals(order.getRelatedRemarks())) {
+            AccountUserTransferVO accountUserTransferVO = accountUserTransferService.getVOById(order.getRelatedId());
+            vo.setOrderOtherInfoVo(OrderOtherInfoVo.builder()
+                    .accountUserTransferVO(accountUserTransferVO)
+                    .build());
+        }
+
+        if ((ChargeType.assure_recharge.equals(chargeType) || ChargeType.assure_withdraw.equals(chargeType))
                 && RelatedRemarks.USER_TRANSFER.name().equals(order.getRelatedRemarks())) {
             AccountUserTransferVO accountUserTransferVO = accountUserTransferService.getVOById(order.getRelatedId());
             vo.setOrderOtherInfoVo(OrderOtherInfoVo.builder()
