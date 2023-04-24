@@ -1,5 +1,6 @@
 package com.tianli.product.afinancial.vo;
 
+import com.tianli.management.vo.ProductLadderRateVO;
 import com.tianli.product.afinancial.enums.PurchaseTerm;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,4 +21,9 @@ public class FixedProductsPurchaseVO {
     private List<FinancialProductVO> products;
 
     private List<PurchaseTerm> terms;
+
+    /**
+     * 阶梯化利率
+     */
+    private List<ProductLadderRateVO> ladderRates;
 }
