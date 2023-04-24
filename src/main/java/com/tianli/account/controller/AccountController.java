@@ -12,7 +12,9 @@ import com.tianli.address.service.AddressService;
 import com.tianli.address.mapper.Address;
 import com.tianli.address.vo.AddressVO;
 import com.tianli.chain.entity.Coin;
+import com.tianli.chain.entity.CoinBase;
 import com.tianli.chain.enums.ChainType;
+import com.tianli.chain.service.CoinBaseService;
 import com.tianli.chain.service.CoinService;
 import com.tianli.charge.entity.Order;
 import com.tianli.charge.enums.ChargeGroup;
@@ -75,6 +77,8 @@ public class AccountController {
     private RpcService rpcService;
     @Resource
     private RedissonClientTool redissonClientTool;
+    @Resource
+    private CoinBaseService coinBaseService;
 
     /**
      * 激活钱包
@@ -301,6 +305,17 @@ public class AccountController {
         return Result.success();
     }
 
+    @GetMapping("/transfer/config")
+    public Result transferConfig(String coin){
+        CoinBase coinBase = coinBaseService.getById(coin);
+        if (Objects.isNull(coinBase))ErrorCodeEnum.throwException("币种不存在");
+        CoinBase base = CoinBase.builder()
+                .withdrawMin(coinBase.getWithdrawMin())
+                .withdrawDecimals(coinBase.getWithdrawDecimals())
+                .build();
+        return Result.success(base);
+    }
+
     /**
      * id 转账
      * @param query
@@ -308,7 +323,14 @@ public class AccountController {
      */
     @PostMapping("/transfer")
     public Result<AccountTransferVO> transfer(@RequestBody AccountTransferQuery query) {
-
+        String coin = query.getCoin();
+        CoinBase coinBase = coinBaseService.getById(coin);
+        if(Objects.isNull(coinBase))ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
+        int withdrawDecimals = coinBase.getWithdrawDecimals();
+        BigDecimal withdrawMin = coinBase.getWithdrawMin();
+        BigDecimal amount = query.getAmount();
+        if (amount.scale() > withdrawDecimals)ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
+        if ((amount.compareTo(withdrawMin) < 0))ErrorCodeEnum.ARGUEMENT_ERROR.throwException();
         Long uid = requestInitService.uid();
         Long chatId = requestInitService.userInfo().getChatId();
         if (Objects.isNull(chatId)) {
