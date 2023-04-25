@@ -35,7 +35,7 @@
     <select id="selectImputationStat" resultType="com.tianli.management.vo.WalletImputationStatVO">
         SELECT
             coin,
-            sum(if(`status` = 'wait',amount,0)) waitImputationAmount,
+            sum(if(`status` in ('wait','fail'),amount,0)) waitImputationAmount,
             count(*) imputationAddressNum
         FROM
             wallet_imputation
@@ -49,6 +49,9 @@
             </if>
             <if test="query.status != null">
                 and status = #{query.status}
+            </if>
+            <if test="query.status == null">
+                and status in ('wait','processing','fail')
             </if>
         </where>
         GROUP BY coin
