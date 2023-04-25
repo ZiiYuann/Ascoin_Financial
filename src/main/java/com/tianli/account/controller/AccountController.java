@@ -344,7 +344,7 @@ public class AccountController {
 
         String repeatCheckKey = RedisConstants.ACCOUNT_TRANSFER_REPEAT
                 + query.getToChatId() + ":" + query.getCoin() + ":" + query.getAmount().toPlainString();
-        if (query.isRepeatCheck() && Boolean.TRUE.equals(stringRedisTemplate.hasKey(repeatCheckKey))) {
+        if (query.isRepeatCheck()) {
             String s = stringRedisTemplate.opsForValue().get(repeatCheckKey);
             return Result.success(AccountTransferVO.builder().repeat(Objects.isNull(s)).build());
         }
