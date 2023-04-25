@@ -167,7 +167,7 @@ public class WalletImputationService extends ServiceImpl<WalletImputationMapper,
                 .like(StrUtil.isNotBlank(query.getUid()),WalletImputation::getUid,query.getUid())
                 .eq(WalletImputation::getNetwork, query.getNetwork())
                 .eq(WalletImputation::getCoin, query.getCoin())
-                .eq(WalletImputation::getStatus,ImputationStatus.wait)
+                .in(WalletImputation::getStatus,ImputationStatus.wait,ImputationStatus.fail)
                 .list().stream().map(WalletImputation::getId).collect(Collectors.toList());
         WalletImputationManualQuery imputationManualQuery = WalletImputationManualQuery.builder().imputationIds(ids).build();
         imputationOperation(imputationManualQuery);
