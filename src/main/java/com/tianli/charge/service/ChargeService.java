@@ -14,6 +14,7 @@ import com.tianli.account.enums.RelatedRemarks;
 import com.tianli.account.mapper.AccountBalanceOperationLogMapper;
 import com.tianli.account.query.AccountDetailsNewQuery;
 import com.tianli.account.query.AccountDetailsQuery;
+import com.tianli.account.query.BalanceOperationChargeTypeQuery;
 import com.tianli.account.service.AccountBalanceService;
 import com.tianli.account.service.AccountUserTransferService;
 import com.tianli.account.vo.AccountBalanceOperationLogVO;
