@@ -49,7 +49,10 @@ public class OrderChargeTypeServiceImpl extends ServiceImpl<OrderChargeTypeMappe
             wrapper.eq(OrderChargeType::getVisibleType, VisibleTypeEnum.normal.getSymbol());
         }
         List<OrderChargeType> list = this.list(wrapper);
-        var groupByTypes = list.stream().collect(Collectors.groupingBy(OrderChargeType::getOperationGroup));
+        var groupByTypes = list.stream().filter(orderChargeType ->
+                        !orderChargeType.getType().equals(ChargeType.assure_withdraw)
+                        && !orderChargeType.getType().equals(ChargeType.assure_recharge))
+                .collect(Collectors.groupingBy(OrderChargeType::getOperationGroup));
         List<OrderChargeTypeVO> orderChargeTypeVOS = new ArrayList<>();
         for (Map.Entry<ChargeTypeGroupEnum, List<OrderChargeType>> entry : groupByTypes.entrySet()) {
             OrderChargeTypeVO orderChargeTypeVO = new OrderChargeTypeVO();

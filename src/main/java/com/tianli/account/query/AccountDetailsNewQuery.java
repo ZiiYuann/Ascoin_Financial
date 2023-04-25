@@ -1,5 +1,6 @@
 package com.tianli.account.query;
 
+import cn.hutool.core.collection.CollUtil;
 import com.tianli.charge.enums.ChargeType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,6 +34,16 @@ public class AccountDetailsNewQuery implements Serializable {
     private List<BalanceOperationChargeTypeQuery> chargeTypeQueries;
 
     public void setChargeType(List<ChargeType> chargeType) {
+        //id转账和链合并一起
+        if (CollUtil.isNotEmpty(chargeType)){
+            if (chargeType.contains(ChargeType.withdraw_success) || chargeType.contains(ChargeType.withdraw)){
+                chargeType.add(ChargeType.assure_withdraw);
+            }
+            if (chargeType.contains(ChargeType.recharge)){
+                chargeType.add(ChargeType.assure_recharge);
+            }
+        }
+
         List<ChargeType> needRemoveChargeType = new ArrayList<>();
 
         List<BalanceOperationChargeTypeQuery> queries = new ArrayList<>();

@@ -58,6 +58,10 @@ public enum ChargeType {
     assure_withdraw("Withdraw", "提币成功", AccountChangeType.assure_withdraw,ChargeTypeGroupEnum.WITHDRAW),
     assure_recharge("Deposition", "充值成功", AccountChangeType.assure_recharge,ChargeTypeGroupEnum.RECHARGE),
 
+    c2c_transfer_in("C2C Transfer In","c2c转入",AccountChangeType.c2c_transfer_in,ChargeTypeGroupEnum.IN),
+
+    c2c_transfer_out("C2C Transfer Out","c2c转出",AccountChangeType.c2c_transfer_out,ChargeTypeGroupEnum.OUT),
+
     // 增加类型需要在 ChargeRemarks 中增加对应的状态和文字，不然会报错
     // 增加类型需要在 ChargeGroup 中增加对应，不然会报错
 
