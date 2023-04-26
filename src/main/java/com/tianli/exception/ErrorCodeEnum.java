@@ -78,6 +78,7 @@ public enum ErrorCodeEnum {
     REPEAT_SET_AGENT(2201, "重复设置代理商"),
     FORBID_SET_AGENT(2202, "无法设置该用户为代理商"),
     EXIST_LOW_SALESMAN(2203, "存在下级组员"),
+    WITHDRAW_RECHARGE_SAME_ADDRESS(2204, "提币地址和转账地址不能相等"),
 
     /*** －－－－－－业务错误码-其他相关－－－－－－*/
     SECRET_ERROR(3000, "密钥错误"),
