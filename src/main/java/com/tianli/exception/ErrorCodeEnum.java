@@ -176,6 +176,7 @@ public enum ErrorCodeEnum {
     MANUAL_TRANSFER_HASH_NULL(3806, "人工审核转账HASH为空"),
     TRANSFER_ORDER_EXIST(3807, "转账已存在"),
     TRANSFER_ERROR(3808, "转账异常"),
+    COIN_BASE_NOT_CONFIG_NOT_EXIST(3809, "币种上线前请先配置Id转账最小提币和手续费"),
 
     /*** －－－－－－业务错误码-质押－－－－－－*/
     BORROW_COIN_ERROR(3901, "借币异常"),
