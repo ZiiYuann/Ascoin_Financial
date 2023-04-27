@@ -342,6 +342,10 @@ public class AccountController {
             throw ErrorCodeEnum.USER_NOT_FUND_CHAT.generalException();
         }
 
+        if(chatId.equals(userInfoDTO.getChatId())){
+            ErrorCodeEnum.WITHDRAW_RECHARGE_SAME_ADDRESS.throwException();
+        }
+
         String repeatCheckKey = RedisConstants.ACCOUNT_TRANSFER_REPEAT
                 + query.getToChatId() + ":" + query.getCoin() + ":" + query.getAmount().toPlainString();
         if (query.isRepeatCheck()) {
