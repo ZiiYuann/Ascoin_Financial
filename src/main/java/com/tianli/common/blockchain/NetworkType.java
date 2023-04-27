@@ -13,9 +13,9 @@ public enum NetworkType {
     // 币安链代币标准
     bep20(ChainType.BSC, "BNB Chain", "BEP20"),
 
-    erc20_polygon(ChainType.POLYGON, "Polygon", "Polygon"),
-    erc20_optimistic(ChainType.OPTIMISTIC, "Optimism", "Optimism"),
-    erc20_arbitrum(ChainType.ARBITRUM, "Arbitrum", "Arbitrum");
+    erc20_polygon(ChainType.POLYGON, "Polygon", null),
+    erc20_optimistic(ChainType.OPTIMISTIC, "Optimism", null),
+    erc20_arbitrum(ChainType.ARBITRUM, "Arbitrum", null);
 //    btc(ChainType.BTC);
 
     NetworkType(ChainType chainType, String networkDesc, String shortName) {
