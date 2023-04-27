@@ -314,6 +314,11 @@ public class CoinServiceImpl extends ServiceImpl<CoinMapper, Coin> implements Co
                 || coin.getWithdrawMin().compareTo(BigDecimal.ZERO) == 0) {
             ErrorCodeEnum.COIN_NOT_CONFIG_NOT_EXIST.throwException();
         }
+        CoinBase coinBase = coinBaseService.getById(coin.getName());
+
+        if (coinBase.getWithdrawMin().compareTo(BigDecimal.ZERO) == 0) {
+            ErrorCodeEnum.COIN_BASE_NOT_CONFIG_NOT_EXIST.throwException();
+        }
 
         // 修改状态为 上架中
         coin.setStatus((byte) 1);
