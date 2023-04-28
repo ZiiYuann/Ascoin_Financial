@@ -2,6 +2,7 @@ package com.tianli.account.query;
 
 import cn.hutool.core.collection.CollUtil;
 import com.tianli.charge.enums.ChargeType;
+import com.tianli.charge.enums.ChargeTypeGroupEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,6 +23,8 @@ import java.util.*;
 public class AccountDetailsNewQuery implements Serializable {
 
     private String coin;
+
+    private ChargeTypeGroupEnum chargeTypeGroup;
 
     private List<ChargeType> chargeType;
 
