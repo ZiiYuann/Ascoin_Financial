@@ -20,7 +20,7 @@ public enum ChargeType {
     recharge("Deposition", "充值成功", AccountChangeType.recharge,ChargeTypeGroupEnum.RECHARGE),
     withdraw("Withdraw", "提币", AccountChangeType.withdraw,ChargeTypeGroupEnum.WITHDRAW),
     income("Earnings", "理财收益", AccountChangeType.income,ChargeTypeGroupEnum.IN),
-    purchase("User Subscription", "用户申购", AccountChangeType.purchase,ChargeTypeGroupEnum.OUT),
+    purchase("User Subscription", "理财申购", AccountChangeType.purchase,ChargeTypeGroupEnum.OUT),
     fund_purchase("Fund Subscription", "基金申购", AccountChangeType.fund_purchase,ChargeTypeGroupEnum.OUT),
     redeem("Redemption", "赎回", AccountChangeType.redeem,ChargeTypeGroupEnum.IN),
     fund_redeem("Fund Redemption", "基金赎回", AccountChangeType.fund_redeem,ChargeTypeGroupEnum.IN),
