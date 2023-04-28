@@ -8,13 +8,13 @@ ALTER TABLE `coin_base` ADD COLUMN `withdraw_min` decimal(38, 8) NULL DEFAULT 0.
 
 ALTER TABLE `financial_board_product` ADD PRIMARY KEY (`create_time`) USING BTREE;
 
-ALTER TABLE `order` ADD COLUMN `related_remarks` varchar(255) CHARACTER  NULL DEFAULT NULL COMMENT '关联资源附录信息' AFTER `related_id`;
+ALTER TABLE `order` ADD COLUMN `related_remarks` varchar(255)  NULL DEFAULT NULL COMMENT '关联资源附录信息' AFTER `related_id`;
 
 insert into `config`(name,value) values('wallet_news_server_url','https://wallet-news.giantdt.com');
 
 insert into order_charge_type(id,type,name,nameEn,operation_type,operation_group,visible_type,is_enable)values
 (36,'assure_withdraw','提币成功',	'Successful Withdrawal','WITHDRAW','WITHDRAW',1,1),
-(37,'assure_recharge','充值成功',	'Successful', ''Recharge'','RECHARGE','RECHARGE',1,1);
+(37,'assure_recharge','充值成功',	'Successful Recharge','RECHARGE','RECHARGE',1,1);
 
 update coin_base set withdraw_decimals = 8 ,withdraw_min = 1 where name in ('usdt','usdc','busd','tusd');
 update coin_base set withdraw_decimals = 8 ,withdraw_min = 0.001 where name in ('bnb','eth');
