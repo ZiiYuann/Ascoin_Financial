@@ -82,10 +82,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -648,7 +645,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     public IPage<AccountBalanceOperationLogVO> newPageByChargeGroup(Long uid, AccountDetailsNewQuery query
             , Page<AccountBalanceOperationLog> page) {
 
-        if (CollUtil.isEmpty(query.getChargeType())) {
+        if (CollUtil.isEmpty(query.getChargeType()) && CollUtil.isEmpty(query.getChargeTypeQueries())) {
             List<ChargeType> types = null;
             if(Objects.nonNull(query.getChargeTypeGroup())){
                 types = orderChargeTypeService.chargeTypes(query.getChargeTypeGroup());
