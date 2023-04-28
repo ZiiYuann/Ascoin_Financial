@@ -17,7 +17,7 @@ import java.util.List;
 public enum ChargeType {
     // recharge 充值 withdraw 提现 income 收益 purchase 申购 redeem 赎回 settle 结算 transfer 转存 borrow借币
 
-    recharge("Deposition", "充值成功", AccountChangeType.recharge,ChargeTypeGroupEnum.RECHARGE),
+    recharge("Successful Recharge", "充值成功", AccountChangeType.recharge,ChargeTypeGroupEnum.RECHARGE),
     withdraw("Withdraw", "提币", AccountChangeType.withdraw,ChargeTypeGroupEnum.WITHDRAW),
     income("Earnings", "理财收益", AccountChangeType.income,ChargeTypeGroupEnum.IN),
     purchase("User Subscription", "理财申购", AccountChangeType.purchase,ChargeTypeGroupEnum.OUT),
@@ -55,8 +55,8 @@ public enum ChargeType {
     forced_closeout("Forced Closeout", "强制平仓", AccountChangeType.forced_closeout,ChargeTypeGroupEnum.IN),
     auto_re("Automatic replenishment", "自动补仓", AccountChangeType.auto_re,ChargeTypeGroupEnum.OUT),
     //assure 提币 充值
-    assure_withdraw("Withdraw", "提币成功", AccountChangeType.assure_withdraw,ChargeTypeGroupEnum.WITHDRAW),
-    assure_recharge("Deposition", "充值成功", AccountChangeType.assure_recharge,ChargeTypeGroupEnum.RECHARGE),
+    assure_withdraw("Successful Withdrawal", "提币成功", AccountChangeType.assure_withdraw,ChargeTypeGroupEnum.WITHDRAW),
+    assure_recharge("Successful Recharge", "充值成功", AccountChangeType.assure_recharge,ChargeTypeGroupEnum.RECHARGE),
 
     c2c_transfer_in("C2C Transfer In","c2c转入",AccountChangeType.c2c_transfer_in,ChargeTypeGroupEnum.IN),
 
