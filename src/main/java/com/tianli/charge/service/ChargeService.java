@@ -646,10 +646,15 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
      */
     public IPage<AccountBalanceOperationLogVO> newPageByChargeGroup(Long uid, AccountDetailsNewQuery query
             , Page<AccountBalanceOperationLog> page) {
-        List<ChargeType> types = new ArrayList<>(List.of(ChargeType.values()));
-        types.remove(ChargeType.withdraw);
 
         if (Objects.isNull(query.getChargeType())) {
+            List<ChargeType> types = null;
+            if(Objects.nonNull(query.getChargeTypeGroup())){
+                types = orderChargeTypeService.chargeTypes(query.getChargeTypeGroup());
+            }else {
+                types = new ArrayList<>(List.of(ChargeType.values()));
+            }
+            types.remove(ChargeType.withdraw);
             query.setChargeType(types);
         }
         Page<AccountBalanceOperationLog> logPages = accountBalanceOperationLogMapper.pageList(page, uid, query);
