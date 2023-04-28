@@ -1,5 +1,6 @@
 package com.tianli.charge.service;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -647,7 +648,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
     public IPage<AccountBalanceOperationLogVO> newPageByChargeGroup(Long uid, AccountDetailsNewQuery query
             , Page<AccountBalanceOperationLog> page) {
 
-        if (Objects.isNull(query.getChargeType())) {
+        if (CollUtil.isEmpty(query.getChargeType())) {
             List<ChargeType> types = null;
             if(Objects.nonNull(query.getChargeTypeGroup())){
                 types = orderChargeTypeService.chargeTypes(query.getChargeTypeGroup());
