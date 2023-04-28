@@ -7,7 +7,9 @@ import com.tianli.charge.vo.OrderStatusPullVO;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author wangqiyun
@@ -139,6 +141,11 @@ public enum ChargeType {
                 break;
         }
         return result;
+    }
+
+    public static List<ChargeType> chargeTypes(ChargeTypeGroupEnum chargeTypeGroup){
+        return Arrays.stream(ChargeType.values()).filter(chargeType ->
+                chargeType.getLevel3Group() == chargeTypeGroup).collect(Collectors.toList());
     }
 
 }
