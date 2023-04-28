@@ -648,7 +648,7 @@ public class ChargeService extends ServiceImpl<OrderMapper, Order> {
         if (CollUtil.isEmpty(query.getChargeType()) && CollUtil.isEmpty(query.getChargeTypeQueries())) {
             List<ChargeType> types = null;
             if(Objects.nonNull(query.getChargeTypeGroup())){
-                types = orderChargeTypeService.chargeTypes(query.getChargeTypeGroup());
+                types = ChargeType.chargeTypes(query.getChargeTypeGroup());
             }else {
                 types = new ArrayList<>(List.of(ChargeType.values()));
             }
