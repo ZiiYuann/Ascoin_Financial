@@ -6,8 +6,6 @@ ALTER TABLE `coin_base` ADD COLUMN `withdraw_decimals` tinyint NULL DEFAULT 8 CO
 
 ALTER TABLE `coin_base` ADD COLUMN `withdraw_min` decimal(38, 8) NULL DEFAULT 0.00000000 COMMENT 'assure转账最小金额' AFTER `withdraw_decimals`;
 
-ALTER TABLE `financial_board_product` ADD PRIMARY KEY (`create_time`) USING BTREE;
-
 ALTER TABLE `order` ADD COLUMN `related_remarks` varchar(255)  NULL DEFAULT NULL COMMENT '关联资源附录信息' AFTER `related_id`;
 
 insert into `config`(name,value) values('wallet_news_server_url','https://wallet-news.giantdt.com');
