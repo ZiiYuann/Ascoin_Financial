@@ -67,9 +67,9 @@ public enum ChargeType {
 
 
     // 流水特殊处理使用，涉及到特殊的使用需要在AccountDetailsNewQuery.chargeTypeQueries 做处理
-    withdraw_success("Successful Withdrawal", "提币成功",null,null),
-    withdraw_failed("Failed Withdrawal", "提币失败",null,null),
-    withdraw_freeze("Freeze Withdrawal", "提币冻结",null,null),
+    withdraw_success("Successful Withdrawal", "提币成功",null,ChargeTypeGroupEnum.WITHDRAW),
+    withdraw_failed("Failed Withdrawal", "提币失败",null,ChargeTypeGroupEnum.WITHDRAW),
+    withdraw_freeze("Freeze Withdrawal", "提币冻结",null,ChargeTypeGroupEnum.WITHDRAW),
     ;
 
     private final String nameZn;
